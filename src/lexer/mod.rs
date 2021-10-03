@@ -116,6 +116,12 @@ impl Lexer {
     fn current_character(&self) -> char {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
     }
+
+    pub fn next_is(&mut self, token: TokenType) -> bool {
+        let tok = self.next();
+
+        tok.token == token
+    }
 }
 
 fn lookup_keyword(keyword: &str) -> TokenType {
