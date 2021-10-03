@@ -1,4 +1,3 @@
-use crate::lexer;
 use crate::lexer::token::TokenType;
 use crate::parser::Parser;
 use crate::parser::expression::identifier::Identifier;

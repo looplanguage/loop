@@ -4,12 +4,10 @@ pub mod statement;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
-use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::Statement;
-use crate::parser::statement::variable::VariableDeclaration;
 
 use self::statement::variable::parse_variable_declaration;
 
