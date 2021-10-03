@@ -32,8 +32,5 @@ pub enum TokenType {
 }
 
 pub fn create_token(token: TokenType, literal: String) -> Token {
-    Token {
-        token,
-        literal
-    }
+    Token { token, literal }
 }
