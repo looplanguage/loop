@@ -13,6 +13,7 @@ fn main() {
 
     let program = parser.parse();
 
+    println!("Statements ({}): ", program.statements.len());
     for stmt in program.statements {
         match stmt {
             Statement::VariableDeclaration(value) => {
