@@ -1,12 +1,9 @@
 pub struct Token {
     pub token: TokenType,
-    pub literal: String
+    pub literal: String,
 }
 
-#[derive(PartialEq)]
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(AsRefStr)]
+#[derive(PartialEq, Clone, Debug, AsRefStr)]
 pub enum TokenType {
     Identifier,
     VariableDeclaration,
@@ -31,12 +28,12 @@ pub enum TokenType {
     LessThan,
     GreaterThanOrEquals,
     LessThanOrEquals,
-    EOF
+    EOF,
 }
 
 pub fn create_token(token: TokenType, literal: String) -> Token {
     return Token {
         token,
-        literal: literal.to_string()
-    }
+        literal: literal.to_string(),
+    };
 }

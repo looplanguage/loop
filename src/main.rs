@@ -12,7 +12,11 @@ fn main() {
     let mut current_token: Token = l.next();
 
     while current_token.token != TokenType::EOF {
-        println!("{}: {}", current_token.literal, current_token.token.as_ref());
+        println!(
+            "{}: {}",
+            current_token.literal,
+            current_token.token.as_ref()
+        );
 
         current_token = l.next();
     }
