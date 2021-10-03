@@ -1,7 +1,6 @@
 pub mod token;
 
 use crate::lexer::token::create_token;
-use std::ops::Add;
 use token::Token;
 use token::TokenType;
 
