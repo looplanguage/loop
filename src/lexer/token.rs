@@ -28,12 +28,12 @@ pub enum TokenType {
     LessThan,
     GreaterThanOrEquals,
     LessThanOrEquals,
-    EOF,
+    Eof,
 }
 
 pub fn create_token(token: TokenType, literal: String) -> Token {
-    return Token {
+    Token {
         token,
-        literal: literal.to_string(),
-    };
+        literal
+    }
 }

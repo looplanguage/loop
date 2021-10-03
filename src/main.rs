@@ -11,7 +11,7 @@ fn main() {
 
     let mut current_token: Token = l.next();
 
-    while current_token.token != TokenType::EOF {
+    while current_token.token != TokenType::Eof {
         println!(
             "{}: {}",
             current_token.literal,

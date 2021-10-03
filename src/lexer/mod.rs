@@ -16,7 +16,7 @@ impl Lexer {
         self.next_character();
 
         if possible_char == None {
-            return create_token(TokenType::EOF, "".to_string());
+            return create_token(TokenType::Eof, "".to_string());
         }
 
         let ch: char = possible_char.unwrap();
@@ -106,11 +106,11 @@ impl Lexer {
             return char::from(0);
         }
 
-        return val.unwrap();
+        val.unwrap()
     }
 
     fn next_character(&mut self) {
-        self.current = self.current + 1;
+        self.current += 1;
     }
 
     fn current_character(&self) -> char {
@@ -126,16 +126,16 @@ fn lookup_keyword(keyword: &str) -> TokenType {
                 return TokenType::Integer;
             }
 
-            return TokenType::Identifier;
+            TokenType::Identifier
         }
     }
 }
 
 pub fn build_lexer(input: &str) -> Lexer {
-    return Lexer {
+    Lexer {
         current: 0,
         input: input.to_string(),
-    };
+    }
 }
 
 #[cfg(test)]
@@ -339,7 +339,7 @@ mod tests {
         let mut current_token: Token = l.next();
 
         let mut i = 0;
-        while current_token.token != TokenType::EOF {
+        while current_token.token != TokenType::Eof {
             assert_eq!(
                 current_token.token,
                 expected[i].token,
