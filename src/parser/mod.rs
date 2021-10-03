@@ -8,7 +8,10 @@ use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
-use crate::parser::statement::{Statement, VariableDeclaration};
+use crate::parser::statement::Statement;
+use crate::parser::statement::variable::VariableDeclaration;
+
+use self::statement::variable::parse_variable_declaration;
 
 pub struct Parser {
     lexer: Lexer,
@@ -35,28 +38,7 @@ impl Parser {
 
     fn parse_statement(&mut self, token: Token) -> Option<Statement> {
         match token.token {
-            TokenType::VariableDeclaration => {
-                let ident = self.lexer.next();
-                if ident.token != TokenType::Identifier {
-                    return None;
-                }
-
-                if !self.lexer.next_is(TokenType::Assign) {
-                    return None;
-                }
-
-                let expr = self.parse_expression();
-                if expr.is_none() {
-                    return None;
-                }
-
-                Some(Statement::VariableDeclaration(VariableDeclaration {
-                    ident: Identifier {
-                        value: ident.literal,
-                    },
-                    value: expr.unwrap(),
-                }))
-            }
+            TokenType::VariableDeclaration => parse_variable_declaration(self),
             _ => self.parse_expression_statement(token),
         }
     }
