@@ -2,22 +2,22 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use crate::lexer::token::{Token, TokenType};
+use crate::parser::statement::Statement;
 
 mod lexer;
+mod parser;
 
 fn main() {
-    let mut l = lexer::build_lexer("var test = 1;");
+    let l = lexer::build_lexer("var test = 1; var testtwo = 2;");
+    let mut parser = parser::build_parser(l);
 
-    let mut current_token: Token = l.next();
+    let program = parser.parse();
 
-    while current_token.token != TokenType::Eof {
-        println!(
-            "{}: {}",
-            current_token.literal,
-            current_token.token.as_ref()
-        );
-
-        current_token = l.next();
+    for stmt in program.statements {
+        match stmt {
+            Statement::VariableDeclaration(value) => {
+                println!("Variable declared: {}", value.ident.value);
+            }
+        }
     }
 }
