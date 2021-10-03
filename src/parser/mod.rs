@@ -19,16 +19,14 @@ impl Parser {
     pub fn parse(&mut self) -> Program {
         let mut statements: Vec<Statement> = Vec::new();
 
-        let mut current_token: Token = self.lexer.next();
-
-        while current_token.token != TokenType::Eof {
-            let new_statement = self.parse_statement(current_token);
+        while self.lexer.current_token.clone().unwrap().token != TokenType::Eof {
+            let new_statement = self.parse_statement(self.lexer.current_token.clone().unwrap());
 
             if new_statement.is_some() {
                 statements.push(new_statement.unwrap());
             }
 
-            current_token = self.lexer.next();
+            self.lexer.next();
         }
 
         Program { statements }

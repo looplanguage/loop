@@ -1,9 +1,10 @@
+#[derive(Clone)]
 pub struct Token {
     pub token: TokenType,
     pub literal: String,
 }
 
-#[derive(PartialEq, Clone, Debug, AsRefStr)]
+#[derive(PartialEq, Clone, Debug, AsRefStr, Copy)]
 pub enum TokenType {
     Identifier,
     VariableDeclaration,
@@ -28,6 +29,7 @@ pub enum TokenType {
     LessThan,
     GreaterThanOrEquals,
     LessThanOrEquals,
+    Unknown,
     Eof,
 }
 

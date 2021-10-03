@@ -7,10 +7,25 @@ use token::TokenType;
 pub struct Lexer {
     current: i32,
     input: String,
+    pub current_token: Option<Token>,
+    pub peek_token: Option<Token>
 }
 
 impl Lexer {
     pub fn next(&mut self) -> Token {
+        self.current_token = self.peek_token.clone();
+        self.peek_token = Some(self.next_token());
+
+        let cloned = self.current_token.clone();
+
+        if cloned.is_none() {
+            return create_token(TokenType::Unknown, "".to_string())
+        }
+
+        return cloned.unwrap();
+    }
+
+    pub fn next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
@@ -22,7 +37,7 @@ impl Lexer {
         let ch: char = possible_char.unwrap();
 
         if ch.is_whitespace() {
-            return self.next();
+            return self.next_token();
         }
 
         match ch {
@@ -118,9 +133,12 @@ impl Lexer {
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
-        let tok = self.next();
+        if self.peek_token.clone().unwrap().token == token {
+            self.next();
+            return true
+        }
 
-        tok.token == token
+        return false
     }
 }
 
@@ -138,10 +156,17 @@ fn lookup_keyword(keyword: &str) -> TokenType {
 }
 
 pub fn build_lexer(input: &str) -> Lexer {
-    Lexer {
+    let mut l = Lexer {
         current: 0,
         input: input.to_string(),
-    }
+        current_token: None,
+        peek_token: None,
+    };
+
+    l.next();
+    l.next();
+
+    return l
 }
 
 #[cfg(test)]
@@ -342,7 +367,7 @@ mod tests {
 
     fn do_test(input: &str, expected: Vec<Token>) {
         let mut l = lexer::build_lexer(input);
-        let mut current_token: Token = l.next();
+        let mut current_token: Token = l.current_token.clone().unwrap();
 
         let mut i = 0;
         while current_token.token != TokenType::Eof {
@@ -366,7 +391,8 @@ mod tests {
             );
 
             i = i + 1;
-            current_token = l.next();
+            l.next();
+            current_token = l.current_token.clone().unwrap();
         }
     }
 }

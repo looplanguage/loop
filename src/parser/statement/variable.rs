@@ -11,10 +11,11 @@ pub struct VariableDeclaration {
 }
 
 pub fn parse_variable_declaration(p: &mut Parser) -> Option<Statement> {
-  let ident = p.lexer.next();
-  if ident.token != TokenType::Identifier {
+  if !p.lexer.next_is(TokenType::Identifier) {
       return None;
   }
+
+  let ident = p.lexer.current_token.clone().unwrap();
 
   if !p.lexer.next_is(TokenType::Assign) {
       return None;
