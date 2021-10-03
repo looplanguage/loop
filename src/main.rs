@@ -16,7 +16,7 @@ fn main() {
     for stmt in program.statements {
         match stmt {
             Statement::VariableDeclaration(value) => {
-                println!("Variable declared: {}", value.ident.value);
+                println!("Variable declared: {} = {:?}", value.ident.value, value.value);
             }
         }
     }
