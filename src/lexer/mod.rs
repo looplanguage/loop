@@ -1,30 +1,29 @@
 pub mod token;
 
+use crate::lexer::token::create_token;
 use std::ops::Add;
 use token::Token;
 use token::TokenType;
-use crate::lexer::token::create_token;
 
 pub struct Lexer {
     current: i32,
-    input: String
+    input: String,
 }
 
 impl Lexer {
     pub fn next(&mut self) -> Token {
-
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
 
         if possible_char == None {
-            return create_token(TokenType::EOF, "".to_string())
+            return create_token(TokenType::EOF, "".to_string());
         }
 
         let ch: char = possible_char.unwrap();
 
         if ch.is_whitespace() {
-            return self.next()
+            return self.next();
         }
 
         match ch {
@@ -43,38 +42,48 @@ impl Lexer {
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
-                    return create_token(TokenType::NotEquals, ch.to_string() + self.current_character().to_string().as_str())
+                    return create_token(
+                        TokenType::NotEquals,
+                        ch.to_string() + self.current_character().to_string().as_str(),
+                    );
                 }
 
                 create_token(TokenType::InvertSign, ch.to_string())
-            },
+            }
             '=' => {
                 if self.peek_character() == '=' {
                     self.next_character();
-                    return create_token(TokenType::Equals, ch.to_string() + self.current_character().to_string().as_str())
+                    return create_token(
+                        TokenType::Equals,
+                        ch.to_string() + self.current_character().to_string().as_str(),
+                    );
                 }
 
                 create_token(TokenType::Assign, ch.to_string())
-            },
+            }
             '>' => {
                 if self.peek_character() == '=' {
                     self.next_character();
-                    return create_token(TokenType::GreaterThanOrEquals, ch.to_string() + self.current_character().to_string().as_str())
+                    return create_token(
+                        TokenType::GreaterThanOrEquals,
+                        ch.to_string() + self.current_character().to_string().as_str(),
+                    );
                 }
 
                 create_token(TokenType::GreaterThan, ch.to_string())
-            },
+            }
             '<' => {
                 if self.peek_character() == '=' {
                     self.next_character();
-                    return create_token(TokenType::LessThanOrEquals, ch.to_string() + self.current_character().to_string().as_str())
+                    return create_token(
+                        TokenType::LessThanOrEquals,
+                        ch.to_string() + self.current_character().to_string().as_str(),
+                    );
                 }
 
                 create_token(TokenType::LessThan, ch.to_string())
             }
-            _ => {
-                self.find_keyword(ch)
-            }
+            _ => self.find_keyword(ch),
         }
     }
 
@@ -98,7 +107,7 @@ impl Lexer {
             return char::from(0);
         }
 
-        return val.unwrap()
+        return val.unwrap();
     }
 
     fn next_character(&mut self) {
@@ -115,10 +124,10 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "var" => TokenType::VariableDeclaration,
         _ => {
             if keyword.parse::<i32>().is_ok() {
-                return TokenType::Integer
+                return TokenType::Integer;
             }
 
-            return TokenType::Identifier
+            return TokenType::Identifier;
         }
     }
 }
@@ -126,10 +135,9 @@ fn lookup_keyword(keyword: &str) -> TokenType {
 pub fn build_lexer(input: &str) -> Lexer {
     return Lexer {
         current: 0,
-        input: input.to_string()
-    }
+        input: input.to_string(),
+    };
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -140,11 +148,26 @@ mod tests {
     fn variable_declaration() {
         let input = "var test = 1;";
         let expected = vec![
-            Token{ token: TokenType::VariableDeclaration, literal: "var".to_string() },
-            Token{ token: TokenType::Identifier, literal: "test".to_string() },
-            Token{ token: TokenType::Assign, literal: "=".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
+            Token {
+                token: TokenType::VariableDeclaration,
+                literal: "var".to_string(),
+            },
+            Token {
+                token: TokenType::Identifier,
+                literal: "test".to_string(),
+            },
+            Token {
+                token: TokenType::Assign,
+                literal: "=".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
         ];
 
         do_test(input, expected);
@@ -154,52 +177,159 @@ mod tests {
     fn arithmetic_operations() {
         let input = "1 + 1; 1 - 5; 1 * 4; 20 / 3; 10 % 5;";
         let expected = vec![
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::Plus, literal: "+".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::Minus, literal: "-".to_string() },
-            Token{ token: TokenType::Integer, literal: "5".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::Multiply, literal: "*".to_string() },
-            Token{ token: TokenType::Integer, literal: "4".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "20".to_string() },
-            Token{ token: TokenType::Divide, literal: "/".to_string() },
-            Token{ token: TokenType::Integer, literal: "3".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "10".to_string() },
-            Token{ token: TokenType::Modulo, literal: "%".to_string() },
-            Token{ token: TokenType::Integer, literal: "5".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::Plus,
+                literal: "+".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::Minus,
+                literal: "-".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "5".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::Multiply,
+                literal: "*".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "4".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "20".to_string(),
+            },
+            Token {
+                token: TokenType::Divide,
+                literal: "/".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "3".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "10".to_string(),
+            },
+            Token {
+                token: TokenType::Modulo,
+                literal: "%".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "5".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
         ];
 
         do_test(input, expected);
     }
 
-
     #[test]
     fn boolean_operations() {
         let input = "1 > 2; 1 >= 2; 1 < 2; 1 <= 2;";
         let expected = vec![
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::GreaterThan, literal: ">".to_string() },
-            Token{ token: TokenType::Integer, literal: "2".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::GreaterThanOrEquals, literal: ">=".to_string() },
-            Token{ token: TokenType::Integer, literal: "2".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::LessThan, literal: "<".to_string() },
-            Token{ token: TokenType::Integer, literal: "2".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
-            Token{ token: TokenType::Integer, literal: "1".to_string() },
-            Token{ token: TokenType::LessThanOrEquals, literal: "<=".to_string() },
-            Token{ token: TokenType::Integer, literal: "2".to_string() },
-            Token{ token: TokenType::Semicolon, literal: ";".to_string() },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::GreaterThan,
+                literal: ">".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "2".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::GreaterThanOrEquals,
+                literal: ">=".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "2".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::LessThan,
+                literal: "<".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "2".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "1".to_string(),
+            },
+            Token {
+                token: TokenType::LessThanOrEquals,
+                literal: "<=".to_string(),
+            },
+            Token {
+                token: TokenType::Integer,
+                literal: "2".to_string(),
+            },
+            Token {
+                token: TokenType::Semicolon,
+                literal: ";".to_string(),
+            },
         ];
 
         do_test(input, expected);
@@ -211,9 +341,24 @@ mod tests {
 
         let mut i = 0;
         while current_token.token != TokenType::EOF {
-
-            assert_eq!(current_token.token, expected[i].token, "wrong token. got={}. expected={} (values {} & {})", current_token.token.as_ref(), expected[i].token.as_ref(), current_token.literal, expected[i].literal);
-            assert_eq!(current_token.literal, expected[i].literal, "wrong value. got={}. expected={} (tokens {} & {})", current_token.literal, expected[i].literal, current_token.token.as_ref(), expected[i].token.as_ref());
+            assert_eq!(
+                current_token.token,
+                expected[i].token,
+                "wrong token. got={}. expected={} (values {} & {})",
+                current_token.token.as_ref(),
+                expected[i].token.as_ref(),
+                current_token.literal,
+                expected[i].literal
+            );
+            assert_eq!(
+                current_token.literal,
+                expected[i].literal,
+                "wrong value. got={}. expected={} (tokens {} & {})",
+                current_token.literal,
+                expected[i].literal,
+                current_token.token.as_ref(),
+                expected[i].token.as_ref()
+            );
 
             i = i + 1;
             current_token = l.next();
