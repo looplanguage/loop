@@ -160,5 +160,13 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
     p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
 
+    // Infix Parsers Comparisons
+    p.add_infix_parser(TokenType::Equals, parse_suffix_expression);
+    p.add_infix_parser(TokenType::GreaterThan, parse_suffix_expression);
+    p.add_infix_parser(TokenType::GreaterThanOrEquals, parse_suffix_expression);
+    p.add_infix_parser(TokenType::LessThan, parse_suffix_expression);
+    p.add_infix_parser(TokenType::LessThanOrEquals, parse_suffix_expression);
+
+
     p
 }
