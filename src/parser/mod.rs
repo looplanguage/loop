@@ -6,10 +6,10 @@ mod tests;
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::integer::parse_integer_literal;
+use crate::parser::expression::integer::{parse_integer_literal};
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
-use crate::parser::program::Program;
+use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
@@ -18,8 +18,8 @@ use self::statement::variable::parse_variable_declaration;
 
 pub struct Parser {
     lexer: Lexer,
-    prefix_parser: HashMap<TokenType, fn(parser: &mut Parser) -> Expression>,
-    infix_parser: HashMap<TokenType, fn(parser: &mut Parser, expression: Expression) -> Expression>,
+    prefix_parser: HashMap<TokenType, fn(parser: &mut Parser) -> Option<Node>>,
+    infix_parser: HashMap<TokenType, fn(parser: &mut Parser, expression: Expression) -> Option<Node>>,
     pub errors: Vec<String>,
 }
 
@@ -30,7 +30,7 @@ impl Parser {
         while self.lexer.current_token.clone().unwrap().token != TokenType::Eof {
             let new_statement = self.parse_statement(self.lexer.current_token.clone().unwrap());
 
-            if let Some(i) = new_statement {
+            if let Some(Node::Statement(i)) = new_statement {
                 statements.push(i);
             }
 
@@ -40,7 +40,7 @@ impl Parser {
         Program { statements }
     }
 
-    fn parse_statement(&mut self, token: Token) -> Option<Statement> {
+    fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             _ => self.parse_expression_statement(token),
@@ -55,11 +55,11 @@ impl Parser {
         r
     }
 
-    fn parse_expression_statement(&mut self, _token: Token) -> Option<Statement> {
+    fn parse_expression_statement(&mut self, _token: Token) -> Option<Node> {
         parse_expression_statement(self)
     }
 
-    fn parse_expression(&mut self, precedence: Precedence) -> Option<Expression> {
+    fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {
         let prefix_parser = self
             .prefix_parser
             .get(&self.lexer.current_token.as_ref().unwrap().token);
@@ -72,33 +72,43 @@ impl Parser {
             return None;
         }
 
-        let mut expression: Expression = prefix_parser.unwrap()(self);
+        let expression_node: Option<Node> = prefix_parser.unwrap()(self);
+        if let Node::Expression(exp) = expression_node.unwrap() {
+            let mut infix_expression_node: Option<Node> = None;
+            while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
+                let infix_parser = self
+                    .infix_parser
+                    .get(&self.lexer.peek_token.as_ref().unwrap().token);
 
-        while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
-            let infix_parser = self
-                .infix_parser
-                .get(&self.lexer.peek_token.as_ref().unwrap().token);
+                if infix_parser.is_none() {
+                    return Some(Node::Expression(exp));
+                }
 
-            if infix_parser.is_none() {
-                return Some(expression);
+                self.lexer.next();
+
+                infix_expression_node = infix_parser.unwrap()(self, exp.clone())
             }
 
-            self.lexer.next();
+            if infix_expression_node.is_some() {
+                return infix_expression_node;
+            }
 
-            expression = infix_parser.unwrap()(self, expression);
+            return Some(Node::Expression(exp))
         }
 
-        Some(expression)
+        self.add_error(format!("unable to parse: {}", self.lexer.current_token.clone().unwrap().literal));
+
+        None
     }
 
-    fn add_prefix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser) -> Expression) {
+    fn add_prefix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser) -> Option<Node>) {
         self.prefix_parser.insert(tok, func);
     }
 
     fn add_infix_parser(
         &mut self,
         tok: TokenType,
-        func: fn(parser: &mut Parser, expression: Expression) -> Expression,
+        func: fn(parser: &mut Parser, expression: Expression) -> Option<Node>,
     ) {
         self.infix_parser.insert(tok, func);
     }

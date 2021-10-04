@@ -1,13 +1,14 @@
 use crate::parser::expression::Expression;
 use crate::parser::Parser;
+use crate::parser::program::Node;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Identifier {
     pub(crate) value: String,
 }
 
-pub fn parse_identifier(p: &mut Parser) -> Expression {
-    Expression::Identifier(Identifier {
+pub fn parse_identifier(p: &mut Parser) -> Option<Node> {
+    Some(Node::Expression(Expression::Identifier(Identifier {
         value: p.lexer.current_token.clone().unwrap().literal,
-    })
+    })))
 }
