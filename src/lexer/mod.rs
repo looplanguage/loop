@@ -25,7 +25,7 @@ impl Lexer {
         return cloned.unwrap();
     }
 
-    pub fn next_token(&mut self) -> Token {
+    fn next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();

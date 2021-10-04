@@ -1,17 +1,20 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
+use crate::parser::expression::suffix::Suffix;
 
 pub mod identifier;
 pub mod integer;
+pub mod suffix;
 
 #[derive(Debug)]
 pub enum Expression {
     Identifier(Identifier),
     Integer(Integer),
+    Suffix(Box<Suffix>)
 }
 
-#[derive(PartialOrd, PartialEq)]
+#[derive(PartialOrd, PartialEq, Debug)]
 pub enum Precedence {
     LOWEST,
     EQUALS,
