@@ -9,7 +9,7 @@ use crate::parser::expression::{Expression, get_precedence, Precedence};
 use crate::parser::program::Program;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
-use crate::parser::expression::suffix::parse_suffix_expression;
+use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -63,7 +63,6 @@ impl Parser {
         let mut expression: Expression = prefix_parser.unwrap()(self);
 
 
-        println!("IsSemi: {:?}; Pre: {:?}; peek: {:?}", self.peek_token_is(TokenType::Semicolon), precedence, self.peek_precedence());
         while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
             let infix_parser = self.infix_parser.get(&self.lexer.peek_token.as_ref().unwrap().token);
 
@@ -120,9 +119,14 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
+    p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Multiply, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Divide, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
 
     return p;
 }
