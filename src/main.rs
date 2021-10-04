@@ -29,7 +29,7 @@ fn main() {
                     "Variable declared: {} = {:?}",
                     value.ident.value, value.value
                 );
-            },
+            }
             Statement::Expression(value) => {
                 println!("Expression statement: {:?}", value.expression)
             }
