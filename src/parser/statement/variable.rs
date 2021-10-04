@@ -24,10 +24,8 @@ pub fn parse_variable_declaration(p: &mut Parser) -> Option<Statement> {
 
     p.lexer.next();
 
-    let expr = p.parse_expression(Precedence::LOWEST);
-    if expr.is_none() {
-        return None;
-    }
+    let expr = p.parse_expression(Precedence::Lowest);
+    expr.as_ref()?;
 
     Some(Statement::VariableDeclaration(VariableDeclaration {
         ident: Identifier {

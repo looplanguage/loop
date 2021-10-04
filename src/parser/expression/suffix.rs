@@ -1,6 +1,6 @@
 use crate::lexer::token::TokenType::RightParenthesis;
 use crate::parser::expression::Expression;
-use crate::parser::expression::Precedence::LOWEST;
+use crate::parser::expression::Precedence::Lowest;
 use crate::parser::Parser;
 
 #[derive(Debug, PartialEq)]
@@ -18,7 +18,7 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Expres
         .unwrap()
         .literal
         .chars()
-        .nth(0)
+        .next()
         .unwrap();
 
     let pre = p.cur_precedence();
@@ -34,7 +34,7 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Expres
 
 pub fn parse_grouped_expression(p: &mut Parser) -> Expression {
     p.lexer.next();
-    let exp = p.parse_expression(LOWEST);
+    let exp = p.parse_expression(Lowest);
 
     if !p.lexer.next_is(RightParenthesis) {
         p.add_error(format!(
@@ -43,5 +43,5 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Expression {
         ))
     }
 
-    return exp.unwrap();
+    exp.unwrap()
 }

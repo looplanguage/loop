@@ -30,8 +30,8 @@ impl Parser {
         while self.lexer.current_token.clone().unwrap().token != TokenType::Eof {
             let new_statement = self.parse_statement(self.lexer.current_token.clone().unwrap());
 
-            if new_statement.is_some() {
-                statements.push(new_statement.unwrap());
+            if let Some(i) = new_statement {
+                statements.push(i);
             }
 
             self.lexer.next();
@@ -46,13 +46,13 @@ impl Parser {
             _ => self.parse_expression_statement(token),
         };
 
-        if self.lexer.peek_token.is_some() {
-            if self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon {
-                self.lexer.next();
-            }
+        if self.lexer.peek_token.is_some()
+            && self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon
+        {
+            self.lexer.next();
         }
 
-        return r;
+        r
     }
 
     fn parse_expression_statement(&mut self, _token: Token) -> Option<Statement> {
@@ -65,13 +65,10 @@ impl Parser {
             .get(&self.lexer.current_token.as_ref().unwrap().token);
 
         if prefix_parser.is_none() {
-            self.add_error(
-                format!(
-                    "no prefix parser for \"{:?}\"",
-                    self.lexer.current_token.as_ref().unwrap().token
-                )
-                .to_string(),
-            );
+            self.add_error(format!(
+                "no prefix parser for \"{:?}\"",
+                self.lexer.current_token.as_ref().unwrap().token
+            ));
             return None;
         }
 
@@ -149,5 +146,5 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
     p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
 
-    return p;
+    p
 }

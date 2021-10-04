@@ -23,7 +23,7 @@ impl Lexer {
             return create_token(TokenType::Unknown, "".to_string());
         }
 
-        return cloned.unwrap();
+        cloned.unwrap()
     }
 
     fn next_token(&mut self) -> Token {
@@ -139,7 +139,7 @@ impl Lexer {
             return true;
         }
 
-        return false;
+        false
     }
 }
 
@@ -167,5 +167,5 @@ pub fn build_lexer(input: &str) -> Lexer {
     l.next();
     l.next();
 
-    return l;
+    l
 }

@@ -8,13 +8,11 @@ pub struct Expression {
 }
 
 pub fn parse_expression_statement(p: &mut Parser) -> Option<Statement> {
-    let exp = p.parse_expression(Precedence::LOWEST);
+    let expr = p.parse_expression(Precedence::Lowest);
 
-    if exp.is_none() {
-        return None;
-    }
+    expr.as_ref()?;
 
     Some(Statement::Expression(Expression {
-        expression: exp.unwrap(),
+        expression: expr.unwrap(),
     }))
 }
