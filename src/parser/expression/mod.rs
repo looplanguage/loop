@@ -7,7 +7,7 @@ pub mod identifier;
 pub mod integer;
 pub mod suffix;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
     Identifier(Identifier),
     Integer(Integer),

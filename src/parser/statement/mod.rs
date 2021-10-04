@@ -4,7 +4,7 @@ use crate::parser::statement::expression::Expression;
 pub mod expression;
 pub mod variable;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
     VariableDeclaration(VariableDeclaration),
     Expression(Expression),
