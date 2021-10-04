@@ -5,12 +5,12 @@ mod tests;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
-use crate::parser::expression::integer::{Integer, parse_integer_literal};
-use crate::parser::expression::{Expression, get_precedence, Precedence};
+use crate::parser::expression::integer::{parse_integer_literal, Integer};
+use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
+use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::Program;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
-use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -22,7 +22,7 @@ pub struct Parser {
     lexer: Lexer,
     prefix_parser: HashMap<TokenType, fn(parser: &mut Parser) -> Expression>,
     infix_parser: HashMap<TokenType, fn(parser: &mut Parser, expression: Expression) -> Expression>,
-    pub errors: Vec<String>
+    pub errors: Vec<String>,
 }
 
 impl Parser {
@@ -54,21 +54,30 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Expression> {
-        let prefix_parser = self.prefix_parser.get(&self.lexer.current_token.as_ref().unwrap().token);
+        let prefix_parser = self
+            .prefix_parser
+            .get(&self.lexer.current_token.as_ref().unwrap().token);
 
         if prefix_parser.is_none() {
-            self.add_error(format!("no prefix parser for \"{:?}\"", self.lexer.current_token.as_ref().unwrap().token).to_string());
-            return None
+            self.add_error(
+                format!(
+                    "no prefix parser for \"{:?}\"",
+                    self.lexer.current_token.as_ref().unwrap().token
+                )
+                .to_string(),
+            );
+            return None;
         }
 
         let mut expression: Expression = prefix_parser.unwrap()(self);
 
-
         while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
-            let infix_parser = self.infix_parser.get(&self.lexer.peek_token.as_ref().unwrap().token);
+            let infix_parser = self
+                .infix_parser
+                .get(&self.lexer.peek_token.as_ref().unwrap().token);
 
             if infix_parser.is_none() {
-                return Some(expression)
+                return Some(expression);
             }
 
             self.lexer.next();
@@ -83,7 +92,11 @@ impl Parser {
         self.prefix_parser.insert(tok, func);
     }
 
-    fn add_infix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser, expression: Expression) -> Expression) {
+    fn add_infix_parser(
+        &mut self,
+        tok: TokenType,
+        func: fn(parser: &mut Parser, expression: Expression) -> Expression,
+    ) {
         self.infix_parser.insert(tok, func);
     }
 
@@ -91,7 +104,7 @@ impl Parser {
         let peek = self.lexer.peek_token.clone();
 
         if peek.is_none() {
-            return false
+            return false;
         }
 
         peek.unwrap().token == tok
@@ -115,7 +128,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
         lexer,
         prefix_parser: HashMap::new(),
         infix_parser: HashMap::new(),
-        errors: Vec::new()
+        errors: Vec::new(),
     };
 
     // Prefix parsers

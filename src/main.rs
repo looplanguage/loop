@@ -18,19 +18,22 @@ fn main() {
             println!("{}", error)
         }
 
-        return
+        return;
     }
 
     println!("Statements ({}): ", program.statements.len());
     for stmt in program.statements {
         match stmt {
             Statement::VariableDeclaration(value) => {
-                println!("Variable declared: {} = {:?}", value.ident.value, value.value);
+                println!(
+                    "Variable declared: {} = {:?}",
+                    value.ident.value, value.value
+                );
             }
         }
     }
 }
 
 fn test() -> Option<bool> {
-    return None
+    return None;
 }

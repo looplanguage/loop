@@ -3,18 +3,16 @@ use crate::parser;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer;
 use crate::parser::expression::integer::Integer;
+use crate::parser::expression::suffix::Suffix;
 use crate::parser::expression::Expression;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::statement::Statement;
 use std::borrow::Borrow;
-use crate::parser::expression::suffix::Suffix;
 
 #[cfg(test)]
-
 #[test]
 fn variable_declaration() {
-    let input =
-        "var test = 1;
+    let input = "var test = 1;
         var test2 = 40;
         var test3 = 10 * 2;
         ";
@@ -39,10 +37,10 @@ fn variable_declaration() {
         ident: Identifier {
             value: "test3".to_string(),
         },
-        value: Expression::Suffix(Box::new(Suffix{
-            left: Expression::Integer(Integer{ value: 10}),
+        value: Expression::Suffix(Box::new(Suffix {
+            left: Expression::Integer(Integer { value: 10 }),
             operator: '*',
-            right: Expression::Integer(Integer{ value: 2 })
+            right: Expression::Integer(Integer { value: 2 }),
         })),
     }));
 

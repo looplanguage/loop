@@ -7,7 +7,14 @@ pub struct Integer {
 }
 
 pub fn parse_integer_literal(p: &mut Parser) -> Expression {
-    let value = p.lexer.current_token.clone().unwrap().literal.parse::<i32>().unwrap();
+    let value = p
+        .lexer
+        .current_token
+        .clone()
+        .unwrap()
+        .literal
+        .parse::<i32>()
+        .unwrap();
 
     Expression::Integer(Integer { value })
 }
