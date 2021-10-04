@@ -1,7 +1,7 @@
 use crate::parser::expression::Precedence;
+use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use crate::parser::Parser;
-use crate::parser::program::Node;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Expression {

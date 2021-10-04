@@ -5,23 +5,24 @@ mod tests;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
+use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
+use crate::parser::expression::function::parse_function;
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::integer::{parse_integer_literal};
+use crate::parser::expression::integer::parse_integer_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
-use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
-use crate::parser::expression::function::parse_function;
 
 use self::statement::variable::parse_variable_declaration;
 
 pub struct Parser {
     lexer: Lexer,
     prefix_parser: HashMap<TokenType, fn(parser: &mut Parser) -> Option<Node>>,
-    infix_parser: HashMap<TokenType, fn(parser: &mut Parser, expression: Expression) -> Option<Node>>,
+    infix_parser:
+        HashMap<TokenType, fn(parser: &mut Parser, expression: Expression) -> Option<Node>>,
     pub errors: Vec<String>,
 }
 
@@ -95,10 +96,13 @@ impl Parser {
                 return infix_expression_node;
             }
 
-            return Some(Node::Expression(exp))
+            return Some(Node::Expression(exp));
         }
 
-        self.add_error(format!("unable to parse: {}", self.lexer.current_token.clone().unwrap().literal));
+        self.add_error(format!(
+            "unable to parse: {}",
+            self.lexer.current_token.clone().unwrap().literal
+        ));
 
         None
     }
@@ -168,7 +172,6 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::GreaterThanOrEquals, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThan, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThanOrEquals, parse_suffix_expression);
-
 
     p
 }
