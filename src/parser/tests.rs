@@ -44,6 +44,47 @@ fn booleans_inverted() {
 }
 
 #[test]
+fn comparison() {
+    let input = "true == true; 1 == true; 3 > 4; 3 < 4;";
+
+    let mut expected: Vec<Statement> = Vec::new();
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Suffix(Box::new(Suffix{
+            left: parser::expression::Expression::Boolean(Boolean{ value: true }),
+            operator: "==".to_string(),
+            right: parser::expression::Expression::Boolean(Boolean{ value: true }),
+        })),
+    }));
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Suffix(Box::new(Suffix{
+            left: parser::expression::Expression::Integer(Integer{ value: 1 }),
+            operator: "==".to_string(),
+            right: parser::expression::Expression::Boolean(Boolean{ value: true }),
+        })),
+    }));
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Suffix(Box::new(Suffix{
+            left: parser::expression::Expression::Integer(Integer{ value: 3 }),
+            operator: ">".to_string(),
+            right: parser::expression::Expression::Integer(Integer{ value: 4 }),
+        })),
+    }));
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Suffix(Box::new(Suffix{
+            left: parser::expression::Expression::Integer(Integer{ value: 3 }),
+            operator: "<".to_string(),
+            right: parser::expression::Expression::Integer(Integer{ value: 4 }),
+        })),
+    }));
+
+    test_parser(input, expected);
+}
+
+#[test]
 fn variable_declaration() {
     let input = "var test = 1;
         var test2 = 40;
@@ -72,7 +113,7 @@ fn variable_declaration() {
         },
         value: parser::expression::Expression::Suffix(Box::new(Suffix {
             left: parser::expression::Expression::Integer(Integer { value: 10 }),
-            operator: '*',
+            operator: '*'.to_string(),
             right: parser::expression::Expression::Integer(Integer { value: 2 }),
         })),
     }));

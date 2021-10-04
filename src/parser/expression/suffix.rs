@@ -7,7 +7,7 @@ use crate::parser::Parser;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Suffix {
     pub(crate) left: Expression,
-    pub(crate) operator: char,
+    pub(crate) operator: String,
     pub(crate) right: Expression,
 }
 
@@ -17,10 +17,7 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option
         .current_token
         .clone()
         .unwrap()
-        .literal
-        .chars()
-        .next()
-        .unwrap();
+        .literal;
 
     let pre = p.cur_precedence();
 
