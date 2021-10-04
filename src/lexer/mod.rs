@@ -1,5 +1,5 @@
-pub mod token;
 mod tests;
+pub mod token;
 
 use crate::lexer::token::create_token;
 use token::Token;
@@ -9,7 +9,7 @@ pub struct Lexer {
     current: i32,
     input: String,
     pub current_token: Option<Token>,
-    pub peek_token: Option<Token>
+    pub peek_token: Option<Token>,
 }
 
 impl Lexer {
@@ -20,7 +20,7 @@ impl Lexer {
         let cloned = self.current_token.clone();
 
         if cloned.is_none() {
-            return create_token(TokenType::Unknown, "".to_string())
+            return create_token(TokenType::Unknown, "".to_string());
         }
 
         return cloned.unwrap();
@@ -136,10 +136,10 @@ impl Lexer {
     pub fn next_is(&mut self, token: TokenType) -> bool {
         if self.peek_token.clone().unwrap().token == token {
             self.next();
-            return true
+            return true;
         }
 
-        return false
+        return false;
     }
 
     fn skip_whitespaces(&mut self) {
@@ -174,5 +174,5 @@ pub fn build_lexer(input: &str) -> Lexer {
     l.next();
     l.next();
 
-    return l
+    return l;
 }
