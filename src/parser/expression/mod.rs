@@ -15,6 +15,7 @@ pub enum Expression {
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
+#[allow(dead_code)]
 pub enum Precedence {
     LOWEST,
     EQUALS,
