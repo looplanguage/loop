@@ -16,10 +16,6 @@ use crate::parser::statement::expression::parse_expression_statement;
 
 use self::statement::variable::parse_variable_declaration;
 
-enum PrefixParser {
-    Eof(fn() -> bool),
-}
-
 pub struct Parser {
     lexer: Lexer,
     prefix_parser: HashMap<TokenType, fn(parser: &mut Parser) -> Expression>,
