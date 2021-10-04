@@ -17,28 +17,28 @@ pub enum Expression {
 #[derive(PartialOrd, PartialEq, Debug)]
 #[allow(dead_code)]
 pub enum Precedence {
-    LOWEST,
-    EQUALS,
-    LESSGREATER,
-    SUM,
-    PRODUCT,
-    PREFIX,
-    CALL,
-    INDEX,
+    Lowest,
+    Equals,
+    LessGreater,
+    Sum,
+    Product,
+    Prefix,
+    Call,
+    Index,
 }
 
 pub fn get_precedence(tok: TokenType) -> Precedence {
     match tok {
-        TokenType::Plus => Precedence::SUM,
-        TokenType::Minus => Precedence::SUM,
-        TokenType::Multiply => Precedence::PRODUCT,
-        TokenType::Divide => Precedence::PRODUCT,
-        TokenType::LeftParenthesis => Precedence::CALL,
-        TokenType::Equals => Precedence::EQUALS,
-        TokenType::LessThan => Precedence::LESSGREATER,
-        TokenType::GreaterThan => Precedence::LESSGREATER,
-        TokenType::LessThanOrEquals => Precedence::LESSGREATER,
-        TokenType::GreaterThanOrEquals => Precedence::LESSGREATER,
-        _ => Precedence::LOWEST,
+        TokenType::Plus => Precedence::Sum,
+        TokenType::Minus => Precedence::Sum,
+        TokenType::Multiply => Precedence::Product,
+        TokenType::Divide => Precedence::Product,
+        TokenType::LeftParenthesis => Precedence::Call,
+        TokenType::Equals => Precedence::Equals,
+        TokenType::LessThan => Precedence::LessGreater,
+        TokenType::GreaterThan => Precedence::LessGreater,
+        TokenType::LessThanOrEquals => Precedence::LessGreater,
+        TokenType::GreaterThanOrEquals => Precedence::LessGreater,
+        _ => Precedence::Lowest,
     }
 }
