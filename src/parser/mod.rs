@@ -5,7 +5,7 @@ mod tests;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
-use crate::parser::expression::integer::{parse_integer_literal, Integer};
+use crate::parser::expression::integer::{parse_integer_literal};
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::Program;

@@ -1,6 +1,7 @@
+#![cfg(test)]
 use crate::lexer;
 use crate::lexer::token::{Token, TokenType};
-#[cfg(test)]
+
 #[test]
 fn variable_declaration() {
     let input = "var test = 1;";
