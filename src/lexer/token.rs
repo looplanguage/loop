@@ -32,6 +32,17 @@ pub enum TokenType {
     Unknown,
     True,
     False,
+    Function,
+    If,
+    Else,
+    While,
+    Import,
+    Export,
+    And,
+    Or,
+    Comma,
+    LeftBrace,
+    RightBrace,
     Eof,
 }
 

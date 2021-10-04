@@ -10,6 +10,23 @@ use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::statement::Statement;
 
 #[test]
+fn functions() {
+    let input = "true; false;";
+
+    let mut expected: Vec<Statement> = Vec::new();
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Boolean(Boolean { value: true }),
+    }));
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Boolean(Boolean { value: false }),
+    }));
+
+    test_parser(input, expected);
+}
+
+#[test]
 fn booleans() {
     let input = "true; false;";
 

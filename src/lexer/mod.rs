@@ -54,6 +54,9 @@ impl Lexer {
             ')' => create_token(TokenType::RightParenthesis, ch.to_string()),
             '-' => create_token(TokenType::Minus, ch.to_string()),
             '/' => create_token(TokenType::Divide, ch.to_string()),
+            ',' => create_token(TokenType::Comma, ch.to_string()),
+            '{' => create_token(TokenType::LeftBrace, ch.to_string()),
+            '}' => create_token(TokenType::RightBrace, ch.to_string()),
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
@@ -148,6 +151,14 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "var" => TokenType::VariableDeclaration,
         "true" => TokenType::True,
         "false" => TokenType::False,
+        "fn" => TokenType::Function,
+        "import" => TokenType::Import,
+        "export" => TokenType::Export,
+        "else" => TokenType::Else,
+        "while" => TokenType::While,
+        "and" | "&&" => TokenType::And,
+        "or" | "||" => TokenType::Or,
+        "if" => TokenType::If,
         _ => {
             if keyword.parse::<i32>().is_ok() {
                 return TokenType::Integer;
