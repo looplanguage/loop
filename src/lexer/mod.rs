@@ -140,6 +140,13 @@ impl Lexer {
 
         return false
     }
+
+    fn skip_whitespaces(&mut self) {
+        if self.current_character().is_whitespace() {
+            self.next_character();
+            self.skip_whitespaces()
+        }
+    }
 }
 
 fn lookup_keyword(keyword: &str) -> TokenType {
