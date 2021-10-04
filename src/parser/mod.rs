@@ -11,6 +11,7 @@ use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::Program;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
+use crate::parser::statement::expression::parse_expression_statement;
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -43,14 +44,22 @@ impl Parser {
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Statement> {
-        match token.token {
+        let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             _ => self.parse_expression_statement(token),
+        };
+
+        if self.lexer.peek_token.is_some() {
+            if self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon {
+                self.lexer.next();
+            }
         }
+
+        return r
     }
 
     fn parse_expression_statement(&mut self, _token: Token) -> Option<Statement> {
-        None
+        parse_expression_statement(self)
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Expression> {
