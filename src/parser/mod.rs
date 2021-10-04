@@ -11,6 +11,7 @@ use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::Program;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
+use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::statement::expression::parse_expression_statement;
 
 use self::statement::variable::parse_variable_declaration;
@@ -143,6 +144,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
+    p.add_prefix_parser(TokenType::Identifier, parse_identifier);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
