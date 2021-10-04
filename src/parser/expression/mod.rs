@@ -7,11 +7,11 @@ pub mod identifier;
 pub mod integer;
 pub mod suffix;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expression {
     Identifier(Identifier),
     Integer(Integer),
-    Suffix(Box<Suffix>)
+    Suffix(Box<Suffix>),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -23,7 +23,7 @@ pub enum Precedence {
     PRODUCT,
     PREFIX,
     CALL,
-    INDEX
+    INDEX,
 }
 
 pub fn get_precedence(tok: TokenType) -> Precedence {
@@ -38,6 +38,6 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::GreaterThan => Precedence::LESSGREATER,
         TokenType::LessThanOrEquals => Precedence::LESSGREATER,
         TokenType::GreaterThanOrEquals => Precedence::LESSGREATER,
-        _ => Precedence::LOWEST
+        _ => Precedence::LOWEST,
     }
 }

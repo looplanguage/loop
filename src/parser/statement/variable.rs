@@ -5,6 +5,7 @@ use crate::parser::Parser;
 
 use super::Statement;
 
+#[derive(Debug, PartialEq)]
 pub struct VariableDeclaration {
     pub ident: Identifier,
     pub value: Expression,

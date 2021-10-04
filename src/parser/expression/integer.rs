@@ -1,7 +1,7 @@
 use crate::parser::expression::Expression;
 use crate::parser::Parser;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Integer {
     pub value: i32,
 }
