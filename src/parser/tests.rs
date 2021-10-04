@@ -1,14 +1,30 @@
 #![cfg(test)]
 use crate::lexer;
 use crate::parser;
+use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::identifier::Identifier;
-use crate::parser::expression::integer;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::suffix::Suffix;
-use crate::parser::expression::Expression;
+use crate::parser::statement::expression::Expression;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::statement::Statement;
-use std::borrow::Borrow;
+
+#[test]
+fn booleans() {
+    let input = "true; false;";
+
+    let mut expected: Vec<Statement> = Vec::new();
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Boolean(Boolean { value: true }),
+    }));
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Boolean(Boolean { value: false }),
+    }));
+
+    test_parser(input, expected);
+}
 
 #[test]
 fn variable_declaration() {
@@ -23,24 +39,24 @@ fn variable_declaration() {
         ident: Identifier {
             value: "test".to_string(),
         },
-        value: Expression::Integer(Integer { value: 1 }),
+        value: parser::expression::Expression::Integer(Integer { value: 1 }),
     }));
 
     expected.push(Statement::VariableDeclaration(VariableDeclaration {
         ident: Identifier {
             value: "test2".to_string(),
         },
-        value: Expression::Integer(Integer { value: 40 }),
+        value: parser::expression::Expression::Integer(Integer { value: 40 }),
     }));
 
     expected.push(Statement::VariableDeclaration(VariableDeclaration {
         ident: Identifier {
             value: "test3".to_string(),
         },
-        value: Expression::Suffix(Box::new(Suffix {
-            left: Expression::Integer(Integer { value: 10 }),
+        value: parser::expression::Expression::Suffix(Box::new(Suffix {
+            left: parser::expression::Expression::Integer(Integer { value: 10 }),
             operator: '*',
-            right: Expression::Integer(Integer { value: 2 }),
+            right: parser::expression::Expression::Integer(Integer { value: 2 }),
         })),
     }));
 
