@@ -1,5 +1,6 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::boolean::Boolean;
+use crate::parser::expression::function::Function;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::suffix::Suffix;
@@ -8,13 +9,15 @@ pub mod identifier;
 pub mod integer;
 pub mod suffix;
 pub mod boolean;
+pub mod function;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
     Identifier(Identifier),
     Integer(Integer),
     Suffix(Box<Suffix>),
-    Boolean(Boolean)
+    Boolean(Boolean),
+    Function(Function)
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
