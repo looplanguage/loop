@@ -8,7 +8,7 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let l = lexer::build_lexer("var abc = 100 + 100 * 100");
+    let l = lexer::build_lexer("var abc = 100 + 100 * 100; 100 + 20");
     let mut parser = parser::build_parser(l);
 
     let program = parser.parse();
@@ -29,6 +29,9 @@ fn main() {
                     "Variable declared: {} = {:?}",
                     value.ident.value, value.value
                 );
+            },
+            Statement::Expression(value) => {
+                println!("Expression statement: {:?}", value.expression)
             }
         }
     }
