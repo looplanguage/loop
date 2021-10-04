@@ -13,6 +13,7 @@ use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
+use crate::parser::expression::boolean::parse_boolean;
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -148,6 +149,8 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
+    p.add_prefix_parser(TokenType::True, parse_boolean);
+    p.add_prefix_parser(TokenType::False, parse_boolean);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);

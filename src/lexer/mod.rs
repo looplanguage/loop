@@ -146,6 +146,8 @@ impl Lexer {
 fn lookup_keyword(keyword: &str) -> TokenType {
     match keyword {
         "var" => TokenType::VariableDeclaration,
+        "true" => TokenType::True,
+        "false" => TokenType::False,
         _ => {
             if keyword.parse::<i32>().is_ok() {
                 return TokenType::Integer;

@@ -30,6 +30,8 @@ pub enum TokenType {
     GreaterThanOrEquals,
     LessThanOrEquals,
     Unknown,
+    True,
+    False,
     Eof,
 }
 
