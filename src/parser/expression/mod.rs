@@ -5,11 +5,11 @@ use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::suffix::Suffix;
 
+pub mod boolean;
+pub mod function;
 pub mod identifier;
 pub mod integer;
 pub mod suffix;
-pub mod boolean;
-pub mod function;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
@@ -17,7 +17,7 @@ pub enum Expression {
     Integer(Integer),
     Suffix(Box<Suffix>),
     Boolean(Boolean),
-    Function(Function)
+    Function(Function),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]

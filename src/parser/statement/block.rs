@@ -1,7 +1,7 @@
 use crate::lexer::token::TokenType;
-use crate::parser::Parser;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
+use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Block {
@@ -23,7 +23,5 @@ pub fn parse_block(p: &mut Parser) -> Block {
         p.lexer.next();
     }
 
-    Block {
-        statements
-    }
+    Block { statements }
 }

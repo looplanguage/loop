@@ -43,6 +43,6 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     Some(Node::Expression(Expression::Function(Function {
         parameters: arguments,
-        body
+        body,
     })))
 }

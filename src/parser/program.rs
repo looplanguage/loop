@@ -4,7 +4,7 @@ use crate::parser::statement::Statement;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {
     Expression(Expression),
-    Statement(Statement)
+    Statement(Statement),
 }
 
 pub struct Program {
