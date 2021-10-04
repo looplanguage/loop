@@ -8,10 +8,18 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let l = lexer::build_lexer("var test = 1; var testtwo = 2;");
+    let l = lexer::build_lexer("var test = 1; var testtwo = 2; var hahahaha = 5000;");
     let mut parser = parser::build_parser(l);
 
     let program = parser.parse();
+
+    if parser.errors.len() > 0 {
+        for error in parser.errors {
+            println!("{}", error)
+        }
+
+        return
+    }
 
     println!("Statements ({}): ", program.statements.len());
     for stmt in program.statements {
@@ -21,4 +29,8 @@ fn main() {
             }
         }
     }
+}
+
+fn test() -> Option<bool> {
+    return None
 }
