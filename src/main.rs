@@ -8,7 +8,7 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let l = lexer::build_lexer("var abc = 100 + 100 * 100; 100 + 20; abc; var d = true");
+    let l = lexer::build_lexer("var abc = 100 + 100 * 100; 100 + 20; abc; var d = !true");
     let mut parser = parser::build_parser(l);
 
     let program = parser.parse();

@@ -27,6 +27,23 @@ fn booleans() {
 }
 
 #[test]
+fn booleans_inverted() {
+    let input = "!true; !false;";
+
+    let mut expected: Vec<Statement> = Vec::new();
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Boolean(Boolean { value: false }),
+    }));
+
+    expected.push(Statement::Expression(Expression {
+        expression: parser::expression::Expression::Boolean(Boolean { value: true }),
+    }));
+
+    test_parser(input, expected);
+}
+
+#[test]
 fn variable_declaration() {
     let input = "var test = 1;
         var test2 = 40;
