@@ -36,7 +36,3 @@ fn main() {
         }
     }
 }
-
-fn test() -> Option<bool> {
-    return None;
-}
