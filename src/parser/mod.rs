@@ -18,11 +18,13 @@ use std::collections::HashMap;
 
 use self::statement::variable::parse_variable_declaration;
 
+type PrefixParseFn = fn(parser: &mut Parser) -> Option<Node>;
+type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Option<Node>;
+
 pub struct Parser {
     lexer: Lexer,
-    prefix_parser: HashMap<TokenType, fn(parser: &mut Parser) -> Option<Node>>,
-    infix_parser:
-        HashMap<TokenType, fn(parser: &mut Parser, expression: Expression) -> Option<Node>>,
+    prefix_parser: HashMap<TokenType, PrefixParseFn>,
+    infix_parser: HashMap<TokenType, InfixParseFn>,
     pub errors: Vec<String>,
 }
 
