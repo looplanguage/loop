@@ -1,3 +1,4 @@
+#![cfg(test)]
 use crate::lexer;
 use crate::parser;
 use crate::parser::expression::identifier::Identifier;
@@ -9,7 +10,6 @@ use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::statement::Statement;
 use std::borrow::Borrow;
 
-#[cfg(test)]
 #[test]
 fn variable_declaration() {
     let input = "var test = 1;
