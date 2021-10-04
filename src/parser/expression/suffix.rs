@@ -3,11 +3,11 @@ use crate::parser::expression::Expression;
 use crate::parser::expression::Precedence::LOWEST;
 use crate::parser::Parser;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Suffix {
-    left: Expression,
-    operator: char,
-    right: Expression
+    pub(crate) left: Expression,
+    pub(crate) operator: char,
+    pub(crate) right: Expression
 }
 
 pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Expression {
