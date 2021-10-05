@@ -26,20 +26,20 @@ pub fn get_definition(op: OpCode) -> Definition {
         },
         OpCode::Modulo => Definition {
             name: "OpModulo".to_string(),
-            operand_width: vec![]
+            operand_width: vec![],
         },
         OpCode::Minus => Definition {
             name: "OpMinus".to_string(),
-            operand_width: vec![]
+            operand_width: vec![],
         },
         OpCode::Multiply => Definition {
             name: "OpMultiply".to_string(),
-            operand_width: vec![]
+            operand_width: vec![],
         },
         OpCode::Divide => Definition {
             name: "OpDivide".to_string(),
-            operand_width: vec![]
-        }
+            operand_width: vec![],
+        },
     }
 }
 

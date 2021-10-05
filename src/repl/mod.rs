@@ -1,18 +1,16 @@
-use std::io::{BufRead, stdin, stdout, Write};
 use crate::compiler::build_compiler;
 use crate::compiler::instructions::print_instructions;
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::build_vm;
+use std::io::{stdin, stdout, BufRead, Write};
 
 pub struct Repl {
-    line: i32
+    line: i32,
 }
 
 pub fn build_repl() -> Repl {
-    Repl {
-        line: 0
-    }
+    Repl { line: 0 }
 }
 
 impl Repl {
@@ -23,7 +21,7 @@ impl Repl {
     fn run(&mut self) {
         self.line += 1;
 
-        let mut s=String::new();
+        let mut s = String::new();
         print!("{} > ", self.line);
         let _ = stdout().flush();
         stdin().read_line(&mut s);
