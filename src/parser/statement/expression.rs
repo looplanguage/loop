@@ -14,9 +14,11 @@ pub fn parse_expression_statement(p: &mut Parser) -> Option<Node> {
     expr.as_ref()?;
 
     if let Node::Expression(exp) = expr.unwrap() {
-        return Some(Node::Statement(Statement::Expression(Box::new(Expression {
-            expression: Box::new(exp),
-        }))));
+        return Some(Node::Statement(Statement::Expression(Box::new(
+            Expression {
+                expression: Box::new(exp),
+            },
+        ))));
     }
 
     None

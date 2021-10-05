@@ -7,11 +7,11 @@ use crate::parser::expression::integer::Integer;
 use crate::parser::expression::suffix::Suffix;
 
 pub mod boolean;
+pub mod conditional;
 pub mod function;
 pub mod identifier;
 pub mod integer;
 pub mod suffix;
-pub mod conditional;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
@@ -20,7 +20,7 @@ pub enum Expression {
     Suffix(Box<Suffix>),
     Boolean(Boolean),
     Function(Function),
-    Conditional(Box<Conditional>)
+    Conditional(Box<Conditional>),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
