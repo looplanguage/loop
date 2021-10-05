@@ -251,17 +251,8 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Boolean(Boolean {
-                value: true,
-            })),
-        })));
-
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Boolean(Boolean {
-                value: false,
-            })),
-        })));
+        expected.push(generate_boolean_expression(true));
+        expected.push(generate_boolean_expression(false));
 
         test_parser(input, expected);
     }
@@ -272,17 +263,8 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Boolean(Boolean {
-                value: false,
-            })),
-        })));
-
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Boolean(Boolean {
-                value: true,
-            })),
-        })));
+        expected.push(generate_boolean_expression(false));
+        expected.push(generate_boolean_expression(true));
 
         test_parser(input, expected);
     }
@@ -337,34 +319,9 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: "test".to_string(),
-            },
-            value: Box::new(parser::expression::Expression::Integer(Integer {
-                value: 1,
-            })),
-        }));
-
-        expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: "test2".to_string(),
-            },
-            value: Box::new(parser::expression::Expression::Integer(Integer {
-                value: 40,
-            })),
-        }));
-
-        expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: "test3".to_string(),
-            },
-            value: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: parser::expression::Expression::Integer(Integer { value: 10 }),
-                operator: '*'.to_string(),
-                right: parser::expression::Expression::Integer(Integer { value: 2 }),
-            }))),
-        }));
+        expected.push(generate_variable_declaration("test", 1));
+        expected.push(generate_variable_declaration("test2", 40));
+        expected.push(generate_variable_declaration_suffix("test3", generate_expression_suffix(10, '*', 2)));
 
         test_parser(input, expected);
     }
@@ -381,5 +338,56 @@ mod tests {
 
             i += 1;
         }
+    }
+
+    // Helper Functions
+
+    fn generate_boolean_expression(value: bool) -> crate::parser::expression::Expression {
+        let expression = Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::expression::Expression::Boolean(Boolean {
+                value: value,
+            })),
+        }));
+        return parser::expression::Expression::Boolean(Boolean { value: true })
+    }
+
+    fn generate_integer_expression(value: i32) -> Statement {
+        let expression = Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::expression::Expression::Integer(Integer {
+                value: value,
+            })),
+        }));;
+        return expression;
+    }
+
+    fn generate_variable_declaration(identifier: &str, expression: i32) -> Statement {
+        let variable = Statement::VariableDeclaration(VariableDeclaration {
+            ident: Identifier {
+                value: identifier.to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: expression,
+            })),
+        });
+        return variable;
+    }
+
+    fn generate_variable_declaration_suffix(identifier: &str, Suffix: crate::parser::expression::Expression) -> Statement {
+        let variable = Statement::VariableDeclaration(VariableDeclaration {
+            ident: Identifier {
+                value: identifier.to_string(),
+            },
+            value: Box::new(Suffix),
+        });
+        return variable;
+    }
+
+    fn generate_expression_suffix(left: i32, operator: char, right: i32) -> crate::parser::expression::Expression {
+        let suffix_expression =parser::expression::Expression::Suffix(Box::new(Suffix {
+            left: parser::expression::Expression::Integer(Integer { value: left }),
+            operator: operator.to_string(),
+            right: parser::expression::Expression::Integer(Integer { value: right }),
+        }));
+        return suffix_expression;
     }
 }
