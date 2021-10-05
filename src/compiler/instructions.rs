@@ -1,5 +1,5 @@
 use std::io::Cursor;
-use crate::compiler::definition::{Definition, get_definition};
+use crate::compiler::definition::{Definition, get_definition, lookup};
 use crate::compiler::opcode::OpCode;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
@@ -60,20 +60,6 @@ fn read_uint8(ins: Vec<u8>) -> u8 {
 fn read_uint16(ins: Instructions) -> u16 {
     let mut rdr = Cursor::new(ins);
     rdr.read_u16::<BigEndian>().unwrap()
-}
-
-/*
-    Constant,
-    Add,
-    Pop,
- */
-fn lookup(op: u8) -> Option<Definition> {
-    match op {
-        0 => Some(get_definition(OpCode::Constant)),
-        1 => Some(get_definition(OpCode::Add)),
-        2 => Some(get_definition(OpCode::Pop)),
-        _ => None
-    }
 }
 
 pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
