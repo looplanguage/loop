@@ -5,13 +5,14 @@ use std::io::Cursor;
 
 pub type Instructions = Vec<u8>;
 
-pub fn print_instructions(ins: Instructions) {
+pub fn pretty_print_instructions(ins: Instructions) -> String {
     let mut i: i32 = 0;
+    let mut inst: Vec<String> = vec![];
 
     while i < ins.len() as i32 {
         let def = lookup(ins[i as usize]);
         if def.is_none() {
-            return;
+            return format!("operand not found {}", ins[i as usize]);
         }
 
         let definition = def.clone().unwrap();
@@ -23,13 +24,32 @@ pub fn print_instructions(ins: Instructions) {
         let mut operand_data: Vec<String> = vec![];
 
         for _operand in _operands {
-            operand_data.push(_operand.to_string() + " ");
+            operand_data.push(_operand.to_string());
         }
 
-        println!("[{}] {} {}", i, definition.name, operand_data.concat());
+        if operand_data.is_empty() {
+            inst.push(format!("[{}] {}", i, definition.name));
+        } else {
+            inst.push(format!(
+                "[{}] {} {}",
+                i,
+                definition.name,
+                operand_data.join(" ")
+            ));
+        }
 
-        i += 1 + read
+        i += 1 + read;
+
+        if i < ins.len() as i32 {
+            inst.push("\n".to_string())
+        }
     }
+
+    inst.concat()
+}
+
+pub fn print_instructions(ins: Instructions) {
+    println!("{}", pretty_print_instructions(ins))
 }
 
 pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i32>, i32) {
