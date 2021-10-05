@@ -14,36 +14,6 @@ mod tests {
     use crate::parser::statement::Statement;
     use crate::parser::program::Node;
 
-    fn generate_if_expression(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Statement {
-        return Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::Expression::Conditional(Box::new(generate_conditional(condition, body, else_condition)))),
-        }));
-    }
-
-    fn generate_else_condition(conditinional: bool, body: Block, else_condition: Box<Option<Node>>) -> Box<Option<Node>> {
-        return Box::new(Some(parser::Node::Expression(
-            parser::expression::Expression::Conditional(Box::new(generate_conditional(conditinional, body, else_condition))),
-        )));
-    }
-
-    fn generate_conditional(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Conditional {
-        return Conditional {
-            condition: Box::new(parser::Expression::Boolean(Boolean { value: condition })),
-            body: body,
-            else_condition: else_condition,
-        }
-    }
-
-    fn generate_else_block_box(statements: Vec<Statement>) -> Box<Option<Node>> {
-       return Box::new(Some(parser::Node::Statement(Statement::Block(
-           generate_else_block(statements),
-        ))));
-    }
-
-    fn generate_else_block(statements: Vec<Statement>) -> Block {
-        return Block { statements: statements };
-    }
-
     #[test]
     fn conditionals() {
         let input = "\
@@ -362,5 +332,35 @@ mod tests {
             right: parser::expression::Expression::Integer(Integer { value: right }),
         }));
         return suffix_expression;
+    }
+
+    fn generate_if_expression(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Statement {
+        return Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::Expression::Conditional(Box::new(generate_conditional(condition, body, else_condition)))),
+        }));
+    }
+
+    fn generate_else_condition(conditinional: bool, body: Block, else_condition: Box<Option<Node>>) -> Box<Option<Node>> {
+        return Box::new(Some(parser::Node::Expression(
+            parser::expression::Expression::Conditional(Box::new(generate_conditional(conditinional, body, else_condition))),
+        )));
+    }
+
+    fn generate_conditional(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Conditional {
+        return Conditional {
+            condition: Box::new(parser::Expression::Boolean(Boolean { value: condition })),
+            body: body,
+            else_condition: else_condition,
+        }
+    }
+
+    fn generate_else_block_box(statements: Vec<Statement>) -> Box<Option<Node>> {
+        return Box::new(Some(parser::Node::Statement(Statement::Block(
+            generate_else_block(statements),
+        ))));
+    }
+
+    fn generate_else_block(statements: Vec<Statement>) -> Block {
+        return Block { statements: statements };
     }
 }
