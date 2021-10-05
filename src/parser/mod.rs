@@ -62,7 +62,9 @@ impl Parser {
     }
 
     fn parse_expression_statement(&mut self, _token: Token) -> Option<Node> {
-        parse_expression_statement(self)
+        let o = parse_expression_statement(self);
+
+        o
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {
@@ -98,7 +100,13 @@ impl Parser {
 
                 self.lexer.next_token();
 
-                infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                if infix_expression_node.is_some() {
+                    if let Node::Expression(a) = infix_expression_node.clone().unwrap() {
+                        infix_expression_node = infix_parser.unwrap()(self, a);
+                    }
+                } else {
+                    infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                }
             }
 
             if infix_expression_node.is_some() {
