@@ -13,6 +13,7 @@ pub struct Conditional {
 }
 
 pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
+
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
             "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
@@ -34,7 +35,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
     if let Node::Expression(exp) = condition_node.unwrap() {
         if !p.lexer.next_current_is(TokenType::RightParenthesis) {
             p.add_error(format!(
-                "wrong token. got=\"{:?}\". expected=\"RightParentheses\"",
+                "wrong token. got=\"{:?}\". expected=\"RightParenthesis\"",
                 p.lexer.current_token.clone().unwrap().token
             ));
             return None;
@@ -50,26 +51,31 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
 
         let body = parse_block(p);
 
-        if !p.lexer.next_current_is(TokenType::RightBrace) {
+        if !p.cur_token_is(TokenType::RightBrace) {
             p.add_error(format!(
-                "wrong token. got=\"{:?}\". expected=\"RightBrace\"",
+                "(fn) wrong token. got=\"{:?}\". expected=\"RightBrace\"",
                 p.lexer.current_token.clone().unwrap().token
             ));
             return None;
         }
 
-        if p.lexer.next_current_is(TokenType::Else) {
-            if !p.lexer.next_current_is(TokenType::LeftBrace) {
+
+        if p.lexer.next_is(TokenType::Else) {
+            if !p.lexer.next_is(TokenType::LeftBrace) {
+                p.lexer.next();
+
                 return Some(Node::Expression(Expression::Conditional(Box::new(Conditional {
                     condition: Box::new(exp),
                     body,
                     else_condition: Box::new(p.parse_expression(Precedence::Lowest)),
                 }))));
+            } else {
+                p.lexer.next();
             }
 
             let else_condition = parse_block(p);
 
-            if !p.lexer.next_current_is(TokenType::RightBrace) {
+            if !p.cur_token_is(TokenType::RightBrace) {
                 p.add_error(format!(
                     "wrong token. got=\"{:?}\". expected=\"RightBrace\"",
                     p.lexer.current_token.clone().unwrap().token

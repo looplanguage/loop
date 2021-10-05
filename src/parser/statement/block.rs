@@ -1,3 +1,4 @@
+use std::os::macos::raw::stat;
 use crate::lexer::token::TokenType;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
@@ -14,8 +15,12 @@ pub fn parse_block(p: &mut Parser) -> Block {
     while p.lexer.current_token.clone().unwrap().token != TokenType::RightBrace {
         let stmt = p.parse_statement(p.lexer.current_token.clone().unwrap());
 
-        if let Node::Statement(statement) = stmt.unwrap() {
-            statements.push(statement)
+        if stmt.is_none() {
+            p.add_error(format!("unable to parse statement. see above!"));
+        } else {
+            if let Node::Statement(statement) = stmt.unwrap() {
+                statements.push(statement)
+            }
         }
 
         p.lexer.next();

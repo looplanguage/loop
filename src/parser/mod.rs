@@ -52,6 +52,7 @@ impl Parser {
             _ => self.parse_expression_statement(token),
         };
 
+
         if self.lexer.peek_token.is_some()
             && self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon
         {
@@ -138,6 +139,16 @@ impl Parser {
         }
 
         peek.unwrap().token == tok
+    }
+
+    fn cur_token_is(&self, tok: TokenType) -> bool {
+        let cur = self.lexer.current_token.clone();
+
+        if cur.is_none() {
+            return false;
+        }
+
+        cur.unwrap().token == tok
     }
 
     pub fn add_error(&mut self, error: String) {

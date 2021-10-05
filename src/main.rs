@@ -8,7 +8,10 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let l = lexer::build_lexer("");
+    let l = lexer::build_lexer("
+        if(false) {} else if(false) {} else {}\
+        if(false) {}
+        ");
     let mut parser = parser::build_parser(l);
 
     let program = parser.parse();
