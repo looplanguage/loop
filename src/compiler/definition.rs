@@ -27,6 +27,17 @@ pub fn get_definition(op: OpCode) -> Definition {
     }
 }
 
+
+pub fn lookup_op(op: u8) -> Option<OpCode> {
+    match op {
+        0 => Some(OpCode::Constant),
+        1 => Some(OpCode::Add),
+        2 => Some(OpCode::Pop),
+        3 => Some(OpCode::Closure),
+        _ => None,
+    }
+}
+
 pub fn lookup(op: u8) -> Option<Definition> {
     match op {
         0 => Some(get_definition(OpCode::Constant)),
