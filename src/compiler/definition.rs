@@ -24,9 +24,24 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpClosure".to_string(),
             operand_width: vec![2, 1],
         },
+        OpCode::Modulo => Definition {
+            name: "OpModulo".to_string(),
+            operand_width: vec![]
+        },
+        OpCode::Minus => Definition {
+            name: "OpMinus".to_string(),
+            operand_width: vec![]
+        },
+        OpCode::Multiply => Definition {
+            name: "OpMultiply".to_string(),
+            operand_width: vec![]
+        },
+        OpCode::Divide => Definition {
+            name: "OpDivide".to_string(),
+            operand_width: vec![]
+        }
     }
 }
-
 
 pub fn lookup_op(op: u8) -> Option<OpCode> {
     match op {
@@ -34,6 +49,10 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         1 => Some(OpCode::Add),
         2 => Some(OpCode::Pop),
         3 => Some(OpCode::Closure),
+        4 => Some(OpCode::Modulo),
+        5 => Some(OpCode::Multiply),
+        6 => Some(OpCode::Divide),
+        7 => Some(OpCode::Minus),
         _ => None,
     }
 }
@@ -44,6 +63,10 @@ pub fn lookup(op: u8) -> Option<Definition> {
         1 => Some(get_definition(OpCode::Add)),
         2 => Some(get_definition(OpCode::Pop)),
         3 => Some(get_definition(OpCode::Closure)),
+        4 => Some(get_definition(OpCode::Modulo)),
+        5 => Some(get_definition(OpCode::Multiply)),
+        6 => Some(get_definition(OpCode::Divide)),
+        7 => Some(get_definition(OpCode::Minus)),
         _ => None,
     }
 }

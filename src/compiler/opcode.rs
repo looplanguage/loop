@@ -4,4 +4,8 @@ pub enum OpCode {
     Add,
     Pop,
     Closure,
+    Modulo,
+    Multiply,
+    Divide,
+    Minus
 }

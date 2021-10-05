@@ -1,9 +1,12 @@
+mod suffix;
+
 use crate::compiler::Bytecode;
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::read_uint16;
 use crate::compiler::opcode::OpCode;
 use crate::object::integer::Integer;
 use crate::object::Object;
+use crate::vm::suffix::run_suffix_expression;
 
 pub struct VM {
     stack: [Object; 2048],
@@ -40,16 +43,11 @@ impl VM {
 
                     self.push(self.bytecode.constants[idx as usize].clone());
                 }
-                OpCode::Add => {
-                    let left = self.pop();
-                    let right = self.pop();
-
-                    if let Object::Integer(left_obj) = left {
-                        if let Object::Integer(right_obj) = right {
-                            self.push(Object::Integer(Integer { value: left_obj.value + right_obj.value }));
-                        };
-                    };
-                }
+                OpCode::Add => run_suffix_expression(self, "+"),
+                OpCode::Modulo => run_suffix_expression(self, "%"),
+                OpCode::Minus => run_suffix_expression(self, "-"),
+                OpCode::Divide => run_suffix_expression(self, "/"),
+                OpCode::Multiply => run_suffix_expression(self, "*"),
                 OpCode::Pop => {
                     self.pop();
                 }
