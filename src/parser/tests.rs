@@ -342,13 +342,13 @@ mod tests {
 
     // Helper Functions
 
-    fn generate_boolean_expression(value: bool) -> crate::parser::expression::Expression {
+    fn generate_boolean_expression(value: bool) -> Statement {
         let expression = Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Boolean(Boolean {
                 value: value,
             })),
         }));
-        return parser::expression::Expression::Boolean(Boolean { value: true })
+        return expression;
     }
 
     fn generate_integer_expression(value: i32) -> Statement {
