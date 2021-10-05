@@ -13,3 +13,12 @@ pub fn get_definition(op: OpCode) -> Definition {
         OpCode::Pop => Definition { name: "OpPop".to_string(), operand_width: vec![] },
     }
 }
+
+pub fn lookup(op: u8) -> Option<Definition> {
+    match op {
+        0 => Some(get_definition(OpCode::Constant)),
+        1 => Some(get_definition(OpCode::Add)),
+        2 => Some(get_definition(OpCode::Pop)),
+        _ => None
+    }
+}
