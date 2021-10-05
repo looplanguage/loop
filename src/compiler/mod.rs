@@ -1,11 +1,11 @@
+mod compile;
+pub mod definition;
 pub mod instructions;
 pub mod opcode;
-pub mod definition;
-mod compile;
 
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
-use crate::compiler::instructions::{Instructions, make_instruction};
+use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::object::integer::Integer;
 use crate::object::Object;
@@ -15,7 +15,7 @@ use crate::parser::statement::Statement;
 
 pub struct Compiler {
     pub instructions: Instructions,
-    pub constants: Vec<Object>
+    pub constants: Vec<Object>,
 }
 
 pub fn build_compiler() -> Compiler {
@@ -64,7 +64,7 @@ impl Compiler {
     fn add_constant(&mut self, obj: Object) -> u16 {
         self.constants.push(obj);
 
-        return (self.constants.len() - 1) as u16
+        return (self.constants.len() - 1) as u16;
     }
 
     fn add_instruction(&mut self, instruction: Vec<u8>) -> usize {
