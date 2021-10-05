@@ -2,7 +2,6 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use crate::compiler::instructions::print_instructions;
 use crate::repl::build_repl;
 
 pub mod compiler;

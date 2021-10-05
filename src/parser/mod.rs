@@ -62,9 +62,7 @@ impl Parser {
     }
 
     fn parse_expression_statement(&mut self, _token: Token) -> Option<Node> {
-        let o = parse_expression_statement(self);
-
-        o
+        parse_expression_statement(self)
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {

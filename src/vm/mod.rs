@@ -42,7 +42,7 @@ impl VM {
                         read_uint16(self.bytecode.instructions[self.ip as usize..].to_owned());
                     self.ip += 2;
 
-                    self.push(self.bytecode.constants[idx as usize].clone());
+                    self.push(self.bytecode.constants[idx as usize]);
                 }
                 OpCode::Add => run_suffix_expression(self, "+"),
                 OpCode::Modulo => run_suffix_expression(self, "%"),
@@ -72,9 +72,9 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Object {
-        let popped = self.stack[(self.sp - 1) as usize].clone();
+        let popped = self.stack[(self.sp - 1) as usize];
 
-        if self.sp <= 0 {
+        if self.sp == 0 {
             panic!("can not pop nothing of the stack");
         } else {
             self.sp -= 1;

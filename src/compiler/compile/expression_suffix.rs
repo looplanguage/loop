@@ -23,7 +23,7 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> O
             _compiler.emit(OpCode::Modulo, vec![]);
         }
         _ => {
-            panic!(format!("unknown operator. got={}", _suffix.operator))
+            panic!("unknown operator. got={}", _suffix.operator)
         }
     }
 

@@ -3,7 +3,7 @@ use crate::compiler::instructions::print_instructions;
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::build_vm;
-use std::io::{stdin, stdout, BufRead, Write};
+use std::io::{stdin, stdout, Write};
 
 pub struct Repl {
     line: i32,
@@ -24,7 +24,11 @@ impl Repl {
         let mut s = String::new();
         print!("{} > ", self.line);
         let _ = stdout().flush();
-        stdin().read_line(&mut s);
+        let result = stdin().read_line(&mut s);
+
+        if result.is_err() {
+            panic!("unable to parse input.")
+        }
 
         let l = build_lexer(s.as_str());
         let mut p = build_parser(l);

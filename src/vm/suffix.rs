@@ -53,7 +53,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) {
             };
         }
         _ => {
-            panic!(format!("unknown operator {}", operator))
+            panic!("unknown operator {}", operator)
         }
     }
 }
