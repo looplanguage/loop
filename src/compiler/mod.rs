@@ -2,6 +2,7 @@ mod compile;
 pub mod definition;
 pub mod instructions;
 pub mod opcode;
+mod tests;
 
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
