@@ -1,3 +1,4 @@
+mod tests;
 pub mod token;
 
 use crate::lexer::token::create_token;
@@ -7,10 +8,25 @@ use token::TokenType;
 pub struct Lexer {
     current: i32,
     input: String,
+    pub current_token: Option<Token>,
+    pub peek_token: Option<Token>,
 }
 
 impl Lexer {
     pub fn next(&mut self) -> Token {
+        self.current_token = self.peek_token.clone();
+        self.peek_token = Some(self.next_token());
+
+        let cloned = self.current_token.clone();
+
+        if cloned.is_none() {
+            return create_token(TokenType::Unknown, "".to_string());
+        }
+
+        cloned.unwrap()
+    }
+
+    fn next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
@@ -22,7 +38,7 @@ impl Lexer {
         let ch: char = possible_char.unwrap();
 
         if ch.is_whitespace() {
-            return self.next();
+            return self.next_token();
         }
 
         match ch {
@@ -38,6 +54,9 @@ impl Lexer {
             ')' => create_token(TokenType::RightParenthesis, ch.to_string()),
             '-' => create_token(TokenType::Minus, ch.to_string()),
             '/' => create_token(TokenType::Divide, ch.to_string()),
+            ',' => create_token(TokenType::Comma, ch.to_string()),
+            '{' => create_token(TokenType::LeftBrace, ch.to_string()),
+            '}' => create_token(TokenType::RightBrace, ch.to_string()),
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
@@ -116,11 +135,39 @@ impl Lexer {
     fn current_character(&self) -> char {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
     }
+
+    pub fn next_is(&mut self, token: TokenType) -> bool {
+        if self.peek_token.clone().unwrap().token == token {
+            self.next();
+            return true;
+        }
+
+        false
+    }
+
+    pub fn next_current_is(&mut self, token: TokenType) -> bool {
+        if self.current_token.clone().unwrap().token == token {
+            self.next();
+            return true;
+        }
+
+        false
+    }
 }
 
 fn lookup_keyword(keyword: &str) -> TokenType {
     match keyword {
         "var" => TokenType::VariableDeclaration,
+        "true" => TokenType::True,
+        "false" => TokenType::False,
+        "fn" => TokenType::Function,
+        "import" => TokenType::Import,
+        "export" => TokenType::Export,
+        "else" => TokenType::Else,
+        "while" => TokenType::While,
+        "and" | "&&" => TokenType::And,
+        "or" | "||" => TokenType::Or,
+        "if" => TokenType::If,
         _ => {
             if keyword.parse::<i32>().is_ok() {
                 return TokenType::Integer;
@@ -132,235 +179,15 @@ fn lookup_keyword(keyword: &str) -> TokenType {
 }
 
 pub fn build_lexer(input: &str) -> Lexer {
-    Lexer {
+    let mut l = Lexer {
         current: 0,
         input: input.to_string(),
-    }
-}
+        current_token: None,
+        peek_token: None,
+    };
 
-#[cfg(test)]
-mod tests {
-    use crate::lexer;
-    use crate::lexer::token::{Token, TokenType};
+    l.next();
+    l.next();
 
-    #[test]
-    fn variable_declaration() {
-        let input = "var test = 1;";
-        let expected = vec![
-            Token {
-                token: TokenType::VariableDeclaration,
-                literal: "var".to_string(),
-            },
-            Token {
-                token: TokenType::Identifier,
-                literal: "test".to_string(),
-            },
-            Token {
-                token: TokenType::Assign,
-                literal: "=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-        ];
-
-        do_test(input, expected);
-    }
-
-    #[test]
-    fn arithmetic_operations() {
-        let input = "1 + 1; 1 - 5; 1 * 4; 20 / 3; 10 % 5;";
-        let expected = vec![
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Plus,
-                literal: "+".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Minus,
-                literal: "-".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "5".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Multiply,
-                literal: "*".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "4".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "20".to_string(),
-            },
-            Token {
-                token: TokenType::Divide,
-                literal: "/".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "3".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "10".to_string(),
-            },
-            Token {
-                token: TokenType::Modulo,
-                literal: "%".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "5".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-        ];
-
-        do_test(input, expected);
-    }
-
-    #[test]
-    fn boolean_operations() {
-        let input = "1 > 2; 1 >= 2; 1 < 2; 1 <= 2;";
-        let expected = vec![
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::GreaterThan,
-                literal: ">".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::GreaterThanOrEquals,
-                literal: ">=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::LessThan,
-                literal: "<".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::LessThanOrEquals,
-                literal: "<=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-        ];
-
-        do_test(input, expected);
-    }
-
-    fn do_test(input: &str, expected: Vec<Token>) {
-        let mut l = lexer::build_lexer(input);
-        let mut current_token: Token = l.next();
-
-        let mut i = 0;
-        while current_token.token != TokenType::Eof {
-            assert_eq!(
-                current_token.token,
-                expected[i].token,
-                "wrong token. got={}. expected={} (values {} & {})",
-                current_token.token.as_ref(),
-                expected[i].token.as_ref(),
-                current_token.literal,
-                expected[i].literal
-            );
-            assert_eq!(
-                current_token.literal,
-                expected[i].literal,
-                "wrong value. got={}. expected={} (tokens {} & {})",
-                current_token.literal,
-                expected[i].literal,
-                current_token.token.as_ref(),
-                expected[i].token.as_ref()
-            );
-
-            i = i + 1;
-            current_token = l.next();
-        }
-    }
+    l
 }
