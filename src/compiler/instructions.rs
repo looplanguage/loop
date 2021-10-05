@@ -16,7 +16,7 @@ pub fn print_instructions(ins: Instructions) {
 
         let definition = def.clone().unwrap();
 
-        let data = read_operands(definition.clone(), ins[(i + 1) as usize..].to_owned());
+        let data = read_operands(definition.clone(), ins[(i + 2) as usize..].to_owned());
         let _operands = data.0;
         let read = data.1;
 
@@ -85,15 +85,13 @@ pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
         ins_length += width;
     }
 
-    let mut instruction: Vec<u8> = vec![0; ins_length as usize];
+    let mut instruction: Vec<u8> = vec![];
 
-    instruction[0] = op as u8;
+    instruction.push(op as u8);
 
     let mut offset = 1;
     for (key, val) in operands.iter().enumerate() {
         let width = def.operand_width[key];
-
-        println!("{}: {}", width, val);
 
         match width {
             2 => {
