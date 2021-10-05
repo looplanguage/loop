@@ -10,7 +10,7 @@ pub struct VM {
     ip: i32,
     sp: u8,
     bytecode: Bytecode,
-    last_popped: Option<Object>
+    pub last_popped: Option<Object>
 }
 
 pub fn build_vm(bt: Bytecode) -> VM {
@@ -25,7 +25,7 @@ pub fn build_vm(bt: Bytecode) -> VM {
 
 impl VM {
     pub fn run(&mut self) -> Option<String> {
-        while self.ip < (self.bytecode.instructions.len() as i32 ) - 1 {
+        while self.ip < (self.bytecode.instructions.len() as i32 ) {
             let _op = lookup_op(self.bytecode.instructions[self.ip as usize]);
 
             _op.as_ref()?;
@@ -40,7 +40,16 @@ impl VM {
 
                     self.push(self.bytecode.constants[idx as usize].clone());
                 }
-                OpCode::Add => {}
+                OpCode::Add => {
+                    let left = self.pop();
+                    let right = self.pop();
+
+                    if let Object::Integer(left_obj) = left {
+                        if let Object::Integer(right_obj) = right {
+                            self.push(Object::Integer(Integer { value: left_obj.value + right_obj.value }));
+                        };
+                    };
+                }
                 OpCode::Pop => {
                     self.pop();
                 }
@@ -64,7 +73,7 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Object {
-        let popped = self.stack[self.sp as usize].clone();
+        let popped = self.stack[(self.sp - 1) as usize].clone();
 
         if self.sp <= 0 {
             panic!("can not pop nothing of the stack");

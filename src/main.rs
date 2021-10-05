@@ -13,7 +13,7 @@ mod vm;
 fn main() {
     let l = lexer::build_lexer(
         "
-        1; 2; 3
+        300 + 50
         ",
     );
     let mut parser = parser::build_parser(l);
@@ -31,6 +31,10 @@ fn main() {
     let mut comp = compiler::build_compiler();
     comp.compile(program);
 
+    print_instructions(comp.instructions.clone());
+
     let mut vm = vm::build_vm(comp.get_bytecode());
     vm.run();
+
+    println!("{}", vm.last_popped.unwrap().inspect())
 }

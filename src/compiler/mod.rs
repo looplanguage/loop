@@ -58,8 +58,6 @@ impl Compiler {
             return err;
         }
 
-        self.emit(OpCode::Pop, vec![]);
-
         None
     }
 
@@ -68,6 +66,7 @@ impl Compiler {
             Statement::VariableDeclaration(_var) => {}
             Statement::Expression(expr) => {
                 self.compile_expression(*expr.expression);
+                self.emit(OpCode::Pop, vec![]);
             }
             Statement::Block(_) => {}
         }
