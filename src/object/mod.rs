@@ -10,7 +10,7 @@ pub enum Object {
 impl Object {
     pub fn inspect(&self) -> String {
         match self.clone() {
-            Object::Integer(int) => int.inspect()
+            Object::Integer(int) => int.inspect(),
         }
     }
 }

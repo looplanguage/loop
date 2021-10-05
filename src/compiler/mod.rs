@@ -40,7 +40,7 @@ impl Compiler {
     pub fn get_bytecode(&self) -> Bytecode {
         Bytecode {
             instructions: self.instructions.clone(),
-            constants: self.constants.clone()
+            constants: self.constants.clone(),
         }
     }
 

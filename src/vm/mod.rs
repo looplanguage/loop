@@ -1,9 +1,9 @@
 mod suffix;
 
-use crate::compiler::Bytecode;
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::read_uint16;
 use crate::compiler::opcode::OpCode;
+use crate::compiler::Bytecode;
 use crate::object::integer::Integer;
 use crate::object::Object;
 use crate::vm::suffix::run_suffix_expression;
@@ -13,22 +13,22 @@ pub struct VM {
     ip: i32,
     sp: u8,
     bytecode: Bytecode,
-    pub last_popped: Option<Object>
+    pub last_popped: Option<Object>,
 }
 
 pub fn build_vm(bt: Bytecode) -> VM {
     VM {
-        stack: [Object::Integer(Integer{ value: 0}); 2048],
+        stack: [Object::Integer(Integer { value: 0 }); 2048],
         ip: 0,
         sp: 0,
         bytecode: bt,
-        last_popped: None
+        last_popped: None,
     }
 }
 
 impl VM {
     pub fn run(&mut self) -> Option<String> {
-        while self.ip < (self.bytecode.instructions.len() as i32 ) {
+        while self.ip < (self.bytecode.instructions.len() as i32) {
             let _op = lookup_op(self.bytecode.instructions[self.ip as usize]);
 
             _op.as_ref()?;
@@ -38,7 +38,8 @@ impl VM {
             self.ip += 1;
             match op {
                 OpCode::Constant => {
-                    let idx = read_uint16(self.bytecode.instructions[self.ip as usize..].to_owned());
+                    let idx =
+                        read_uint16(self.bytecode.instructions[self.ip as usize..].to_owned());
                     self.ip += 2;
 
                     self.push(self.bytecode.constants[idx as usize].clone());

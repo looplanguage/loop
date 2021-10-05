@@ -7,5 +7,5 @@ pub enum OpCode {
     Modulo,
     Multiply,
     Divide,
-    Minus
+    Minus,
 }

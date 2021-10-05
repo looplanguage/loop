@@ -9,8 +9,8 @@ pub mod compiler;
 pub mod lexer;
 pub mod object;
 pub mod parser;
-mod vm;
 mod repl;
+mod vm;
 
 fn main() {
     build_repl().start();
