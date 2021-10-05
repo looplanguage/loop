@@ -69,9 +69,9 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
                         else_condition: Box::new(p.parse_expression(Precedence::Lowest)),
                     },
                 ))));
-            } else {
-                p.lexer.next();
             }
+
+            p.lexer.next();
 
             let else_condition = parse_block(p);
 
