@@ -30,15 +30,24 @@ impl Repl {
 
         let l = build_lexer(s.as_str());
         let mut p = build_parser(l);
-        let program = p.parse();
-        let mut compiler = build_compiler();
-        compiler.compile(program);
 
-        let mut vm = build_vm(compiler.get_bytecode());
-        vm.run();
+        if p.errors.is_empty() {
+            let program = p.parse();
+            let mut compiler = build_compiler();
+            compiler.compile(program);
 
-        if vm.last_popped.is_some() {
-            println!("{}", vm.last_popped.unwrap().inspect());
+            print_instructions(compiler.instructions.clone());
+
+            let mut vm = build_vm(compiler.get_bytecode());
+            vm.run();
+
+            if vm.last_popped.is_some() {
+                println!("{}", vm.last_popped.unwrap().inspect());
+            }
+        } else {
+            for err in p.errors {
+                println!("{}", err);
+            }
         }
 
         self.run();
