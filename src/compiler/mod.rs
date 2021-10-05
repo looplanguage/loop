@@ -13,6 +13,11 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::Statement;
 
+pub struct Bytecode {
+    pub instructions: Instructions,
+    pub constants: Vec<Object>,
+}
+
 pub struct Compiler {
     pub instructions: Instructions,
     pub constants: Vec<Object>,
@@ -29,6 +34,13 @@ impl Compiler {
     pub fn compile(&mut self, program: Program) {
         for statement in program.statements {
             self.compile_statement(statement)
+        }
+    }
+
+    pub fn get_bytecode(&self) -> Bytecode {
+        Bytecode {
+            instructions: self.instructions.clone(),
+            constants: self.constants.clone()
         }
     }
 

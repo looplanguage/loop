@@ -69,7 +69,7 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i32>, i32) {
     (operands, offset as i32)
 }
 
-fn read_uint8(ins: Vec<u8>) -> u8 {
+pub fn read_uint8(ins: Vec<u8>) -> u8 {
     let mut rdr = Cursor::new(ins);
     let try_read = rdr.read_u8();
 
@@ -80,7 +80,7 @@ fn read_uint8(ins: Vec<u8>) -> u8 {
     try_read.unwrap()
 }
 
-fn read_uint16(ins: Instructions) -> u16 {
+pub fn read_uint16(ins: Instructions) -> u16 {
     let mut rdr = Cursor::new(ins);
     let try_read = rdr.read_u16::<BigEndian>();
     if try_read.is_err() {

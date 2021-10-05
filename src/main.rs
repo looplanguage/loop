@@ -8,11 +8,12 @@ pub mod compiler;
 pub mod lexer;
 pub mod object;
 pub mod parser;
+mod vm;
 
 fn main() {
     let l = lexer::build_lexer(
         "
-        1; 2
+        1; 2; 3
         ",
     );
     let mut parser = parser::build_parser(l);
@@ -27,10 +28,9 @@ fn main() {
         return;
     }
 
-    println!("Statements ({}): ", program.statements.len());
     let mut comp = compiler::build_compiler();
     comp.compile(program);
 
-    println!("Instructions ({}): ", comp.instructions.len());
-    print_instructions(comp.instructions);
+    let mut vm = vm::build_vm(comp.get_bytecode());
+    vm.run();
 }
