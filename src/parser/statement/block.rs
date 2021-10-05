@@ -1,4 +1,3 @@
-use std::os::macos::raw::stat;
 use crate::lexer::token::TokenType;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
