@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::compiler::instructions::{pretty_print_instructions};
+    use crate::compiler::instructions::pretty_print_instructions;
     use crate::{compiler, lexer, parser};
 
     #[test]
