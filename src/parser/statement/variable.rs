@@ -23,7 +23,7 @@ pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    p.lexer.next();
+    p.lexer.next_token();
 
     let expr = p.parse_expression(Precedence::Lowest);
     expr.as_ref()?;

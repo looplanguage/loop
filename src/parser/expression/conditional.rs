@@ -60,7 +60,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
 
         if p.lexer.next_is(TokenType::Else) {
             if !p.lexer.next_is(TokenType::LeftBrace) {
-                p.lexer.next();
+                p.lexer.next_token();
 
                 return Some(Node::Expression(Expression::Conditional(Box::new(
                     Conditional {
@@ -71,7 +71,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
                 ))));
             }
 
-            p.lexer.next();
+            p.lexer.next_token();
 
             let else_condition = parse_block(p);
 

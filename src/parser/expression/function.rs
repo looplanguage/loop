@@ -22,22 +22,22 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let mut arguments: Vec<Identifier> = Vec::new();
 
-    p.lexer.next();
+    p.lexer.next_token();
 
     while p.lexer.current_token.clone().unwrap().token == TokenType::Identifier {
         arguments.push(Identifier {
             value: p.lexer.current_token.clone().unwrap().literal.to_string(),
         });
 
-        p.lexer.next();
+        p.lexer.next_token();
 
         if p.lexer.current_token.clone().unwrap().token == TokenType::Comma {
-            p.lexer.next();
+            p.lexer.next_token();
         }
     }
 
-    p.lexer.next();
-    p.lexer.next();
+    p.lexer.next_token();
+    p.lexer.next_token();
 
     let body = parse_block(p);
 

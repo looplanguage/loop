@@ -16,10 +16,7 @@ pub fn print_instructions(ins: Instructions) {
 
         let definition = def.clone().unwrap();
 
-        let data = read_operands(
-            definition.clone(),
-            ins[((i + 1 as i32) as usize)..].to_owned(),
-        );
+        let data = read_operands(definition.clone(), ins[((i + 1_i32) as usize)..].to_owned());
         let _operands = data.0;
         let read = data.1;
 
@@ -40,10 +37,10 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i32>, i32) {
     let mut offset = 0;
 
     for (i, width) in def.operand_width.iter().enumerate() {
-        match width {
-            &2 => operands[i] = read_uint16(ins[offset..].to_owned()) as i32,
-            &1 => operands[i] = read_uint8(ins[offset..].to_owned()) as i32,
-            &_ => {}
+        match *width {
+            2 => operands[i] = read_uint16(ins[offset..].to_owned()) as i32,
+            1 => operands[i] = read_uint8(ins[offset..].to_owned()) as i32,
+            _ => {}
         }
 
         offset += (*width) as usize
@@ -82,25 +79,20 @@ pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
         ins_length += width;
     }
 
-    let mut instruction: Vec<u8> = vec![];
+    let mut instruction: Vec<u8> = vec![op as u8];
 
-    instruction.push(op as u8);
-
-    let mut offset = 1;
     for (key, val) in operands.iter().enumerate() {
         let width = def.operand_width[key];
 
-        match width {
-            2 => {
-                instruction.write_u16::<BigEndian>(*val as u16);
-            }
-            _ => {
-                instruction.write_u8(*val as u8);
-            }
+        let result = match width {
+            2 => instruction.write_u16::<BigEndian>(*val as u16),
+            _ => instruction.write_u8(*val as u8),
         };
 
-        offset += width as usize;
+        if result.is_err() {
+            // TODO: Add compiler error
+        }
     }
 
-    return instruction;
+    instruction
 }
