@@ -13,9 +13,9 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn next(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Token {
         self.current_token = self.peek_token.clone();
-        self.peek_token = Some(self.next_token());
+        self.peek_token = Some(self.internal_next_token());
 
         let cloned = self.current_token.clone();
 
@@ -26,7 +26,7 @@ impl Lexer {
         cloned.unwrap()
     }
 
-    fn next_token(&mut self) -> Token {
+    fn internal_next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
@@ -38,7 +38,7 @@ impl Lexer {
         let ch: char = possible_char.unwrap();
 
         if ch.is_whitespace() {
-            return self.next_token();
+            return self.internal_next_token();
         }
 
         match ch {
@@ -138,7 +138,7 @@ impl Lexer {
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
         if self.peek_token.clone().unwrap().token == token {
-            self.next();
+            self.next_token();
             return true;
         }
 
@@ -147,7 +147,7 @@ impl Lexer {
 
     pub fn next_current_is(&mut self, token: TokenType) -> bool {
         if self.current_token.clone().unwrap().token == token {
-            self.next();
+            self.next_token();
             return true;
         }
 
@@ -186,8 +186,8 @@ pub fn build_lexer(input: &str) -> Lexer {
         peek_token: None,
     };
 
-    l.next();
-    l.next();
+    l.next_token();
+    l.next_token();
 
     l
 }

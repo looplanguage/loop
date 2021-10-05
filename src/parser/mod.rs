@@ -1,5 +1,5 @@
 pub mod expression;
-mod program;
+pub mod program;
 pub mod statement;
 mod tests;
 
@@ -40,7 +40,7 @@ impl Parser {
                 statements.push(i);
             }
 
-            self.lexer.next();
+            self.lexer.next_token();
         }
 
         Program { statements }
@@ -55,7 +55,7 @@ impl Parser {
         if self.lexer.peek_token.is_some()
             && self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon
         {
-            self.lexer.next();
+            self.lexer.next_token();
         }
 
         r
@@ -96,7 +96,7 @@ impl Parser {
                     return Some(Node::Expression(exp));
                 }
 
-                self.lexer.next();
+                self.lexer.next_token();
 
                 infix_expression_node = infix_parser.unwrap()(self, exp.clone())
             }
