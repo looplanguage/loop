@@ -3,7 +3,6 @@ extern crate strum;
 extern crate strum_macros;
 
 use crate::compiler::instructions::print_instructions;
-use crate::parser::statement::Statement;
 
 pub mod compiler;
 pub mod lexer;

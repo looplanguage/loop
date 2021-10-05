@@ -20,7 +20,7 @@ pub fn parse_block(p: &mut Parser) -> Block {
             p.add_error("unable to parse statement. see above!".to_string())
         }
 
-        p.lexer.next();
+        p.lexer.next_token();
     }
 
     Block { statements }
