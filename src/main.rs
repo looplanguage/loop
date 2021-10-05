@@ -8,7 +8,7 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let l = lexer::build_lexer("fn() { }");
+    let l = lexer::build_lexer("");
     let mut parser = parser::build_parser(l);
 
     let program = parser.parse();
@@ -33,6 +33,7 @@ fn main() {
             Statement::Expression(value) => {
                 println!("Expression statement: {:?}", value.expression)
             }
+            _ => {}
         }
     }
 }

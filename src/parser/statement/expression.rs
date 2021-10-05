@@ -5,7 +5,7 @@ use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Expression {
-    pub expression: crate::parser::expression::Expression,
+    pub expression: Box<crate::parser::expression::Expression>,
 }
 
 pub fn parse_expression_statement(p: &mut Parser) -> Option<Node> {
@@ -14,9 +14,9 @@ pub fn parse_expression_statement(p: &mut Parser) -> Option<Node> {
     expr.as_ref()?;
 
     if let Node::Expression(exp) = expr.unwrap() {
-        return Some(Node::Statement(Statement::Expression(Expression {
-            expression: exp,
-        })));
+        return Some(Node::Statement(Statement::Expression(Box::new(Expression {
+            expression: Box::new(exp),
+        }))));
     }
 
     None

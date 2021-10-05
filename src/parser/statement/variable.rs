@@ -9,7 +9,7 @@ use super::Statement;
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableDeclaration {
     pub ident: Identifier,
-    pub value: Expression,
+    pub value: Box<Expression>,
 }
 
 pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
@@ -34,7 +34,7 @@ pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
                 ident: Identifier {
                     value: ident.literal,
                 },
-                value: exp,
+                value: Box::new(exp),
             },
         )));
     }
