@@ -16,7 +16,7 @@ pub fn print_instructions(ins: Instructions) {
 
         let definition = def.clone().unwrap();
 
-        let data = read_operands(definition.clone(), ins[(i + 2) as usize..].to_owned());
+        let data = read_operands(definition.clone(), ins[((i + 1 as i32) as usize)..].to_owned());
         let _operands = data.0;
         let read = data.1;
 
@@ -39,27 +39,39 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i32>, i32) {
     for (i, width) in def.operand_width.iter().enumerate() {
         match width {
             &2 => {
-                operands[i] = read_uint8(ins[offset..].to_owned()) as i32
+                operands[i] = read_uint16(ins[offset..].to_owned()) as i32
             },
             &1 => {
-                operands[i] = read_uint16(ins[offset..].to_owned()) as i32
+                operands[i] = read_uint8(ins[offset..].to_owned()) as i32
             },
             &_ => {}
         }
 
-        offset += *width as usize
+        offset += (*width) as usize
     }
 
     (operands, offset as i32)
 }
 
 fn read_uint8(ins: Vec<u8>) -> u8 {
-    return ins[0]
+    let mut rdr = Cursor::new(ins);
+    let try_read = rdr.read_u8();
+
+    if try_read.is_err() {
+        return u8::MAX;
+    }
+
+    try_read.unwrap()
 }
 
 fn read_uint16(ins: Instructions) -> u16 {
     let mut rdr = Cursor::new(ins);
-    rdr.read_u16::<BigEndian>().unwrap()
+    let try_read = rdr.read_u16::<BigEndian>();
+    if try_read.is_err() {
+        return u16::MAX;
+    }
+
+    try_read.unwrap()
 }
 
 pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
@@ -81,12 +93,9 @@ pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
 
         match width {
             2 => {
-                let mut new_ins = instruction.to_owned();
-                new_ins.write_u16::<BigEndian>(*val as u16);
-
-                instruction = new_ins;
+                instruction.write_u16::<BigEndian>(*val as u16);
             },
-            _ => { instruction[offset] = *val as u8; }
+            _ => { instruction.write_u8(*val as u8); }
         };
 
         offset += width as usize;

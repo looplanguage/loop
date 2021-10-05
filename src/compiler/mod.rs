@@ -1,7 +1,10 @@
 pub mod instructions;
 pub mod opcode;
 pub mod definition;
+mod compile;
 
+use crate::compiler::compile::expression_integer::compile_expression_integer;
+use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::instructions::{Instructions, make_instruction};
 use crate::compiler::opcode::OpCode;
 use crate::object::integer::Integer;
@@ -29,18 +32,23 @@ impl Compiler {
         }
     }
 
-    fn compile_expression(&mut self, expr: Expression) {
-        match expr {
-            Expression::Identifier(_) => {}
-            Expression::Integer(int) => {
-                let ct = self.add_constant(Object::Integer(Integer{ value: int.value}));
-                self.emit(OpCode::Constant, vec![ct]);
-            }
-            Expression::Suffix(_) => {}
-            Expression::Boolean(_) => {}
-            Expression::Function(_) => {}
-            Expression::Conditional(_) => {}
+    fn compile_expression(&mut self, expr: Expression) -> Option<String> {
+        let err = match expr {
+            Expression::Identifier(_) => None,
+            Expression::Integer(int) => compile_expression_integer(self, int),
+            Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix.clone()),
+            Expression::Boolean(_) => None,
+            Expression::Function(_) => None,
+            Expression::Conditional(_) => None,
+        };
+
+        if err.is_some() {
+            return err;
         }
+
+        self.emit(OpCode::Pop, vec![]);
+
+        None
     }
 
     fn compile_statement(&mut self, stmt: Statement) {
