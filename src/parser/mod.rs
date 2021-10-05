@@ -1,5 +1,5 @@
 pub mod expression;
-mod program;
+pub mod program;
 pub mod statement;
 mod tests;
 
