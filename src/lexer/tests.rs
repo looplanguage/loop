@@ -7,26 +7,11 @@ mod tests {
     fn variable_declaration() {
         let input = "var test = 1;";
         let expected = vec![
-            Token {
-                token: TokenType::VariableDeclaration,
-                literal: "var".to_string(),
-            },
-            Token {
-                token: TokenType::Identifier,
-                literal: "test".to_string(),
-            },
-            Token {
-                token: TokenType::Assign,
-                literal: "=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
+            generate_token("var", TokenType::VariableDeclaration),
+            generate_token("test", TokenType::Identifier),
+            generate_token("=", TokenType::Assign),
+            generate_token("1", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
         ];
 
         do_test(input, expected);
@@ -36,86 +21,26 @@ mod tests {
     fn arithmetic_operations() {
         let input = "1 + 1; 1 - 5; 1 * 4; 20 / 3; 10 % 5;";
         let expected = vec![
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Plus,
-                literal: "+".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Minus,
-                literal: "-".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "5".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Multiply,
-                literal: "*".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "4".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "20".to_string(),
-            },
-            Token {
-                token: TokenType::Divide,
-                literal: "/".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "3".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "10".to_string(),
-            },
-            Token {
-                token: TokenType::Modulo,
-                literal: "%".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "5".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
+            generate_token("1", TokenType::Integer),
+            generate_token("+", TokenType::Plus),
+            generate_token("1", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("1", TokenType::Integer),
+            generate_token("-", TokenType::Minus),
+            generate_token("5", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("1", TokenType::Integer),
+            generate_token("*", TokenType::Multiply),
+            generate_token("4", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("20", TokenType::Integer),
+            generate_token("/", TokenType::Divide),
+            generate_token("3", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("10", TokenType::Integer),
+            generate_token("%", TokenType::Modulo),
+            generate_token("5", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
         ];
 
         do_test(input, expected);
@@ -125,70 +50,22 @@ mod tests {
     fn boolean_operations() {
         let input = "1 > 2; 1 >= 2; 1 < 2; 1 <= 2;";
         let expected = vec![
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::GreaterThan,
-                literal: ">".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::GreaterThanOrEquals,
-                literal: ">=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::LessThan,
-                literal: "<".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::LessThanOrEquals,
-                literal: "<=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
+            generate_token("1", TokenType::Integer),
+            generate_token(">", TokenType::GreaterThan),
+            generate_token("2", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("1", TokenType::Integer),
+            generate_token(">=", TokenType::GreaterThanOrEquals),
+            generate_token("2", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("1", TokenType::Integer),
+            generate_token("<", TokenType::LessThan),
+            generate_token("2", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
+            generate_token("1", TokenType::Integer),
+            generate_token("<=", TokenType::LessThanOrEquals),
+            generate_token("2", TokenType::Integer),
+            generate_token(";", TokenType::Semicolon),
         ];
 
         do_test(input, expected);
@@ -222,6 +99,13 @@ mod tests {
             i = i + 1;
             l.next();
             current_token = l.current_token.clone().unwrap();
+        }
+    }
+
+    fn generate_token(literal: &str, token_type: TokenType) -> Token{
+        return Token {
+            token: token_type,
+            literal: literal.to_string()
         }
     }
 }
