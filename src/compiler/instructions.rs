@@ -1,7 +1,7 @@
-use std::io::Cursor;
-use crate::compiler::definition::{Definition, get_definition, lookup};
+use crate::compiler::definition::{get_definition, lookup, Definition};
 use crate::compiler::opcode::OpCode;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use std::io::Cursor;
 
 pub type Instructions = Vec<u8>;
 
@@ -11,12 +11,15 @@ pub fn print_instructions(ins: Instructions) {
     while i < ins.len() as i32 {
         let def = lookup(ins[i as usize]);
         if def.is_none() {
-            return
+            return;
         }
 
         let definition = def.clone().unwrap();
 
-        let data = read_operands(definition.clone(), ins[((i + 1 as i32) as usize)..].to_owned());
+        let data = read_operands(
+            definition.clone(),
+            ins[((i + 1 as i32) as usize)..].to_owned(),
+        );
         let _operands = data.0;
         let read = data.1;
 
@@ -38,12 +41,8 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i32>, i32) {
 
     for (i, width) in def.operand_width.iter().enumerate() {
         match width {
-            &2 => {
-                operands[i] = read_uint16(ins[offset..].to_owned()) as i32
-            },
-            &1 => {
-                operands[i] = read_uint8(ins[offset..].to_owned()) as i32
-            },
+            &2 => operands[i] = read_uint16(ins[offset..].to_owned()) as i32,
+            &1 => operands[i] = read_uint8(ins[offset..].to_owned()) as i32,
             &_ => {}
         }
 
@@ -94,12 +93,14 @@ pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
         match width {
             2 => {
                 instruction.write_u16::<BigEndian>(*val as u16);
-            },
-            _ => { instruction.write_u8(*val as u8); }
+            }
+            _ => {
+                instruction.write_u8(*val as u8);
+            }
         };
 
         offset += width as usize;
     }
 
-    return instruction
+    return instruction;
 }
