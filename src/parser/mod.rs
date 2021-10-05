@@ -6,6 +6,7 @@ mod tests;
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
+use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::parse_function;
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::integer::parse_integer_literal;
@@ -15,7 +16,6 @@ use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
-use crate::parser::expression::conditional::parse_conditional;
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -52,7 +52,6 @@ impl Parser {
             _ => self.parse_expression_statement(token),
         };
 
-
         if self.lexer.peek_token.is_some()
             && self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon
         {
@@ -82,9 +81,7 @@ impl Parser {
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
 
         if expression_node.is_none() {
-            self.add_error(format!(
-                "error parsing expression. see above!"
-            ));
+            self.add_error(format!("error parsing expression. see above!"));
             return None;
         }
 

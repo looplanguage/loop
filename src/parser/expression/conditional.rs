@@ -2,8 +2,8 @@ use crate::lexer::token::TokenType;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
-use crate::parser::Parser;
 use crate::parser::statement::Statement;
+use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Conditional {
@@ -13,7 +13,6 @@ pub struct Conditional {
 }
 
 pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
-
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
             "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
@@ -59,16 +58,17 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
             return None;
         }
 
-
         if p.lexer.next_is(TokenType::Else) {
             if !p.lexer.next_is(TokenType::LeftBrace) {
                 p.lexer.next();
 
-                return Some(Node::Expression(Expression::Conditional(Box::new(Conditional {
-                    condition: Box::new(exp),
-                    body,
-                    else_condition: Box::new(p.parse_expression(Precedence::Lowest)),
-                }))));
+                return Some(Node::Expression(Expression::Conditional(Box::new(
+                    Conditional {
+                        condition: Box::new(exp),
+                        body,
+                        else_condition: Box::new(p.parse_expression(Precedence::Lowest)),
+                    },
+                ))));
             } else {
                 p.lexer.next();
             }
@@ -83,18 +83,24 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
                 return None;
             }
 
-            return Some(Node::Expression(Expression::Conditional(Box::new(Conditional {
-                condition: Box::new(exp),
-                body,
-                else_condition: Box::new(Some(Node::Statement(Statement::Block(else_condition)))),
-            }))));
+            return Some(Node::Expression(Expression::Conditional(Box::new(
+                Conditional {
+                    condition: Box::new(exp),
+                    body,
+                    else_condition: Box::new(Some(Node::Statement(Statement::Block(
+                        else_condition,
+                    )))),
+                },
+            ))));
         }
 
-        return Some(Node::Expression(Expression::Conditional(Box::new(Conditional {
-            condition: Box::new(exp),
-            body,
-            else_condition: Box::new(None),
-        }))));
+        return Some(Node::Expression(Expression::Conditional(Box::new(
+            Conditional {
+                condition: Box::new(exp),
+                body,
+                else_condition: Box::new(None),
+            },
+        ))));
     }
 
     None
