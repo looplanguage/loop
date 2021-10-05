@@ -81,7 +81,7 @@ impl Parser {
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
 
         if expression_node.is_none() {
-            self.add_error(format!("error parsing expression. see above!"));
+            self.add_error("error parsing expression. see above!".to_string());
             return None;
         }
 
