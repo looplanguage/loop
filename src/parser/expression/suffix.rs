@@ -16,7 +16,7 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option
 
     let pre = p.cur_precedence();
 
-    p.lexer.next();
+    p.lexer.next_token();
 
     if let Node::Expression(val) = p.parse_expression(pre).unwrap() {
         return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
@@ -30,7 +30,7 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option
 }
 
 pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
-    p.lexer.next();
+    p.lexer.next_token();
     let exp = p.parse_expression(Lowest);
 
     if !p.lexer.next_is(RightParenthesis) {
