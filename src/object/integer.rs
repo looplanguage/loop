@@ -1,6 +1,6 @@
 use crate::object::ObjectTrait;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Integer {
     pub(crate) value: i32,
 }
