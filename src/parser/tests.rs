@@ -12,6 +12,37 @@ mod tests {
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
+    use crate::parser::program::Node;
+
+    fn generate_if_expression(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Statement {
+        return Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::Expression::Conditional(Box::new(generate_conditional(condition, body, else_condition)))),
+        }));
+    }
+
+    fn generate_else_condition(conditinional: bool, body: Block, else_condition: Box<Option<Node>>) -> Box<Option<Node>> {
+        return Box::new(Some(parser::Node::Expression(
+            parser::expression::Expression::Conditional(Box::new(generate_conditional(conditinional, body, else_condition))),
+        )));
+    }
+
+    fn generate_conditional(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Conditional {
+        return Conditional {
+            condition: Box::new(parser::Expression::Boolean(Boolean { value: condition })),
+            body: body,
+            else_condition: else_condition,
+        }
+    }
+
+    fn generate_else_block_box(statements: Vec<Statement>) -> Box<Option<Node>> {
+       return Box::new(Some(parser::Node::Statement(Statement::Block(
+           generate_else_block(statements),
+        ))));
+    }
+
+    fn generate_else_block(statements: Vec<Statement>) -> Block {
+        return Block { statements: statements };
+    }
 
     #[test]
     fn conditionals() {
@@ -24,99 +55,29 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::Expression::Conditional(Box::new(Conditional {
-                condition: Box::new(parser::Expression::Boolean(Boolean { value: true })),
-                body: Block { statements: vec![] },
-                else_condition: Box::new(None),
-            }))),
-        })));
+        expected.push(generate_if_expression(true, Block { statements: vec![] }, Box::new(None)));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::Expression::Conditional(Box::new(Conditional {
-                condition: Box::new(parser::Expression::Boolean(Boolean { value: false })),
-                body: Block { statements: vec![] },
-                else_condition: Box::new(Some(parser::Node::Expression(
-                    parser::expression::Expression::Conditional(Box::new(Conditional {
-                        condition: Box::new(parser::Expression::Boolean(Boolean { value: true })),
-                        body: Block { statements: vec![] },
-                        else_condition: Box::new(None),
-                    })),
-                ))),
-            }))),
-        })));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::Expression::Conditional(Box::new(Conditional {
-                condition: Box::new(parser::Expression::Boolean(Boolean { value: false })),
-                body: Block { statements: vec![] },
-                else_condition: Box::new(Some(parser::Node::Expression(
-                    parser::expression::Expression::Conditional(Box::new(Conditional {
-                        condition: Box::new(parser::Expression::Boolean(Boolean { value: false })),
-                        body: Block { statements: vec![] },
-                        else_condition: Box::new(Some(parser::Node::Statement(Statement::Block(
-                            Block { statements: vec![] },
-                        )))),
-                    })),
-                ))),
-            }))),
-        })));
+        let else_conditional = generate_else_condition(true, Block { statements: vec![] }, Box::new(None));
+        expected.push(generate_if_expression(false, Block { statements: vec![] }, else_conditional));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::Expression::Conditional(Box::new(Conditional {
-                condition: Box::new(parser::Expression::Boolean(Boolean { value: false })),
-                body: Block {
-                    statements: vec![
-                        Statement::Expression(Box::new(Expression {
-                            expression: Box::new(parser::expression::Expression::Integer(
-                                Integer { value: 1 },
-                            )),
-                        })),
-                        Statement::Expression(Box::new(Expression {
-                            expression: Box::new(parser::expression::Expression::Boolean(
-                                Boolean { value: true },
-                            )),
-                        })),
-                    ],
-                },
-                else_condition: Box::new(Some(parser::Node::Expression(
-                    parser::expression::Expression::Conditional(Box::new(Conditional {
-                        condition: Box::new(parser::Expression::Boolean(Boolean { value: false })),
-                        body: Block {
-                            statements: vec![
-                                Statement::Expression(Box::new(Expression {
-                                    expression: Box::new(parser::expression::Expression::Boolean(
-                                        Boolean { value: true },
-                                    )),
-                                })),
-                                Statement::Expression(Box::new(Expression {
-                                    expression: Box::new(parser::expression::Expression::Suffix(
-                                        Box::from(Suffix {
-                                            left: parser::expression::Expression::Integer(
-                                                Integer { value: 1 },
-                                            ),
-                                            operator: "+".to_string(),
-                                            right: parser::expression::Expression::Integer(
-                                                Integer { value: 1 },
-                                            ),
-                                        }),
-                                    )),
-                                })),
-                            ],
-                        },
-                        else_condition: Box::new(Some(parser::Node::Statement(Statement::Block(
-                            Block {
-                                statements: vec![Statement::Expression(Box::new(Expression {
-                                    expression: Box::new(parser::expression::Expression::Boolean(
-                                        Boolean { value: true },
-                                    )),
-                                }))],
-                            },
-                        )))),
-                    })),
-                ))),
-            }))),
-        })));
+
+        let else_conditional = generate_else_condition(false, Block { statements: vec![] }, generate_else_block_box(vec![]));
+        expected.push(generate_if_expression(false, Block { statements: vec![] }, else_conditional));
+
+        // TODO: This is a hot mess. It is kind of readable but not really...
+        let else_conditional = generate_else_condition(false, generate_else_block(vec![generate_boolean_expression_box(true), Statement::Expression(Box::new(Expression {
+            expression: Box::new(generate_expression_suffix(1, '+', 1)),
+        }))]), generate_else_block_box(vec![Statement::Expression(Box::new(Expression {
+            expression: Box::new(generate_boolean_expression(true)),
+        }))]));
+
+        expected.push(generate_if_expression(false, Block {
+            statements: vec![
+                generate_integer_expression_box(1),
+                generate_boolean_expression_box(true),
+            ],
+        }, else_conditional));
 
         test_parser(input, expected);
     }
@@ -251,8 +212,8 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(generate_boolean_expression(true));
-        expected.push(generate_boolean_expression(false));
+        expected.push(generate_boolean_expression_box(true));
+        expected.push(generate_boolean_expression_box(false));
 
         test_parser(input, expected);
     }
@@ -263,8 +224,8 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(generate_boolean_expression(false));
-        expected.push(generate_boolean_expression(true));
+        expected.push(generate_boolean_expression_box(false));
+        expected.push(generate_boolean_expression_box(true));
 
         test_parser(input, expected);
     }
@@ -277,33 +238,33 @@ mod tests {
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: parser::expression::Expression::Boolean(Boolean { value: true }),
-                operator: "==".to_string(),
-                right: parser::expression::Expression::Boolean(Boolean { value: true }),
+                left: generate_boolean_expression(true),
+                operator: generate_operator("=="),
+                right: generate_boolean_expression(true),
             }))),
         })));
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: parser::expression::Expression::Integer(Integer { value: 1 }),
-                operator: "==".to_string(),
-                right: parser::expression::Expression::Boolean(Boolean { value: true }),
+                left: generate_integer_expression(1),
+                operator: generate_operator("=="),
+                right: generate_boolean_expression(true),
             }))),
         })));
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: parser::expression::Expression::Integer(Integer { value: 3 }),
-                operator: ">".to_string(),
-                right: parser::expression::Expression::Integer(Integer { value: 4 }),
+                left: generate_integer_expression(3),
+                operator: generate_operator(">"),
+                right: generate_integer_expression(4),
             }))),
         })));
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: parser::expression::Expression::Integer(Integer { value: 3 }),
-                operator: "<".to_string(),
-                right: parser::expression::Expression::Integer(Integer { value: 4 }),
+                left: generate_integer_expression(3),
+                operator: generate_operator("<"),
+                right: generate_integer_expression(4),
             }))),
         })));
 
@@ -342,22 +303,34 @@ mod tests {
 
     // Helper Functions
 
-    fn generate_boolean_expression(value: bool) -> Statement {
+    fn generate_operator(operator: &str) -> String {
+        return operator.to_string();
+    }
+
+    fn generate_boolean_expression_box(value: bool) -> Statement {
         let expression = Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Boolean(Boolean {
-                value: value,
-            })),
+            expression: Box::new(generate_boolean_expression(value)),
         }));
         return expression;
     }
 
-    fn generate_integer_expression(value: i32) -> Statement {
+    fn generate_boolean_expression(value: bool) -> crate::parser::expression::Expression {
+        return parser::expression::Expression::Boolean(Boolean {
+            value: value,
+        });
+    }
+
+    fn generate_integer_expression_box(value: i32) -> Statement {
         let expression = Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Integer(Integer {
-                value: value,
-            })),
-        }));;
+            expression: Box::new(generate_integer_expression(value)),
+        }));
         return expression;
+    }
+
+    fn generate_integer_expression(value: i32) -> crate::parser::expression::Expression {
+        return parser::expression::Expression::Integer(Integer {
+            value: value,
+        });
     }
 
     fn generate_variable_declaration(identifier: &str, expression: i32) -> Statement {
