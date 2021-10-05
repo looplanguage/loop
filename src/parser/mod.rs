@@ -15,6 +15,7 @@ use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
+use crate::parser::expression::conditional::parse_conditional;
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -78,6 +79,14 @@ impl Parser {
         }
 
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
+
+        if expression_node.is_none() {
+            self.add_error(format!(
+                "error parsing expression. see above!"
+            ));
+            return None;
+        }
+
         if let Node::Expression(exp) = expression_node.unwrap() {
             let mut infix_expression_node: Option<Node> = None;
             while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
@@ -160,6 +169,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::False, parse_boolean);
     p.add_prefix_parser(TokenType::InvertSign, parse_inverted_boolean);
     p.add_prefix_parser(TokenType::Function, parse_function);
+    p.add_prefix_parser(TokenType::If, parse_conditional);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);

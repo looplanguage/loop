@@ -144,6 +144,15 @@ impl Lexer {
 
         false
     }
+
+    pub fn next_current_is(&mut self, token: TokenType) -> bool {
+        if self.current_token.clone().unwrap().token == token {
+            self.next();
+            return true;
+        }
+
+        false
+    }
 }
 
 fn lookup_keyword(keyword: &str) -> TokenType {

@@ -1,3 +1,4 @@
+use crate::parser::statement::block::Block;
 use self::variable::VariableDeclaration;
 use crate::parser::statement::expression::Expression;
 
@@ -8,5 +9,6 @@ pub mod variable;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
     VariableDeclaration(VariableDeclaration),
-    Expression(Expression),
+    Expression(Box<Expression>),
+    Block(Block)
 }
