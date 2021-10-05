@@ -2,7 +2,6 @@ pub mod instructions;
 pub mod opcode;
 pub mod definition;
 
-use std::os::macos::raw::stat;
 use crate::compiler::instructions::{Instructions, make_instruction};
 use crate::compiler::opcode::OpCode;
 use crate::object::integer::Integer;
