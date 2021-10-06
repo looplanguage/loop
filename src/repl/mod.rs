@@ -1,9 +1,9 @@
 use crate::compiler::build_compiler;
 use crate::compiler::instructions::print_instructions;
+use crate::flags::{FlagTypes, Flags};
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::build_vm;
-use crate::Flags;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -13,10 +13,10 @@ pub struct Repl {
     debug: bool,
 }
 
-pub fn build_repl(flags: Vec<Flags>) -> Repl {
+pub fn build_repl(flags: Flags) -> Repl {
     Repl {
         line: 0,
-        debug: flags.contains(&Flags::Debug),
+        debug: flags.contains(FlagTypes::Debug),
     }
 }
 
