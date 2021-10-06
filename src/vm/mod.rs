@@ -1,7 +1,7 @@
 mod suffix;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{read_uint16, read_uint32};
+use crate::compiler::instructions::read_uint32;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::object::integer::Integer;
