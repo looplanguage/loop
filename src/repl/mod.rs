@@ -3,11 +3,11 @@ use crate::compiler::instructions::print_instructions;
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::build_vm;
-use std::io::{stdin, stdout, Write};
-use colored::Colorize;
-use rustyline::Editor;
-use rustyline::error::ReadlineError;
 use crate::Flags;
+use colored::Colorize;
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+use std::io::{stdin, stdout, Write};
 
 pub struct Repl {
     line: i32,
@@ -16,7 +16,7 @@ pub struct Repl {
 
 pub fn build_repl(flags: Vec<Flags>) -> Repl {
     Repl {
-        line: 0 ,
+        line: 0,
         debug: flags.contains(&Flags::Debug),
     }
 }
@@ -66,18 +66,18 @@ impl Repl {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str());
                     self.run_code(line);
-                },
+                }
                 Err(ReadlineError::Interrupted) => {
                     println!("CTRL-C");
-                    break
-                },
+                    break;
+                }
                 Err(ReadlineError::Eof) => {
                     println!("CTRL-D");
-                    break
-                },
+                    break;
+                }
                 Err(err) => {
                     println!("Error: {:?}", err);
-                    break
+                    break;
                 }
             }
         }
