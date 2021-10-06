@@ -67,15 +67,14 @@ impl Repl {
                     self.run_code(line);
                 }
                 Err(ReadlineError::Interrupted) => {
-                    println!("CTRL-C");
                     break;
                 }
                 Err(ReadlineError::Eof) => {
-                    println!("CTRL-D");
                     break;
                 }
                 Err(err) => {
-                    println!("Error: {:?}", err);
+                    let err = format!("{:?}", err);
+                    println!("{}", err.red());
                     break;
                 }
             }
