@@ -2,6 +2,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use std::env;
 use crate::repl::build_repl;
 
 pub mod compiler;
@@ -12,5 +13,35 @@ mod repl;
 mod vm;
 
 fn main() {
-    build_repl().start();
+    let args: Vec<String> = env::args().collect();
+    let flags = parse_flags(args);
+
+    build_repl(flags).start();
+}
+
+#[derive(PartialEq)]
+pub enum Flags {
+    None,
+    Debug,
+}
+
+fn get_flag(string: &str) -> Flags {
+    match string {
+        "--debug" | "-d" => Flags::Debug,
+        &_ => Flags::None
+    }
+}
+
+fn parse_flags(args: Vec<String>) -> Vec<Flags> {
+    let mut flags: Vec<Flags> = vec![];
+
+    for arg in args {
+        let flag = get_flag(arg.as_str());
+
+        if flag != Flags::None {
+            flags.push(flag)
+        }
+    }
+
+    flags
 }

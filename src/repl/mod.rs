@@ -7,13 +7,18 @@ use std::io::{stdin, stdout, Write};
 use colored::Colorize;
 use rustyline::Editor;
 use rustyline::error::ReadlineError;
+use crate::Flags;
 
 pub struct Repl {
     line: i32,
+    debug: bool,
 }
 
-pub fn build_repl() -> Repl {
-    Repl { line: 0 }
+pub fn build_repl(flags: Vec<Flags>) -> Repl {
+    Repl {
+        line: 0 ,
+        debug: flags.contains(&Flags::Debug),
+    }
 }
 
 impl Repl {
@@ -32,7 +37,9 @@ impl Repl {
             let mut compiler = build_compiler();
             compiler.compile(program);
 
-            print_instructions(compiler.instructions.clone());
+            if self.debug {
+                print_instructions(compiler.instructions.clone());
+            }
 
             let mut vm = build_vm(compiler.get_bytecode());
             vm.run();
