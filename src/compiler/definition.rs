@@ -6,11 +6,18 @@ pub struct Definition {
     pub operand_width: Vec<i32>, // how many bits wide each operand is
 }
 
+// OpConstant 0 = 10
+// OpConstant 1 = 20
+// OpAdd        = 30 = arg 1
+// OpConstant 3 = 10 = arg 2
+// OpClosure 4 2
+// 00000001 0010000000000000 01000000
+
 pub fn get_definition(op: OpCode) -> Definition {
     match op {
         OpCode::Constant => Definition {
             name: "OpConstant".to_string(),
-            operand_width: vec![2],
+            operand_width: vec![4],
         },
         OpCode::Add => Definition {
             name: "OpAdd".to_string(),
