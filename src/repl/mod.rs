@@ -59,7 +59,7 @@ impl Repl {
         loop {
             self.line += 1;
 
-            let readline = rl.readline(format!("{} {} ", self.line, "=>".magenta()).as_str());
+            let readline = rl.readline(format!("{} => ", self.line).as_str());
 
             match readline {
                 Ok(line) => {
