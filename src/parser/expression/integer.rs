@@ -4,7 +4,7 @@ use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Integer {
-    pub value: i32,
+    pub value: i64,
 }
 
 pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
@@ -14,7 +14,7 @@ pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
         .clone()
         .unwrap()
         .literal
-        .parse::<i32>()
+        .parse::<i64>()
         .unwrap();
 
     Some(Node::Expression(Expression::Integer(Integer { value })))

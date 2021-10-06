@@ -7,9 +7,9 @@ mod tests {
     fn emit_instruction() {
         let input = "1; 2";
         let expected = "[0] OpConstant 0
-[3] OpPop
-[4] OpConstant 1
-[7] OpPop";
+[5] OpPop
+[6] OpConstant 1
+[11] OpPop";
 
         compiler_test(input, expected)
     }
