@@ -72,7 +72,7 @@ impl Parser {
 
         if prefix_parser.is_none() {
             self.add_error(format!(
-                "no prefix parser for \"{:?}\"",
+                "ParserException: no prefix parser for \"{:?}\"",
                 self.lexer.current_token.as_ref().unwrap().token
             ));
             return None;
