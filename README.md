@@ -1,7 +1,9 @@
-<div style="text-align: center;">
-<span style="font-size: 2.5em; font-weight: bold">Loop Language</span><br>
-A dynamic type-safe general purpose programming language
-</div>
+<h1 align="center">Loop Language</h1>
+    <p align="center">
+        <a href="https://looplang.org/docs">Documentation</a> |
+        <a href="https://looplang.org/">Website</a><br>
+    A dynamic type-safe general purpose programming language
+    </p>
 <br>
 
 **Note:** currently Loop is being re-written into Rust. Meaning that while this change is happening not all features of Loop are implemented.
