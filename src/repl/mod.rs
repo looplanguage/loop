@@ -22,8 +22,11 @@ impl Repl {
         self.line += 1;
 
         let mut s = String::new();
+
         print!("{} > ", self.line);
+
         let _ = stdout().flush();
+
         let result = stdin().read_line(&mut s);
 
         if result.is_err() {
@@ -31,10 +34,12 @@ impl Repl {
         }
 
         let l = build_lexer(s.as_str());
+
         let mut p = build_parser(l);
 
+        let program = p.parse();
+
         if p.errors.is_empty() {
-            let program = p.parse();
             let mut compiler = build_compiler();
             compiler.compile(program);
 
