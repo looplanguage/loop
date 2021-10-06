@@ -16,7 +16,7 @@ pub struct Repl {
 pub fn build_repl(flags: Flags) -> Repl {
     Repl {
         line: 0,
-        debug: flags.flags.contains(&FlagTypes::Debug),
+        debug: flags.contains(FlagTypes::Debug),
     }
 }
 
