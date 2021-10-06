@@ -13,7 +13,7 @@ pub struct Flags {
 }
 
 impl Flags {
-    pub fn get_flag(string: &str) -> FlagTypes {
+    fn get_flag(string: &str) -> FlagTypes {
         match string {
             "--debug" | "-d" => FlagTypes::Debug,
             &_ => FlagTypes::None,
@@ -27,5 +27,9 @@ impl Flags {
                 self.flags.push(flag)
             }
         }
+    }
+
+    pub fn contains(self, flag: FlagTypes) -> bool {
+        self.flags.contains(&flag)
     }
 }
