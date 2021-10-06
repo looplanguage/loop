@@ -4,6 +4,9 @@ use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::build_vm;
 use std::io::{stdin, stdout, Write};
+use colored::Colorize;
+use rustyline::Editor;
+use rustyline::error::ReadlineError;
 
 pub struct Repl {
     line: i32,
@@ -18,21 +21,7 @@ impl Repl {
         self.run()
     }
 
-    fn run(&mut self) {
-        self.line += 1;
-
-        let mut s = String::new();
-
-        print!("{} > ", self.line);
-
-        let _ = stdout().flush();
-
-        let result = stdin().read_line(&mut s);
-
-        if result.is_err() {
-            panic!("unable to parse input.")
-        }
-
+    fn run_code(&mut self, s: String) {
         let l = build_lexer(s.as_str());
 
         let mut p = build_parser(l);
@@ -49,23 +38,41 @@ impl Repl {
             vm.run();
 
             if vm.last_popped.is_some() {
-                println!("{}", vm.last_popped.unwrap().inspect());
+                println!("{}", vm.last_popped.unwrap().inspect().green());
             }
         } else {
             for err in p.errors {
-                println!("{}", err);
+                println!("{}", err.to_string().red());
             }
         }
+    }
 
-        self.run();
+    fn run(&mut self) {
+        let mut rl = Editor::<()>::new();
+
+        loop {
+            self.line += 1;
+
+            let readline = rl.readline(format!("{} {} ", self.line, "=>".magenta()).as_str());
+
+            match readline {
+                Ok(line) => {
+                    rl.add_history_entry(line.as_str());
+                    self.run_code(line);
+                },
+                Err(ReadlineError::Interrupted) => {
+                    println!("CTRL-C");
+                    break
+                },
+                Err(ReadlineError::Eof) => {
+                    println!("CTRL-D");
+                    break
+                },
+                Err(err) => {
+                    println!("Error: {:?}", err);
+                    break
+                }
+            }
+        }
     }
 }
-
-/*
-            let l = build_lexer(line.unwrap().as_str());
-            let mut p = build_parser(l);
-            let program = p.parse();
-            let mut compiler = build_compiler();
-            compiler.compile(program);
-            let vm = build_vm(compiler.get_bytecode());
-*/

@@ -2,6 +2,7 @@ use crate::compiler::definition::{get_definition, lookup, Definition};
 use crate::compiler::opcode::OpCode;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::io::Cursor;
+use colored::Colorize;
 
 pub type Instructions = Vec<u8>;
 
@@ -49,7 +50,7 @@ pub fn pretty_print_instructions(ins: Instructions) -> String {
 }
 
 pub fn print_instructions(ins: Instructions) {
-    println!("{}", pretty_print_instructions(ins))
+    println!("{}", pretty_print_instructions(ins).blue())
 }
 
 pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i64>, i32) {
