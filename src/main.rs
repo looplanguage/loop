@@ -2,8 +2,8 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use std::env;
 use crate::repl::build_repl;
+use std::env;
 
 pub mod compiler;
 pub mod lexer;
@@ -28,7 +28,7 @@ pub enum Flags {
 fn get_flag(string: &str) -> Flags {
     match string {
         "--debug" | "-d" => Flags::Debug,
-        &_ => Flags::None
+        &_ => Flags::None,
     }
 }
 

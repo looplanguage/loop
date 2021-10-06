@@ -1,8 +1,8 @@
 use crate::compiler::definition::{get_definition, lookup, Definition};
 use crate::compiler::opcode::OpCode;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use std::io::Cursor;
 use colored::Colorize;
+use std::io::Cursor;
 
 pub type Instructions = Vec<u8>;
 
@@ -117,7 +117,7 @@ pub fn make_instruction(op: OpCode, operands: Vec<u32>) -> Vec<u8> {
         let width = def.operand_width[key];
 
         let result = match width {
-            4 => instruction.write_u32::<BigEndian>(* val as u32),
+            4 => instruction.write_u32::<BigEndian>(*val as u32),
             2 => instruction.write_u16::<BigEndian>(*val as u16),
             _ => instruction.write_u8(*val as u8),
         };
