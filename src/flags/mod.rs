@@ -5,7 +5,7 @@ pub enum FlagTypes {
 }
 
 pub fn build_flags() -> Flags {
-    return Flags { flags: vec![] };
+    Flags { flags: vec![] }
 }
 
 pub struct Flags {
