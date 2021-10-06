@@ -72,7 +72,7 @@ impl Parser {
 
         if prefix_parser.is_none() {
             self.add_error(format!(
-                "ParserException: no prefix parser for \"{:?}\"",
+                "no prefix parser for \"{:?}\"",
                 self.lexer.current_token.as_ref().unwrap().token
             ));
             return None;
@@ -155,7 +155,7 @@ impl Parser {
     }
 
     pub fn add_error(&mut self, error: String) {
-        self.errors.push(error);
+        self.errors.push(format!("ParserException: {}", error));
     }
 
     pub fn peek_precedence(&mut self) -> Precedence {
