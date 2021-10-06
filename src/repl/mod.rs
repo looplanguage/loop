@@ -1,8 +1,8 @@
-use crate::compiler::build_compiler;
 use crate::compiler::instructions::print_instructions;
+use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
-use crate::vm::build_vm;
+use crate::vm::{build_vm, VMState};
 use crate::Flags;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
@@ -11,12 +11,16 @@ use rustyline::Editor;
 pub struct Repl {
     line: i32,
     debug: bool,
+    compiler_state: Option<CompilerState>,
+    vm_state: Option<VMState>,
 }
 
 pub fn build_repl(flags: Vec<Flags>) -> Repl {
     Repl {
         line: 0,
         debug: flags.contains(&Flags::Debug),
+        compiler_state: None,
+        vm_state: None,
     }
 }
 
@@ -33,17 +37,26 @@ impl Repl {
         let program = p.parse();
 
         if p.errors.is_empty() {
-            let mut compiler = build_compiler();
-            compiler.compile(program);
+            let mut compiler = build_compiler(self.compiler_state.as_ref());
+            let error = compiler.compile(program);
+
+            if error.is_some() {
+                println!("{} {}", "CompilerError:".red(), error.unwrap().red());
+                return;
+            }
+
+            self.compiler_state = Some(compiler.get_state());
 
             if self.debug {
                 print_instructions(compiler.instructions.clone());
             }
 
-            let mut vm = build_vm(compiler.get_bytecode());
+            let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
             vm.run();
 
             if vm.last_popped.is_some() {
+                self.vm_state = Some(vm.get_state());
+
                 println!("{}", vm.last_popped.unwrap().inspect().green());
             }
         } else {
