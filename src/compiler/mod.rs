@@ -72,10 +72,10 @@ impl Compiler {
         }
     }
 
-    fn add_constant(&mut self, obj: Object) -> u16 {
+    fn add_constant(&mut self, obj: Object) -> u32 {
         self.constants.push(obj);
 
-        (self.constants.len() - 1) as u16
+        (self.constants.len() - 1) as u32
     }
 
     fn add_instruction(&mut self, instruction: Vec<u8>) -> usize {
@@ -88,7 +88,7 @@ impl Compiler {
         position_new_ins
     }
 
-    fn emit(&mut self, op: OpCode, operands: Vec<u16>) -> usize {
+    fn emit(&mut self, op: OpCode, operands: Vec<u32>) -> usize {
         let ins = make_instruction(op, operands);
 
         self.add_instruction(ins)

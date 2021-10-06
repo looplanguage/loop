@@ -52,14 +52,15 @@ pub fn print_instructions(ins: Instructions) {
     println!("{}", pretty_print_instructions(ins))
 }
 
-pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i32>, i32) {
-    let mut operands: Vec<i32> = vec![0; def.operand_width.len()];
+pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i64>, i32) {
+    let mut operands: Vec<i64> = vec![0; def.operand_width.len()];
     let mut offset = 0;
 
     for (i, width) in def.operand_width.iter().enumerate() {
         match *width {
-            2 => operands[i] = read_uint16(ins[offset..].to_owned()) as i32,
-            1 => operands[i] = read_uint8(ins[offset..].to_owned()) as i32,
+            4 => operands[i] = read_uint32(ins[offset..].to_owned()) as i64,
+            2 => operands[i] = read_uint16(ins[offset..].to_owned()) as i64,
+            1 => operands[i] = read_uint8(ins[offset..].to_owned()) as i64,
             _ => {}
         }
 
@@ -90,7 +91,17 @@ pub fn read_uint16(ins: Instructions) -> u16 {
     try_read.unwrap()
 }
 
-pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
+pub fn read_uint32(ins: Instructions) -> u32 {
+    let mut rdr = Cursor::new(ins);
+    let try_read = rdr.read_u32::<BigEndian>();
+    if try_read.is_err() {
+        return u32::MAX;
+    }
+
+    try_read.unwrap()
+}
+
+pub fn make_instruction(op: OpCode, operands: Vec<u32>) -> Vec<u8> {
     let mut ins_length = 1;
 
     let def = get_definition(op);
@@ -105,6 +116,7 @@ pub fn make_instruction(op: OpCode, operands: Vec<u16>) -> Vec<u8> {
         let width = def.operand_width[key];
 
         let result = match width {
+            4 => instruction.write_u32::<BigEndian>(* val as u32),
             2 => instruction.write_u16::<BigEndian>(*val as u16),
             _ => instruction.write_u8(*val as u8),
         };

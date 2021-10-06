@@ -1,7 +1,7 @@
 mod suffix;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::read_uint16;
+use crate::compiler::instructions::{read_uint16, read_uint32};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::object::integer::Integer;
@@ -11,7 +11,7 @@ use crate::vm::suffix::run_suffix_expression;
 pub struct VM {
     stack: [Object; 2048],
     ip: i32,
-    sp: u8,
+    sp: u32,
     bytecode: Bytecode,
     pub last_popped: Option<Object>,
 }
@@ -39,8 +39,8 @@ impl VM {
             match op {
                 OpCode::Constant => {
                     let idx =
-                        read_uint16(self.bytecode.instructions[self.ip as usize..].to_owned());
-                    self.ip += 2;
+                        read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
+                    self.ip += 4;
 
                     self.push(self.bytecode.constants[idx as usize]);
                 }

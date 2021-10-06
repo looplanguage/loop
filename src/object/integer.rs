@@ -2,7 +2,7 @@ use crate::object::ObjectTrait;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Integer {
-    pub(crate) value: i32,
+    pub(crate) value: i64,
 }
 
 impl ObjectTrait for Integer {
