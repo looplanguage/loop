@@ -10,8 +10,8 @@ use crate::vm::suffix::run_suffix_expression;
 
 pub struct VM {
     stack: [Object; 2048],
-    ip: i32,
-    sp: u32,
+    ip: u32,
+    sp: u16,
     bytecode: Bytecode,
     pub last_popped: Option<Object>,
 }
@@ -28,7 +28,7 @@ pub fn build_vm(bt: Bytecode) -> VM {
 
 impl VM {
     pub fn run(&mut self) -> Option<String> {
-        while self.ip < (self.bytecode.instructions.len() as i32) {
+        while self.ip < (self.bytecode.instructions.len() as u32) {
             let _op = lookup_op(self.bytecode.instructions[self.ip as usize]);
 
             _op.as_ref()?;
