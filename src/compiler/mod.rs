@@ -3,11 +3,13 @@ pub mod definition;
 pub mod instructions;
 pub mod opcode;
 mod tests;
+mod variable;
 
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
+use crate::compiler::variable::{build_variable_scope, VariableScope};
 use crate::object::Object;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
@@ -21,19 +23,48 @@ pub struct Bytecode {
 pub struct Compiler {
     pub instructions: Instructions,
     pub constants: Vec<Object>,
+    pub current_variable_scope: VariableScope,
 }
 
-pub fn build_compiler() -> Compiler {
+pub struct CompilerState {
+    constants: Vec<Object>,
+    variables: VariableScope,
+}
+
+pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
+    if state.is_some() {
+        let state_unwrapped = state.unwrap();
+
+        return Compiler {
+            instructions: vec![],
+            constants: state_unwrapped.constants.clone(),
+            current_variable_scope: state_unwrapped.variables.clone(),
+        };
+    }
+
     Compiler {
         instructions: vec![],
         constants: vec![],
+        current_variable_scope: build_variable_scope(None),
     }
 }
 
 impl Compiler {
-    pub fn compile(&mut self, program: Program) {
+    pub fn compile(&mut self, program: Program) -> Option<String> {
         for statement in program.statements {
-            self.compile_statement(statement)
+            let err = self.compile_statement(statement);
+            if err.is_some() {
+                return err;
+            }
+        }
+
+        None
+    }
+
+    pub fn get_state(&self) -> CompilerState {
+        CompilerState {
+            constants: self.constants.clone(),
+            variables: self.current_variable_scope.clone(),
         }
     }
 
@@ -46,7 +77,24 @@ impl Compiler {
 
     fn compile_expression(&mut self, expr: Expression) -> Option<String> {
         let err = match expr {
-            Expression::Identifier(_) => None,
+            Expression::Identifier(identifier) => {
+                let var = self
+                    .current_variable_scope
+                    .find_variable(identifier.value.clone());
+
+                if var.is_none() {
+                    return Some(format!(
+                        "undefined variable \"{}\"",
+                        identifier.value.clone()
+                    ));
+                }
+
+                let unwrapped = var.unwrap().index;
+
+                self.emit(OpCode::GetVar, vec![unwrapped]);
+
+                None
+            }
             Expression::Integer(int) => compile_expression_integer(self, int),
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
             Expression::Boolean(_) => None,
@@ -61,15 +109,36 @@ impl Compiler {
         None
     }
 
-    fn compile_statement(&mut self, stmt: Statement) {
+    fn compile_statement(&mut self, stmt: Statement) -> Option<String> {
+        let mut err: Option<String> = None;
         match stmt {
-            Statement::VariableDeclaration(_var) => {}
+            Statement::VariableDeclaration(var) => {
+                let find_variable = self
+                    .current_variable_scope
+                    .find_variable(var.ident.value.clone());
+
+                if find_variable.is_some() {
+                    return Some(format!(
+                        "variable \"{}\" already declared",
+                        find_variable.unwrap().name
+                    ));
+                }
+
+                err = self.compile_expression(*var.value);
+
+                let id = self.current_variable_scope.define_variable(var.ident.value);
+
+                self.emit(OpCode::SetVar, vec![id]);
+            }
             Statement::Expression(expr) => {
-                self.compile_expression(*expr.expression);
+                err = self.compile_expression(*expr.expression);
+
                 self.emit(OpCode::Pop, vec![]);
             }
             Statement::Block(_) => {}
         }
+
+        err
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {
