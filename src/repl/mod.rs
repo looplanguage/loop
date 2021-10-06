@@ -7,7 +7,6 @@ use crate::Flags;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::io::{stdin, stdout, Write};
 
 pub struct Repl {
     line: i32,
