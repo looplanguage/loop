@@ -11,7 +11,7 @@ pub struct Suffix {
     pub(crate) right: Expression,
 }
 
-pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option<Node> {
+pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node> {
     let operator = p.lexer.current_token.clone().unwrap().literal;
 
     let pre = p.cur_precedence();
@@ -20,7 +20,7 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option
 
     if let Node::Expression(val) = p.parse_expression(pre).unwrap() {
         return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
-            left: expression,
+            left,
             operator,
             right: val,
         }))));

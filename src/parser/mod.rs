@@ -98,7 +98,13 @@ impl Parser {
 
                 self.lexer.next_token();
 
-                infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                if infix_expression_node.is_some() {
+                    if let Node::Expression(a) = infix_expression_node.clone().unwrap() {
+                        infix_expression_node = infix_parser.unwrap()(self, a);
+                    }
+                } else {
+                    infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                }
             }
 
             if infix_expression_node.is_some() {

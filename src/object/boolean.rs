@@ -1,11 +1,11 @@
 use crate::object::ObjectTrait;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Integer {
-    pub(crate) value: i64,
+pub struct Boolean {
+    pub(crate) value: bool,
 }
 
-impl ObjectTrait for Integer {
+impl ObjectTrait for Boolean {
     fn inspect(&self) -> String {
         self.value.to_string()
     }
