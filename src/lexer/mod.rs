@@ -168,6 +168,7 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "and" | "&&" => TokenType::And,
         "or" | "||" => TokenType::Or,
         "null" => TokenType::Null,
+        "return" => TokenType::Return,
         "if" => TokenType::If,
         _ => {
             if keyword.parse::<i64>().is_ok() {

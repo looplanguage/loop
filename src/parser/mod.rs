@@ -16,6 +16,7 @@ use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::expression::parse_expression_statement;
+use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
 
@@ -58,6 +59,7 @@ impl Parser {
                     parse_expression_statement(self)
                 }
             }
+            TokenType::Return => parse_return_statement(self),
             _ => self.parse_expression_statement(token),
         };
 
