@@ -10,4 +10,7 @@ pub enum OpCode {
     Minus,
     SetVar,
     GetVar,
+    Equals,
+    NotEquals,
+    GreaterThan
 }

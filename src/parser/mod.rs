@@ -100,6 +100,7 @@ impl Parser {
                     .infix_parser
                     .get(&self.lexer.peek_token.as_ref().unwrap().token);
 
+
                 if infix_parser.is_none() {
                     return Some(Node::Expression(exp));
                 }
@@ -206,6 +207,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::GreaterThanOrEquals, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThan, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThanOrEquals, parse_suffix_expression);
+    p.add_infix_parser(TokenType::NotEquals, parse_suffix_expression);
 
     p
 }

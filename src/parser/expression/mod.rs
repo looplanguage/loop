@@ -44,6 +44,7 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::Divide => Precedence::Product,
         TokenType::LeftParenthesis => Precedence::Call,
         TokenType::Equals => Precedence::Equals,
+        TokenType::NotEquals => Precedence::Equals,
         TokenType::LessThan => Precedence::LessGreater,
         TokenType::GreaterThan => Precedence::LessGreater,
         TokenType::LessThanOrEquals => Precedence::LessGreater,
