@@ -4,6 +4,9 @@ use crate::object::integer::Integer;
 pub mod boolean;
 pub mod integer;
 
+pub static TRUE: Object = Object::Boolean(Boolean{ value: true });
+pub static FALSE: Object = Object::Boolean(Boolean{ value: false });
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Object {
     Integer(Integer),

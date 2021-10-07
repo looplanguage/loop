@@ -5,8 +5,12 @@ pub mod opcode;
 mod tests;
 mod variable;
 
+use crate::compiler::compile::expression_bool::compile_expression_boolean;
+use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
+use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
+use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::variable::{build_variable_scope, VariableScope};
@@ -75,27 +79,10 @@ impl Compiler {
 
     fn compile_expression(&mut self, expr: Expression) -> Option<String> {
         let err = match expr {
-            Expression::Identifier(identifier) => {
-                let var = self
-                    .current_variable_scope
-                    .find_variable(identifier.value.clone());
-
-                if var.is_none() {
-                    return Some(format!(
-                        "variable \"{}\" is not defined in this scope",
-                        identifier.value
-                    ));
-                }
-
-                let unwrapped = var.unwrap().index;
-
-                self.emit(OpCode::GetVar, vec![unwrapped]);
-
-                None
-            }
+            Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
-            Expression::Boolean(_) => None,
+            Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
             Expression::Function(_) => None,
             Expression::Conditional(_) => None,
         };
@@ -111,22 +98,7 @@ impl Compiler {
         let mut err: Option<String> = None;
         match stmt {
             Statement::VariableDeclaration(var) => {
-                let find_variable = self
-                    .current_variable_scope
-                    .find_variable(var.ident.value.clone());
-
-                if find_variable.is_some() {
-                    return Some(format!(
-                        "variable \"{}\" is already declared in this scope",
-                        find_variable.unwrap().name
-                    ));
-                }
-
-                err = self.compile_expression(*var.value);
-
-                let id = self.current_variable_scope.define_variable(var.ident.value);
-
-                self.emit(OpCode::SetVar, vec![id]);
+                err = compile_statement_variable_declaration(self, var);
             }
             Statement::Expression(expr) => {
                 err = self.compile_expression(*expr.expression);
@@ -135,20 +107,7 @@ impl Compiler {
             }
             Statement::Block(_) => {}
             Statement::VariableAssign(variable) => {
-                let find_variable = self
-                    .current_variable_scope
-                    .find_variable(variable.ident.value.clone());
-
-                if find_variable.is_none() {
-                    return Some(format!(
-                        "variable \"{}\" is not declared in this scope",
-                        variable.ident.value
-                    ));
-                }
-
-                err = self.compile_expression(*variable.value);
-
-                self.emit(OpCode::SetVar, vec![find_variable.unwrap().index]);
+                err = compile_statement_variable_assign(self, variable);
             }
         }
 
