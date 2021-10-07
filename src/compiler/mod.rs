@@ -6,17 +6,20 @@ mod tests;
 mod variable;
 
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
+use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
+use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::variable::{build_variable_scope, VariableScope};
 use crate::object::Object;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
+use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
 
 pub struct Bytecode {
@@ -24,10 +27,18 @@ pub struct Bytecode {
     pub constants: Vec<Object>,
 }
 
+#[derive(Copy, Clone)]
+pub struct EmittedInstruction {
+    position: i64,
+    op: OpCode,
+}
+
 pub struct Compiler {
     pub instructions: Instructions,
     pub constants: Vec<Object>,
     pub current_variable_scope: VariableScope,
+    pub last_instruction: EmittedInstruction,
+    pub previous_instruction: EmittedInstruction,
 }
 
 pub struct CompilerState {
@@ -41,6 +52,14 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             instructions: vec![],
             constants: cmp.constants.clone(),
             current_variable_scope: cmp.variables.clone(),
+            last_instruction: EmittedInstruction {
+                position: -1,
+                op: OpCode::Constant,
+            },
+            previous_instruction: EmittedInstruction {
+                position: -1,
+                op: OpCode::Constant,
+            },
         };
     }
 
@@ -48,6 +67,14 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         instructions: vec![],
         constants: vec![],
         current_variable_scope: build_variable_scope(None),
+        last_instruction: EmittedInstruction {
+            position: -1,
+            op: OpCode::Constant,
+        },
+        previous_instruction: EmittedInstruction {
+            position: -1,
+            op: OpCode::Constant,
+        },
     }
 }
 
@@ -84,11 +111,24 @@ impl Compiler {
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
             Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
             Expression::Function(_) => None,
-            Expression::Conditional(_) => None,
+            Expression::Conditional(conditional) => {
+                compile_expression_conditional(self, *conditional)
+            }
         };
 
         if err.is_some() {
             return err;
+        }
+
+        None
+    }
+
+    fn compile_block(&mut self, block: Block) -> Option<String> {
+        for statement in block.statements {
+            let err = self.compile_statement(statement);
+            if err.is_some() {
+                return err;
+            }
         }
 
         None
@@ -120,6 +160,19 @@ impl Compiler {
         (self.constants.len() - 1) as u32
     }
 
+    fn remove_last(&mut self, op: OpCode) -> bool {
+        if self.last_instruction.op == op {
+            let old_ins = self.instructions.clone();
+            let ins = &old_ins[..self.last_instruction.position as usize];
+
+            self.instructions = Instructions::from(ins);
+
+            return true;
+        }
+
+        false
+    }
+
     fn add_instruction(&mut self, instruction: Vec<u8>) -> usize {
         let position_new_ins = self.instructions.len();
 
@@ -130,9 +183,38 @@ impl Compiler {
         position_new_ins
     }
 
+    fn replace_instruction(&mut self, pos: u32, instruction: Vec<u8>) {
+        let mut instructions: &mut Instructions = self.instructions.as_mut();
+
+        let mut i = 0;
+        while i < instruction.len() {
+            instructions[pos as usize + i] = instruction[i];
+            i += 1;
+        }
+    }
+
+    fn change_operand(&mut self, pos: u32, operands: Vec<u32>) {
+        let op = self.instructions[pos as usize];
+        let opc = lookup_op(op);
+
+        if let Some(opcode) = opc {
+            let new_instruction = make_instruction(opcode, operands);
+            self.replace_instruction(pos, new_instruction)
+        }
+    }
+
     fn emit(&mut self, op: OpCode, operands: Vec<u32>) -> usize {
         let ins = make_instruction(op, operands);
 
-        self.add_instruction(ins)
+        self.previous_instruction = self.last_instruction;
+
+        let pos = self.add_instruction(ins.clone());
+
+        self.last_instruction = EmittedInstruction {
+            position: pos as i64,
+            op,
+        };
+
+        pos
     }
 }

@@ -60,6 +60,14 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpGreaterThan".to_string(),
             operand_width: vec![],
         },
+        OpCode::Jump => Definition {
+            name: "OpJump".to_string(),
+            operand_width: vec![4],
+        },
+        OpCode::JumpIfFalse => Definition {
+            name: "OpJumpIfFalse".to_string(),
+            operand_width: vec![4],
+        },
     }
 }
 
@@ -78,6 +86,8 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         10 => Some(OpCode::Equals),
         11 => Some(OpCode::NotEquals),
         12 => Some(OpCode::GreaterThan),
+        13 => Some(OpCode::Jump),
+        14 => Some(OpCode::JumpIfFalse),
         _ => None,
     }
 }
@@ -97,6 +107,8 @@ pub fn lookup(op: u8) -> Option<Definition> {
         10 => Some(get_definition(OpCode::Equals)),
         11 => Some(get_definition(OpCode::NotEquals)),
         12 => Some(get_definition(OpCode::GreaterThan)),
+        13 => Some(get_definition(OpCode::Jump)),
+        14 => Some(get_definition(OpCode::JumpIfFalse)),
         _ => None,
     }
 }
