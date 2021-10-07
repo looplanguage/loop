@@ -1,4 +1,5 @@
 mod suffix;
+mod tests;
 
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::read_uint32;
