@@ -136,6 +136,7 @@ impl Compiler {
                 self.emit(OpCode::Pop, vec![]);
             }
             Statement::Block(_) => {}
+            Statement::VariableAssign(_) => {}
         }
 
         err

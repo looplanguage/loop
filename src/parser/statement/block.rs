@@ -14,10 +14,14 @@ pub fn parse_block(p: &mut Parser) -> Block {
     while p.lexer.current_token.clone().unwrap().token != TokenType::RightBrace {
         let stmt = p.parse_statement(p.lexer.current_token.clone().unwrap());
 
-        if let Node::Statement(statement) = stmt.unwrap() {
-            statements.push(statement)
+        if stmt.is_none() {
+            p.add_error(format!("failed parsing block at {:?}", p.lexer.current_token.clone().unwrap().token))
         } else {
-            p.add_error("unable to parse statement. see above!".to_string())
+            if let Node::Statement(statement) = stmt.unwrap() {
+                statements.push(statement)
+            } else {
+                p.add_error("unable to parse statement. see above!".to_string())
+            }
         }
 
         p.lexer.next_token();

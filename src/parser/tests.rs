@@ -375,6 +375,14 @@ mod tests {
 
         let program = parser.parse();
 
+        if !parser.errors.is_empty() {
+            for err in parser.errors {
+                println!("ParserException: {}", err);
+            }
+
+            panic!("Parser exceptions occurred!")
+        }
+
         let mut i = 0;
         for statement in program.statements {
             assert_eq!(statement, expected[i]);
