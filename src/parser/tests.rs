@@ -8,10 +8,64 @@ mod tests {
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
     use crate::parser::expression::suffix::Suffix;
+    use crate::parser::statement::assign::VariableAssign;
     use crate::parser::statement::block::Block;
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
+
+    #[test]
+    fn variable_assignment() {
+        let input = "\
+        var test = 0;\
+        var yeet = 500;\
+        test = 1000;\
+        yeet = test * 2;";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::VariableDeclaration(VariableDeclaration {
+            ident: Identifier {
+                value: "test".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: 0,
+            })),
+        }));
+
+        expected.push(Statement::VariableDeclaration(VariableDeclaration {
+            ident: Identifier {
+                value: "yeet".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: 500,
+            })),
+        }));
+
+        expected.push(Statement::VariableAssign(VariableAssign {
+            ident: Identifier {
+                value: "test".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: 1000,
+            })),
+        }));
+
+        expected.push(Statement::VariableAssign(VariableAssign {
+            ident: Identifier {
+                value: "yeet".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Suffix(Box::from(Suffix {
+                left: parser::expression::Expression::Identifier(Identifier {
+                    value: "test".to_string(),
+                }),
+                operator: "*".to_string(),
+                right: parser::expression::Expression::Integer(Integer { value: 2 }),
+            }))),
+        }));
+
+        test_parser(input, expected);
+    }
 
     #[test]
     fn conditionals() {
@@ -374,6 +428,14 @@ mod tests {
         let mut parser = parser::build_parser(l);
 
         let program = parser.parse();
+
+        if !parser.errors.is_empty() {
+            for err in parser.errors {
+                println!("ParserException: {}", err);
+            }
+
+            panic!("Parser exceptions occurred!")
+        }
 
         let mut i = 0;
         for statement in program.statements {

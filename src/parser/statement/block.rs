@@ -12,12 +12,20 @@ pub fn parse_block(p: &mut Parser) -> Block {
     let mut statements: Vec<Statement> = Vec::new();
 
     while p.lexer.current_token.clone().unwrap().token != TokenType::RightBrace {
+        if p.cur_token_is(TokenType::Semicolon) {
+            p.lexer.next_token();
+            continue;
+        }
+
         let stmt = p.parse_statement(p.lexer.current_token.clone().unwrap());
 
-        if let Node::Statement(statement) = stmt.unwrap() {
+        if let Some(Node::Statement(statement)) = stmt {
             statements.push(statement)
         } else {
-            p.add_error("unable to parse statement. see above!".to_string())
+            p.add_error(format!(
+                "unable to parse statement at {:?}",
+                p.lexer.current_token.clone().unwrap().token
+            ))
         }
 
         p.lexer.next_token();

@@ -6,13 +6,6 @@ pub struct Definition {
     pub operand_width: Vec<i32>, // how many bits wide each operand is
 }
 
-// OpConstant 0 = 10
-// OpConstant 1 = 20
-// OpAdd        = 30 = arg 1
-// OpConstant 3 = 10 = arg 2
-// OpClosure 4 2
-// 00000001 0010000000000000 01000000
-
 pub fn get_definition(op: OpCode) -> Definition {
     match op {
         OpCode::Constant => Definition {
@@ -47,6 +40,14 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpDivide".to_string(),
             operand_width: vec![],
         },
+        OpCode::SetVar => Definition {
+            name: "OpSetVar".to_string(),
+            operand_width: vec![4],
+        },
+        OpCode::GetVar => Definition {
+            name: "OpGetVar".to_string(),
+            operand_width: vec![4],
+        },
     }
 }
 
@@ -60,6 +61,8 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         5 => Some(OpCode::Multiply),
         6 => Some(OpCode::Divide),
         7 => Some(OpCode::Minus),
+        8 => Some(OpCode::SetVar),
+        9 => Some(OpCode::GetVar),
         _ => None,
     }
 }
@@ -74,6 +77,8 @@ pub fn lookup(op: u8) -> Option<Definition> {
         5 => Some(get_definition(OpCode::Multiply)),
         6 => Some(get_definition(OpCode::Divide)),
         7 => Some(get_definition(OpCode::Minus)),
+        8 => Some(get_definition(OpCode::SetVar)),
+        9 => Some(get_definition(OpCode::GetVar)),
         _ => None,
     }
 }
