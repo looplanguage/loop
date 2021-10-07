@@ -25,37 +25,43 @@ mod tests {
         let mut expected: Vec<Statement> = Vec::new();
 
         expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier { value: "test".to_string() },
-            value: Box::new(parser::expression::Expression::Integer( Integer {
-                value: 0
-            }))
+            ident: Identifier {
+                value: "test".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: 0,
+            })),
         }));
 
         expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier { value: "yeet".to_string() },
-            value: Box::new(parser::expression::Expression::Integer( Integer {
-                value: 500
-            }))
+            ident: Identifier {
+                value: "yeet".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: 500,
+            })),
         }));
 
         expected.push(Statement::VariableAssign(VariableAssign {
-            ident: Identifier { value: "test".to_string() },
-            value: Box::new(parser::expression::Expression::Integer( Integer {
-                value: 1000
-            }))
+            ident: Identifier {
+                value: "test".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Integer(Integer {
+                value: 1000,
+            })),
         }));
 
         expected.push(Statement::VariableAssign(VariableAssign {
-            ident: Identifier { value: "yeet".to_string() },
+            ident: Identifier {
+                value: "yeet".to_string(),
+            },
             value: Box::new(parser::expression::Expression::Suffix(Box::from(Suffix {
                 left: parser::expression::Expression::Identifier(Identifier {
-                    value: "test".to_string()
+                    value: "test".to_string(),
                 }),
                 operator: "*".to_string(),
-                right: parser::expression::Expression::Integer(Integer {
-                    value: 2
-                })
-            })))
+                right: parser::expression::Expression::Integer(Integer { value: 2 }),
+            }))),
         }));
 
         test_parser(input, expected);
