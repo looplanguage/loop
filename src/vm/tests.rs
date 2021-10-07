@@ -36,6 +36,12 @@ mod tests {
         );
     }
 
+    // TODO: Add block scoping tests (for variables)
+
+    // TODO: Add early return tests
+
+    // TODO: Add expression checks for conditionals
+
     fn test_vm(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
