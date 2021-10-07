@@ -52,10 +52,10 @@ impl Parser {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             TokenType::Identifier => {
                 if self.peek_token_is(TokenType::Assign) {
-                    return parse_variable_assignment(self);
+                    parse_variable_assignment(self)
+                } else {
+                    parse_expression_statement(self)
                 }
-
-                return parse_expression_statement(self);
             }
             _ => self.parse_expression_statement(token),
         };
@@ -95,6 +95,7 @@ impl Parser {
 
         if let Node::Expression(exp) = expression_node.unwrap() {
             let mut infix_expression_node: Option<Node> = None;
+            println!("{:?}", self.lexer.peek_token.clone().unwrap().token);
             while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
                 let infix_parser = self
                     .infix_parser
