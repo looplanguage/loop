@@ -84,7 +84,7 @@ impl Compiler {
 
                 if var.is_none() {
                     return Some(format!(
-                        "undefined variable \"{}\"",
+                        "variable \"{}\" is not defined in this scope",
                         identifier.value.clone()
                     ));
                 }
