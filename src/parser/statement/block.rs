@@ -24,12 +24,10 @@ pub fn parse_block(p: &mut Parser) -> Block {
                 "failed parsing block at {:?}",
                 p.lexer.current_token.clone().unwrap().token
             ))
+        } else if let Node::Statement(statement) = stmt.unwrap() {
+            statements.push(statement)
         } else {
-            if let Node::Statement(statement) = stmt.unwrap() {
-                statements.push(statement)
-            } else {
-                p.add_error("unable to parse statement. see above!".to_string())
-            }
+            p.add_error("unable to parse statement. see above!".to_string())
         }
 
         p.lexer.next_token();
