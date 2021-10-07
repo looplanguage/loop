@@ -20,6 +20,8 @@ pub fn parse_variable_assignment(p: &mut Parser) -> Option<Node> {
 
     p.lexer.next_token();
 
+    println!("PARSING ASSIGN: {:?}", p.lexer.current_token.clone().unwrap().token);
+
     let expr = p.parse_expression(Precedence::Lowest);
     expr.as_ref()?;
 
