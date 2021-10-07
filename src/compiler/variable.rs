@@ -1,6 +1,3 @@
-use std::env::var;
-use std::ops::Deref;
-
 #[derive(Clone)]
 pub struct VariableScope {
     variables: Vec<Variable>,
