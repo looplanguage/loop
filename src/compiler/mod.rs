@@ -9,6 +9,7 @@ use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
+use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
@@ -16,6 +17,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::variable::{build_variable_scope, VariableScope};
+use crate::object::null::Null;
 use crate::object::Object;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
@@ -65,7 +67,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
 
     Compiler {
         instructions: vec![],
-        constants: vec![],
+        constants: vec![Object::Null(Null {})],
         current_variable_scope: build_variable_scope(None),
         last_instruction: EmittedInstruction {
             position: -1,
@@ -114,6 +116,7 @@ impl Compiler {
             Expression::Conditional(conditional) => {
                 compile_expression_conditional(self, *conditional)
             }
+            Expression::Null(_) => compile_expression_null(self),
         };
 
         if err.is_some() {

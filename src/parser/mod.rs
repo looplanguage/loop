@@ -10,6 +10,7 @@ use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::parse_function;
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::integer::parse_integer_literal;
+use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
@@ -99,7 +100,6 @@ impl Parser {
                 let infix_parser = self
                     .infix_parser
                     .get(&self.lexer.peek_token.as_ref().unwrap().token);
-
 
                 if infix_parser.is_none() {
                     return Some(Node::Expression(exp));
@@ -193,6 +193,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::InvertSign, parse_inverted_boolean);
     p.add_prefix_parser(TokenType::Function, parse_function);
     p.add_prefix_parser(TokenType::If, parse_conditional);
+    p.add_prefix_parser(TokenType::Null, parse_expression_null);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);

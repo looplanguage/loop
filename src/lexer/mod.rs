@@ -167,6 +167,7 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "while" => TokenType::While,
         "and" | "&&" => TokenType::And,
         "or" | "||" => TokenType::Or,
+        "null" => TokenType::Null,
         "if" => TokenType::If,
         _ => {
             if keyword.parse::<i64>().is_ok() {
