@@ -24,9 +24,7 @@ pub struct VMState {
 }
 
 pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
-    if state.is_some() {
-        let st = state.unwrap();
-
+    if let Some(st) = state {
         return VM {
             stack: [Object::Integer(Integer { value: 0 }); 2048],
             ip: 0,

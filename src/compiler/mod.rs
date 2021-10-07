@@ -32,13 +32,11 @@ pub struct CompilerState {
 }
 
 pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
-    if state.is_some() {
-        let state_unwrapped = state.unwrap();
-
+    if let Some(cmp) = state {
         return Compiler {
             instructions: vec![],
-            constants: state_unwrapped.constants.clone(),
-            current_variable_scope: state_unwrapped.variables.clone(),
+            constants: cmp.constants.clone(),
+            current_variable_scope: cmp.variables.clone(),
         };
     }
 
@@ -85,7 +83,7 @@ impl Compiler {
                 if var.is_none() {
                     return Some(format!(
                         "variable \"{}\" is not defined in this scope",
-                        identifier.value.clone()
+                        identifier.value
                     ));
                 }
 
