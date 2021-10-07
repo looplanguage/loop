@@ -20,7 +20,15 @@ mod tests {
 
         let program = parser.parse();
 
-        let mut comp = compiler::build_compiler();
+        if !parser.errors.is_empty() {
+            for err in parser.errors {
+                println!("ParserException: {}", err);
+            }
+
+            panic!("Parser exceptions occurred!")
+        }
+
+        let mut comp = compiler::build_compiler(None);
         comp.compile(program);
 
         assert_eq!(
