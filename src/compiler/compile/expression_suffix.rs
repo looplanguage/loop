@@ -3,8 +3,13 @@ use crate::compiler::Compiler;
 use crate::parser::expression::suffix::Suffix;
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> Option<String> {
-    _compiler.compile_expression(_suffix.left);
-    _compiler.compile_expression(_suffix.right);
+    if _suffix.operator.as_str() == "<" {
+        _compiler.compile_expression(_suffix.right);
+        _compiler.compile_expression(_suffix.left);
+    } else {
+        _compiler.compile_expression(_suffix.left);
+        _compiler.compile_expression(_suffix.right);
+    }
 
     match _suffix.operator.as_str() {
         "+" => {
@@ -21,9 +26,18 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> O
         }
         "%" => {
             _compiler.emit(OpCode::Modulo, vec![]);
-        }
+        },
+        "==" => {
+            _compiler.emit(OpCode::Equals, vec![]);
+        },
+        "!=" => {
+            _compiler.emit(OpCode::NotEquals, vec![]);
+        },
+        ">" | "<" => {
+            _compiler.emit(OpCode::GreaterThan, vec![]);
+        },
         _ => {
-            panic!("unknown operator. got={}", _suffix.operator)
+            return Some(format!("unknown operator. got=\"{}\"", _suffix.operator));
         }
     }
 

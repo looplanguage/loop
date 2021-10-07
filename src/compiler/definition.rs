@@ -48,6 +48,18 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpGetVar".to_string(),
             operand_width: vec![4],
         },
+        OpCode::Equals => Definition {
+            name: "OpEquals".to_string(),
+            operand_width: vec![],
+        },
+        OpCode::NotEquals => Definition {
+            name: "OpNotEquals".to_string(),
+            operand_width: vec![],
+        },
+        OpCode::GreaterThan => Definition {
+            name: "OpGreaterThan".to_string(),
+            operand_width: vec![],
+        },
     }
 }
 
@@ -63,6 +75,9 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         7 => Some(OpCode::Minus),
         8 => Some(OpCode::SetVar),
         9 => Some(OpCode::GetVar),
+        10 => Some(OpCode::Equals),
+        11 => Some(OpCode::NotEquals),
+        12 => Some(OpCode::GreaterThan),
         _ => None,
     }
 }
@@ -79,6 +94,9 @@ pub fn lookup(op: u8) -> Option<Definition> {
         7 => Some(get_definition(OpCode::Minus)),
         8 => Some(get_definition(OpCode::SetVar)),
         9 => Some(get_definition(OpCode::GetVar)),
+        10 => Some(get_definition(OpCode::Equals)),
+        11 => Some(get_definition(OpCode::NotEquals)),
+        12 => Some(get_definition(OpCode::GreaterThan)),
         _ => None,
     }
 }

@@ -87,6 +87,9 @@ impl VM {
 
                     self.push(*self.variables.get(&idx).unwrap());
                 }
+                OpCode::Equals => run_suffix_expression(self, "=="),
+                OpCode::NotEquals => run_suffix_expression(self, "!="),
+                OpCode::GreaterThan => run_suffix_expression(self, ">"),
             }
         }
 
