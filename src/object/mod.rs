@@ -4,7 +4,7 @@ use crate::object::integer::Integer;
 pub mod boolean;
 pub mod integer;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Object {
     Integer(Integer),
     Boolean(Boolean),
