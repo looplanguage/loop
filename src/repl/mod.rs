@@ -1,9 +1,9 @@
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
+use crate::flags::{FlagTypes, Flags};
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
-use crate::flags::{FlagTypes, Flags};
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -20,7 +20,7 @@ pub fn build_repl(flags: Flags) -> Repl {
         line: 0,
         compiler_state: None,
         vm_state: None,
-        debug: flags.contains(FlagTypes::Debug)
+        debug: flags.contains(FlagTypes::Debug),
     }
 }
 
