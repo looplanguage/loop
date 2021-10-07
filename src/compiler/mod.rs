@@ -5,6 +5,7 @@ pub mod opcode;
 mod tests;
 mod variable;
 
+use std::env::var;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::instructions::{make_instruction, Instructions};
@@ -119,7 +120,7 @@ impl Compiler {
 
                 if find_variable.is_some() {
                     return Some(format!(
-                        "variable \"{}\" already declared",
+                        "variable \"{}\" is already declared in this scope",
                         find_variable.unwrap().name
                     ));
                 }
@@ -136,7 +137,22 @@ impl Compiler {
                 self.emit(OpCode::Pop, vec![]);
             }
             Statement::Block(_) => {}
-            Statement::VariableAssign(_) => {}
+            Statement::VariableAssign(variable) => {
+                let find_variable = self
+                    .current_variable_scope
+                    .find_variable(variable.ident.value.clone());
+
+                if find_variable.is_none() {
+                    return Some(format!(
+                        "variable \"{}\" is not declared in this scope",
+                        variable.ident.value
+                    ));
+                }
+
+                err = self.compile_expression(*variable.value);
+
+                self.emit(OpCode::SetVar, vec![find_variable.unwrap().index]);
+            }
         }
 
         err
