@@ -15,4 +15,5 @@ pub enum OpCode {
     GreaterThan,
     Jump,
     JumpIfFalse,
+    Return,
 }

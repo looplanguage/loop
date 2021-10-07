@@ -125,6 +125,7 @@ impl VM {
                         ))
                     }
                 }
+                OpCode::Return => None,
             };
 
             if err.is_some() {

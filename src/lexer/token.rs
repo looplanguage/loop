@@ -44,6 +44,7 @@ pub enum TokenType {
     LeftBrace,
     RightBrace,
     Null,
+    Return,
     Eof,
 }
 

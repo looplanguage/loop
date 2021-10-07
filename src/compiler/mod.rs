@@ -11,6 +11,7 @@ use crate::compiler::compile::expression_identifier::compile_expression_identifi
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
+use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::definition::lookup_op;
@@ -41,6 +42,7 @@ pub struct Compiler {
     pub current_variable_scope: VariableScope,
     pub last_instruction: EmittedInstruction,
     pub previous_instruction: EmittedInstruction,
+    pub return_jumps: Vec<EmittedInstruction>,
 }
 
 pub struct CompilerState {
@@ -62,6 +64,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
                 position: -1,
                 op: OpCode::Constant,
             },
+            return_jumps: vec![],
         };
     }
 
@@ -77,6 +80,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             position: -1,
             op: OpCode::Constant,
         },
+        return_jumps: vec![],
     }
 }
 
@@ -126,13 +130,28 @@ impl Compiler {
         None
     }
 
+    fn enter_variable_scope(&mut self) {
+        self.current_variable_scope = VariableScope {
+            variables: vec![],
+            outer: Option::from(Box::new(self.current_variable_scope.clone())),
+        };
+    }
+
+    fn exit_variable_scope(&mut self) {
+        self.current_variable_scope = *self.current_variable_scope.outer.clone().unwrap();
+    }
+
     fn compile_block(&mut self, block: Block) -> Option<String> {
+        self.enter_variable_scope();
+
         for statement in block.statements {
             let err = self.compile_statement(statement);
             if err.is_some() {
                 return err;
             }
         }
+
+        self.exit_variable_scope();
 
         None
     }
@@ -151,6 +170,9 @@ impl Compiler {
             Statement::Block(_) => {}
             Statement::VariableAssign(variable) => {
                 err = compile_statement_variable_assign(self, variable);
+            }
+            Statement::Return(_return) => {
+                err = compile_return_statement(self, _return);
             }
         }
 
@@ -195,7 +217,7 @@ impl Compiler {
     }
 
     fn replace_instruction(&mut self, pos: u32, instruction: Vec<u8>) {
-        let mut instructions: &mut Instructions = self.instructions.as_mut();
+        let instructions: &mut Instructions = self.instructions.as_mut();
 
         let mut i = 0;
         while i < instruction.len() {
