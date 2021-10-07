@@ -13,6 +13,7 @@ use crate::parser::expression::integer::parse_integer_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
+use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
@@ -49,6 +50,13 @@ impl Parser {
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
+            TokenType::Identifier => {
+                if self.peek_token_is(TokenType::Assign) {
+                    parse_variable_assignment(self)
+                } else {
+                    parse_expression_statement(self)
+                }
+            }
             _ => self.parse_expression_statement(token),
         };
 
@@ -155,7 +163,7 @@ impl Parser {
     }
 
     pub fn add_error(&mut self, error: String) {
-        self.errors.push(error);
+        self.errors.push(format!("ParserException: {}", error));
     }
 
     pub fn peek_precedence(&mut self) -> Precedence {

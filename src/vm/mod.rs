@@ -1,4 +1,5 @@
 mod suffix;
+mod tests;
 
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::read_uint32;
@@ -7,6 +8,7 @@ use crate::compiler::Bytecode;
 use crate::object::integer::Integer;
 use crate::object::Object;
 use crate::vm::suffix::run_suffix_expression;
+use std::collections::HashMap;
 
 pub struct VM {
     stack: [Object; 2048],
@@ -14,15 +16,32 @@ pub struct VM {
     sp: u16,
     bytecode: Bytecode,
     pub last_popped: Option<Object>,
+    variables: HashMap<u32, Object>,
 }
 
-pub fn build_vm(bt: Bytecode) -> VM {
+pub struct VMState {
+    variables: HashMap<u32, Object>,
+}
+
+pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
+    if let Some(st) = state {
+        return VM {
+            stack: [Object::Integer(Integer { value: 0 }); 2048],
+            ip: 0,
+            sp: 0,
+            bytecode: bt,
+            last_popped: None,
+            variables: st.variables.clone(),
+        };
+    }
+
     VM {
         stack: [Object::Integer(Integer { value: 0 }); 2048],
         ip: 0,
         sp: 0,
         bytecode: bt,
         last_popped: None,
+        variables: HashMap::new(),
     }
 }
 
@@ -53,10 +72,31 @@ impl VM {
                     self.pop();
                 }
                 OpCode::Closure => {}
+                OpCode::SetVar => {
+                    let idx =
+                        read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
+                    self.ip += 4;
+
+                    let item = self.pop();
+                    self.variables.insert(idx, item);
+                }
+                OpCode::GetVar => {
+                    let idx =
+                        read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
+                    self.ip += 4;
+
+                    self.push(*self.variables.get(&idx).unwrap());
+                }
             }
         }
 
         None
+    }
+
+    pub fn get_state(&self) -> VMState {
+        VMState {
+            variables: self.variables.clone(),
+        }
     }
 
     pub fn push(&mut self, obj: Object) -> Option<String> {

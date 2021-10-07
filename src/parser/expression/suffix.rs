@@ -18,7 +18,14 @@ pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node>
 
     p.lexer.next_token();
 
-    if let Node::Expression(val) = p.parse_expression(pre).unwrap() {
+    let exp = p.parse_expression(pre);
+
+    if exp.is_none() {
+        p.add_error("unable to parse expression".to_string());
+        return None;
+    }
+
+    if let Node::Expression(val) = exp.unwrap() {
         return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
             left,
             operator,
