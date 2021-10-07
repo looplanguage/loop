@@ -3,7 +3,7 @@ use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
-use crate::Flags;
+use crate::flags::{FlagTypes, Flags};
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -15,12 +15,12 @@ pub struct Repl {
     vm_state: Option<VMState>,
 }
 
-pub fn build_repl(flags: Vec<Flags>) -> Repl {
+pub fn build_repl(flags: Flags) -> Repl {
     Repl {
         line: 0,
-        debug: flags.contains(&Flags::Debug),
         compiler_state: None,
         vm_state: None,
+        debug: flags.contains(FlagTypes::Debug)
     }
 }
 
