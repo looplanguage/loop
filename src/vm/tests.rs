@@ -18,13 +18,22 @@ mod tests {
     fn expression_precedence() {
         test_vm("100 + 1 * 2", Integer(integer::Integer { value: 102 }));
         test_vm("(100 + 1) * 2", Integer(integer::Integer { value: 202 }));
-        test_vm("((100 + 1) * 2) + 500 + (300 * 2 / 15) * 10", Integer(integer::Integer { value: 1102 }));
+        test_vm(
+            "((100 + 1) * 2) + 500 + (300 * 2 / 15) * 10",
+            Integer(integer::Integer { value: 1102 }),
+        );
     }
 
     #[test]
     fn variable_declaration() {
-        test_vm("var test = 100; test * 2;", Integer(integer::Integer { value: 200 }));
-        test_vm("var test = 1000; test = 500; test / 2", Integer(integer::Integer { value: 250 }));
+        test_vm(
+            "var test = 100; test * 2;",
+            Integer(integer::Integer { value: 200 }),
+        );
+        test_vm(
+            "var test = 1000; test = 500; test / 2",
+            Integer(integer::Integer { value: 250 }),
+        );
     }
 
     fn test_vm(input: &str, expected: Object) {
