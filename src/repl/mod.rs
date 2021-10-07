@@ -52,12 +52,19 @@ impl Repl {
             }
 
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
-            vm.run();
+            let err = vm.run();
 
-            if vm.last_popped.is_some() {
-                self.vm_state = Some(vm.get_state());
+            if err.is_some() {
+                println!(
+                    "{}",
+                    format!("VirtualMachineException: {}", err.unwrap()).red()
+                );
+            } else {
+                if vm.last_popped.is_some() {
+                    self.vm_state = Some(vm.get_state());
 
-                println!("{}", vm.last_popped.unwrap().inspect().green());
+                    println!("{}", vm.last_popped.unwrap().inspect().green());
+                }
             }
         } else {
             for err in p.errors {
