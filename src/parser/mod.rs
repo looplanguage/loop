@@ -13,10 +13,10 @@ use crate::parser::expression::integer::parse_integer_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
+use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
-use crate::parser::statement::assign::parse_variable_assignment;
 
 use self::statement::variable::parse_variable_declaration;
 

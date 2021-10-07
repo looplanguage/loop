@@ -14,13 +14,16 @@ pub fn parse_block(p: &mut Parser) -> Block {
     while p.lexer.current_token.clone().unwrap().token != TokenType::RightBrace {
         if p.cur_token_is(TokenType::Semicolon) {
             p.lexer.next_token();
-            continue
+            continue;
         }
 
         let stmt = p.parse_statement(p.lexer.current_token.clone().unwrap());
 
         if stmt.is_none() {
-            p.add_error(format!("failed parsing block at {:?}", p.lexer.current_token.clone().unwrap().token))
+            p.add_error(format!(
+                "failed parsing block at {:?}",
+                p.lexer.current_token.clone().unwrap().token
+            ))
         } else {
             if let Node::Statement(statement) = stmt.unwrap() {
                 statements.push(statement)
