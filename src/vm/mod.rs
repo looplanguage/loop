@@ -96,31 +96,34 @@ impl VM {
                 OpCode::NotEquals => run_suffix_expression(self, "!="),
                 OpCode::GreaterThan => run_suffix_expression(self, ">"),
                 OpCode::Jump => {
-                    self.ip += 4;
+                    let jump_to =
+                        read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
+
+                    self.ip = jump_to;
+
                     None
                 }
                 OpCode::JumpIfFalse => {
                     let condition = self.pop();
 
                     if let Object::Boolean(dont_jump) = condition {
-                        return if !dont_jump.value {
-                            println!("Jumping...");
+                        if !dont_jump.value {
                             let jump_to = read_uint32(
                                 self.bytecode.instructions[self.ip as usize..].to_owned(),
                             );
 
                             self.ip = jump_to;
-                            None
                         } else {
                             self.ip += 4;
-                            None
                         };
-                    }
 
-                    Some(format!(
-                        "unable to jump. got=\"{:?}\". expected=\"Boolean\"",
-                        condition
-                    ))
+                        None
+                    } else {
+                        Some(format!(
+                            "unable to jump. got=\"{:?}\". expected=\"Boolean\"",
+                            condition
+                        ))
+                    }
                 }
             };
 
@@ -151,11 +154,10 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Object {
-        let popped = self.stack[(self.sp - 1) as usize];
-
         if self.sp == 0 {
             panic!("can not pop nothing of the stack");
         } else {
+            let popped = self.stack[(self.sp - 1) as usize];
             self.sp -= 1;
             self.last_popped = Some(popped);
 

@@ -163,6 +163,14 @@ impl Compiler {
         (self.constants.len() - 1) as u32
     }
 
+    fn last_is(&mut self, op: OpCode) -> bool {
+        if self.last_instruction.op == op {
+            return true;
+        }
+
+        false
+    }
+
     fn remove_last(&mut self, op: OpCode) -> bool {
         if self.last_instruction.op == op {
             let old_ins = self.instructions.clone();

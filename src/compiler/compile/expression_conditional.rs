@@ -1,3 +1,4 @@
+use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::parser::expression::conditional::Conditional;
@@ -20,9 +21,13 @@ pub fn compile_expression_conditional(
         return err;
     }
 
-    if !compiler.remove_last(OpCode::Pop) {
-        return Some("unable to remove last pop".to_string());
-    }
+    compiler.remove_last(OpCode::Pop);
+
+    let len = compiler.instructions.len() as u32;
+    compiler.change_operand(position as u32, vec![len]);
+
+    let position = compiler.emit(OpCode::Jump, vec![0]);
+    compile_expression_null(compiler);
 
     let len = compiler.instructions.len() as u32;
     compiler.change_operand(position as u32, vec![len]);
