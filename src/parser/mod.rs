@@ -16,6 +16,7 @@ use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
+use crate::parser::statement::assign::parse_variable_assignment;
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -49,6 +50,13 @@ impl Parser {
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
+            TokenType::Identifier => {
+                if self.peek_token_is(TokenType::Assign) {
+                    return parse_variable_assignment(self);
+                }
+
+                return parse_expression_statement(self);
+            }
             _ => self.parse_expression_statement(token),
         };
 
