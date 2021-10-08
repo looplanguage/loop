@@ -11,7 +11,9 @@ pub fn compile_expression_boolean(compiler: &mut Compiler, bl: Boolean) -> Optio
     };
 
     if let Object::Boolean(boolean) = value {
-        let ct = compiler.add_constant(Object::Boolean(boolean::Boolean { value: boolean.value }));
+        let ct = compiler.add_constant(Object::Boolean(boolean::Boolean {
+            value: boolean.value,
+        }));
         compiler.emit(OpCode::Constant, vec![ct]);
     }
 

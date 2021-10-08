@@ -1,5 +1,5 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::{Compiler, EmittedInstruction};
+use crate::compiler::Compiler;
 use crate::parser::statement::return_statement::ReturnStatement;
 
 pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -> Option<String> {

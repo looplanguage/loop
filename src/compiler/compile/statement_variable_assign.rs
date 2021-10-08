@@ -1,8 +1,11 @@
-use crate::compiler::Compiler;
 use crate::compiler::opcode::OpCode;
+use crate::compiler::Compiler;
 use crate::parser::statement::assign::VariableAssign;
 
-pub fn compile_statement_variable_assign(compiler: &mut Compiler, variable: VariableAssign) -> Option<String> {
+pub fn compile_statement_variable_assign(
+    compiler: &mut Compiler,
+    variable: VariableAssign,
+) -> Option<String> {
     let find_variable = compiler
         .current_variable_scope
         .find_variable(variable.ident.value.clone());
@@ -19,7 +22,7 @@ pub fn compile_statement_variable_assign(compiler: &mut Compiler, variable: Vari
     compiler.emit(OpCode::SetVar, vec![find_variable.unwrap().index]);
 
     if error.is_some() {
-        return error
+        return error;
     }
 
     None

@@ -59,12 +59,10 @@ impl Repl {
                     "{}",
                     format!("VirtualMachineException: {}", err.unwrap()).red()
                 );
-            } else {
-                if vm.last_popped.is_some() {
-                    self.vm_state = Some(vm.get_state());
+            } else if vm.last_popped.is_some() {
+                self.vm_state = Some(vm.get_state());
 
-                    println!("{}", vm.last_popped.unwrap().inspect().green());
-                }
+                println!("{}", vm.last_popped.unwrap().inspect().green());
             }
         } else {
             for err in p.errors {
