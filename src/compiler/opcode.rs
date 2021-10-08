@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum OpCode {
     Constant,
     Add,
@@ -10,4 +10,10 @@ pub enum OpCode {
     Minus,
     SetVar,
     GetVar,
+    Equals,
+    NotEquals,
+    GreaterThan,
+    Jump,
+    JumpIfFalse,
+    Return,
 }

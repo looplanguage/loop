@@ -4,6 +4,7 @@ use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
+use crate::parser::expression::null::Null;
 use crate::parser::expression::suffix::Suffix;
 
 pub mod boolean;
@@ -11,6 +12,7 @@ pub mod conditional;
 pub mod function;
 pub mod identifier;
 pub mod integer;
+pub mod null;
 pub mod suffix;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -21,6 +23,7 @@ pub enum Expression {
     Boolean(Boolean),
     Function(Function),
     Conditional(Box<Conditional>),
+    Null(Null),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -44,6 +47,7 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::Divide => Precedence::Product,
         TokenType::LeftParenthesis => Precedence::Call,
         TokenType::Equals => Precedence::Equals,
+        TokenType::NotEquals => Precedence::Equals,
         TokenType::LessThan => Precedence::LessGreater,
         TokenType::GreaterThan => Precedence::LessGreater,
         TokenType::LessThanOrEquals => Precedence::LessGreater,

@@ -43,6 +43,8 @@ pub enum TokenType {
     Comma,
     LeftBrace,
     RightBrace,
+    Null,
+    Return,
     Eof,
 }
 
