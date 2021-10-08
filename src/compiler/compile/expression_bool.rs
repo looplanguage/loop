@@ -6,8 +6,8 @@ use crate::parser::expression::boolean::Boolean;
 
 pub fn compile_expression_boolean(compiler: &mut Compiler, bl: Boolean) -> Option<String> {
     let value = match bl.value {
-        true => TRUE,
-        false => FALSE,
+        true => &TRUE,
+        false => &FALSE,
     };
 
     if let Object::Boolean(boolean) = value {

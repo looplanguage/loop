@@ -12,7 +12,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         "+" => {
             if let Object::Integer(left_obj) = left {
                 if let Object::Integer(right_obj) = right {
-                    vm.push(Object::Integer(Integer {
+                    vm.push(&Object::Integer(Integer {
                         value: left_obj.value + right_obj.value,
                     }));
                 } else {
@@ -31,7 +31,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         "*" => {
             if let Object::Integer(left_obj) = left {
                 if let Object::Integer(right_obj) = right {
-                    vm.push(Object::Integer(Integer {
+                    vm.push(&Object::Integer(Integer {
                         value: left_obj.value * right_obj.value,
                     }));
                 } else {
@@ -50,7 +50,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         "-" => {
             if let Object::Integer(left_obj) = left {
                 if let Object::Integer(right_obj) = right {
-                    vm.push(Object::Integer(Integer {
+                    vm.push(&Object::Integer(Integer {
                         value: left_obj.value - right_obj.value,
                     }));
                 } else {
@@ -69,7 +69,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         "%" => {
             if let Object::Integer(left_obj) = left {
                 if let Object::Integer(right_obj) = right {
-                    vm.push(Object::Integer(Integer {
+                    vm.push(&Object::Integer(Integer {
                         value: left_obj.value % right_obj.value,
                     }));
                 } else {
@@ -88,7 +88,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         "/" => {
             if let Object::Integer(left_obj) = left {
                 if let Object::Integer(right_obj) = right {
-                    vm.push(Object::Integer(Integer {
+                    vm.push(&Object::Integer(Integer {
                         value: left_obj.value / right_obj.value,
                     }));
                 } else {
@@ -105,19 +105,19 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
             }
         }
         "==" => {
-            vm.push(Object::Boolean(Boolean {
+            vm.push(&Object::Boolean(Boolean {
                 value: left == right,
             }));
         }
         "!=" => {
-            vm.push(Object::Boolean(Boolean {
+            vm.push(&Object::Boolean(Boolean {
                 value: left != right,
             }));
         }
         ">" => {
             if let Object::Integer(left_obj) = left {
                 if let Object::Integer(right_obj) = right {
-                    vm.push(Object::Boolean(Boolean {
+                    vm.push(&Object::Boolean(Boolean {
                         value: left_obj.value > right_obj.value,
                     }));
                 } else {
