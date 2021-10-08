@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::object::integer;
+    use crate::object::null;
     use crate::object::Object;
     use crate::object::Object::Integer;
+    use crate::object::Object::Null;
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
 
@@ -81,6 +83,21 @@ mod tests {
         test_vm(
             "if(false) { 10 * 2 + 1 } else { if(false) { 100 } else { 400 } }",
             Integer(integer::Integer { value: 400 }),
+        );
+    }
+
+    #[test]
+    fn conditional_null() {
+        test_vm("if(false) { 10 }", Null(null::Null {}));
+        test_vm("if(false) { 10 } else {}", Null(null::Null {}));
+        test_vm(
+            "if(false) { 10 } else { if(false) { 10 } }",
+            Null(null::Null {}),
+        );
+
+        test_vm(
+            "if(false) { 10 } else if(false) { if(false) { 10 } } else if(false) {320 + 400} else if(true) {} else { 6000 }",
+            Null(null::Null {}),
         );
     }
 
