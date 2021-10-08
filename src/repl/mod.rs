@@ -48,7 +48,7 @@ impl Repl {
             self.compiler_state = Some(compiler.get_state());
 
             if self.debug {
-                print_instructions(compiler.instructions.clone());
+                print_instructions(compiler.scope().instructions.clone());
             }
 
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
