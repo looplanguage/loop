@@ -266,7 +266,7 @@ impl Compiler {
     fn emit(&mut self, op: OpCode, operands: Vec<u32>) -> usize {
         let ins = make_instruction(op, operands);
 
-        let pos = self.add_instruction(ins.clone());
+        let pos = self.add_instruction(ins);
 
         let scope = self.scope_mut();
         scope.previous_instruction = scope.last_instruction;

@@ -1,8 +1,11 @@
-use crate::compiler::Compiler;
 use crate::compiler::opcode::OpCode;
+use crate::compiler::Compiler;
 use crate::parser::statement::variable::VariableDeclaration;
 
-pub fn compile_statement_variable_declaration(compiler: &mut Compiler, variable: VariableDeclaration) -> Option<String> {
+pub fn compile_statement_variable_declaration(
+    compiler: &mut Compiler,
+    variable: VariableDeclaration,
+) -> Option<String> {
     let find_variable = compiler
         .current_variable_scope
         .find_variable(variable.ident.value.clone());
@@ -16,7 +19,9 @@ pub fn compile_statement_variable_declaration(compiler: &mut Compiler, variable:
 
     let err = compiler.compile_expression(*variable.value);
 
-    let id = compiler.current_variable_scope.define_variable(variable.ident.value);
+    let id = compiler
+        .current_variable_scope
+        .define_variable(variable.ident.value);
 
     compiler.emit(OpCode::SetVar, vec![id]);
 

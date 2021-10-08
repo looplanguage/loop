@@ -26,16 +26,16 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> O
         }
         "%" => {
             _compiler.emit(OpCode::Modulo, vec![]);
-        },
+        }
         "==" => {
             _compiler.emit(OpCode::Equals, vec![]);
-        },
+        }
         "!=" => {
             _compiler.emit(OpCode::NotEquals, vec![]);
-        },
+        }
         ">" | "<" => {
             _compiler.emit(OpCode::GreaterThan, vec![]);
-        },
+        }
         _ => {
             return Some(format!("unknown operator. got=\"{}\"", _suffix.operator));
         }
