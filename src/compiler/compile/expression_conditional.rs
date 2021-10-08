@@ -38,7 +38,7 @@ pub fn compile_expression_conditional(
         compiler.emit(OpCode::Constant, vec![0]); // adds NULL to the stack
     }
 
-    let position = compiler.emit(OpCode::Jump, vec![0]);
+    let jump_to_end = compiler.emit(OpCode::Jump, vec![0]);
 
     if conditional.else_condition.is_none() {
         let len = compiler.scope().instructions.len() as u32;
@@ -46,9 +46,6 @@ pub fn compile_expression_conditional(
     }
 
     compile_expression_null(compiler);
-
-    let len = compiler.scope().instructions.len() as u32;
-    compiler.change_operand(position as u32, vec![len]);
 
     if conditional.else_condition.is_some() {
         let len = compiler.scope().instructions.len() as u32;
@@ -67,6 +64,9 @@ pub fn compile_expression_conditional(
             }
         }
     }
+
+    let len = compiler.scope().instructions.len() as u32;
+    compiler.change_operand(jump_to_end as u32, vec![len]);
 
     None
 }
