@@ -1,7 +1,7 @@
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VariableScope {
-    variables: Vec<Variable>,
-    outer: Option<Box<VariableScope>>,
+    pub(crate) variables: Vec<Variable>,
+    pub outer: Option<Box<VariableScope>>,
 }
 
 impl VariableScope {
@@ -37,7 +37,7 @@ pub fn build_variable_scope(outer: Option<Box<VariableScope>>) -> VariableScope 
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Variable {
     pub index: u32,
     pub name: String,

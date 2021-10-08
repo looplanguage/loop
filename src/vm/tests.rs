@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::object::integer;
+    use crate::object::null;
     use crate::object::Object;
     use crate::object::Object::Integer;
+    use crate::object::Object::Null;
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
 
@@ -33,6 +35,69 @@ mod tests {
         test_vm(
             "var test = 1000; test = 500; test / 2",
             Integer(integer::Integer { value: 250 }),
+        );
+    }
+
+    // TODO: Add block scoping tests (for variables)
+
+    // TODO: Add early return tests
+
+    // TODO: Add expression checks for conditionals
+
+    #[test]
+    fn conditional() {
+        test_vm("if(true) { 10 }", Integer(integer::Integer { value: 10 }));
+        test_vm(
+            "if(true) { 40 + 40 }",
+            Integer(integer::Integer { value: 80 }),
+        );
+        test_vm(
+            "if(true) { 10 * 2 + 1 }",
+            Integer(integer::Integer { value: 21 }),
+        );
+
+        test_vm(
+            "if(false) { 10 * 2 + 1 } else { 20 }",
+            Integer(integer::Integer { value: 20 }),
+        );
+        test_vm(
+            "if(false) { 10 * 2 + 1 } else if(false) { 20 } else { 100 }",
+            Integer(integer::Integer { value: 100 }),
+        );
+
+        test_vm(
+            "if(false) { 10 * 2 + 1 } else if(false) { 20 } else if(false) { 100 } else { 300 }",
+            Integer(integer::Integer { value: 300 }),
+        );
+
+        test_vm(
+            "if(false) { 10 * 2 + 1 } else if(true) { 20 } else if(false) { 100 } else { 300 }",
+            Integer(integer::Integer { value: 20 }),
+        );
+
+        test_vm(
+            "if(true) { 10 * 2 + 1 } else if(false) { 20 } else if(true) { 100 } else { 300 }",
+            Integer(integer::Integer { value: 21 }),
+        );
+
+        test_vm(
+            "if(false) { 10 * 2 + 1 } else { if(false) { 100 } else { 400 } }",
+            Integer(integer::Integer { value: 400 }),
+        );
+    }
+
+    #[test]
+    fn conditional_null() {
+        test_vm("if(false) { 10 }", Null(null::Null {}));
+        test_vm("if(false) { 10 } else {}", Null(null::Null {}));
+        test_vm(
+            "if(false) { 10 } else { if(false) { 10 } }",
+            Null(null::Null {}),
+        );
+
+        test_vm(
+            "if(false) { 10 } else if(false) { if(false) { 10 } } else if(false) {320 + 400} else if(true) {} else { 6000 }",
+            Null(null::Null {}),
         );
     }
 

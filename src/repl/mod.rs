@@ -48,13 +48,18 @@ impl Repl {
             self.compiler_state = Some(compiler.get_state());
 
             if self.debug {
-                print_instructions(compiler.instructions.clone());
+                print_instructions(compiler.scope().instructions.clone());
             }
 
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
-            vm.run();
+            let err = vm.run();
 
-            if vm.last_popped.is_some() {
+            if err.is_some() {
+                println!(
+                    "{}",
+                    format!("VirtualMachineException: {}", err.unwrap()).red()
+                );
+            } else if vm.last_popped.is_some() {
                 self.vm_state = Some(vm.get_state());
 
                 println!("{}", vm.last_popped.unwrap().inspect().green());

@@ -55,13 +55,15 @@ impl VM {
             let op = _op.unwrap();
 
             self.ip += 1;
-            match op {
+            let err = match op {
                 OpCode::Constant => {
                     let idx =
                         read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
                     self.ip += 4;
 
                     self.push(self.bytecode.constants[idx as usize]);
+
+                    None
                 }
                 OpCode::Add => run_suffix_expression(self, "+"),
                 OpCode::Modulo => run_suffix_expression(self, "%"),
@@ -70,8 +72,9 @@ impl VM {
                 OpCode::Multiply => run_suffix_expression(self, "*"),
                 OpCode::Pop => {
                     self.pop();
+                    None
                 }
-                OpCode::Closure => {}
+                OpCode::Closure => None,
                 OpCode::SetVar => {
                     let idx =
                         read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
@@ -79,6 +82,7 @@ impl VM {
 
                     let item = self.pop();
                     self.variables.insert(idx, item);
+                    None
                 }
                 OpCode::GetVar => {
                     let idx =
@@ -86,7 +90,46 @@ impl VM {
                     self.ip += 4;
 
                     self.push(*self.variables.get(&idx).unwrap());
+                    None
                 }
+                OpCode::Equals => run_suffix_expression(self, "=="),
+                OpCode::NotEquals => run_suffix_expression(self, "!="),
+                OpCode::GreaterThan => run_suffix_expression(self, ">"),
+                OpCode::Jump => {
+                    let jump_to =
+                        read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
+
+                    self.ip = jump_to;
+
+                    None
+                }
+                OpCode::JumpIfFalse => {
+                    let condition = self.pop();
+
+                    if let Object::Boolean(dont_jump) = condition {
+                        if !dont_jump.value {
+                            let jump_to = read_uint32(
+                                self.bytecode.instructions[self.ip as usize..].to_owned(),
+                            );
+
+                            self.ip = jump_to;
+                        } else {
+                            self.ip += 4;
+                        };
+
+                        None
+                    } else {
+                        Some(format!(
+                            "unable to jump. got=\"{:?}\". expected=\"Boolean\"",
+                            condition
+                        ))
+                    }
+                }
+                OpCode::Return => None,
+            };
+
+            if err.is_some() {
+                return err;
             }
         }
 
@@ -112,11 +155,10 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Object {
-        let popped = self.stack[(self.sp - 1) as usize];
-
         if self.sp == 0 {
             panic!("can not pop nothing of the stack");
         } else {
+            let popped = self.stack[(self.sp - 1) as usize];
             self.sp -= 1;
             self.last_popped = Some(popped);
 
