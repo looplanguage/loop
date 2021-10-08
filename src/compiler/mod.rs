@@ -24,6 +24,7 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
+use std::borrow::BorrowMut;
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -36,13 +37,17 @@ pub struct EmittedInstruction {
     op: OpCode,
 }
 
-pub struct Compiler {
+pub struct CompilationScope {
     pub instructions: Instructions,
-    pub constants: Vec<Object>,
-    pub current_variable_scope: VariableScope,
     pub last_instruction: EmittedInstruction,
     pub previous_instruction: EmittedInstruction,
-    pub return_jumps: Vec<EmittedInstruction>,
+}
+
+pub struct Compiler {
+    pub scopes: Vec<CompilationScope>,
+    pub scope_index: i32,
+    pub constants: Vec<Object>,
+    pub current_variable_scope: VariableScope,
 }
 
 pub struct CompilerState {
@@ -53,9 +58,26 @@ pub struct CompilerState {
 pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
     if let Some(cmp) = state {
         return Compiler {
-            instructions: vec![],
+            scopes: vec![CompilationScope {
+                instructions: vec![],
+                last_instruction: EmittedInstruction {
+                    position: -1,
+                    op: OpCode::Constant,
+                },
+                previous_instruction: EmittedInstruction {
+                    position: -1,
+                    op: OpCode::Constant,
+                },
+            }],
+            scope_index: 0,
             constants: cmp.constants.clone(),
             current_variable_scope: cmp.variables.clone(),
+        };
+    }
+
+    Compiler {
+        scopes: vec![CompilationScope {
+            instructions: vec![],
             last_instruction: EmittedInstruction {
                 position: -1,
                 op: OpCode::Constant,
@@ -64,23 +86,10 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
                 position: -1,
                 op: OpCode::Constant,
             },
-            return_jumps: vec![],
-        };
-    }
-
-    Compiler {
-        instructions: vec![],
+        }],
+        scope_index: 0,
         constants: vec![Object::Null(Null {})],
         current_variable_scope: build_variable_scope(None),
-        last_instruction: EmittedInstruction {
-            position: -1,
-            op: OpCode::Constant,
-        },
-        previous_instruction: EmittedInstruction {
-            position: -1,
-            op: OpCode::Constant,
-        },
-        return_jumps: vec![],
     }
 }
 
@@ -103,9 +112,17 @@ impl Compiler {
         }
     }
 
+    pub fn scope(&self) -> &CompilationScope {
+        &self.scopes[self.scope_index as usize]
+    }
+
+    pub fn scope_mut(&mut self) -> &mut CompilationScope {
+        self.scopes[self.scope_index as usize].borrow_mut()
+    }
+
     pub fn get_bytecode(&self) -> Bytecode {
         Bytecode {
-            instructions: self.instructions.clone(),
+            instructions: self.scope().instructions.clone(),
             constants: self.constants.clone(),
         }
     }
@@ -143,6 +160,10 @@ impl Compiler {
 
     fn compile_block(&mut self, block: Block) -> Option<String> {
         self.enter_variable_scope();
+
+        if block.statements.is_empty() {
+            compile_expression_null(self);
+        }
 
         for statement in block.statements {
             let err = self.compile_statement(statement);
@@ -186,7 +207,7 @@ impl Compiler {
     }
 
     fn last_is(&mut self, op: OpCode) -> bool {
-        if self.last_instruction.op == op {
+        if self.scope().last_instruction.op == op {
             return true;
         }
 
@@ -194,11 +215,15 @@ impl Compiler {
     }
 
     fn remove_last(&mut self, op: OpCode) -> bool {
-        if self.last_instruction.op == op {
-            let old_ins = self.instructions.clone();
-            let ins = &old_ins[..self.last_instruction.position as usize];
+        if self.scope().last_instruction.op == op {
+            let old_ins = self.scope().instructions.clone();
+            let ins = &old_ins[..self.scope().last_instruction.position as usize];
+            let prev_ins = self.scope().previous_instruction;
 
-            self.instructions = Instructions::from(ins);
+            let mut s = self.scope_mut();
+            s.instructions = Instructions::from(ins);
+
+            s.last_instruction = prev_ins;
 
             return true;
         }
@@ -207,17 +232,19 @@ impl Compiler {
     }
 
     fn add_instruction(&mut self, instruction: Vec<u8>) -> usize {
-        let position_new_ins = self.instructions.len();
+        let position_new_ins = self.scope().instructions.len();
 
         for ins in instruction {
-            self.instructions.push(ins)
+            let scope = self.scope_mut();
+            scope.instructions.push(ins)
         }
 
         position_new_ins
     }
 
     fn replace_instruction(&mut self, pos: u32, instruction: Vec<u8>) {
-        let instructions: &mut Instructions = self.instructions.as_mut();
+        let scope = self.scope_mut();
+        let instructions: &mut Instructions = scope.instructions.as_mut();
 
         let mut i = 0;
         while i < instruction.len() {
@@ -227,7 +254,7 @@ impl Compiler {
     }
 
     fn change_operand(&mut self, pos: u32, operands: Vec<u32>) {
-        let op = self.instructions[pos as usize];
+        let op = self.scope().instructions[pos as usize];
         let opc = lookup_op(op);
 
         if let Some(opcode) = opc {
@@ -239,11 +266,11 @@ impl Compiler {
     fn emit(&mut self, op: OpCode, operands: Vec<u32>) -> usize {
         let ins = make_instruction(op, operands);
 
-        self.previous_instruction = self.last_instruction;
-
         let pos = self.add_instruction(ins.clone());
 
-        self.last_instruction = EmittedInstruction {
+        let scope = self.scope_mut();
+        scope.previous_instruction = scope.last_instruction;
+        scope.last_instruction = EmittedInstruction {
             position: pos as i64,
             op,
         };
