@@ -1,17 +1,19 @@
+mod function;
 mod suffix;
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::read_uint32;
+use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::object::integer::Integer;
 use crate::object::Object;
+use crate::vm::function::run_function_stack;
 use crate::vm::suffix::run_suffix_expression;
 use std::collections::HashMap;
 
 pub struct VM {
-    stack: [Object; 2048],
+    stack: Vec<Object>,
     ip: u32,
     sp: u16,
     bytecode: Bytecode,
@@ -26,7 +28,7 @@ pub struct VMState {
 pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
     if let Some(st) = state {
         return VM {
-            stack: [Object::Integer(Integer { value: 0 }); 2048],
+            stack: vec![],
             ip: 0,
             sp: 0,
             bytecode: bt,
@@ -36,7 +38,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
     }
 
     VM {
-        stack: [Object::Integer(Integer { value: 0 }); 2048],
+        stack: vec![],
         ip: 0,
         sp: 0,
         bytecode: bt,
@@ -61,7 +63,7 @@ impl VM {
                         read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
                     self.ip += 4;
 
-                    self.push(self.bytecode.constants[idx as usize]);
+                    self.push(&self.bytecode.constants[idx as usize].clone());
 
                     None
                 }
@@ -89,7 +91,10 @@ impl VM {
                         read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
                     self.ip += 4;
 
-                    self.push(*self.variables.get(&idx).unwrap());
+                    let variable = self.variables.get(&idx).unwrap().clone();
+
+                    self.push(&variable);
+
                     None
                 }
                 OpCode::Equals => run_suffix_expression(self, "=="),
@@ -126,6 +131,16 @@ impl VM {
                     }
                 }
                 OpCode::Return => None,
+                OpCode::Function => {
+                    let ct = read_uint32(self.bytecode.instructions[self.ip as usize..].to_owned());
+                    self.ip += 4;
+
+                    let parameters =
+                        read_uint8(self.bytecode.instructions[self.ip as usize..].to_owned());
+                    self.ip += 1;
+
+                    run_function_stack(self, ct, parameters)
+                }
             };
 
             if err.is_some() {
@@ -142,12 +157,12 @@ impl VM {
         }
     }
 
-    pub fn push(&mut self, obj: Object) -> Option<String> {
-        if (self.sp + 1) as usize >= self.stack.len() {
+    pub fn push(&mut self, obj: &Object) -> Option<String> {
+        if (self.sp + 1) as usize >= 2048 {
             panic!("stack overflow")
         }
 
-        self.stack[self.sp as usize] = obj;
+        self.stack.push(obj.clone());
 
         self.sp += 1;
 
@@ -158,9 +173,10 @@ impl VM {
         if self.sp == 0 {
             panic!("can not pop nothing of the stack");
         } else {
-            let popped = self.stack[(self.sp - 1) as usize];
+            let popped = self.stack.pop().unwrap();
+
             self.sp -= 1;
-            self.last_popped = Some(popped);
+            self.last_popped = Some(popped.clone());
 
             popped
         }

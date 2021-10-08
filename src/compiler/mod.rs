@@ -7,6 +7,7 @@ mod variable;
 
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
+use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_null::compile_expression_null;
@@ -120,6 +121,37 @@ impl Compiler {
         self.scopes[self.scope_index as usize].borrow_mut()
     }
 
+    pub fn enter_scope(&mut self) {
+        self.enter_variable_scope();
+
+        let scope = CompilationScope {
+            instructions: vec![],
+            last_instruction: EmittedInstruction {
+                position: -1,
+                op: OpCode::Constant,
+            },
+            previous_instruction: EmittedInstruction {
+                position: -1,
+                op: OpCode::Constant,
+            },
+        };
+
+        self.scopes.push(scope);
+        self.scope_index += 1;
+    }
+
+    pub fn exit_scope(&mut self) -> Instructions {
+        self.exit_variable_scope();
+
+        let current_scope = self.scope();
+        let ins = current_scope.instructions.clone();
+
+        self.scopes.pop();
+        self.scope_index -= 1;
+
+        ins
+    }
+
     pub fn get_bytecode(&self) -> Bytecode {
         Bytecode {
             instructions: self.scope().instructions.clone(),
@@ -133,7 +165,7 @@ impl Compiler {
             Expression::Integer(int) => compile_expression_integer(self, int),
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
             Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
-            Expression::Function(_) => None,
+            Expression::Function(func) => compile_expression_function(self, func),
             Expression::Conditional(conditional) => {
                 compile_expression_conditional(self, *conditional)
             }
