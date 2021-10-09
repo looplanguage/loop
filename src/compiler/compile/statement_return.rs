@@ -8,7 +8,6 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
     }
 
     let err = _compiler.compile_expression(*rt.expression);
-
     if err.is_some() {
         return err;
     }

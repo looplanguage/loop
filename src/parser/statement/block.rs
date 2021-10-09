@@ -28,7 +28,9 @@ pub fn parse_block(p: &mut Parser) -> Block {
             ))
         }
 
-        p.lexer.next_token();
+        if p.peek_token_is(TokenType::RightBrace) {
+            p.lexer.next_token();
+        }
     }
 
     Block { statements }

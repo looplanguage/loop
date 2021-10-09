@@ -21,9 +21,7 @@ impl VariableScope {
         None
     }
 
-    pub fn define_variable(&mut self, name: String) -> u32 {
-        let index = self.variables.len() as u32;
-
+    pub fn define_variable(&mut self, name: String, index: u32) -> u32 {
         self.variables.push(Variable { index, name });
 
         index

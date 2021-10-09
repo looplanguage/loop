@@ -1,7 +1,7 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::conditional::Conditional;
-use crate::parser::expression::function::Function;
+use crate::parser::expression::function::{Call, Function};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::null::Null;
@@ -24,6 +24,7 @@ pub enum Expression {
     Function(Function),
     Conditional(Box<Conditional>),
     Null(Null),
+    Call(Call),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
