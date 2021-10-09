@@ -6,6 +6,7 @@ mod tests;
 mod variable;
 
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
+use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
@@ -49,11 +50,13 @@ pub struct Compiler {
     pub scope_index: i32,
     pub constants: Vec<Object>,
     pub current_variable_scope: VariableScope,
+    pub variable_count: u32,
 }
 
 pub struct CompilerState {
     constants: Vec<Object>,
     variables: VariableScope,
+    variable_count: u32,
 }
 
 pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
@@ -73,6 +76,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             scope_index: 0,
             constants: cmp.constants.clone(),
             current_variable_scope: cmp.variables.clone(),
+            variable_count: cmp.variable_count,
         };
     }
 
@@ -91,6 +95,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         scope_index: 0,
         constants: vec![Object::Null(Null {})],
         current_variable_scope: build_variable_scope(None),
+        variable_count: 0,
     }
 }
 
@@ -110,6 +115,7 @@ impl Compiler {
         CompilerState {
             constants: self.constants.clone(),
             variables: self.current_variable_scope.clone(),
+            variable_count: self.variable_count,
         }
     }
 
@@ -170,6 +176,7 @@ impl Compiler {
                 compile_expression_conditional(self, *conditional)
             }
             Expression::Null(_) => compile_expression_null(self),
+            Expression::Call(call) => compile_expression_call(self, call),
         };
 
         if err.is_some() {

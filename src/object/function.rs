@@ -4,7 +4,7 @@ use crate::object::{Object, ObjectTrait};
 #[derive(Clone, Debug, PartialEq)]
 pub struct CompiledFunction {
     pub instructions: Vec<u8>,
-    pub parameters: i32,
+    pub parameters: Vec<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -20,6 +20,6 @@ impl ObjectTrait for CompiledFunction {
 
 impl ObjectTrait for Function {
     fn inspect(&self) -> String {
-        format!("Function[{}]", self.func.parameters)
+        format!("Function[{}]", self.func.parameters.len())
     }
 }

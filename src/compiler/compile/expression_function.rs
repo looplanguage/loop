@@ -20,7 +20,11 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
         }
 
         let second_name = name.clone();
-        compiler.current_variable_scope.define_variable(second_name);
+        compiler
+            .current_variable_scope
+            .define_variable(second_name, compiler.variable_count);
+
+        compiler.variable_count += 1;
     }
 
     let err = compiler.compile_block(func.body);
@@ -34,7 +38,14 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
         compiler.emit(OpCode::Return, vec![]);
     }
 
-    let parameters = compiler.current_variable_scope.variables.len() as i32;
+    let mut parameters: Vec<u32> = vec![];
+
+    for variable in &compiler.current_variable_scope.variables {
+        parameters.push(variable.index);
+    }
+
+    let parameter_len = parameters.len();
+
     let instructions = compiler.exit_scope();
 
     let func = function::CompiledFunction {
@@ -44,7 +55,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
 
     let func_id = compiler.add_constant(Object::CompiledFunction(func));
 
-    compiler.emit(OpCode::Function, vec![func_id, parameters as u32]);
+    compiler.emit(OpCode::Function, vec![func_id, parameter_len as u32]);
 
     None
 }

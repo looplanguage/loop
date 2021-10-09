@@ -76,6 +76,10 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpFunction".to_string(),
             operand_width: vec![4, 1],
         },
+        OpCode::Call => Definition {
+            name: "OpCall".to_string(),
+            operand_width: vec![1],
+        },
     }
 }
 
@@ -98,6 +102,7 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         14 => Some(OpCode::JumpIfFalse),
         15 => Some(OpCode::Return),
         16 => Some(OpCode::Function),
+        17 => Some(OpCode::Call),
         _ => None,
     }
 }
@@ -121,6 +126,7 @@ pub fn lookup(op: u8) -> Option<Definition> {
         14 => Some(get_definition(OpCode::JumpIfFalse)),
         15 => Some(get_definition(OpCode::Return)),
         16 => Some(get_definition(OpCode::Function)),
+        17 => Some(get_definition(OpCode::Call)),
         _ => None,
     }
 }

@@ -21,7 +21,9 @@ pub fn compile_statement_variable_declaration(
 
     let id = compiler
         .current_variable_scope
-        .define_variable(variable.ident.value);
+        .define_variable(variable.ident.value, compiler.variable_count);
+
+    compiler.variable_count += 1;
 
     compiler.emit(OpCode::SetVar, vec![id]);
 
