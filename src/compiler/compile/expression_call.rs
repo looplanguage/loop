@@ -11,10 +11,9 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> Option<St
         }
     }
 
-    compiler.compile_expression(*call.identifier);
+    compiler.compile_expression(*call.identifier.clone());
+    println!("{:?}", call.identifier.clone());
     let param_len = call.parameters.len();
-
-    println!("CALL COMPILED");
 
     compiler.emit(OpCode::Call, vec![param_len as u32]);
 

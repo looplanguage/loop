@@ -17,11 +17,13 @@ pub fn compile_statement_variable_declaration(
         ));
     }
 
-    let err = compiler.compile_expression(*variable.value);
-
     let id = compiler
         .current_variable_scope
         .define_variable(variable.ident.value, compiler.variable_count);
+
+    println!("{}", id);
+
+    let err = compiler.compile_expression(*variable.value);
 
     compiler.variable_count += 1;
 

@@ -79,7 +79,6 @@ pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
 }
 
 pub fn parse_function(p: &mut Parser) -> Option<Node> {
-    println!("STARTING WITH FUNC");
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
             "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
@@ -93,11 +92,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
     p.lexer.next_token();
 
-    println!("STARTING WITH BLOCK");
     let body = parse_block(p);
-    println!("DONE WITH BLOCK");
-
-    println!("DONE WITH FUNC");
 
     Some(Node::Expression(Expression::Function(Function {
         parameters: arguments,

@@ -98,7 +98,6 @@ impl Parser {
 
         if let Node::Expression(exp) = expression_node.unwrap() {
             let mut infix_expression_node: Option<Node> = None;
-            println!("{:?}", self.lexer.peek_token.as_ref().unwrap().token);
             while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
                 let infix_parser = self
                     .infix_parser
