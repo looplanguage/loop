@@ -33,5 +33,7 @@ pub fn parse_block(p: &mut Parser) -> Block {
         }
     }
 
+    println!("{}", statements.len());
+
     Block { statements }
 }
