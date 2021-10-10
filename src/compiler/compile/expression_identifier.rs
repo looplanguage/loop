@@ -1,4 +1,5 @@
 use crate::compiler::opcode::OpCode;
+use crate::compiler::variable::Scope;
 use crate::compiler::Compiler;
 use crate::parser::expression::identifier::Identifier;
 
@@ -10,18 +11,22 @@ pub fn compile_expression_identifier(
         .current_variable_scope
         .find_variable(identifier.value.clone());
 
-    // TODO: Recursive functions aren't defined inside their own functions
     if var.is_none() {
         return Some(format!(
             "variable \"{}\" is not defined in this scope",
             identifier.value
         ));
     }
-    println!("OpGetVar {}", identifier.value.clone());
 
-    let unwrapped = var.unwrap().index;
+    let unwrapped = var.unwrap();
 
-    compiler.emit(OpCode::GetVar, vec![unwrapped]);
+    if unwrapped.scope == Scope::Global {
+        compiler.emit(OpCode::GetVar, vec![unwrapped.index]);
+    } else if unwrapped.scope == Scope::Local {
+        compiler.emit(OpCode::GetLocal, vec![unwrapped.index]);
+    } else {
+        compiler.emit(OpCode::GetFree, vec![unwrapped.index]);
+    }
 
     None
 }

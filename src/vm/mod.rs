@@ -40,6 +40,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
                         instructions: bt.instructions.clone(),
                         parameters: vec![],
                     },
+                    free: vec![],
                 },
                 0,
             )],
@@ -59,6 +60,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
                     instructions: bt.instructions.clone(),
                     parameters: vec![],
                 },
+                free: vec![],
             },
             0,
         )],
@@ -120,6 +122,8 @@ impl VM {
 
                     let variable = self.variables.get(&idx).unwrap().clone();
 
+                    println!("{:?}", variable);
+
                     self.push(&variable);
 
                     None
@@ -164,7 +168,7 @@ impl VM {
                     let return_value = self.pop();
                     let frame = self.pop_frame();
 
-                    self.sp = (frame.base_pointer) as u16;
+                    self.sp = (frame.base_pointer - 1) as u16;
 
                     self.push(&return_value)
                 }
@@ -184,7 +188,6 @@ impl VM {
                     run_function_stack(self, ct, parameters)
                 }
                 OpCode::Call => {
-                    let func = self.pop();
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
                     let args = read_uint8(ins[ip as usize..].to_owned());
@@ -192,11 +195,46 @@ impl VM {
                     self.current_frame().ip += 1;
 
                     let mut err = None;
-                    if let Object::Function(fun) = func {
-                        err = run_function(self, fun, args);
-                    }
+                    err = run_function(self, args);
 
                     err
+                }
+                OpCode::GetLocal => {
+                    let ip = self.current_frame().ip;
+                    let ins = self.current_frame().instructions();
+                    let idx = read_uint8(ins[ip as usize..].to_owned());
+                    self.current_frame().ip += 1;
+
+                    let mut i = 0;
+                    for si in &self.stack {
+                        println!("Stack {}: {:?}", i, si);
+                        i = i + 1;
+                    }
+
+                    let frame = self.current_frame();
+                    let base_pointer = frame.base_pointer;
+
+                    println!("GETTING: {}", (idx));
+
+                    let local = self
+                        .stack
+                        .get((base_pointer + idx as i32) as usize)
+                        .unwrap();
+
+                    println!("LOCAL: {:?}", local);
+                    None
+                }
+                OpCode::GetFree => {
+                    let ip = self.current_frame().ip;
+                    let ins = self.current_frame().instructions();
+                    let idx = read_uint8(ins[ip as usize..].to_owned());
+                    self.current_frame().ip += 1;
+
+                    let current = self.current_frame().func.clone();
+
+                    self.push(&current.free[idx as usize]);
+
+                    None
                 }
             };
 
@@ -249,6 +287,8 @@ impl VM {
 
             self.sp -= 1;
             self.last_popped = Some(popped.clone());
+
+            println!("Stack Size: {}", self.stack.len());
 
             popped
         }

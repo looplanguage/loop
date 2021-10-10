@@ -1,4 +1,5 @@
 use crate::compiler::opcode::OpCode;
+use crate::compiler::variable::{Scope, Variable};
 use crate::compiler::Compiler;
 use crate::object::{function, Object};
 use crate::parser::expression::function::Function;
@@ -6,6 +7,7 @@ use crate::parser::expression::function::Function;
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> Option<String> {
     compiler.enter_scope();
 
+    let mut i = 0;
     for parameter in func.parameters {
         let name = parameter.value.clone();
         let find_variable = compiler
@@ -20,14 +22,16 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
         }
 
         let second_name = name.clone();
+
         compiler
             .current_variable_scope
-            .define_variable(second_name, compiler.variable_count);
-
-        compiler.variable_count += 1;
+            .define_variable(second_name, i);
+        i = i + 1;
     }
 
-    let err = compiler.compile_block(func.body);
+    println!("PARAMS: {}", i);
+
+    let err = compiler.compile_function_block(func.body);
     if err.is_some() {
         return err;
     }
@@ -44,9 +48,21 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
         parameters.push(variable.index);
     }
 
-    let parameter_len = parameters.len();
+    let mut free: Vec<Variable> = vec![];
+
+    for variable in &compiler.current_variable_scope.free {
+        free.push(variable.clone());
+    }
 
     let instructions = compiler.exit_scope();
+
+    for free_var in free.clone() {
+        if free_var.scope == Scope::Free {
+            compiler.emit(OpCode::GetFree, vec![free_var.index]);
+        } else {
+            compiler.emit(OpCode::GetLocal, vec![free_var.index]);
+        }
+    }
 
     let func = function::CompiledFunction {
         instructions,
@@ -55,7 +71,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
 
     let func_id = compiler.add_constant(Object::CompiledFunction(func));
 
-    compiler.emit(OpCode::Function, vec![func_id, parameter_len as u32]);
+    compiler.emit(OpCode::Function, vec![func_id, free.len() as u32]);
 
     None
 }

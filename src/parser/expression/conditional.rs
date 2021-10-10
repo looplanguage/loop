@@ -94,7 +94,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
             ))));
         }
 
-        p.lexer.next_token();
+        //p.lexer.next_token();
 
         return Some(Node::Expression(Expression::Conditional(Box::new(
             Conditional {

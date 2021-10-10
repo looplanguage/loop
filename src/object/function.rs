@@ -10,6 +10,7 @@ pub struct CompiledFunction {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {
     pub func: CompiledFunction,
+    pub free: Vec<Object>,
 }
 
 impl ObjectTrait for CompiledFunction {

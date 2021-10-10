@@ -1,9 +1,49 @@
 #[cfg(test)]
 mod tests {
     use crate::compiler::instructions::pretty_print_instructions;
+    use crate::object::Object;
     use crate::{compiler, lexer, parser};
     use std::borrow::{Borrow, BorrowMut};
     use std::ops::Deref;
+
+    #[test]
+    fn closures() {
+        let input = "\
+        fn(a) {
+                return fn(b) {
+                    return fn(c) {
+                        a + b + c
+                    }
+                }
+            };\
+        ";
+        let mut expected: Vec<&str> = Vec::new();
+        expected.push(
+            "[0] OpGetFree 0
+[2] OpGetFree 1
+[4] OpAdd
+[5] OpGetLocal 0
+[7] OpAdd
+[8] OpReturn",
+        );
+
+        expected.push(
+            "\
+[0] OpGetFree 0
+[2] OpGetLocal 0
+[4] OpFunction 1 2
+[10] OpReturn",
+        );
+
+        expected.push(
+            "\
+[0] OpGetLocal 0
+[5] OpFunction 2 1
+[10] OpReturn",
+        );
+
+        compiler_test_constants(input, expected);
+    }
 
     #[test]
     fn emit_instruction() {
@@ -14,6 +54,40 @@ mod tests {
 [11] OpPop";
 
         compiler_test(input, expected)
+    }
+
+    fn compiler_test_constants(input: &str, expected: Vec<&str>) {
+        let l = lexer::build_lexer(input);
+        let mut parser = parser::build_parser(l);
+
+        let program = parser.parse();
+
+        if !parser.errors.is_empty() {
+            for err in parser.errors {
+                println!("ParserException: {}", err);
+            }
+
+            panic!("Parser exceptions occurred!")
+        }
+
+        let mut comp = compiler::build_compiler(None);
+        comp.compile(program);
+
+        let scope = comp.scope();
+        let sc = scope.borrow();
+
+        let mut i = 0;
+        for constant in comp.constants {
+            if let Object::CompiledFunction(func) = constant {
+                let ins = func.instructions.clone();
+
+                assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));
+                i = i + 1 as usize;
+            } else {
+                i = i + 1;
+                continue;
+            }
+        }
     }
 
     fn compiler_test(input: &str, expected: &str) {

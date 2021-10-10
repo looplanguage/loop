@@ -190,11 +190,28 @@ impl Compiler {
         self.current_variable_scope = VariableScope {
             variables: vec![],
             outer: Option::from(Box::new(self.current_variable_scope.clone())),
+            free: vec![],
+            num_definitions: 0,
         };
     }
 
     fn exit_variable_scope(&mut self) {
         self.current_variable_scope = *self.current_variable_scope.outer.clone().unwrap();
+    }
+
+    fn compile_function_block(&mut self, block: Block) -> Option<String> {
+        if block.statements.is_empty() {
+            compile_expression_null(self);
+        }
+
+        for statement in block.statements {
+            let err = self.compile_statement(statement);
+            if err.is_some() {
+                return err;
+            }
+        }
+
+        None
     }
 
     fn compile_block(&mut self, block: Block) -> Option<String> {
