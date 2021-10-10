@@ -27,7 +27,6 @@ impl VariableScope {
                 return variable.clone();
             }
 
-            println!("Defining...");
             let free = self.define_free(variable.clone().unwrap());
 
             return Some(free);
