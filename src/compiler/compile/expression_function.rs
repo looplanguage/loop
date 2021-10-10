@@ -29,8 +29,6 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
         i = i + 1;
     }
 
-    println!("PARAMS: {}", i);
-
     let err = compiler.compile_function_block(func.body);
     if err.is_some() {
         return err;
@@ -53,6 +51,8 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
     for variable in &compiler.current_variable_scope.free {
         free.push(variable.clone());
     }
+
+    println!("{}", free.len());
 
     let instructions = compiler.exit_scope();
 

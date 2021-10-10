@@ -187,9 +187,13 @@ impl Compiler {
     }
 
     fn enter_variable_scope(&mut self) {
+        let outer_scope = self.current_variable_scope.clone();
+
+        println!("{}", outer_scope.free.len());
+
         self.current_variable_scope = VariableScope {
             variables: vec![],
-            outer: Option::from(Box::new(self.current_variable_scope.clone())),
+            outer: Option::from(Box::from(outer_scope)),
             free: vec![],
             num_definitions: 0,
         };
