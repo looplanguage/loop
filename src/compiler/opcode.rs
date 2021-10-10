@@ -18,4 +18,6 @@ pub enum OpCode {
     Return,
     Function,
     Call,
+    GetLocal,
+    GetFree,
 }

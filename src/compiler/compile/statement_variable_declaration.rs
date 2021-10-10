@@ -1,4 +1,5 @@
 use crate::compiler::opcode::OpCode;
+use crate::compiler::variable::Scope;
 use crate::compiler::Compiler;
 use crate::parser::statement::variable::VariableDeclaration;
 
@@ -21,13 +22,11 @@ pub fn compile_statement_variable_declaration(
         .current_variable_scope
         .define_variable(variable.ident.value, compiler.variable_count);
 
-    println!("{}", id);
-
     let err = compiler.compile_expression(*variable.value);
 
     compiler.variable_count += 1;
 
-    compiler.emit(OpCode::SetVar, vec![id]);
+    compiler.emit(OpCode::SetVar, vec![id.index]);
 
     if err.is_some() {
         return err;

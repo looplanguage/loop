@@ -9,6 +9,9 @@ mod tests {
     use crate::{compiler, lexer, parser};
 
     #[test]
+    fn recursive_functions() {}
+
+    #[test]
     fn expressions() {
         test_vm("100", Integer(integer::Integer { value: 100 }));
         test_vm("100 + 100", Integer(integer::Integer { value: 200 }));

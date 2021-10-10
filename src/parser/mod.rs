@@ -9,7 +9,7 @@ use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::integer::parse_integer_literal;
+use crate::parser::expression::integer::{parse_integer_literal, parse_minus_integer};
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
@@ -188,6 +188,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
+    p.add_prefix_parser(TokenType::Minus, parse_minus_integer);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
     p.add_prefix_parser(TokenType::True, parse_boolean);
