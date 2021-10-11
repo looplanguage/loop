@@ -8,9 +8,6 @@ pub mod function;
 pub mod integer;
 pub mod null;
 
-pub static TRUE: Object = Object::Boolean(Boolean { value: true });
-pub static FALSE: Object = Object::Boolean(Boolean { value: false });
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
     Integer(Integer),
@@ -28,6 +25,14 @@ impl Object {
             Object::Null(null) => null.inspect(),
             Object::CompiledFunction(func) => func.inspect(),
             Object::Function(func) => func.inspect(),
+        }
+    }
+
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            Object::Boolean(value) => value.value,
+            Object::Null(_) => false,
+            _ => true,
         }
     }
 }

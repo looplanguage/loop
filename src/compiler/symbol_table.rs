@@ -1,102 +1,134 @@
 use std::collections::HashMap;
+use std::mem;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Scope {
     Local,
     Global,
-    Free
+    Free,
+    Builtin,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Symbol {
-    pub name: str,
     pub scope: Scope,
-    pub index: i32
+    pub index: u32,
 }
 
-pub struct SymbolTable {
-    pub(crate) outer: Option<Box<SymbolTable>>,
+#[derive(Default)]
+pub struct SymbolLayer {
     store: HashMap<String, Symbol>,
-    num_definitions: i32,
-    pub free_symbols: Vec<Symbol>
+    num_definitions: u32,
+    pub free_symbols: Vec<Symbol>,
 }
 
-pub fn new_symbol_table() -> Box<SymbolTable> {
-    let symbols: HashMap<String, Symbol> = HashMap::new();
-    let free: Vec<Symbol> = Vec::new();
+impl SymbolLayer {
+    pub fn new() -> Self {
+        Default::default()
+    }
 
-    Box::new(SymbolTable {
-        outer: None,
-        store: symbols,
-        num_definitions: 0,
-        free_symbols: free
-    })
+    pub fn define_free(&mut self, name: &str, original: Symbol) -> Symbol {
+        let symbol = Symbol {
+            index: self.free_symbols.len() as u32,
+            scope: Scope::Free,
+        };
+
+        self.free_symbols.push(original);
+        *self.define_symbol(name, symbol)
+    }
+
+    pub fn define_symbol(&mut self, name: &str, symbol: Symbol) -> &Symbol {
+        self.store.insert(name.to_string(), symbol);
+        self.store.get(name).expect("inserted")
+    }
 }
 
-pub fn new_enclosed_symbol_table(outer: Box<SymbolTable>) -> Box<SymbolTable> {
-    let mut symbol_table = new_symbol_table();
-    symbol_table.outer = Some(outer);
-
-    symbol_table
+#[derive(Default)]
+pub struct SymbolTable {
+    current: SymbolLayer,
+    outers: Vec<SymbolLayer>,
 }
 
 impl SymbolTable {
-    pub fn define(&mut self, name: &str) -> Symbol {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn new_with_builtins() -> Self {
+        let mut symbol_table = SymbolTable::new();
+        // TODO: Add builtins
+        symbol_table
+    }
+
+    pub fn push(&mut self) {
+        let outer = mem::replace(&mut self.current, SymbolLayer::new());
+        self.outers.push(outer);
+    }
+
+    pub fn pop(&mut self) -> Vec<Symbol> {
+        match self.outers.pop() {
+            None => vec![],
+            Some(outer) => {
+                let popped = mem::replace(&mut self.current, outer);
+                popped.free_symbols
+            }
+        }
+    }
+
+    pub fn define(&mut self, name: &str, global_index: u32) -> &Symbol {
+        let scope = if self.outers.is_empty() || global_index > 0 {
+            Scope::Global
+        } else {
+            Scope::Local
+        };
+
         let mut symbol = Symbol {
-            name: name.clone(),
-            scope: Scope::Local,
-            index: self.num_definitions
+            index: self.current.num_definitions,
+            scope,
         };
 
-        if self.outer.is_none() {
-            symbol.scope == Scope::Global
+        if global_index > 0 {
+            println!("{}: {}", name, global_index);
+            symbol.index = global_index;
         }
 
-        self.store.insert(name, symbol.clone());
-        self.num_definitions += 1;
+        self.current.num_definitions += 1;
 
-        symbol
+        self.current.define_symbol(name, symbol)
     }
 
-    pub fn resolve(&mut self, name: String) -> Option<&Symbol> {
-        let mut obj = self.store.get(&*name);
-
-        if obj.is_none() && self.outer.is_none() {
-            obj = self.outer.unwrap().resolve(name);
-            if obj.is_none() {
-                return obj
+    pub fn resolve(&mut self, name: &str) -> Option<Symbol> {
+        {
+            // Silence the borrow checker.
+            // https://users.rust-lang.org/t/solved-borrow-doesnt-drop-returning-this-value-requires-that/24182
+            let maybe_symbol: Option<&Symbol> =
+                unsafe { mem::transmute(self.current.store.get(name)) };
+            if maybe_symbol.is_some() {
+                return maybe_symbol.copied();
             }
-
-            if obj.unwrap().scope == Scope::Global {
-                return obj
-            }
-
-            let free = self.define_free(obj.unwrap().clone());
-
-            return Some(&free)
         }
 
-        obj
+        let num_outers = self.outers.len();
+        // Try from the 2nd innermost store to the outermost one.
+        for (i, outer) in self.outers.iter().rev().enumerate() {
+            if let Some(original) = outer.store.get(name) {
+                return match original.scope {
+                    Scope::Global | Scope::Builtin => Some(*original),
+                    Scope::Local | Scope::Free => {
+                        let mut parent_symbol = *original;
+                        for j in (num_outers - i)..num_outers {
+                            let o = &mut self.outers[j];
+                            parent_symbol = o.define_free(name, parent_symbol);
+                        }
+                        Some(self.current.define_free(name, parent_symbol))
+                    }
+                };
+            }
+        }
+        None
     }
 
-    pub fn define_free(&mut self, original: &Symbol) -> Symbol {
-        let original_symbol = Symbol {
-            name: original.name.clone(),
-            scope: original.scope.clone(),
-            index: original.index
-        };
-
-        self.free_symbols.push(original_symbol);
-
-        let symbol = Symbol {
-            name: original.name.clone(),
-            scope: Scope::Free,
-            index: (self.free_symbols.len() as i32) - 1,
-        };
-
-        self.store.remove(&*original.name.clone());
-        let d=  self.store.insert(original.name.clone(), symbol);
-
-        d.unwrap()
+    pub fn num_definitions(&self) -> u32 {
+        self.current.num_definitions
     }
 }

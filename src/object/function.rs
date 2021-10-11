@@ -1,16 +1,18 @@
 use crate::compiler::instructions::Instructions;
 use crate::object::{Object, ObjectTrait};
+use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct CompiledFunction {
     pub instructions: Vec<u8>,
-    pub parameters: Vec<u32>,
+    pub num_locals: u8,
+    pub num_parameters: u8,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {
     pub func: CompiledFunction,
-    pub free: Vec<Object>,
+    pub free: Vec<Rc<Object>>,
 }
 
 impl ObjectTrait for CompiledFunction {
@@ -21,6 +23,6 @@ impl ObjectTrait for CompiledFunction {
 
 impl ObjectTrait for Function {
     fn inspect(&self) -> String {
-        format!("Function[{}]", self.func.parameters.len())
+        format!("Function[{}]", self.func.num_parameters)
     }
 }

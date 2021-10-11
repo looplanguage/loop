@@ -3,40 +3,29 @@ use crate::object::function::{CompiledFunction, Function};
 use crate::object::Object;
 use crate::vm::frame::build_frame;
 use crate::vm::VM;
+use std::rc::Rc;
 
 pub fn run_function(vm: &mut VM, args: u8) -> Option<String> {
-    let func_obj = vm.stack[(vm.sp - 1 - (args as u16)) as usize].clone();
+    let func_obj = (*vm.stack[(vm.sp - 1 - (args as u16)) as usize]).clone();
 
     if let Object::Function(func) = func_obj {
-        let parameters = func.func.parameters.clone();
+        let parameters = func.func.num_parameters;
 
-        if parameters.len() as u8 != args {
+        if parameters != args {
             return Some(format!(
                 "incorrect argument count. expected={}. got={}",
-                parameters.len(),
-                args
+                parameters, args
             ));
         }
 
-        let mut frame = build_frame(func, (vm.sp as u16 - (args as u16)) as i32);
+        let num_locals = func.func.num_locals as usize;
+        let base_pointer = vm.sp - (args as u16);
 
-        print_instructions((frame.instructions().clone()).to_owned());
+        let mut frame = build_frame(func, base_pointer as i32);
 
-        let base_pointer = frame.base_pointer.clone();
-
-        /*
-            for parameter in parameters {
-                if vm.variables.contains_key(&parameter) {
-                    vm.variables.remove(&parameter);
-                }
-
-                let value = vm.pop();
-                vm.variables.insert(parameter, value);
-            }
-        */
         vm.push_frame(frame);
 
-        vm.sp = base_pointer as u16 + (args as u16);
+        vm.sp = base_pointer + (num_locals as u16)
     }
 
     None
@@ -46,23 +35,16 @@ pub fn run_function_stack(vm: &mut VM, constant: u32, free_count: u8) -> Option<
     let func_obj = vm.constants[constant as usize].clone();
 
     if let Object::CompiledFunction(func) = func_obj {
-        let mut i = 0;
-        let mut free: Vec<Object> = Vec::new();
+        let mut free = Vec::new();
 
-        while i < free_count {
-            let obj = vm
-                .stack
-                .get((vm.sp - (free_count as u16) + (i as u16)) as usize)
-                .unwrap()
-                .clone();
-
-            free.push(obj);
-            i = i + 1;
+        for _ in 0..free_count {
+            free.push(Rc::clone(&vm.pop()));
         }
+        free.reverse();
 
         let func = Object::Function(Function { func, free });
 
-        vm.push(&func);
+        vm.push(Rc::new(func));
     }
 
     None
