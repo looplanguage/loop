@@ -104,6 +104,63 @@ mod tests {
         );
     }
 
+    #[test]
+    fn recursive_fibonacci() {
+        test_vm(
+            "
+            var fib = fn(x) { 
+                if(x < 2) { 
+                    return 1 
+                } else { 
+                    return fib(x - 1) + fib(x - 2) 
+                } 
+            }
+            fib(10)
+        ",
+            Integer(integer::Integer { value: 89 }),
+        );
+    }
+
+    #[test]
+    fn closures_1() {
+        test_vm(
+            "var newClosure = fn(a) { return fn(b) { return a + b } }; newClosure(20)(10)",
+            Integer(integer::Integer { value: 30 }),
+        )
+    }
+
+    #[test]
+    fn closures_2() {
+        test_vm(
+            "var newClosure = fn(a) { return fn(b) { return fn(c) { return a + b + c } } }; newClosure(30)(20)(10)",
+            Integer(integer::Integer { value: 60 }),
+        )
+    }
+
+    #[test]
+    fn closures_3() {
+        test_vm(
+            "var newClosure = fn(a) { return fn(b) { return fn(c) { return fn(d) { return a + b + c + d } } } }; newClosure(30)(20)(10)(5)",
+            Integer(integer::Integer { value: 65 }),
+        )
+    }
+
+    #[test]
+    fn closures_variable_scopes_1() {
+        test_vm(
+            "var newClosure = fn(a) { var c = 1000; return fn(b) { return a + b + c } }; newClosure(20)(10)",
+            Integer(integer::Integer { value: 1030 }),
+        )
+    }
+
+    #[test]
+    fn closures_variable_scopes_2() {
+        test_vm(
+            "var q = 200; var newClosure = fn(a) { var c = 1000; return fn(b) { return a + b + c + q } }; newClosure(20)(10)",
+            Integer(integer::Integer { value: 1230 }),
+        )
+    }
+
     fn test_vm(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
@@ -134,6 +191,6 @@ mod tests {
             panic!("{}", "VM did not return. got=NONE");
         }
 
-        assert_eq!(last_popped.unwrap(), expected);
+        assert_eq!(*last_popped.unwrap(), expected);
     }
 }
