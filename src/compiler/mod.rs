@@ -57,6 +57,7 @@ pub struct CompilerState {
     constants: Vec<Object>,
     variables: VariableScope,
     variable_count: u32,
+
 }
 
 pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
@@ -187,20 +188,14 @@ impl Compiler {
     }
 
     fn enter_variable_scope(&mut self) {
-        let outer_scope = self.current_variable_scope.clone();
+        let outer_scope = self.current_variable_scope.to_owned();
+        let scope = build_variable_scope(Some(Box::new(outer_scope)));
 
-        println!("{}", outer_scope.free.len());
-
-        self.current_variable_scope = VariableScope {
-            variables: vec![],
-            outer: Option::from(Box::from(outer_scope)),
-            free: vec![],
-            num_definitions: 0,
-        };
+        self.current_variable_scope = scope;
     }
 
     fn exit_variable_scope(&mut self) {
-        self.current_variable_scope = *self.current_variable_scope.outer.clone().unwrap();
+        self.current_variable_scope = *self.current_variable_scope.outer.to_owned().unwrap();
     }
 
     fn compile_function_block(&mut self, block: Block) -> Option<String> {

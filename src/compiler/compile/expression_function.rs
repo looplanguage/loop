@@ -25,7 +25,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
 
         compiler
             .current_variable_scope
-            .define_variable(second_name, i);
+            .define_variable(second_name);
         i = i + 1;
     }
 
@@ -43,16 +43,15 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
     let mut parameters: Vec<u32> = vec![];
 
     for variable in &compiler.current_variable_scope.variables {
-        parameters.push(variable.index);
+        parameters.push(variable.1.index);
     }
 
     let mut free: Vec<Variable> = vec![];
 
     for variable in &compiler.current_variable_scope.free {
+        println!("{} {:?}", variable.name, variable.scope);
         free.push(variable.clone());
     }
-
-    println!("{}", free.len());
 
     let instructions = compiler.exit_scope();
 

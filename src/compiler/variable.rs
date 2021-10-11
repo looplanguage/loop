@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 #[derive(Clone, Debug)]
 pub struct VariableScope {
-    pub(crate) variables: Vec<Variable>,
+    pub(crate) variables: HashMap<String, Variable>,
     pub outer: Option<Box<VariableScope>>,
     pub free: Vec<Variable>,
     pub num_definitions: i32,
@@ -9,8 +11,8 @@ pub struct VariableScope {
 impl VariableScope {
     pub fn find_variable(&mut self, name: String) -> Option<Variable> {
         for variable in &self.variables {
-            if variable.name == name {
-                return Some(variable.clone());
+            if variable.1.name == name {
+                return Some(variable.1.clone());
             }
         }
 
@@ -38,7 +40,7 @@ impl VariableScope {
     pub fn contains_key(&mut self, name: String) -> i32 {
         let mut i = 0;
         for variable in &self.variables {
-            if variable.name == name {
+            if variable.1.name == name {
                 return i;
             }
 
@@ -48,7 +50,7 @@ impl VariableScope {
         -1
     }
 
-    pub fn define_variable(&mut self, name: String, index: u32) -> Variable {
+    pub fn define_variable(&mut self, name: String) -> Variable {
         let mut variable = Variable {
             name: name.clone(),
             index: self.num_definitions as u32,
@@ -61,13 +63,13 @@ impl VariableScope {
 
             let idx = self.contains_key(new_name);
             if idx != -1 {
-                return self.variables[idx as usize].clone();
+                return self.variables.get(name.clone().as_str()).unwrap().clone();
             }
         } else {
             variable.scope = Scope::Local
         }
 
-        self.variables.push(variable.clone());
+        self.variables.insert(variable.name.clone(), variable.clone());
         self.num_definitions += 1;
 
         return variable.clone();
@@ -86,23 +88,20 @@ impl VariableScope {
     }
 
     pub fn define_free(&mut self, var: Variable) -> Variable {
+        println!("Defining free: {}", var.name);
         let variable = var.clone();
 
         self.free.push(variable.clone());
+        println!("{}", self.free.len());
 
         let new_variable = Variable {
-            name: variable.name,
+            name: variable.name.clone(),
             scope: Scope::Free,
             index: (self.free.len() as u32) - 1,
         };
 
-        for variable in &mut self.variables {
-            if variable.name == var.name.clone() {
-                variable.index = new_variable.index;
-                variable.name = new_variable.name.clone();
-                variable.scope = new_variable.scope.clone();
-            }
-        }
+        self.variables.remove(new_variable.name.as_str());
+        self.variables.insert(variable.clone().name.clone(), new_variable.clone());
 
         new_variable
     }
@@ -110,7 +109,7 @@ impl VariableScope {
 
 pub fn build_variable_scope(outer: Option<Box<VariableScope>>) -> VariableScope {
     VariableScope {
-        variables: vec![],
+        variables: HashMap::new(),
         outer,
         free: vec![],
         num_definitions: 0,
