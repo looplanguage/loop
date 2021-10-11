@@ -55,9 +55,7 @@ impl SymbolTable {
     }
 
     pub fn new_with_builtins() -> Self {
-        let mut symbol_table = SymbolTable::new();
-        // TODO: Add builtins
-        symbol_table
+        SymbolTable::new()
     }
 
     pub fn push(&mut self) {

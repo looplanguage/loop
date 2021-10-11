@@ -1,4 +1,3 @@
-use crate::compiler::instructions::Instructions;
 use crate::object::{Object, ObjectTrait};
 use std::rc::Rc;
 

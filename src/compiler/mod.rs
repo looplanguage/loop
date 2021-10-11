@@ -28,7 +28,6 @@ use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
-use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 pub struct Bytecode {
@@ -135,7 +134,7 @@ impl Compiler {
             Scope::Local => self.emit(OpCode::GetLocal, vec![symbol.index]),
             Scope::Global => self.emit(OpCode::GetVar, vec![symbol.index]),
             Scope::Free => self.emit(OpCode::GetFree, vec![symbol.index]),
-            Scope::Builtin => 0 as usize,
+            Scope::Builtin => 0_usize,
         };
     }
 

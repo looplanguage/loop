@@ -1,5 +1,4 @@
-use crate::compiler::instructions::print_instructions;
-use crate::object::function::{CompiledFunction, Function};
+use crate::object::function::Function;
 use crate::object::Object;
 use crate::vm::frame::build_frame;
 use crate::vm::VM;
@@ -21,7 +20,7 @@ pub fn run_function(vm: &mut VM, args: u8) -> Option<String> {
         let num_locals = func.func.num_locals as usize;
         let base_pointer = vm.sp - (args as u16);
 
-        let mut frame = build_frame(func, base_pointer as i32);
+        let frame = build_frame(func, base_pointer as i32);
 
         vm.push_frame(frame);
 
