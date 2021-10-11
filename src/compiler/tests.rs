@@ -12,7 +12,7 @@ mod tests {
         fn(a) {
                 return fn(b) {
                     return fn(c) {
-                        a + b + c
+                        return a + b + c
                     }
                 }
             };\
@@ -38,8 +38,8 @@ mod tests {
         expected.push(
             "\
 [0] OpGetLocal 0
-[5] OpFunction 2 1
-[10] OpReturn",
+[2] OpFunction 2 1
+[8] OpReturn",
         );
 
         compiler_test_constants(input, expected);

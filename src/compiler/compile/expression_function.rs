@@ -1,76 +1,51 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::variable::{Scope, Variable};
-use crate::compiler::Compiler;
 use crate::compiler::symbol_table::Scope;
+use crate::compiler::Compiler;
+use crate::object::Object::CompiledFunction;
 use crate::object::{function, Object};
 use crate::parser::expression::function::Function;
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> Option<String> {
+    let num_params = func.parameters.len() as u32;
+
     compiler.enter_scope();
 
-    let mut i = 0;
-    for parameter in func.parameters {
-        let name = parameter.value.clone();
-        let find_variable = compiler
+    for parameter in &func.parameters {
+        compiler
             .symbol_table
-            .resolve(parameter.value.clone());
-
-        if find_variable.is_some() {
-            return Some(format!(
-                "parameter name \"{}\" is already a variable name in this scope",
-                find_variable.unwrap().name
-            ));
-        }
-
-        let second_name = name.clone();
-
-        compiler.symbol_table.define(second_name);
-
-        i = i + 1;
+            .borrow_mut()
+            .define(parameter.value.as_str(), 0);
     }
 
-    let err = compiler.compile_function_block(func.body);
-    if err.is_some() {
-        return err;
-    }
+    compiler.compile_block(func.body);
 
     compiler.remove_last(OpCode::Pop);
 
-    if !compiler.last_is(OpCode::Return) {
-        compiler.emit(OpCode::Return, vec![]);
+    let num_locals = compiler.symbol_table.borrow().num_definitions();
+    if num_locals > 0xff {
+        return Some("too many locals!".to_string());
     }
 
-    let mut parameters: Vec<u32> = vec![];
+    let (instructions, free_symbols) = compiler.exit_scope();
 
-    for variable in &compiler.symbol_table.variables {
-        parameters.push(variable.1.index);
+    let num_frees = free_symbols.len() as u32;
+    if num_frees > 0xff {
+        return Some("too many frees!".to_string());
     }
 
-    let mut free: Vec<Variable> = vec![];
-
-    for variable in &compiler.symbol_table.free {
-        println!("{} {:?}", variable.name, variable.scope);
-        free.push(variable.clone());
+    for free_symbol in free_symbols {
+        compiler.load_symbol(free_symbol);
     }
 
-    let instructions = compiler.exit_scope();
-
-    for free_var in free.clone() {
-        if free_var.scope == Scope::Free {
-            compiler.emit(OpCode::GetFree, vec![free_var.index]);
-        } else {
-            compiler.emit(OpCode::GetLocal, vec![free_var.index]);
-        }
-    }
-
-    let func = function::CompiledFunction {
+    let compiled_function = CompiledFunction(function::CompiledFunction {
         instructions,
-        parameters,
-    };
+        num_locals: num_locals as u8,
+        num_parameters: num_params as u8,
+    });
 
-    let func_id = compiler.add_constant(Object::CompiledFunction(func));
+    let const_index = compiler.add_constant(compiled_function);
 
-    compiler.emit(OpCode::Function, vec![func_id, free.len() as u32]);
+    compiler.emit(OpCode::Function, vec![const_index, num_frees]);
 
     None
 }
