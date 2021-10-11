@@ -1,5 +1,3 @@
-use crate::compiler::opcode::OpCode;
-use crate::compiler::symbol_table::{Scope, Symbol};
 use crate::compiler::Compiler;
 use crate::parser::expression::identifier::Identifier;
 
@@ -14,7 +12,7 @@ pub fn compile_expression_identifier(
             .resolve(identifier.value.as_str())
         {
             Some(symbol) => symbol,
-            None => return Some(format!("Unknown var")),
+            None => return Some(format!("unknown variable. {}", identifier.value)),
         }
     };
 

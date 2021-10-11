@@ -60,7 +60,7 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
 }
 
 pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
-    let mut arguments: Vec<Expression> = parse_expression_arguments(p);
+    let arguments: Vec<Expression> = parse_expression_arguments(p);
 
     if !p.cur_token_is(TokenType::RightParenthesis) {
         p.add_error(format!(
@@ -70,12 +70,10 @@ pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
         return None;
     };
 
-    // p.lexer.next_token();
-
-    return Some(Node::Expression(Expression::Call(Call {
+    Some(Node::Expression(Expression::Call(Call {
         identifier: Box::from(left),
         parameters: arguments,
-    })));
+    })))
 }
 
 pub fn parse_function(p: &mut Parser) -> Option<Node> {
@@ -87,7 +85,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    let mut arguments: Vec<Identifier> = parse_arguments(p);
+    let arguments: Vec<Identifier> = parse_arguments(p);
 
     p.lexer.next_token();
     p.lexer.next_token();

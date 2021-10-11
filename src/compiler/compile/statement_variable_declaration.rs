@@ -1,7 +1,6 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::parser::statement::variable::VariableDeclaration;
-use std::env::var;
 
 pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,

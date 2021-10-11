@@ -8,7 +8,6 @@ use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::object::function::{CompiledFunction, Function};
-use crate::object::integer::Integer;
 use crate::object::null::Null;
 use crate::object::Object;
 use crate::vm::frame::{build_frame, Frame};
@@ -197,12 +196,7 @@ impl VM {
 
                     self.current_frame().ip += 1;
 
-                    let mut err = None;
-                    err = run_function(self, args);
-
-                    continue;
-
-                    err
+                    run_function(self, args)
                 }
                 OpCode::GetLocal => {
                     let ip = self.current_frame().ip;
@@ -210,15 +204,8 @@ impl VM {
                     let idx = read_uint8(ins[ip as usize..].to_owned());
                     self.current_frame().ip += 1;
 
-                    let mut i = 0;
-
                     let frame = self.current_frame();
                     let base_pointer = frame.base_pointer;
-
-                    let local = self
-                        .stack
-                        .get((base_pointer + idx as i32) as usize)
-                        .unwrap();
 
                     let local = Rc::clone(&self.stack[(base_pointer + (idx as i32)) as usize]);
                     self.push(local)

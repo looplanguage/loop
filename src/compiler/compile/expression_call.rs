@@ -1,4 +1,3 @@
-use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::parser::expression::function::Call;
