@@ -1,6 +1,7 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::variable::Scope;
 use crate::compiler::Compiler;
+use crate::compiler::symbol_table::Scope;
 use crate::parser::expression::identifier::Identifier;
 
 pub fn compile_expression_identifier(
@@ -8,7 +9,7 @@ pub fn compile_expression_identifier(
     identifier: Identifier,
 ) -> Option<String> {
     let var = compiler
-        .current_variable_scope
+        .symbol_table
         .find_variable(identifier.value.clone());
 
     if var.is_none() {

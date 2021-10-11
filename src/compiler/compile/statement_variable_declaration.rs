@@ -8,8 +8,8 @@ pub fn compile_statement_variable_declaration(
     variable: VariableDeclaration,
 ) -> Option<String> {
     let find_variable = compiler
-        .current_variable_scope
-        .find_variable(variable.ident.value.clone());
+        .symbol_table
+        .resolve(variable.ident.value.clone());
 
     if find_variable.is_some() {
         return Some(format!(
@@ -19,14 +19,14 @@ pub fn compile_statement_variable_declaration(
     }
 
     let id = compiler
-        .current_variable_scope
-        .define_variable(variable.ident.value);
+        .symbol_table
+        .define(variable.ident.value);
 
     let err = compiler.compile_expression(*variable.value);
 
     compiler.variable_count += 1;
 
-    compiler.emit(OpCode::SetVar, vec![id.index]);
+    compiler.emit(OpCode::SetVar, vec![id.index as u32]);
 
     if err.is_some() {
         return err;
