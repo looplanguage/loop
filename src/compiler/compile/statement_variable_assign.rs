@@ -7,8 +7,8 @@ pub fn compile_statement_variable_assign(
     variable: VariableAssign,
 ) -> Option<String> {
     let find_variable = compiler
-        .current_variable_scope
-        .find_variable(variable.ident.value.clone());
+        .symbol_table
+        .resolve(variable.ident.value.clone());
 
     if find_variable.is_none() {
         return Some(format!(
@@ -19,7 +19,7 @@ pub fn compile_statement_variable_assign(
 
     let error = compiler.compile_expression(*variable.value);
 
-    compiler.emit(OpCode::SetVar, vec![find_variable.unwrap().index]);
+    compiler.emit(OpCode::SetVar, vec![find_variable.unwrap().index as u32]);
 
     if error.is_some() {
         return error;

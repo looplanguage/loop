@@ -1,6 +1,7 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::variable::{Scope, Variable};
 use crate::compiler::Compiler;
+use crate::compiler::symbol_table::Scope;
 use crate::object::{function, Object};
 use crate::parser::expression::function::Function;
 
@@ -11,8 +12,8 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
     for parameter in func.parameters {
         let name = parameter.value.clone();
         let find_variable = compiler
-            .current_variable_scope
-            .find_variable(parameter.value.clone());
+            .symbol_table
+            .resolve(parameter.value.clone());
 
         if find_variable.is_some() {
             return Some(format!(
@@ -23,9 +24,8 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
 
         let second_name = name.clone();
 
-        compiler
-            .current_variable_scope
-            .define_variable(second_name);
+        compiler.symbol_table.define(second_name);
+
         i = i + 1;
     }
 
@@ -42,13 +42,13 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
 
     let mut parameters: Vec<u32> = vec![];
 
-    for variable in &compiler.current_variable_scope.variables {
+    for variable in &compiler.symbol_table.variables {
         parameters.push(variable.1.index);
     }
 
     let mut free: Vec<Variable> = vec![];
 
-    for variable in &compiler.current_variable_scope.free {
+    for variable in &compiler.symbol_table.free {
         println!("{} {:?}", variable.name, variable.scope);
         free.push(variable.clone());
     }

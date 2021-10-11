@@ -3,7 +3,7 @@ pub mod definition;
 pub mod instructions;
 pub mod opcode;
 mod tests;
-mod variable;
+mod symbol_table;
 
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
@@ -27,6 +27,7 @@ use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
+use crate::compiler::symbol_table::{new_symbol_table, Symbol, SymbolTable};
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -49,13 +50,13 @@ pub struct Compiler {
     pub scopes: Vec<CompilationScope>,
     pub scope_index: i32,
     pub constants: Vec<Object>,
-    pub current_variable_scope: VariableScope,
+    pub symbol_table: Box<SymbolTable>,
     pub variable_count: u32,
 }
 
 pub struct CompilerState {
     constants: Vec<Object>,
-    variables: VariableScope,
+    variables: SymbolTable,
     variable_count: u32,
 
 }
@@ -76,7 +77,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             }],
             scope_index: 0,
             constants: cmp.constants.clone(),
-            current_variable_scope: cmp.variables.clone(),
+            symbol_table: new_symbol_table(),
             variable_count: cmp.variable_count,
         };
     }
@@ -95,7 +96,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         }],
         scope_index: 0,
         constants: vec![Object::Null(Null {})],
-        current_variable_scope: build_variable_scope(None),
+        symbol_table: new_symbol_table(),
         variable_count: 0,
     }
 }
@@ -115,7 +116,7 @@ impl Compiler {
     pub fn get_state(&self) -> CompilerState {
         CompilerState {
             constants: self.constants.clone(),
-            variables: self.current_variable_scope.clone(),
+            variables: *self.symbol_table.clone(),
             variable_count: self.variable_count,
         }
     }
@@ -188,14 +189,14 @@ impl Compiler {
     }
 
     fn enter_variable_scope(&mut self) {
-        let outer_scope = self.current_variable_scope.to_owned();
+        let outer_scope = self.symbol_table.to_owned();
         let scope = build_variable_scope(Some(Box::new(outer_scope)));
 
-        self.current_variable_scope = scope;
+        self.symbol_table = scope;
     }
 
     fn exit_variable_scope(&mut self) {
-        self.current_variable_scope = *self.current_variable_scope.outer.to_owned().unwrap();
+        self.symbol_table = self.symbol_table.outer.to_owned().unwrap();
     }
 
     fn compile_function_block(&mut self, block: Block) -> Option<String> {
