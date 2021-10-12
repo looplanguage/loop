@@ -19,6 +19,7 @@ use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 use std::collections::HashMap;
+use crate::parser::statement::block::parse_block_statement;
 
 use self::statement::variable::parse_variable_declaration;
 
@@ -60,6 +61,7 @@ impl Parser {
                 }
             }
             TokenType::Return => parse_return_statement(self),
+            TokenType::LeftBrace => parse_block_statement(self),
             _ => self.parse_expression_statement(token),
         };
 
