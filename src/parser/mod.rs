@@ -1,23 +1,25 @@
-pub mod expression;
-mod program;
-pub mod statement;
-mod tests;
+use std::collections::HashMap;
 
-use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
+use crate::lexer::token::{Token, TokenType};
+use crate::parser::expression::{Expression, get_precedence, Precedence};
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::parse_function;
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::integer::parse_integer_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
-use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::Statement;
-use std::collections::HashMap;
 
 use self::statement::variable::parse_variable_declaration;
+
+pub mod expression;
+mod program;
+pub mod statement;
+mod tests;
+mod test_helper;
 
 type PrefixParseFn = fn(parser: &mut Parser) -> Option<Node>;
 type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Option<Node>;

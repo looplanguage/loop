@@ -11,38 +11,75 @@ use crate::parser::expression::suffix::Suffix;
 use crate::parser::statement::block::Block;
 use crate::parser::program::Node;
 use crate::parser::expression::conditional::Conditional;
+use crate::parser::expression::function::Function;
+use std::process::id;
 
-fn generate_operator(operator: &str) -> String {
+pub fn generate_identifier(name: &str) -> Identifier {
+    Identifier {
+        value: name.to_string(),
+    }
+}
+
+pub fn generate_function_declaration(identifier: &str, func: parser::expression::Expression) -> Statement {
+    Statement::VariableDeclaration(VariableDeclaration {
+        ident: generate_identifier(identifier),
+        value: Box::new(func),
+    })
+}
+
+pub fn generate_expression_suffix_v2(left: expression, operator: char, right: expression) -> crate::parser::expression::suffix {
+    parser::expression::Expression::Suffix(Box::new(Suffix {
+        left,
+        operator: operator.to_string(),
+        right,
+    }))
+}
+
+pub fn generate_variable_declaration_suffix_v2(identifier: &str, suffix: parser::expression::Expression) -> crate::parser::statement::Statement {
+    Statement::VariableDeclaration(VariableDeclaration {
+        ident: generate_identifier(identifier),
+        value: Box::new(suffix),
+    })
+}
+
+pub fn generate_function(parameters: Vec<Identifier>, statements: Vec<Statement>) -> crate::parser::expression::Expression {
+    parser::expression::Expression::Function(Function {
+        parameters: parameters,
+        body: Block { statements }
+    })
+}
+
+pub fn generate_operator(operator: &str) -> String {
     return operator.to_string();
 }
 
-fn generate_boolean_expression_box(value: bool) -> Statement {
+pub fn generate_boolean_expression_box(value: bool) -> Statement {
     let expression = Statement::Expression(Box::new(Expression {
         expression: Box::new(generate_boolean_expression(value)),
     }));
     return expression;
 }
 
-fn generate_boolean_expression(value: bool) -> crate::parser::expression::Expression {
+pub fn generate_boolean_expression(value: bool) -> crate::parser::expression::Expression {
     return parser::expression::Expression::Boolean(Boolean {
         value: value,
     });
 }
 
-fn generate_integer_expression_box(value: i32) -> Statement {
+pub fn generate_integer_expression_box(value: i32) -> Statement {
     let expression = Statement::Expression(Box::new(Expression {
         expression: Box::new(generate_integer_expression(value)),
     }));
     return expression;
 }
 
-fn generate_integer_expression(value: i32) -> crate::parser::expression::Expression {
+pub fn generate_integer_expression(value: i32) -> crate::parser::expression::Expression {
     return parser::expression::Expression::Integer(Integer {
         value: value,
     });
 }
 
-fn generate_variable_declaration(identifier: &str, expression: i32) -> Statement {
+pub fn generate_variable_declaration(identifier: &str, expression: i32) -> Statement {
     let variable = Statement::VariableDeclaration(VariableDeclaration {
         ident: Identifier {
             value: identifier.to_string(),
@@ -54,17 +91,17 @@ fn generate_variable_declaration(identifier: &str, expression: i32) -> Statement
     return variable;
 }
 
-fn generate_variable_declaration_suffix(identifier: &str, Suffix: crate::parser::expression::Expression) -> Statement {
+pub fn generate_variable_declaration_suffix(identifier: &str, suffix: crate::parser::expression::Expression) -> Statement {
     let variable = Statement::VariableDeclaration(VariableDeclaration {
         ident: Identifier {
             value: identifier.to_string(),
         },
-        value: Box::new(Suffix),
+        value: Box::new(suffix),
     });
     return variable;
 }
 
-fn generate_expression_suffix(left: i32, operator: char, right: i32) -> crate::parser::expression::Expression {
+pub fn generate_expression_suffix(left: i32, operator: char, right: i32) -> crate::parser::expression::Expression {
     let suffix_expression =parser::expression::Expression::Suffix(Box::new(Suffix {
         left: parser::expression::Expression::Integer(Integer { value: left }),
         operator: operator.to_string(),
@@ -73,19 +110,19 @@ fn generate_expression_suffix(left: i32, operator: char, right: i32) -> crate::p
     return suffix_expression;
 }
 
-fn generate_if_expression(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Statement {
+pub fn generate_if_expression(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Statement {
     return Statement::Expression(Box::new(Expression {
         expression: Box::new(parser::Expression::Conditional(Box::new(generate_conditional(condition, body, else_condition)))),
     }));
 }
 
-fn generate_else_condition(conditinional: bool, body: Block, else_condition: Box<Option<Node>>) -> Box<Option<Node>> {
+pub fn generate_else_condition(conditinional: bool, body: Block, else_condition: Box<Option<Node>>) -> Box<Option<Node>> {
     return Box::new(Some(parser::Node::Expression(
         parser::expression::Expression::Conditional(Box::new(generate_conditional(conditinional, body, else_condition))),
     )));
 }
 
-fn generate_conditional(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Conditional {
+pub fn generate_conditional(condition: bool, body: Block, else_condition: Box<Option<Node>>) -> Conditional {
     return Conditional {
         condition: Box::new(parser::Expression::Boolean(Boolean { value: condition })),
         body: body,
@@ -93,12 +130,12 @@ fn generate_conditional(condition: bool, body: Block, else_condition: Box<Option
     }
 }
 
-fn generate_else_block_box(statements: Vec<Statement>) -> Box<Option<Node>> {
+pub fn generate_else_block_box(statements: Vec<Statement>) -> Box<Option<Node>> {
     return Box::new(Some(parser::Node::Statement(Statement::Block(
         generate_else_block(statements),
     ))));
 }
 
-fn generate_else_block(statements: Vec<Statement>) -> Block {
+pub fn generate_else_block(statements: Vec<Statement>) -> Block {
     return Block { statements: statements };
 }
