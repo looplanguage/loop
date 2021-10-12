@@ -91,9 +91,7 @@ impl Parser {
 
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
 
-        if expression_node.is_none() {
-            return None;
-        }
+        expression_node.as_ref()?;
 
         if let Node::Expression(exp) = expression_node.unwrap() {
             let mut infix_expression_node: Option<Node> = None;

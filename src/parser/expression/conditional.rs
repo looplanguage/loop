@@ -23,9 +23,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
 
     let condition_node = p.parse_expression(Precedence::Lowest);
 
-    if condition_node.is_none() {
-        return None;
-    }
+    condition_node.as_ref()?;
 
     if let Node::Expression(exp) = condition_node.unwrap() {
         if !p.lexer.next_current_is(TokenType::RightParenthesis) {

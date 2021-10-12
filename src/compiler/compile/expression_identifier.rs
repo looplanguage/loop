@@ -11,7 +11,10 @@ pub fn compile_expression_identifier(
         .borrow_mut()
         .resolve(identifier.value.as_str());
 
-    if symbol.is_none() {
+    if let Some(unwrapped_symbol) = symbol {
+        compiler.load_symbol(unwrapped_symbol);
+        return None;
+    } else {
         let var = compiler
             .variable_scope
             .borrow_mut()
@@ -21,9 +24,6 @@ pub fn compile_expression_identifier(
             compiler.emit(OpCode::GetVar, vec![var.unwrap().index]);
             return None;
         }
-    } else {
-        compiler.load_symbol(symbol.unwrap());
-        return None;
     }
 
     Some(format!("unknown variable. got=\"{}\"", identifier.value))

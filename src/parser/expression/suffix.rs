@@ -20,9 +20,7 @@ pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node>
 
     let exp = p.parse_expression(pre);
 
-    if exp.is_none() {
-        return None;
-    }
+    exp.as_ref()?;
 
     if let Node::Expression(val) = exp.unwrap() {
         return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
@@ -40,9 +38,9 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
     let exp = p.parse_expression(Lowest);
 
     if exp.is_none() {
-        p.add_error(format!(
-            "wrong condition for if-expression. expected=\"Expression\" got=\"null\""
-        ));
+        p.add_error(
+            "wrong condition for if-expression. expected=\"Expression\" got=\"null\"".to_string(),
+        );
         return None;
     }
 
