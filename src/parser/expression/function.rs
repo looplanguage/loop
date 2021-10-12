@@ -42,7 +42,9 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
 
     p.lexer.next_token();
 
-    while p.lexer.current_token.clone().unwrap().token != TokenType::RightParenthesis {
+    while p.lexer.current_token.clone().unwrap().token != TokenType::RightParenthesis
+        && p.lexer.current_token.clone().unwrap().token != TokenType::Eof
+    {
         let exp_node = p.parse_expression(Precedence::Lowest);
 
         if let Some(Node::Expression(exp)) = exp_node {
