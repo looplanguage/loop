@@ -55,6 +55,71 @@ mod tests {
         compiler_test(input, expected)
     }
 
+    #[test]
+    fn scoping_rules_1() {
+        compiler_test_error("var test = 100; if(true) { test }", None);
+    }
+
+    #[test]
+    fn scoping_rules_2() {
+        compiler_test_error("var test = 100; if(true) { var test2 = test }; test2", Some(String::from("unknown variable. got=\"test2\"")));
+    }
+
+    #[test]
+    fn scoping_rules_3() {
+        compiler_test_error("var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test3; };", Some(String::from("unknown variable. got=\"test3\"")));
+    }
+
+    #[test]
+    fn scoping_rules_4() {
+        compiler_test_error("var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test2; }; test3", Some(String::from("unknown variable. got=\"test3\"")));
+    }
+
+    #[test]
+    fn scoping_rules_functions_1() {
+        compiler_test_error("\
+        var test = 300;
+        var func = fn() {\
+        var hello = test + 3;\
+        }\
+        hello;
+        ", Some(String::from("unknown variable. got=\"hello\"")));
+    }
+
+    #[test]
+    fn scoping_rules_functions_2() {
+        compiler_test_error("\
+        var test = 300;
+        var func = fn() {\
+            var hello = test + 3;\
+            var func2 = fn() {
+                var hello2 = hello + 200;
+            };
+            hello2;
+        }\
+        ", Some(String::from("unknown variable. got=\"hello2\"")));
+    }
+
+    fn compiler_test_error(input: &str, expected: Option<String>) {
+        let l = lexer::build_lexer(input);
+        let mut parser = parser::build_parser(l);
+
+        let program = parser.parse();
+
+        if !parser.errors.is_empty() {
+            for err in parser.errors {
+                println!("ParserException: {}", err);
+            }
+
+            panic!("Parser exceptions occurred!")
+        }
+
+        let mut comp = compiler::build_compiler(None);
+        let err = comp.compile(program);
+
+        assert_eq!(expected, err);
+    }
+
     fn compiler_test_constants(input: &str, expected: Vec<&str>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);

@@ -41,7 +41,10 @@ mod tests {
         );
     }
 
-    // TODO: Add block scoping tests (for variables)
+    #[test]
+    fn block_scope_1() {
+        test_vm("var test = 100; if(true) { test = 1000 }; test", Integer(integer::Integer { value: 1000 }));
+    }
 
     // TODO: Add early return tests
 
@@ -176,7 +179,11 @@ mod tests {
         }
 
         let mut comp = compiler::build_compiler(None);
-        comp.compile(program);
+        let err = comp.compile(program);
+
+        if err.is_some() {
+            panic!("{}", err.unwrap());
+        }
 
         let mut vm = build_vm(comp.get_bytecode(), None);
         let err = vm.run();
