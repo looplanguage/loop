@@ -196,6 +196,13 @@ mod tests {
         test_vm("13 / (7 + 1)", Float(float::Float { value: 1.625 }));
     }
 
+    #[test]
+    fn modulo() {
+        test_vm("10 % 10", Integer(integer::Integer { value: 0 }));
+        test_vm("10 % 4", Integer(integer::Integer { value: 2 }));
+        test_vm("10 % 10000", Integer(integer::Integer { value: 10 }));
+    }
+
     fn test_vm(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
