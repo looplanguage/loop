@@ -79,7 +79,7 @@ pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
 pub fn parse_function(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
-            "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
+            "wrong token. expected=\"LeftParentheses\". got=\"{:?}\"",
             p.lexer.current_token.clone().unwrap().token
         ));
         return None;
@@ -87,10 +87,31 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let arguments: Vec<Identifier> = parse_arguments(p);
 
-    p.lexer.next_token();
-    p.lexer.next_token();
+    if !p.lexer.next_current_is(TokenType::RightParenthesis) {
+        p.add_error(format!(
+            "wrong token. expected=\"RightParenthesis\". got=\"{:?}\".",
+            p.lexer.current_token.clone().unwrap().token
+        ));
+        return None;
+    }
+
+    if !p.lexer.next_current_is(TokenType::LeftBrace) {
+        p.add_error(format!(
+            "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
+            p.lexer.current_token.clone().unwrap().token
+        ));
+        return None;
+    }
 
     let body = parse_block(p);
+
+    if !p.cur_token_is(TokenType::RightBrace) {
+        p.add_error(format!(
+            "wrong token. expected=\"RightBrace\". got=\"{:?}\".",
+            p.lexer.current_token.clone().unwrap().token
+        ));
+        return None;
+    }
 
     Some(Node::Expression(Expression::Function(Function {
         parameters: arguments,
