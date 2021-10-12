@@ -171,7 +171,6 @@ impl Compiler {
         self.scopes.push(scope);
         self.scope_index += 1;
 
-        self.enter_variable_scope();
         self.symbol_table.as_ref().borrow_mut().push();
     }
 
@@ -182,8 +181,6 @@ impl Compiler {
         self.scopes.pop();
         self.scope_index -= 1;
 
-
-        self.exit_variable_scope();
         let free = self.symbol_table.as_ref().borrow_mut().pop();
 
         (ins, free)
@@ -217,10 +214,8 @@ impl Compiler {
         None
     }
 
-    fn compile_block_internal(&mut self, block: Block, enter_scope: bool) -> Option<String> {
-        if enter_scope {
-            self.enter_variable_scope();
-        }
+    fn compile_block(&mut self, block: Block) -> Option<String> {
+        self.enter_variable_scope();
 
         if block.statements.is_empty() {
             compile_expression_null(self);
@@ -233,19 +228,9 @@ impl Compiler {
             }
         }
 
-        if enter_scope {
-            self.exit_variable_scope();
-        }
+        self.exit_variable_scope();
 
         None
-    }
-
-    fn compile_block(&mut self, block: Block) -> Option<String> {
-        self.compile_block_internal(block, true)
-    }
-
-    fn compile_function_block(&mut self, block: Block) -> Option<String> {
-        self.compile_block_internal(block, false)
     }
 
     fn compile_statement(&mut self, stmt: Statement) -> Option<String> {

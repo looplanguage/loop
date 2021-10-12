@@ -101,7 +101,21 @@ mod tests {
     }
 
     #[test]
-    fn scoping_rules_functions_2() {
+    fn scoping_rules_functions_2_1() {
+        compiler_test_error("\
+        var test = 300;
+        var func = fn() {\
+            var hello = test + 3;\
+            var func2 = fn() {
+                var hello2 = hello + 200;
+                hello2;
+            };
+        }\
+        ", None);
+    }
+
+    #[test]
+    fn scoping_rules_functions_3() {
         compiler_test_error("\
         var test = 300;
         var func = fn() {\
@@ -112,6 +126,20 @@ mod tests {
             hello2;
         }\
         ", Some(String::from("unknown variable. got=\"hello2\"")));
+    }
+
+    #[test]
+    fn scoping_rules_functions_3_1() {
+        compiler_test_error("\
+        var test = 300;
+        var func = fn() {\
+            var hello = test + 3;\
+            if(true) {
+                var hello2 = hello + 200;
+                hello2;
+            };
+        }\
+        ", None);
     }
 
     fn compiler_test_error(input: &str, expected: Option<String>) {
