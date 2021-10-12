@@ -40,8 +40,10 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
     let exp = p.parse_expression(Lowest);
 
     if exp.is_none() {
-        p.add_error(format!("wrong condition for if-expression. expected=\"Expression\" got=\"null\""));
-        return None
+        p.add_error(format!(
+            "wrong condition for if-expression. expected=\"Expression\" got=\"null\""
+        ));
+        return None;
     }
 
     if !p.lexer.next_is(RightParenthesis) {
@@ -49,7 +51,7 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
             "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
             p.lexer.peek_token.clone().unwrap().token
         ));
-        return None
+        return None;
     }
 
     Some(exp.unwrap())

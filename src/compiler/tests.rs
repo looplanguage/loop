@@ -62,12 +62,18 @@ mod tests {
 
     #[test]
     fn scoping_rules_2() {
-        compiler_test_error("var test = 100; if(true) { var test2 = test }; test2", Some(String::from("unknown variable. got=\"test2\"")));
+        compiler_test_error(
+            "var test = 100; if(true) { var test2 = test }; test2",
+            Some(String::from("unknown variable. got=\"test2\"")),
+        );
     }
 
     #[test]
     fn scoping_rules_3() {
-        compiler_test_error("var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test3; };", Some(String::from("unknown variable. got=\"test3\"")));
+        compiler_test_error(
+            "var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test3; };",
+            Some(String::from("unknown variable. got=\"test3\"")),
+        );
     }
 
     #[test]
@@ -77,18 +83,22 @@ mod tests {
 
     #[test]
     fn scoping_rules_functions_1() {
-        compiler_test_error("\
+        compiler_test_error(
+            "\
         var test = 300;
         var func = fn() {\
         var hello = test + 3;\
         }\
         hello;
-        ", Some(String::from("unknown variable. got=\"hello\"")));
+        ",
+            Some(String::from("unknown variable. got=\"hello\"")),
+        );
     }
 
     #[test]
     fn scoping_rules_functions_2() {
-        compiler_test_error("\
+        compiler_test_error(
+            "\
         var test = 300;
         var func = fn() {\
             var hello = test + 3;\
@@ -97,12 +107,15 @@ mod tests {
             };
             hello2;
         }\
-        ", Some(String::from("unknown variable. got=\"hello2\"")));
+        ",
+            Some(String::from("unknown variable. got=\"hello2\"")),
+        );
     }
 
     #[test]
     fn scoping_rules_functions_2_1() {
-        compiler_test_error("\
+        compiler_test_error(
+            "\
         var test = 300;
         var func = fn() {\
             var hello = test + 3;\
@@ -111,12 +124,15 @@ mod tests {
                 hello2;
             };
         }\
-        ", None);
+        ",
+            None,
+        );
     }
 
     #[test]
     fn scoping_rules_functions_3() {
-        compiler_test_error("\
+        compiler_test_error(
+            "\
         var test = 300;
         var func = fn() {\
             var hello = test + 3;\
@@ -125,12 +141,15 @@ mod tests {
             };
             hello2;
         }\
-        ", Some(String::from("unknown variable. got=\"hello2\"")));
+        ",
+            Some(String::from("unknown variable. got=\"hello2\"")),
+        );
     }
 
     #[test]
     fn scoping_rules_functions_3_1() {
-        compiler_test_error("\
+        compiler_test_error(
+            "\
         var test = 300;
         var func = fn() {\
             var hello = test + 3;\
@@ -139,7 +158,9 @@ mod tests {
                 hello2;
             };
         }\
-        ", None);
+        ",
+            None,
+        );
     }
 
     fn compiler_test_error(input: &str, expected: Option<String>) {

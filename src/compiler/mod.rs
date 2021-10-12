@@ -21,6 +21,9 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
+use crate::compiler::variable_table::{
+    build_deeper_variable_scope, build_variable_scope, VariableScope,
+};
 use crate::object::null::Null;
 use crate::object::Object;
 use crate::parser::expression::Expression;
@@ -30,7 +33,6 @@ use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::compiler::variable_table::{build_deeper_variable_scope, build_variable_scope, VariableScope};
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -83,7 +85,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             constants: cmp.constants.clone(),
             symbol_table: cmp.symbol_table.clone(),
             variable_count: cmp.variable_count,
-            variable_scope: cmp.variable_scope.clone()
+            variable_scope: cmp.variable_scope.clone(),
         };
     }
 
@@ -103,7 +105,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         constants: vec![Object::Null(Null {})],
         symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
         variable_count: 0,
-        variable_scope: Rc::new(RefCell::new(build_variable_scope()))
+        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
     }
 }
 
@@ -124,7 +126,7 @@ impl Compiler {
             constants: self.constants.clone(),
             symbol_table: self.symbol_table.clone(),
             variable_count: self.variable_count,
-            variable_scope: self.variable_scope.clone()
+            variable_scope: self.variable_scope.clone(),
         }
     }
 

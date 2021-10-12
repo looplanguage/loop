@@ -16,24 +16,19 @@ pub fn compile_statement_variable_assign(
 
         compiler.emit(OpCode::SetVar, vec![symbol.unwrap().index as u32]);
 
-        return if error.is_some() {
-            error
-        } else {
-            None
-        }
+        return if error.is_some() { error } else { None };
     } else {
-        let var = compiler.variable_scope.borrow_mut().resolve(variable.ident.value.clone());
+        let var = compiler
+            .variable_scope
+            .borrow_mut()
+            .resolve(variable.ident.value.clone());
 
         if var.is_some() {
             let error = compiler.compile_expression(*variable.value);
 
             compiler.emit(OpCode::SetVar, vec![var.unwrap().index]);
 
-            return if error.is_some() {
-                error
-            } else {
-                None
-            }
+            return if error.is_some() { error } else { None };
         }
     }
 

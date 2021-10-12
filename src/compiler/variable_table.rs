@@ -3,35 +3,35 @@ use std::rc::Rc;
 
 pub struct Variable {
     pub index: u32,
-    pub name: String
+    pub name: String,
 }
 
 pub struct VariableScope {
     pub variables: Vec<Variable>,
-    pub outer: Option<Rc<RefCell<VariableScope>>>
+    pub outer: Option<Rc<RefCell<VariableScope>>>,
 }
 
 pub fn build_variable_scope() -> VariableScope {
     VariableScope {
         variables: vec![],
-        outer: None
+        outer: None,
     }
 }
 pub fn build_deeper_variable_scope(outer: Option<Rc<RefCell<VariableScope>>>) -> VariableScope {
     VariableScope {
         variables: vec![],
-        outer
+        outer,
     }
 }
 
 impl VariableScope {
     pub fn define(&mut self, index: u32, name: String) -> Variable {
-        self.variables.push(Variable {
-            index,
-            name
-        });
+        self.variables.push(Variable { index, name });
 
-        let var = self.variables.get(self.variables.len() - 1).expect("inserted");
+        let var = self
+            .variables
+            .get(self.variables.len() - 1)
+            .expect("inserted");
 
         Variable {
             name: var.name.clone(),
@@ -44,8 +44,8 @@ impl VariableScope {
             if variable.name == name {
                 return Some(Variable {
                     index: variable.index,
-                    name
-                })
+                    name,
+                });
             }
         }
 
