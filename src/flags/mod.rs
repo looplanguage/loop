@@ -5,11 +5,15 @@ pub enum FlagTypes {
 }
 
 pub fn build_flags() -> Flags {
-    Flags { flags: vec![] }
+    Flags {
+        flags: vec![],
+        file: None,
+    }
 }
 
 pub struct Flags {
     pub flags: Vec<FlagTypes>,
+    pub file: Option<String>,
 }
 
 impl Flags {
@@ -20,13 +24,25 @@ impl Flags {
         }
     }
 
-    pub fn parse_flags(&mut self, args: Vec<String>) {
-        for arg in args {
+    pub fn parse_flags(&mut self, args: Vec<String>) -> i32 {
+        let mut i: i32 = 0;
+
+        for arg in args.clone() {
             let flag = Flags::get_flag(arg.as_str());
             if flag != FlagTypes::None {
                 self.flags.push(flag)
+            } else {
+                break;
             }
+
+            i = i + 1;
         }
+
+        if (args.len()) as i32 >= i + 1 {
+            self.file = Option::from(args[i as usize].clone());
+        }
+
+        i
     }
 
     pub fn contains(self, flag: FlagTypes) -> bool {
