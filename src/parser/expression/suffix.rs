@@ -38,9 +38,7 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
     let exp = p.parse_expression(Lowest);
 
     if exp.is_none() {
-        p.add_error(
-            "wrong condition for if-expression. expected=\"Expression\" got=\"null\"".to_string(),
-        );
+        p.add_error("unable to parse group. expected=\"Expression\" got=\"null\"".to_string());
         return None;
     }
 

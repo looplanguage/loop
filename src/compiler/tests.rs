@@ -163,6 +163,26 @@ mod tests {
         );
     }
 
+    #[test]
+    fn divide_by_zero_integer() {
+        compiler_test_error("100 / 0", Some("can not divide by 0".to_string()))
+    }
+
+    #[test]
+    fn divide_by_zero_float() {
+        compiler_test_error("302 / 0.0", Some("can not divide by 0".to_string()))
+    }
+
+    #[test]
+    fn divide_by_integer() {
+        compiler_test_error("100 / 2", None)
+    }
+
+    #[test]
+    fn divide_by_float() {
+        compiler_test_error("302 / 1.14", None)
+    }
+
     fn compiler_test_error(input: &str, expected: Option<String>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);

@@ -3,7 +3,11 @@ use crate::compiler::Compiler;
 use crate::parser::expression::function::Call;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> Option<String> {
-    compiler.compile_expression(*call.identifier.clone());
+    let err = compiler.compile_expression(*call.identifier.clone());
+
+    if err.is_some() {
+        return err;
+    }
 
     for parameter in call.parameters.clone() {
         let err = compiler.compile_expression(parameter);
