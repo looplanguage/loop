@@ -236,26 +236,19 @@ impl Compiler {
     }
 
     fn compile_statement(&mut self, stmt: Statement) -> Option<String> {
-        let mut err: Option<String> = None;
         match stmt {
-            Statement::VariableDeclaration(var) => {
-                err = compile_statement_variable_declaration(self, var);
-            }
+            Statement::VariableDeclaration(var) => compile_statement_variable_declaration(self, var),
             Statement::Expression(expr) => {
-                err = self.compile_expression(*expr.expression);
+                let err = self.compile_expression(*expr.expression);
 
                 self.emit(OpCode::Pop, vec![]);
-            }
-            Statement::Block(_) => {}
-            Statement::VariableAssign(variable) => {
-                err = compile_statement_variable_assign(self, variable);
-            }
-            Statement::Return(_return) => {
-                err = compile_return_statement(self, _return);
-            }
-        }
 
-        err
+                err
+            }
+            Statement::Block(block) => self.compile_block(block),
+            Statement::VariableAssign(variable) => compile_statement_variable_assign(self, variable),
+            Statement::Return(_return) => compile_return_statement(self, _return),
+        }
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {
