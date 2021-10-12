@@ -7,9 +7,9 @@ use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
-use crate::parser::expression::function::parse_function;
+use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::integer::parse_integer_literal;
+use crate::parser::expression::integer::{parse_integer_literal, parse_minus_integer};
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
@@ -91,10 +91,7 @@ impl Parser {
 
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
 
-        if expression_node.is_none() {
-            self.add_error("error parsing expression. see above!".to_string());
-            return None;
-        }
+        expression_node.as_ref()?;
 
         if let Node::Expression(exp) = expression_node.unwrap() {
             let mut infix_expression_node: Option<Node> = None;
@@ -188,6 +185,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
+    p.add_prefix_parser(TokenType::Minus, parse_minus_integer);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
     p.add_prefix_parser(TokenType::True, parse_boolean);
@@ -203,6 +201,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::Divide, parse_suffix_expression);
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
     p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
+    p.add_infix_parser(TokenType::LeftParenthesis, parse_call);
 
     // Infix Parsers Comparisons
     p.add_infix_parser(TokenType::Equals, parse_suffix_expression);

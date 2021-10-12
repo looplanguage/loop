@@ -1,13 +1,13 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::object::boolean;
-use crate::object::{Object, FALSE, TRUE};
+use crate::object::Object;
 use crate::parser::expression::boolean::Boolean;
 
 pub fn compile_expression_boolean(compiler: &mut Compiler, bl: Boolean) -> Option<String> {
     let value = match bl.value {
-        true => TRUE,
-        false => FALSE,
+        true => Object::Boolean(boolean::Boolean { value: true }),
+        false => Object::Boolean(boolean::Boolean { value: false }),
     };
 
     if let Object::Boolean(boolean) = value {
