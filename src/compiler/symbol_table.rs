@@ -86,7 +86,6 @@ impl SymbolTable {
         };
 
         if global_index > 0 {
-            println!("{}: {}", name, global_index);
             symbol.index = global_index;
         }
 
