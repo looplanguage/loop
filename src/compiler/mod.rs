@@ -237,7 +237,9 @@ impl Compiler {
 
     fn compile_statement(&mut self, stmt: Statement) -> Option<String> {
         match stmt {
-            Statement::VariableDeclaration(var) => compile_statement_variable_declaration(self, var),
+            Statement::VariableDeclaration(var) => {
+                compile_statement_variable_declaration(self, var)
+            }
             Statement::Expression(expr) => {
                 let err = self.compile_expression(*expr.expression);
 
@@ -246,7 +248,9 @@ impl Compiler {
                 err
             }
             Statement::Block(block) => self.compile_block(block),
-            Statement::VariableAssign(variable) => compile_statement_variable_assign(self, variable),
+            Statement::VariableAssign(variable) => {
+                compile_statement_variable_assign(self, variable)
+            }
             Statement::Return(_return) => compile_return_statement(self, _return),
         }
     }

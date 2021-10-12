@@ -14,12 +14,15 @@ pub fn parse_block_statement(p: &mut Parser) -> Option<Node> {
     let block = parse_block(p);
 
     if !p.cur_token_is(TokenType::RightBrace) {
-        p.add_error(format!("unknown token. expected=\"RightBrace\". got=\"{:?}\"", p.lexer.current_token.clone().unwrap().token));
+        p.add_error(format!(
+            "unknown token. expected=\"RightBrace\". got=\"{:?}\"",
+            p.lexer.current_token.clone().unwrap().token
+        ));
         return None;
     }
 
     Some(Node::Statement(Statement::Block(Block {
-        statements: block.statements
+        statements: block.statements,
     })))
 }
 
