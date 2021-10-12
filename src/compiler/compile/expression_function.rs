@@ -16,7 +16,10 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
             .define(parameter.value.as_str(), 0);
     }
 
-    compiler.compile_function_block(func.body);
+    let err = compiler.compile_block(func.body);
+    if err.is_some() {
+        return err;
+    }
 
     compiler.remove_last(OpCode::Pop);
 
