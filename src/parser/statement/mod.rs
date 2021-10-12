@@ -5,6 +5,7 @@ use crate::parser::statement::expression::Expression;
 pub mod block;
 pub mod expression;
 pub mod variable;
+mod test_helper;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
