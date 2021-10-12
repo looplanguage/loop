@@ -13,6 +13,8 @@ mod tests {
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
     use crate::parser::program::Node;
+    use crate::parser::test_helper;
+    use crate::parser::test_helper::generate_function_declaration;
 
     #[test]
     fn conditionals() {
@@ -25,27 +27,27 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(generate_if_expression(true, Block { statements: vec![] }, Box::new(None)));
+        expected.push(test_helper::generate_if_expression(true, Block { statements: vec![] }, Box::new(None)));
 
 
-        let else_conditional = generate_else_condition(true, Block { statements: vec![] }, Box::new(None));
-        expected.push(generate_if_expression(false, Block { statements: vec![] }, else_conditional));
+        let else_conditional = test_helper::generate_else_condition(true, Block { statements: vec![] }, Box::new(None));
+        expected.push(test_helper::generate_if_expression(false, Block { statements: vec![] }, else_conditional));
 
 
-        let else_conditional = generate_else_condition(false, Block { statements: vec![] }, generate_else_block_box(vec![]));
-        expected.push(generate_if_expression(false, Block { statements: vec![] }, else_conditional));
+        let else_conditional = test_helper::generate_else_condition(false, Block { statements: vec![] }, test_helper::generate_else_block_box(vec![]));
+        expected.push(test_helper::generate_if_expression(false, Block { statements: vec![] }, else_conditional));
 
         // TODO: This is a hot mess. It is kind of readable but not really...
-        let else_conditional = generate_else_condition(false, generate_else_block(vec![generate_boolean_expression_box(true), Statement::Expression(Box::new(Expression {
-            expression: Box::new(generate_expression_suffix(1, '+', 1)),
-        }))]), generate_else_block_box(vec![Statement::Expression(Box::new(Expression {
-            expression: Box::new(generate_boolean_expression(true)),
+        let else_conditional = test_helper::generate_else_condition(false, test_helper::generate_else_block(vec![test_helper::generate_boolean_expression_box(true), Statement::Expression(Box::new(Expression {
+            expression: Box::new(test_helper::generate_expression_suffix(1, '+', 1)),
+        }))]), test_helper::generate_else_block_box(vec![Statement::Expression(Box::new(Expression {
+            expression: Box::new(test_helper::generate_boolean_expression(true)),
         }))]));
 
-        expected.push(generate_if_expression(false, Block {
+        expected.push(test_helper::generate_if_expression(false, Block {
             statements: vec![
-                generate_integer_expression_box(1),
-                generate_boolean_expression_box(true),
+                test_helper::generate_integer_expression_box(1),
+                test_helper::generate_boolean_expression_box(true),
             ],
         }, else_conditional));
 
@@ -118,6 +120,19 @@ mod tests {
             })),
         })));
 
+        let parameters: Vec<Identifier> = vec![
+            test_helper::generate_identifier("a"),
+            test_helper::generate_identifier("b"),
+            test_helper::generate_identifier("c"),
+            test_helper::generate_identifier("d"),
+        ];
+        let statements: Vec<Statement> = vec![
+            test_helper::generate_expression_suffix_v2(test_helper::generate_identifier("a"), '+',test_helper::generate_identifier("b")),
+            test_helper::generate_variable_declaration_suffix_v2("e", test_helper::generate_expression_suffix_v2(test_helper::generate_identifier("c"), '+',test_helper::generate_identifier("d")))
+        ];
+        let func = test_helper::generate_function(parameters, statements);
+        expected.push(generate_function_declaration("functionWithParameters", func));
+
         expected.push(Statement::VariableDeclaration(VariableDeclaration {
             ident: Identifier {
                 value: "functionWithParameters".to_string(),
@@ -182,8 +197,8 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(generate_boolean_expression_box(true));
-        expected.push(generate_boolean_expression_box(false));
+        expected.push(test_helper::generate_boolean_expression_box(true));
+        expected.push(test_helper::generate_boolean_expression_box(false));
 
         test_parser(input, expected);
     }
@@ -194,8 +209,8 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(generate_boolean_expression_box(false));
-        expected.push(generate_boolean_expression_box(true));
+        expected.push(test_helper::generate_boolean_expression_box(false));
+        expected.push(test_helper::generate_boolean_expression_box(true));
 
         test_parser(input, expected);
     }
@@ -208,33 +223,33 @@ mod tests {
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: generate_boolean_expression(true),
-                operator: generate_operator("=="),
-                right: generate_boolean_expression(true),
+                left: test_helper::generate_boolean_expression(true),
+                operator: test_helper::generate_operator("=="),
+                right: test_helper::generate_boolean_expression(true),
             }))),
         })));
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: generate_integer_expression(1),
-                operator: generate_operator("=="),
-                right: generate_boolean_expression(true),
+                left: test_helper::generate_integer_expression(1),
+                operator: test_helper::generate_operator("=="),
+                right: test_helper::generate_boolean_expression(true),
             }))),
         })));
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: generate_integer_expression(3),
-                operator: generate_operator(">"),
-                right: generate_integer_expression(4),
+                left: test_helper::generate_integer_expression(3),
+                operator: test_helper::generate_operator(">"),
+                right: test_helper::generate_integer_expression(4),
             }))),
         })));
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: generate_integer_expression(3),
-                operator: generate_operator("<"),
-                right: generate_integer_expression(4),
+                left: test_helper::generate_integer_expression(3),
+                operator: test_helper::generate_operator("<"),
+                right: test_helper::generate_integer_expression(4),
             }))),
         })));
 
@@ -250,9 +265,9 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(generate_variable_declaration("test", 1));
-        expected.push(generate_variable_declaration("test2", 40));
-        expected.push(generate_variable_declaration_suffix("test3", generate_expression_suffix(10, '*', 2)));
+        expected.push(test_helper::generate_variable_declaration("test", 1));
+        expected.push(test_helper::generate_variable_declaration("test2", 40));
+        expected.push(test_helper::generate_variable_declaration_suffix("test3", test_helper::generate_expression_suffix(10, '*', 2)));
 
         test_parser(input, expected);
     }
