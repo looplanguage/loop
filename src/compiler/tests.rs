@@ -3,8 +3,7 @@ mod tests {
     use crate::compiler::instructions::pretty_print_instructions;
     use crate::object::Object;
     use crate::{compiler, lexer, parser};
-    use std::borrow::{Borrow, BorrowMut};
-    use std::ops::Deref;
+    use std::borrow::Borrow;
 
     #[test]
     fn closures() {
@@ -72,9 +71,6 @@ mod tests {
 
         let mut comp = compiler::build_compiler(None);
         comp.compile(program);
-
-        let scope = comp.scope();
-        let sc = scope.borrow();
 
         let mut i = 0;
         for constant in comp.constants {
