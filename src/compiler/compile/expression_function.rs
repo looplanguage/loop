@@ -16,7 +16,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
             .define(parameter.value.as_str(), 0);
     }
 
-    compiler.compile_block(func.body);
+    compiler.compile_function_block(func.body);
 
     compiler.remove_last(OpCode::Pop);
 
