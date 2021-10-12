@@ -35,10 +35,10 @@ impl Flags {
                 break;
             }
 
-            i = i + 1;
+            i += 1;
         }
 
-        if (args.len()) as i32 >= i + 1 {
+        if args.len() as i32 > i {
             self.file = Option::from(args[i as usize].clone());
         }
 
