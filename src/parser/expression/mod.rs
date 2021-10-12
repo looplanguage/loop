@@ -36,6 +36,7 @@ pub enum Precedence {
     Lowest,
     Equals,
     LessGreater,
+    Modulo,
     Sum,
     Product,
     Prefix,
@@ -56,6 +57,7 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::GreaterThan => Precedence::LessGreater,
         TokenType::LessThanOrEquals => Precedence::LessGreater,
         TokenType::GreaterThanOrEquals => Precedence::LessGreater,
+        TokenType::Modulo => Precedence::Modulo,
         _ => Precedence::Lowest,
     }
 }
