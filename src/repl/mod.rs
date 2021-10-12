@@ -24,8 +24,22 @@ pub fn build_repl(flags: Flags) -> Repl {
     }
 }
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 impl Repl {
     pub fn start(&mut self) {
+        println!(
+            "
+  _                             
+ | |       ___     ___    _ __  
+ | |      / _ \\   / _ \\  | '_ \\ 
+ | |___  | (_) | | (_) | | |_) |
+ |_____|  \\___/   \\___/  | .__/ 
+                         |_|
+        "
+        );
+        println!("Welcome to Loop v{}", VERSION);
+
         self.run()
     }
 
