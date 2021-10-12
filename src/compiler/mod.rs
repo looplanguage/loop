@@ -4,6 +4,7 @@ pub mod instructions;
 pub mod opcode;
 mod symbol_table;
 mod tests;
+mod variable_table;
 
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
@@ -29,6 +30,7 @@ use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::compiler::variable_table::{build_deeper_variable_scope, build_variable_scope, VariableScope};
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -52,12 +54,14 @@ pub struct Compiler {
     pub scope_index: i32,
     pub constants: Vec<Object>,
     pub symbol_table: Rc<RefCell<SymbolTable>>,
+    pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
 }
 
 pub struct CompilerState {
     constants: Vec<Object>,
     symbol_table: Rc<RefCell<SymbolTable>>,
+    variable_scope: Rc<RefCell<VariableScope>>,
     variable_count: u32,
 }
 
@@ -79,6 +83,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             constants: cmp.constants.clone(),
             symbol_table: cmp.symbol_table.clone(),
             variable_count: cmp.variable_count,
+            variable_scope: cmp.variable_scope.clone()
         };
     }
 
@@ -98,6 +103,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         constants: vec![Object::Null(Null {})],
         symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
         variable_count: 0,
+        variable_scope: Rc::new(RefCell::new(build_variable_scope()))
     }
 }
 
@@ -118,6 +124,7 @@ impl Compiler {
             constants: self.constants.clone(),
             symbol_table: self.symbol_table.clone(),
             variable_count: self.variable_count,
+            variable_scope: self.variable_scope.clone()
         }
     }
 
@@ -138,6 +145,16 @@ impl Compiler {
         };
     }
 
+    pub fn enter_variable_scope(&mut self) {
+        let scope = build_deeper_variable_scope(Option::from(self.variable_scope.clone()));
+        self.variable_scope = Rc::new(RefCell::new(scope));
+    }
+
+    pub fn exit_variable_scope(&mut self) {
+        let outer = self.variable_scope.as_ref().borrow_mut().outer.clone();
+        self.variable_scope = outer.unwrap();
+    }
+
     pub fn enter_scope(&mut self) {
         let scope = CompilationScope {
             instructions: vec![],
@@ -154,6 +171,7 @@ impl Compiler {
         self.scopes.push(scope);
         self.scope_index += 1;
 
+        self.enter_variable_scope();
         self.symbol_table.as_ref().borrow_mut().push();
     }
 
@@ -164,6 +182,8 @@ impl Compiler {
         self.scopes.pop();
         self.scope_index -= 1;
 
+
+        self.exit_variable_scope();
         let free = self.symbol_table.as_ref().borrow_mut().pop();
 
         (ins, free)
@@ -197,7 +217,11 @@ impl Compiler {
         None
     }
 
-    fn compile_block(&mut self, block: Block) -> Option<String> {
+    fn compile_block_internal(&mut self, block: Block, enter_scope: bool) -> Option<String> {
+        if enter_scope {
+            self.enter_variable_scope();
+        }
+
         if block.statements.is_empty() {
             compile_expression_null(self);
         }
@@ -209,7 +233,19 @@ impl Compiler {
             }
         }
 
+        if enter_scope {
+            self.exit_variable_scope();
+        }
+
         None
+    }
+
+    fn compile_block(&mut self, block: Block) -> Option<String> {
+        self.compile_block_internal(block, true)
+    }
+
+    fn compile_function_block(&mut self, block: Block) -> Option<String> {
+        self.compile_block_internal(block, false)
     }
 
     fn compile_statement(&mut self, stmt: Statement) -> Option<String> {
