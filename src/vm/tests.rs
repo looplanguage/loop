@@ -43,7 +43,10 @@ mod tests {
 
     #[test]
     fn block_scope_1() {
-        test_vm("var test = 100; if(true) { test = 1000 }; test", Integer(integer::Integer { value: 1000 }));
+        test_vm(
+            "var test = 100; if(true) { test = 1000 }; test",
+            Integer(integer::Integer { value: 1000 }),
+        );
     }
 
     // TODO: Add early return tests
