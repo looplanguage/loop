@@ -1,9 +1,11 @@
 use crate::object::boolean::Boolean;
+use crate::object::float::Float;
 use crate::object::function::{CompiledFunction, Function};
 use crate::object::integer::Integer;
 use crate::object::null::Null;
 
 pub mod boolean;
+pub mod float;
 pub mod function;
 pub mod integer;
 pub mod null;
@@ -15,6 +17,7 @@ pub enum Object {
     Null(Null),
     CompiledFunction(CompiledFunction),
     Function(Function),
+    Float(Float),
 }
 
 impl Object {
@@ -25,6 +28,7 @@ impl Object {
             Object::Null(null) => null.inspect(),
             Object::CompiledFunction(func) => func.inspect(),
             Object::Function(func) => func.inspect(),
+            Object::Float(float) => float.inspect(),
         }
     }
 

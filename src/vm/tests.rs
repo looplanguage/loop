@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use crate::object::integer;
     use crate::object::null;
     use crate::object::Object;
+    use crate::object::Object::Float;
     use crate::object::Object::Integer;
     use crate::object::Object::Null;
+    use crate::object::{float, integer};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
 
@@ -165,6 +166,41 @@ mod tests {
             "var q = 200; var newClosure = fn(a) { var c = 1000; return fn(b) { return a + b + c + q } }; newClosure(20)(10)",
             Integer(integer::Integer { value: 1230 }),
         )
+    }
+
+    #[test]
+    fn divisions_integer() {
+        test_vm("100 / 2", Integer(integer::Integer { value: 50 }));
+        test_vm("100 / 20", Integer(integer::Integer { value: 5 }));
+        test_vm("1000 / 250", Integer(integer::Integer { value: 4 }));
+        test_vm("100 / -100", Integer(integer::Integer { value: -1 }));
+        test_vm("-100 / -100", Integer(integer::Integer { value: 1 }));
+        test_vm("-100 / 100", Integer(integer::Integer { value: -1 }));
+        test_vm("10 / 100", Float(float::Float { value: 0.1 }));
+        test_vm("10 / 25", Float(float::Float { value: 0.4 }));
+    }
+
+    #[test]
+    fn division_float() {
+        test_vm(
+            "10 / 3",
+            Float(float::Float {
+                value: 3.3333333333333335,
+            }),
+        );
+
+        test_vm("10 / 2.5", Integer(integer::Integer { value: 4 }));
+
+        test_vm("9 / 2", Float(float::Float { value: 4.5 }));
+
+        test_vm("13 / (7 + 1)", Float(float::Float { value: 1.625 }));
+    }
+
+    #[test]
+    fn modulo() {
+        test_vm("10 % 10", Integer(integer::Integer { value: 0 }));
+        test_vm("10 % 4", Integer(integer::Integer { value: 2 }));
+        test_vm("10 % 10000", Integer(integer::Integer { value: 10 }));
     }
 
     fn test_vm(input: &str, expected: Object) {

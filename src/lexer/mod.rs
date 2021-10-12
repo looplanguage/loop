@@ -57,6 +57,9 @@ impl Lexer {
             ',' => create_token(TokenType::Comma, ch.to_string()),
             '{' => create_token(TokenType::LeftBrace, ch.to_string()),
             '}' => create_token(TokenType::RightBrace, ch.to_string()),
+            '[' => create_token(TokenType::LeftBracket, ch.to_string()),
+            ']' => create_token(TokenType::RightBracket, ch.to_string()),
+            '.' => create_token(TokenType::Dot, ch.to_string()),
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();

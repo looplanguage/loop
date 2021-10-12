@@ -45,6 +45,9 @@ pub enum TokenType {
     RightBrace,
     Null,
     Return,
+    Dot,
+    LeftBracket,
+    RightBracket,
     Eof,
 }
 

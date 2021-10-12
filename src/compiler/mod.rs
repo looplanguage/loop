@@ -9,6 +9,7 @@ mod variable_table;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
+use crate::compiler::compile::expression_float::compile_expression_float;
 use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
@@ -207,6 +208,7 @@ impl Compiler {
             }
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
+            Expression::Float(float) => compile_expression_float(self, float),
         };
 
         if err.is_some() {
