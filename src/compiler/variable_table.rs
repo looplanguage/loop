@@ -28,10 +28,7 @@ impl VariableScope {
     pub fn define(&mut self, index: u32, name: String) -> Variable {
         self.variables.push(Variable { index, name });
 
-        let var = self
-            .variables
-            .get(self.variables.len() - 1)
-            .expect("inserted");
+        let var = self.variables.last().expect("inserted");
 
         Variable {
             name: var.name.clone(),
