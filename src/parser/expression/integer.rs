@@ -1,3 +1,5 @@
+use crate::lexer::token::TokenType;
+use crate::parser::expression::float::parse_float_literal;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
@@ -17,7 +19,13 @@ pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
         .parse::<i64>()
         .unwrap();
 
-    Some(Node::Expression(Expression::Integer(Integer { value })))
+    let exp = Expression::Integer(Integer { value });
+
+    if p.lexer.next_is(TokenType::Dot) {
+        return parse_float_literal(p, exp);
+    }
+
+    Some(Node::Expression(exp))
 }
 
 pub fn parse_minus_integer(p: &mut Parser) -> Option<Node> {

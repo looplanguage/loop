@@ -34,7 +34,6 @@ pub enum Expression {
 #[allow(dead_code)]
 pub enum Precedence {
     Lowest,
-    Float,
     Equals,
     LessGreater,
     Sum,
@@ -57,7 +56,6 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::GreaterThan => Precedence::LessGreater,
         TokenType::LessThanOrEquals => Precedence::LessGreater,
         TokenType::GreaterThanOrEquals => Precedence::LessGreater,
-        TokenType::Dot => Precedence::Float,
         _ => Precedence::Lowest,
     }
 }
