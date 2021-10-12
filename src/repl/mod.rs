@@ -24,7 +24,7 @@ pub fn build_repl(flags: Flags) -> Repl {
     }
 }
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 impl Repl {
     pub fn start(&mut self) {
