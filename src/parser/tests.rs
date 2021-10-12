@@ -11,8 +11,33 @@ mod tests {
     use crate::parser::statement::assign::VariableAssign;
     use crate::parser::statement::block::Block;
     use crate::parser::statement::expression::Expression;
+    use crate::parser::statement::return_statement::ReturnStatement;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
+
+    #[test]
+    fn functions_return() {
+        let input = "fn() {\
+        return 20;\
+        }";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::from(parser::expression::Expression::Function(Function {
+                parameters: vec![],
+                body: Block {
+                    statements: vec![Statement::Return(ReturnStatement {
+                        expression: Box::new(parser::expression::Expression::Integer(Integer {
+                            value: 20,
+                        })),
+                    })],
+                },
+            })),
+        })));
+
+        test_parser(input, expected);
+    }
 
     #[test]
     fn variable_assignment() {

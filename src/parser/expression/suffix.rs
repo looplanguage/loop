@@ -20,10 +20,7 @@ pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node>
 
     let exp = p.parse_expression(pre);
 
-    if exp.is_none() {
-        p.add_error("unable to parse expression".to_string());
-        return None;
-    }
+    exp.as_ref()?;
 
     if let Node::Expression(val) = exp.unwrap() {
         return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
@@ -40,11 +37,19 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
     let exp = p.parse_expression(Lowest);
 
+    if exp.is_none() {
+        p.add_error(
+            "wrong condition for if-expression. expected=\"Expression\" got=\"null\"".to_string(),
+        );
+        return None;
+    }
+
     if !p.lexer.next_is(RightParenthesis) {
         p.add_error(format!(
-            "wrong token. expected=\")\". got=\"{}\"",
-            p.lexer.current_token.clone().unwrap().literal
-        ))
+            "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
+            p.lexer.peek_token.clone().unwrap().token
+        ));
+        return None;
     }
 
     Some(exp.unwrap())

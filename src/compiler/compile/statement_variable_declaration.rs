@@ -6,24 +6,15 @@ pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
 ) -> Option<String> {
-    let find_variable = compiler
-        .current_variable_scope
-        .find_variable(variable.ident.value.clone());
+    let var = compiler
+        .variable_scope
+        .borrow_mut()
+        .define(compiler.variable_count, variable.ident.value);
 
-    if find_variable.is_some() {
-        return Some(format!(
-            "variable \"{}\" is already declared in this scope",
-            find_variable.unwrap().name
-        ));
-    }
-
+    compiler.variable_count += 1;
     let err = compiler.compile_expression(*variable.value);
 
-    let id = compiler
-        .current_variable_scope
-        .define_variable(variable.ident.value);
-
-    compiler.emit(OpCode::SetVar, vec![id]);
+    compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
     if err.is_some() {
         return err;
