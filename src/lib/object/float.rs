@@ -7,7 +7,7 @@ pub struct Float {
 }
 
 impl Float {
-    pub fn to_integer(&self) -> Integer {
+    pub fn to_integer(self) -> Integer {
         Integer {
             value: self.value as i64,
         }
