@@ -1,5 +1,5 @@
 use crate::compiler::instructions::Instructions;
-use crate::object::function::Function;
+use crate::lib::object::function::Function;
 
 pub struct Frame {
     pub func: Function,

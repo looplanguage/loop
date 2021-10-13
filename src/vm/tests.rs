@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use crate::object::null;
-    use crate::object::Object;
-    use crate::object::Object::Float;
-    use crate::object::Object::Integer;
-    use crate::object::Object::Null;
-    use crate::object::{float, integer};
+    use crate::lib::object::null;
+    use crate::lib::object::Object;
+    use crate::lib::object::Object::Float;
+    use crate::lib::object::Object::Integer;
+    use crate::lib::object::Object::Null;
+    use crate::lib::object::{float, integer};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
 

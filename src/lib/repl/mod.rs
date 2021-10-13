@@ -1,7 +1,7 @@
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
-use crate::flags::{FlagTypes, Flags};
 use crate::lexer::build_lexer;
+use crate::lib::flags::{FlagTypes, Flags};
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
 use colored::Colorize;
@@ -69,11 +69,17 @@ impl Repl {
             let err = vm.run();
 
             if err.is_some() {
-                sentry::with_scope(|scope| {
-                    scope.set_tag("exception.type", "vm");
-                }, || {
-                    sentry::capture_message(format!("{}", err.clone().unwrap()).as_str(), sentry::Level::Info);
-                });
+                sentry::with_scope(
+                    |scope| {
+                        scope.set_tag("exception.type", "vm");
+                    },
+                    || {
+                        sentry::capture_message(
+                            format!("{}", err.clone().unwrap()).as_str(),
+                            sentry::Level::Info,
+                        );
+                    },
+                );
 
                 println!(
                     "{}",

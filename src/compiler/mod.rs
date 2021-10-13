@@ -25,8 +25,8 @@ use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
 use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, VariableScope,
 };
-use crate::object::null::Null;
-use crate::object::Object;
+use crate::lib::object::null::Null;
+use crate::lib::object::Object;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
@@ -115,11 +115,17 @@ impl Compiler {
         for statement in program.statements {
             let err = self.compile_statement(statement);
             if err.is_some() {
-                sentry::with_scope(|scope| {
-                    scope.set_tag("exception.type", "compiler");
-                }, || {
-                    sentry::capture_message(format!("{}", err.clone().unwrap()).as_str(), sentry::Level::Info);
-                });
+                sentry::with_scope(
+                    |scope| {
+                        scope.set_tag("exception.type", "compiler");
+                    },
+                    || {
+                        sentry::capture_message(
+                            format!("{}", err.clone().unwrap()).as_str(),
+                            sentry::Level::Info,
+                        );
+                    },
+                );
 
                 return err;
             }

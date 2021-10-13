@@ -1,4 +1,4 @@
-use crate::object::{Object, ObjectTrait};
+use crate::lib::object::{Object, ObjectTrait};
 use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
