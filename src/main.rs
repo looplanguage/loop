@@ -45,7 +45,7 @@ fn run_file(file: String) {
     let content = read_to_string(file);
 
     if content.is_err() {
-        println!("FileIOException: {:?}", content);
+        sentry::capture_error(&content.unwrap_err());
         return;
     }
 
@@ -73,6 +73,12 @@ fn run_file(file: String) {
     let err = vm.run();
 
     if err.is_some() {
+        sentry::with_scope(|scope| {
+            scope.set_tag("exception.type", "vm");
+        }, || {
+            sentry::capture_message(format!("{}", err.clone().unwrap()).as_str(), sentry::Level::Info);
+        });
+
         panic!("{}", err.unwrap());
     }
 
