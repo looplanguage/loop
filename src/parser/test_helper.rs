@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod test_helper {
+pub mod test_helper {
     use crate::parser;
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;

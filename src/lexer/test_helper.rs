@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod test_helper {
+pub mod test_helper {
     use crate::lexer::token::{Token, TokenType};
 
     pub fn generate_token(literal: &str, token_type: TokenType) -> Token {
