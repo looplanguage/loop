@@ -1,6 +1,6 @@
-use crate::object::boolean::Boolean;
-use crate::object::float::Float;
-use crate::object::Object;
+use crate::lib::object::boolean::Boolean;
+use crate::lib::object::float::Float;
+use crate::lib::object::Object;
 use crate::vm::VM;
 use std::rc::Rc;
 

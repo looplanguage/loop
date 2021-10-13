@@ -1,8 +1,8 @@
-use crate::object::boolean::Boolean;
-use crate::object::float::Float;
-use crate::object::function::{CompiledFunction, Function};
-use crate::object::integer::Integer;
-use crate::object::null::Null;
+use crate::lib::object::boolean::Boolean;
+use crate::lib::object::float::Float;
+use crate::lib::object::function::{CompiledFunction, Function};
+use crate::lib::object::integer::Integer;
+use crate::lib::object::null::Null;
 
 pub mod boolean;
 pub mod float;

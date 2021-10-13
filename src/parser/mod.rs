@@ -166,6 +166,15 @@ impl Parser {
     }
 
     pub fn add_error(&mut self, error: String) {
+        sentry::with_scope(
+            |scope| {
+                scope.set_tag("exception.type", "parser");
+            },
+            || {
+                sentry::capture_message(error.as_str(), sentry::Level::Info);
+            },
+        );
+
         self.errors.push(format!("ParserException: {}", error));
     }
 

@@ -2,20 +2,43 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use crate::repl::build_repl;
-use crate::vm::build_vm;
+use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
 
+use crate::lib::config::{load_config, LoadType};
+use crate::lib::telemetry::enable_telemetry;
+use lib::flags;
+use lib::repl::build_repl;
+
+use crate::vm::build_vm;
+
 pub mod compiler;
-mod flags;
 pub mod lexer;
-pub mod object;
+mod lib;
 pub mod parser;
-mod repl;
 mod vm;
 
 fn main() {
+    let config = match load_config() {
+        LoadType::FirstRun(cfg) => {
+            println!("This is your first time running Loop! (Or your config was re-generated)");
+            println!("By default we enable telemetry, if you wish to opt out go to: ");
+            println!(
+                "{}\\.loop\\config.toml",
+                home_dir().unwrap().to_str().unwrap()
+            );
+            println!("If you wish to know more about our privacy policy go to: https://looplang.org/privacy");
+
+            cfg
+        }
+        LoadType::Normal(cfg) => cfg,
+    };
+
+    if config.enable_telemetry {
+        enable_telemetry();
+    }
+
     let flags = get_flags();
 
     if let Some(file) = flags.file {
@@ -28,8 +51,8 @@ fn main() {
 fn run_file(file: String) {
     let content = read_to_string(file);
 
-    if content.is_err() {
-        println!("FileIOException: {:?}", content);
+    if let Err(e) = content {
+        sentry::capture_error(&e);
         return;
     }
 
@@ -57,6 +80,15 @@ fn run_file(file: String) {
     let err = vm.run();
 
     if err.is_some() {
+        sentry::with_scope(
+            |scope| {
+                scope.set_tag("exception.type", "vm");
+            },
+            || {
+                sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
+            },
+        );
+
         panic!("{}", err.unwrap());
     }
 
