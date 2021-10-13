@@ -14,6 +14,10 @@ use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::function::Function;
 use std::process::id;
 
+// ========================================================================
+// Everything with "v3" behind the identifier are newer functions for the refactor
+// ========================================================================
+
 pub fn generate_variable_declaration_v3(identifier: &str, expression: parser::expression::Expression) -> Statement {
     let variable = Statement::VariableDeclaration(VariableDeclaration {
         ident: Identifier {
@@ -68,63 +72,17 @@ pub fn generate_identifier_expression_v3(identifier: &str) -> crate::parser::exp
     })
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-pub fn generate_identifier(name: &str) -> Identifier {
+pub fn generate_identifier_v3(name: &str) -> Identifier {
     Identifier {
         value: name.to_string(),
     }
 }
 
-pub fn generate_function_declaration(identifier: &str, func: parser::expression::Expression) -> Statement {
-    Statement::VariableDeclaration(VariableDeclaration {
-        ident: generate_identifier(identifier),
-        value: Box::new(func),
-    })
-}
-/*
-pub fn generate_expression_suffix_v2(left: Expression, operator: char, right: Expression) -> crate::parser::expression::suffix {
-    parser::expression::Expression::Suffix(Box::new(Suffix {
-        left,
-        operator: operator.to_string(),
-        right,
-    }))
-}*/
 
-pub fn generate_variable_declaration_suffix_v2(identifier: &str, suffix: parser::expression::Expression) -> crate::parser::statement::Statement {
-    Statement::VariableDeclaration(VariableDeclaration {
-        ident: generate_identifier(identifier),
-        value: Box::new(suffix),
-    })
-}
-
-pub fn generate_function(parameters: Vec<Identifier>, statements: Vec<Statement>) -> crate::parser::expression::Expression {
-    parser::expression::Expression::Function(Function {
-        parameters: parameters,
-        body: Block { statements }
-    })
-}
-
-pub fn generate_operator(operator: &str) -> String {
-    return operator.to_string();
-}
+// ====================================================================
+// Everything underneath here is things with if expression parsing test
+// ToDo: Will be refactored
+//====================================================================
 
 pub fn generate_boolean_expression_box(value: bool) -> Statement {
     let expression = Statement::Expression(Box::new(Expression {
@@ -150,28 +108,6 @@ pub fn generate_integer_expression(value: i32) -> crate::parser::expression::Exp
     return parser::expression::Expression::Integer(Integer {
         value: value,
     });
-}
-
-pub fn generate_variable_declaration(identifier: &str, expression: i32) -> Statement {
-    let variable = Statement::VariableDeclaration(VariableDeclaration {
-        ident: Identifier {
-            value: identifier.to_string(),
-        },
-        value: Box::new(parser::expression::Expression::Integer(Integer {
-            value: expression,
-        })),
-    });
-    return variable;
-}
-
-pub fn generate_variable_declaration_suffix(identifier: &str, suffix: crate::parser::expression::Expression) -> Statement {
-    let variable = Statement::VariableDeclaration(VariableDeclaration {
-        ident: Identifier {
-            value: identifier.to_string(),
-        },
-        value: Box::new(suffix),
-    });
-    return variable;
 }
 
 pub fn generate_expression_suffix(left: i32, operator: char, right: i32) -> crate::parser::expression::Expression {
