@@ -15,7 +15,7 @@ mod tests {
     use crate::parser::statement::return_statement::ReturnStatement;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
-    use crate::parser::test_helper::test_helper;
+    use crate::parser::test::test_helper::test_helper;
 
     #[test]
     fn functions_return() {
