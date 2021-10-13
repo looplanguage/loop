@@ -14,6 +14,79 @@ use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::function::Function;
 use std::process::id;
 
+pub fn generate_variable_declaration_v3(identifier: &str, expression: parser::expression::Expression) -> Statement {
+    let variable = Statement::VariableDeclaration(VariableDeclaration {
+        ident: Identifier {
+            value: identifier.to_string(),
+        },
+        value: Box::new(expression),
+    });
+    return variable;
+}
+
+pub fn generate_suffix_expression_v3(left: parser::expression::Expression, operator: &str, right: parser::expression::Expression) -> crate::parser::expression::Expression {
+    parser::expression::Expression::Suffix(Box::new(Suffix {
+        left: left,
+        operator: operator.to_string(),
+        right: right,
+    }))
+}
+
+pub fn generate_comparison_v3(left: parser::expression::Expression, operator: &str, right: parser::expression::Expression) -> Statement {
+    Statement::Expression(Box::new(Expression {
+        expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
+            left: left,
+            operator: operator.to_string(),
+            right: right,
+        }))),
+    }))
+}
+
+pub fn generate_function_v3_box(parameters: Vec<Identifier>, statements: Vec<Statement>) -> Box<crate::parser::expression::Expression> {
+    Box::new(parser::expression::Expression::Function(Function {
+        parameters: parameters,
+        body: Block { statements: statements },
+    }))
+}
+
+pub fn generate_function_v3(parameters: Vec<Identifier>, statements: Vec<Statement>) -> crate::parser::expression::Expression {
+    parser::expression::Expression::Function(Function {
+        parameters: parameters,
+        body: Block { statements: statements },
+    })
+}
+
+pub fn generate_expression_statement_v3(expression: parser::expression::Expression) -> Statement {
+    Statement::Expression(Box::new(Expression {
+        expression: Box::new(expression),
+    }))
+}
+
+pub fn generate_identifier_expression_v3(identifier: &str) -> crate::parser::expression::Expression {
+    parser::expression::Expression::Identifier(Identifier {
+        value: identifier.to_string(),
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 pub fn generate_identifier(name: &str) -> Identifier {
     Identifier {
         value: name.to_string(),
@@ -26,14 +99,14 @@ pub fn generate_function_declaration(identifier: &str, func: parser::expression:
         value: Box::new(func),
     })
 }
-
-pub fn generate_expression_suffix_v2(left: expression, operator: char, right: expression) -> crate::parser::expression::suffix {
+/*
+pub fn generate_expression_suffix_v2(left: Expression, operator: char, right: Expression) -> crate::parser::expression::suffix {
     parser::expression::Expression::Suffix(Box::new(Suffix {
         left,
         operator: operator.to_string(),
         right,
     }))
-}
+}*/
 
 pub fn generate_variable_declaration_suffix_v2(identifier: &str, suffix: parser::expression::Expression) -> crate::parser::statement::Statement {
     Statement::VariableDeclaration(VariableDeclaration {
