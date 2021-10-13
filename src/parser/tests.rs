@@ -8,13 +8,16 @@ mod tests {
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
     use crate::parser::expression::suffix::Suffix;
+    use crate::parser::program::Node;
     use crate::parser::statement::block::Block;
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
-    use crate::parser::program::Node;
     use crate::parser::test_helper;
-    use crate::parser::test_helper::{ generate_integer_expression, generate_function_v3_box, generate_identifier_v3, generate_identifier_expression_v3, generate_suffix_expression_v3};
+    use crate::parser::test_helper::{
+        generate_function_v3_box, generate_identifier_expression_v3, generate_identifier_v3,
+        generate_integer_expression, generate_suffix_expression_v3,
+    };
 
     #[test]
     fn conditionals() {
@@ -27,29 +30,60 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(test_helper::generate_if_expression(true, Block { statements: vec![] }, Box::new(None)));
+        expected.push(test_helper::generate_if_expression(
+            true,
+            Block { statements: vec![] },
+            Box::new(None),
+        ));
 
+        let else_conditional = test_helper::generate_else_condition(
+            true,
+            Block { statements: vec![] },
+            Box::new(None),
+        );
+        expected.push(test_helper::generate_if_expression(
+            false,
+            Block { statements: vec![] },
+            else_conditional,
+        ));
 
-        let else_conditional = test_helper::generate_else_condition(true, Block { statements: vec![] }, Box::new(None));
-        expected.push(test_helper::generate_if_expression(false, Block { statements: vec![] }, else_conditional));
-
-
-        let else_conditional = test_helper::generate_else_condition(false, Block { statements: vec![] }, test_helper::generate_else_block_box(vec![]));
-        expected.push(test_helper::generate_if_expression(false, Block { statements: vec![] }, else_conditional));
+        let else_conditional = test_helper::generate_else_condition(
+            false,
+            Block { statements: vec![] },
+            test_helper::generate_else_block_box(vec![]),
+        );
+        expected.push(test_helper::generate_if_expression(
+            false,
+            Block { statements: vec![] },
+            else_conditional,
+        ));
 
         // TODO: This is a hot mess. It is kind of readable but not really...
-        let else_conditional = test_helper::generate_else_condition(false, test_helper::generate_else_block(vec![test_helper::generate_boolean_expression_box(true), Statement::Expression(Box::new(Expression {
-            expression: Box::new(test_helper::generate_expression_suffix(1, '+', 1)),
-        }))]), test_helper::generate_else_block_box(vec![Statement::Expression(Box::new(Expression {
-            expression: Box::new(test_helper::generate_boolean_expression(true)),
-        }))]));
-
-        expected.push(test_helper::generate_if_expression(false, Block {
-            statements: vec![
-                test_helper::generate_integer_expression_box(1),
+        let else_conditional = test_helper::generate_else_condition(
+            false,
+            test_helper::generate_else_block(vec![
                 test_helper::generate_boolean_expression_box(true),
-            ],
-        }, else_conditional));
+                Statement::Expression(Box::new(Expression {
+                    expression: Box::new(test_helper::generate_expression_suffix(1, '+', 1)),
+                })),
+            ]),
+            test_helper::generate_else_block_box(vec![Statement::Expression(Box::new(
+                Expression {
+                    expression: Box::new(test_helper::generate_boolean_expression(true)),
+                },
+            ))]),
+        );
+
+        expected.push(test_helper::generate_if_expression(
+            false,
+            Block {
+                statements: vec![
+                    test_helper::generate_integer_expression_box(1),
+                    test_helper::generate_boolean_expression_box(true),
+                ],
+            },
+            else_conditional,
+        ));
 
         test_parser(input, expected);
     }
@@ -72,14 +106,14 @@ mod tests {
         let mut expected: Vec<Statement> = Vec::new();
 
         // Test #1
-        let parameters: Vec<Identifier>  = vec![];
+        let parameters: Vec<Identifier> = vec![];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
         })));
 
         // Test #2
-        let parameters: Vec<Identifier>  = vec![ test_helper::generate_identifier_v3("a") ];
+        let parameters: Vec<Identifier> = vec![test_helper::generate_identifier_v3("a")];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
@@ -99,7 +133,9 @@ mod tests {
 
         // Test #4
         let parameters: Vec<Identifier> = vec![];
-        let statements: Vec<Statement> = vec![test_helper::generate_expression_statement_v3(generate_integer_expression(1))];
+        let statements: Vec<Statement> = vec![test_helper::generate_expression_statement_v3(
+            generate_integer_expression(1),
+        )];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
         })));
@@ -116,11 +152,17 @@ mod tests {
         let left2 = generate_identifier_expression_v3("c");
         let right2 = generate_identifier_expression_v3("d");
         let statements = vec![
-            test_helper::generate_expression_statement_v3(test_helper::generate_suffix_expression_v3(left, "+", right)),
-            test_helper::generate_variable_declaration_v3("e", generate_suffix_expression_v3(left2, "+", right2))
+            test_helper::generate_expression_statement_v3(
+                test_helper::generate_suffix_expression_v3(left, "+", right),
+            ),
+            test_helper::generate_variable_declaration_v3(
+                "e",
+                generate_suffix_expression_v3(left2, "+", right2),
+            ),
         ];
         let function = test_helper::generate_function_v3(parameters, statements);
-        let result = test_helper::generate_variable_declaration_v3("functionWithParameters", function);
+        let result =
+            test_helper::generate_variable_declaration_v3("functionWithParameters", function);
         expected.push(result);
 
         test_parser(input, expected);
@@ -199,15 +241,24 @@ mod tests {
         let mut expected: Vec<Statement> = Vec::new();
 
         // Test #1
-        expected.push(test_helper::generate_variable_declaration_v3("test", test_helper::generate_integer_expression(1)));
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test",
+            test_helper::generate_integer_expression(1),
+        ));
 
         // Test #2
-        expected.push(test_helper::generate_variable_declaration_v3("test2", test_helper::generate_integer_expression(40)));
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test2",
+            test_helper::generate_integer_expression(40),
+        ));
 
         // Test #3
         let left = test_helper::generate_integer_expression(10);
         let right = test_helper::generate_integer_expression(2);
-        expected.push(test_helper::generate_variable_declaration_v3("test3", test_helper::generate_suffix_expression_v3(left, "*", right)));
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test3",
+            test_helper::generate_suffix_expression_v3(left, "*", right),
+        ));
 
         test_parser(input, expected);
     }

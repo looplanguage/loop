@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::lexer;
-    use crate::lexer::token::{Token, TokenType};
     use crate::lexer::test_helper;
+    use crate::lexer::token::{Token, TokenType};
 
     #[test]
     fn variable_declaration() {
@@ -53,7 +53,7 @@ mod tests {
         let expected = vec![
             test_helper::generate_token("1", TokenType::Integer),
             test_helper::generate_token(">", TokenType::GreaterThan),
-            test_helper:: generate_token("2", TokenType::Integer),
+            test_helper::generate_token("2", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
             test_helper::generate_token("1", TokenType::Integer),
             test_helper::generate_token(">=", TokenType::GreaterThanOrEquals),
