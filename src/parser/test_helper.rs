@@ -112,20 +112,20 @@ pub mod test_helper {
         parser::expression::Expression::Boolean(Boolean { value })
     }
 
-    pub fn generate_integer_expression_box(value: i32) -> Statement {
+    pub fn generate_integer_expression_box(value: i64) -> Statement {
         Statement::Expression(Box::new(Expression {
             expression: Box::new(generate_integer_expression(value)),
         }))
     }
 
-    pub fn generate_integer_expression(value: i32) -> crate::parser::expression::Expression {
+    pub fn generate_integer_expression(value: i64) -> crate::parser::expression::Expression {
         parser::expression::Expression::Integer(Integer { value })
     }
 
     pub fn generate_expression_suffix(
-        left: i32,
+        left: i64,
         operator: char,
-        right: i32,
+        right: i64,
     ) -> crate::parser::expression::Expression {
         parser::expression::Expression::Suffix(Box::new(Suffix {
             left: parser::expression::Expression::Integer(Integer { value: left }),
