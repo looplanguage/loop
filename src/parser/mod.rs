@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
+use crate::lib::exception::Exception;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
@@ -31,7 +32,7 @@ pub struct Parser {
     lexer: Lexer,
     prefix_parser: HashMap<TokenType, PrefixParseFn>,
     infix_parser: HashMap<TokenType, InfixParseFn>,
-    pub errors: Vec<String>,
+    pub errors: Vec<Exception>,
 }
 
 impl Parser {
@@ -89,6 +90,7 @@ impl Parser {
                 "no prefix parser for \"{:?}\"",
                 self.lexer.current_token.as_ref().unwrap().token
             ));
+
             return None;
         }
 
@@ -175,7 +177,7 @@ impl Parser {
             },
         );
 
-        self.errors.push(format!("ParserException: {}", error));
+        self.errors.push(Exception::Parser(error));
     }
 
     pub fn peek_precedence(&mut self) -> Precedence {
