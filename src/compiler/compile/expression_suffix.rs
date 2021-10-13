@@ -1,9 +1,13 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::suffix::Suffix;
 use crate::parser::expression::Expression;
 
-pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> Option<String> {
+pub fn compile_expression_suffix(
+    _compiler: &mut Compiler,
+    _suffix: Suffix,
+) -> Option<CompilerException> {
     let right = _suffix.right.clone();
 
     if _suffix.operator.as_str() == "<" {
@@ -28,12 +32,12 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> O
             match right {
                 Expression::Integer(integer) => {
                     if integer.value == 0 {
-                        return Some("can not divide by 0".to_string());
+                        return Some(CompilerException::DivideByZero);
                     }
                 }
                 Expression::Float(float) => {
                     if float.value == 0.0 {
-                        return Some("can not divide by 0".to_string());
+                        return Some(CompilerException::DivideByZero);
                     }
                 }
                 _ => {}
@@ -54,7 +58,7 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> O
             _compiler.emit(OpCode::GreaterThan, vec![]);
         }
         _ => {
-            return Some(format!("unknown operator. got=\"{}\"", _suffix.operator));
+            return Some(CompilerException::UnknownSuffixOperator(_suffix.operator));
         }
     }
 

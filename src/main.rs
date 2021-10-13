@@ -2,6 +2,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use colored::Colorize;
 use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
@@ -73,10 +74,12 @@ fn run_file(file: String) {
     }
 
     let mut comp = compiler::build_compiler(None);
-    let err = comp.compile(program);
+    let error = comp.compile(program);
 
-    if err.is_some() {
-        panic!("{}", err.unwrap());
+    if error.is_err() {
+        let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
+        println!("{}", message.as_str().red());
+        return;
     }
 
     let mut vm = build_vm(comp.get_bytecode(), None);

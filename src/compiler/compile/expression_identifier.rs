@@ -1,11 +1,12 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::expression::identifier::Identifier;
 
 pub fn compile_expression_identifier(
     compiler: &mut Compiler,
     identifier: Identifier,
-) -> Option<String> {
+) -> Option<CompilerException> {
     let symbol = compiler
         .symbol_table
         .borrow_mut()
@@ -26,5 +27,8 @@ pub fn compile_expression_identifier(
         }
     }
 
-    Some(format!("unknown variable. got=\"{}\"", identifier.value))
+    Some(CompilerException::UnknownSymbol(UnknownSymbol {
+        name: identifier.value,
+        scope_depth: compiler.scope_index as u16,
+    }))
 }

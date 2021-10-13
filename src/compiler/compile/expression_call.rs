@@ -1,8 +1,9 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::function::Call;
 
-pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> Option<String> {
+pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> Option<CompilerException> {
     let err = compiler.compile_expression(*call.identifier.clone());
 
     if err.is_some() {
