@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::compiler::instructions::pretty_print_instructions;
-    use crate::object::Object;
+    use crate::lib::object::Object;
     use crate::{compiler, lexer, parser};
     use std::borrow::Borrow;
 

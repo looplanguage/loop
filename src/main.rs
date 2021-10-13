@@ -2,36 +2,21 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use crate::repl::build_repl;
-use crate::vm::build_vm;
 use std::env;
 use std::fs::read_to_string;
 
+use lib::flags;
+use lib::repl::build_repl;
+
+use crate::vm::build_vm;
+
 pub mod compiler;
-mod flags;
 pub mod lexer;
-pub mod object;
+mod lib;
 pub mod parser;
-mod repl;
 mod vm;
 
-#[cfg(debug_assertions)]
-fn get_build() -> String {
-    "development".to_string()
-}
-
-#[cfg(not(debug_assertions))]
-fn get_build() -> String {
-    "release".to_string()
-}
-
 fn main() {
-    let _guard = sentry::init(("https://d071f32c72f44690a1a7f9821cd15ace@o1037493.ingest.sentry.io/6005454", sentry::ClientOptions {
-        release: sentry::release_name!(),
-        environment: Some(get_build().into()),
-        ..Default::default()
-    }));
-
     let flags = get_flags();
 
     if let Some(file) = flags.file {
@@ -73,11 +58,17 @@ fn run_file(file: String) {
     let err = vm.run();
 
     if err.is_some() {
-        sentry::with_scope(|scope| {
-            scope.set_tag("exception.type", "vm");
-        }, || {
-            sentry::capture_message(format!("{}", err.clone().unwrap()).as_str(), sentry::Level::Info);
-        });
+        sentry::with_scope(
+            |scope| {
+                scope.set_tag("exception.type", "vm");
+            },
+            || {
+                sentry::capture_message(
+                    format!("{}", err.clone().unwrap()).as_str(),
+                    sentry::Level::Info,
+                );
+            },
+        );
 
         panic!("{}", err.unwrap());
     }

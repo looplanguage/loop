@@ -1,5 +1,5 @@
-use crate::object::integer::Integer;
-use crate::object::ObjectTrait;
+use crate::lib::object::integer::Integer;
+use crate::lib::object::ObjectTrait;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Float {

@@ -1,7 +1,7 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
-use crate::object::function;
-use crate::object::Object::CompiledFunction;
+use crate::lib::object::function;
+use crate::lib::object::Object::CompiledFunction;
 use crate::parser::expression::function::Function;
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> Option<String> {

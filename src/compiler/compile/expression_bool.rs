@@ -1,7 +1,7 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
-use crate::object::boolean;
-use crate::object::Object;
+use crate::lib::object::boolean;
+use crate::lib::object::Object;
 use crate::parser::expression::boolean::Boolean;
 
 pub fn compile_expression_boolean(compiler: &mut Compiler, bl: Boolean) -> Option<String> {
