@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 pub mod expression;
 pub mod program;
 pub mod statement;
+mod test_helper;
 mod tests;
 
 use crate::lexer::token::{Token, TokenType};
@@ -19,7 +21,6 @@ use crate::parser::statement::block::parse_block_statement;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
-use std::collections::HashMap;
 
 use self::statement::variable::parse_variable_declaration;
 

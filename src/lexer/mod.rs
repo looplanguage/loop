@@ -1,3 +1,4 @@
+mod test_helper;
 mod tests;
 pub mod token;
 

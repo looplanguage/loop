@@ -1,32 +1,18 @@
 #[cfg(test)]
 mod tests {
     use crate::lexer;
+    use crate::lexer::test_helper::test_helper;
     use crate::lexer::token::{Token, TokenType};
 
     #[test]
     fn variable_declaration() {
         let input = "var test = 1;";
         let expected = vec![
-            Token {
-                token: TokenType::VariableDeclaration,
-                literal: "var".to_string(),
-            },
-            Token {
-                token: TokenType::Identifier,
-                literal: "test".to_string(),
-            },
-            Token {
-                token: TokenType::Assign,
-                literal: "=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
+            test_helper::generate_token("var", TokenType::VariableDeclaration),
+            test_helper::generate_token("test", TokenType::Identifier),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
         ];
 
         do_test(input, expected);
@@ -36,86 +22,26 @@ mod tests {
     fn arithmetic_operations() {
         let input = "1 + 1; 1 - 5; 1 * 4; 20 / 3; 10 % 5;";
         let expected = vec![
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Plus,
-                literal: "+".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Minus,
-                literal: "-".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "5".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::Multiply,
-                literal: "*".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "4".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "20".to_string(),
-            },
-            Token {
-                token: TokenType::Divide,
-                literal: "/".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "3".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "10".to_string(),
-            },
-            Token {
-                token: TokenType::Modulo,
-                literal: "%".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "5".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token("+", TokenType::Plus),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token("-", TokenType::Minus),
+            test_helper::generate_token("5", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token("*", TokenType::Multiply),
+            test_helper::generate_token("4", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("20", TokenType::Integer),
+            test_helper::generate_token("/", TokenType::Divide),
+            test_helper::generate_token("3", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("10", TokenType::Integer),
+            test_helper::generate_token("%", TokenType::Modulo),
+            test_helper::generate_token("5", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
         ];
 
         do_test(input, expected);
@@ -125,70 +51,22 @@ mod tests {
     fn boolean_operations() {
         let input = "1 > 2; 1 >= 2; 1 < 2; 1 <= 2;";
         let expected = vec![
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::GreaterThan,
-                literal: ">".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::GreaterThanOrEquals,
-                literal: ">=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::LessThan,
-                literal: "<".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "1".to_string(),
-            },
-            Token {
-                token: TokenType::LessThanOrEquals,
-                literal: "<=".to_string(),
-            },
-            Token {
-                token: TokenType::Integer,
-                literal: "2".to_string(),
-            },
-            Token {
-                token: TokenType::Semicolon,
-                literal: ";".to_string(),
-            },
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token(">", TokenType::GreaterThan),
+            test_helper::generate_token("2", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token(">=", TokenType::GreaterThanOrEquals),
+            test_helper::generate_token("2", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token("<", TokenType::LessThan),
+            test_helper::generate_token("2", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token("<=", TokenType::LessThanOrEquals),
+            test_helper::generate_token("2", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
         ];
 
         do_test(input, expected);
