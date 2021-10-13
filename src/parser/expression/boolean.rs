@@ -14,7 +14,7 @@ pub fn parse_boolean(p: &mut Parser) -> Option<Node> {
 }
 
 pub fn parse_inverted_boolean(p: &mut Parser) -> Option<Node> {
-    p.lexer.next();
+    p.lexer.next_token();
 
     Some(Node::Expression(Expression::Boolean(Boolean {
         value: p.lexer.current_token.clone().unwrap().literal != "true",

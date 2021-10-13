@@ -98,7 +98,7 @@ mod tests {
             );
 
             i = i + 1;
-            l.next();
+            l.next_token();
             current_token = l.current_token.clone().unwrap();
         }
     }

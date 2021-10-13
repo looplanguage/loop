@@ -14,9 +14,9 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn next(&mut self) -> Token {
+    pub fn next_token(&mut self) -> Token {
         self.current_token = self.peek_token.clone();
-        self.peek_token = Some(self.next_token());
+        self.peek_token = Some(self.internal_next_token());
 
         let cloned = self.current_token.clone();
 
@@ -27,7 +27,7 @@ impl Lexer {
         cloned.unwrap()
     }
 
-    fn next_token(&mut self) -> Token {
+    fn internal_next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
@@ -39,7 +39,7 @@ impl Lexer {
         let ch: char = possible_char.unwrap();
 
         if ch.is_whitespace() {
-            return self.next_token();
+            return self.internal_next_token();
         }
 
         match ch {
@@ -58,6 +58,9 @@ impl Lexer {
             ',' => create_token(TokenType::Comma, ch.to_string()),
             '{' => create_token(TokenType::LeftBrace, ch.to_string()),
             '}' => create_token(TokenType::RightBrace, ch.to_string()),
+            '[' => create_token(TokenType::LeftBracket, ch.to_string()),
+            ']' => create_token(TokenType::RightBracket, ch.to_string()),
+            '.' => create_token(TokenType::Dot, ch.to_string()),
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
@@ -139,7 +142,7 @@ impl Lexer {
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
         if self.peek_token.clone().unwrap().token == token {
-            self.next();
+            self.next_token();
             return true;
         }
 
@@ -148,7 +151,7 @@ impl Lexer {
 
     pub fn next_current_is(&mut self, token: TokenType) -> bool {
         if self.current_token.clone().unwrap().token == token {
-            self.next();
+            self.next_token();
             return true;
         }
 
@@ -168,9 +171,11 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "while" => TokenType::While,
         "and" | "&&" => TokenType::And,
         "or" | "||" => TokenType::Or,
+        "null" => TokenType::Null,
+        "return" => TokenType::Return,
         "if" => TokenType::If,
         _ => {
-            if keyword.parse::<i32>().is_ok() {
+            if keyword.parse::<i64>().is_ok() {
                 return TokenType::Integer;
             }
 
@@ -187,8 +192,8 @@ pub fn build_lexer(input: &str) -> Lexer {
         peek_token: None,
     };
 
-    l.next();
-    l.next();
+    l.next_token();
+    l.next_token();
 
     l
 }
