@@ -6,3 +6,6 @@ edition = "2018"
 [dependencies]
 strum_macros = "0.21.1"
 strum = "0.21.0"
+byteorder = "1.4.3"
+rustyline = "9.0.0"
+colored = "2"

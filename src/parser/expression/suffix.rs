@@ -11,16 +11,20 @@ pub struct Suffix {
     pub(crate) right: Expression,
 }
 
-pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option<Node> {
+pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node> {
     let operator = p.lexer.current_token.clone().unwrap().literal;
 
     let pre = p.cur_precedence();
 
-    p.lexer.next();
+    p.lexer.next_token();
 
-    if let Node::Expression(val) = p.parse_expression(pre).unwrap() {
+    let exp = p.parse_expression(pre);
+
+    exp.as_ref()?;
+
+    if let Node::Expression(val) = exp.unwrap() {
         return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
-            left: expression,
+            left,
             operator,
             right: val,
         }))));
@@ -30,14 +34,20 @@ pub fn parse_suffix_expression(p: &mut Parser, expression: Expression) -> Option
 }
 
 pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
-    p.lexer.next();
+    p.lexer.next_token();
     let exp = p.parse_expression(Lowest);
+
+    if exp.is_none() {
+        p.add_error("unable to parse group. expected=\"Expression\" got=\"null\"".to_string());
+        return None;
+    }
 
     if !p.lexer.next_is(RightParenthesis) {
         p.add_error(format!(
-            "wrong token. expected=\")\". got=\"{}\"",
-            p.lexer.current_token.clone().unwrap().literal
-        ))
+            "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
+            p.lexer.peek_token.clone().unwrap().token
+        ));
+        return None;
     }
 
     Some(exp.unwrap())

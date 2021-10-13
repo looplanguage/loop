@@ -1,16 +1,24 @@
 use std::collections::HashMap;
+pub mod expression;
+pub mod program;
+pub mod statement;
+mod tests;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
-use crate::parser::expression::function::parse_function;
+use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::integer::parse_integer_literal;
+use crate::parser::expression::integer::{parse_integer_literal, parse_minus_integer};
+use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
+use crate::parser::statement::assign::parse_variable_assignment;
+use crate::parser::statement::block::parse_block_statement;
 use crate::parser::statement::expression::parse_expression_statement;
+use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
@@ -42,7 +50,7 @@ impl Parser {
                 statements.push(i);
             }
 
-            self.lexer.next();
+            self.lexer.next_token();
         }
 
         Program { statements }
@@ -51,13 +59,22 @@ impl Parser {
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
+            TokenType::Identifier => {
+                if self.peek_token_is(TokenType::Assign) {
+                    parse_variable_assignment(self)
+                } else {
+                    parse_expression_statement(self)
+                }
+            }
+            TokenType::Return => parse_return_statement(self),
+            TokenType::LeftBrace => parse_block_statement(self),
             _ => self.parse_expression_statement(token),
         };
 
         if self.lexer.peek_token.is_some()
             && self.lexer.peek_token.as_ref().unwrap().token == TokenType::Semicolon
         {
-            self.lexer.next();
+            self.lexer.next_token();
         }
 
         r
@@ -82,10 +99,7 @@ impl Parser {
 
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
 
-        if expression_node.is_none() {
-            self.add_error("error parsing expression. see above!".to_string());
-            return None;
-        }
+        expression_node.as_ref()?;
 
         if let Node::Expression(exp) = expression_node.unwrap() {
             let mut infix_expression_node: Option<Node> = None;
@@ -98,9 +112,15 @@ impl Parser {
                     return Some(Node::Expression(exp));
                 }
 
-                self.lexer.next();
+                self.lexer.next_token();
 
-                infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                if infix_expression_node.is_some() {
+                    if let Node::Expression(a) = infix_expression_node.clone().unwrap() {
+                        infix_expression_node = infix_parser.unwrap()(self, a);
+                    }
+                } else {
+                    infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                }
             }
 
             if infix_expression_node.is_some() {
@@ -151,7 +171,7 @@ impl Parser {
     }
 
     pub fn add_error(&mut self, error: String) {
-        self.errors.push(error);
+        self.errors.push(format!("ParserException: {}", error));
     }
 
     pub fn peek_precedence(&mut self) -> Precedence {
@@ -173,6 +193,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
+    p.add_prefix_parser(TokenType::Minus, parse_minus_integer);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
     p.add_prefix_parser(TokenType::True, parse_boolean);
@@ -180,6 +201,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::InvertSign, parse_inverted_boolean);
     p.add_prefix_parser(TokenType::Function, parse_function);
     p.add_prefix_parser(TokenType::If, parse_conditional);
+    p.add_prefix_parser(TokenType::Null, parse_expression_null);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
@@ -187,6 +209,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::Divide, parse_suffix_expression);
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
     p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
+    p.add_infix_parser(TokenType::LeftParenthesis, parse_call);
 
     // Infix Parsers Comparisons
     p.add_infix_parser(TokenType::Equals, parse_suffix_expression);
@@ -194,6 +217,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::GreaterThanOrEquals, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThan, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThanOrEquals, parse_suffix_expression);
+    p.add_infix_parser(TokenType::NotEquals, parse_suffix_expression);
 
     p
 }
