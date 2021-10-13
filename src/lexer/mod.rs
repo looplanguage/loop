@@ -1,6 +1,5 @@
-mod test_helper;
-mod tests;
 pub mod token;
+mod test;
 
 use crate::lexer::token::create_token;
 use token::Token;
