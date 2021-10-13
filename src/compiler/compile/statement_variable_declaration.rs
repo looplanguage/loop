@@ -1,11 +1,12 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
 
 pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
-) -> Option<String> {
+) -> Option<CompilerException> {
     let var = compiler
         .variable_scope
         .borrow_mut()

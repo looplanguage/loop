@@ -1,10 +1,14 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::function;
 use crate::lib::object::Object::CompiledFunction;
 use crate::parser::expression::function::Function;
 
-pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> Option<String> {
+pub fn compile_expression_function(
+    compiler: &mut Compiler,
+    func: Function,
+) -> Option<CompilerException> {
     let num_params = func.parameters.len() as u32;
 
     compiler.enter_scope();
@@ -25,14 +29,14 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> O
 
     let num_locals = compiler.symbol_table.borrow().num_definitions();
     if num_locals > 0xff {
-        return Some("too many locals!".to_string());
+        return Some(CompilerException::TooManyLocals);
     }
 
     let (instructions, free_symbols) = compiler.exit_scope();
 
     let num_frees = free_symbols.len() as u32;
     if num_frees > 0xff {
-        return Some("too many frees!".to_string());
+        return Some(CompilerException::TooManyFrees);
     }
 
     for free_symbol in free_symbols {

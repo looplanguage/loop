@@ -55,8 +55,9 @@ impl Repl {
             let mut compiler = build_compiler(self.compiler_state.as_ref());
             let error = compiler.compile(program);
 
-            if error.is_some() {
-                println!("{} {}", "CompilerError:".red(), error.unwrap().red());
+            if error.is_err() {
+                let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
+                println!("{}", message.red());
                 return;
             }
 
