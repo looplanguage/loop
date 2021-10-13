@@ -14,7 +14,7 @@ mod tests {
     use crate::parser::statement::Statement;
     use crate::parser::program::Node;
     use crate::parser::test_helper;
-    use crate::parser::test_helper::{generate_function_declaration, generate_integer_expression, generate_function_v3_box, generate_identifier, generate_identifier_expression_v3, generate_suffix_expression_v3};
+    use crate::parser::test_helper::{ generate_integer_expression, generate_function_v3_box, generate_identifier_v3, generate_identifier_expression_v3, generate_suffix_expression_v3};
 
     #[test]
     fn conditionals() {
@@ -79,7 +79,7 @@ mod tests {
         })));
 
         // Test #2
-        let parameters: Vec<Identifier>  = vec![ test_helper::generate_identifier("a") ];
+        let parameters: Vec<Identifier>  = vec![ test_helper::generate_identifier_v3("a") ];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
@@ -87,10 +87,10 @@ mod tests {
 
         // Test #3
         let parameters: Vec<Identifier> = vec![
-            test_helper::generate_identifier("a"),
-            test_helper::generate_identifier("b"),
-            test_helper::generate_identifier("c"),
-            test_helper::generate_identifier("d"),
+            test_helper::generate_identifier_v3("a"),
+            test_helper::generate_identifier_v3("b"),
+            test_helper::generate_identifier_v3("c"),
+            test_helper::generate_identifier_v3("d"),
         ];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
@@ -106,10 +106,10 @@ mod tests {
 
         // Test #5
         let parameters: Vec<Identifier> = vec![
-            test_helper::generate_identifier("a"),
-            test_helper::generate_identifier("b"),
-            test_helper::generate_identifier("c"),
-            test_helper::generate_identifier("d"),
+            test_helper::generate_identifier_v3("a"),
+            test_helper::generate_identifier_v3("b"),
+            test_helper::generate_identifier_v3("c"),
+            test_helper::generate_identifier_v3("d"),
         ];
         let left = generate_identifier_expression_v3("a");
         let right = generate_identifier_expression_v3("b");
