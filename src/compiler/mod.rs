@@ -120,10 +120,7 @@ impl Compiler {
                         scope.set_tag("exception.type", "compiler");
                     },
                     || {
-                        sentry::capture_message(
-                            format!("{}", err.clone().unwrap()).as_str(),
-                            sentry::Level::Info,
-                        );
+                        sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
                     },
                 );
 
