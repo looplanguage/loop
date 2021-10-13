@@ -1,6 +1,7 @@
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
+use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
@@ -89,7 +90,9 @@ impl Repl {
             }
         } else {
             for err in p.errors {
-                println!("{}", err.to_string().red());
+                if let Exception::Parser(str) = err {
+                    println!("{}", format!("ParserException: {}", str).red());
+                }
             }
         }
     }

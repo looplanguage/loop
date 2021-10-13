@@ -7,6 +7,7 @@ use std::env;
 use std::fs::read_to_string;
 
 use crate::lib::config::{load_config, LoadType};
+use crate::lib::exception::Exception;
 use crate::lib::telemetry::enable_telemetry;
 use lib::flags;
 use lib::repl::build_repl;
@@ -63,7 +64,9 @@ fn run_file(file: String) {
 
     if !parser.errors.is_empty() {
         for err in parser.errors {
-            println!("ParserException: {}", err);
+            if let Exception::Parser(msg) = err {
+                println!("ParserException: {}", msg);
+            }
         }
 
         panic!("Parser exceptions occurred!")
