@@ -53,7 +53,7 @@ impl CompilerException {
                     },
                     || {
                         sentry::capture_message(
-                            format!("{:?}", self).as_str(),
+                            format!("UnknownSymbol").as_str(),
                             sentry::Level::Info,
                         );
                     },
@@ -64,11 +64,19 @@ impl CompilerException {
                     |scope| {
                         scope.set_tag("exception.type", "compiler");
                     },
-                    || {
-                        sentry::capture_message(
-                            format!("{:?}", self).as_str(),
-                            sentry::Level::Info,
-                        );
+                    || match self {
+                        CompilerException::UnknownSuffixOperator(suffix) => {
+                            sentry::capture_message(
+                                format!("UnknownSuffixOperator: {}", suffix).as_str(),
+                                sentry::Level::Info,
+                            );
+                        }
+                        _ => {
+                            sentry::capture_message(
+                                format!("{:?}", self).as_str(),
+                                sentry::Level::Info,
+                            );
+                        }
                     },
                 );
             }

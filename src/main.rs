@@ -9,7 +9,6 @@ use std::fs::read_to_string;
 
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
-use crate::lib::telemetry::enable_telemetry;
 use lib::flags;
 use lib::repl::build_repl;
 
@@ -20,6 +19,16 @@ pub mod lexer;
 mod lib;
 pub mod parser;
 mod vm;
+
+#[cfg(debug_assertions)]
+fn get_build() -> String {
+    "development".to_string()
+}
+
+#[cfg(not(debug_assertions))]
+fn get_build() -> String {
+    "release".to_string()
+}
 
 fn main() {
     let config = match load_config() {
@@ -37,8 +46,17 @@ fn main() {
         LoadType::Normal(cfg) => cfg,
     };
 
-    if config.enable_telemetry {
-        enable_telemetry();
+    let _guard = sentry::init((
+        "https://d071f32c72f44690a1a7f9821cd15ace@o1037493.ingest.sentry.io/6005454",
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
+            environment: Some(get_build().into()),
+            ..Default::default()
+        },
+    ));
+
+    if !config.enable_telemetry {
+        _guard.close(None);
     }
 
     let flags = get_flags();
