@@ -14,7 +14,7 @@ mod tests {
     use crate::parser::statement::Statement;
     use crate::parser::program::Node;
     use crate::parser::test_helper;
-    use crate::parser::test_helper::generate_function_declaration;
+    use crate::parser::test_helper::{generate_function_declaration, generate_integer_expression, generate_function_v3_box, generate_identifier, generate_identifier_expression_v3, generate_suffix_expression_v3};
 
     #[test]
     fn conditionals() {
@@ -71,122 +71,57 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
+        // Test #1
+        let parameters: Vec<Identifier>  = vec![];
+        let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Function(Function {
-                parameters: vec![],
-                body: Block { statements: vec![] },
-            })),
+            expression: test_helper::generate_function_v3_box(parameters, statements),
         })));
 
+        // Test #2
+        let parameters: Vec<Identifier>  = vec![ test_helper::generate_identifier("a") ];
+        let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Function(Function {
-                parameters: vec![Identifier {
-                    value: "a".to_string(),
-                }],
-                body: Block { statements: vec![] },
-            })),
+            expression: test_helper::generate_function_v3_box(parameters, statements),
         })));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Function(Function {
-                parameters: vec![
-                    Identifier {
-                        value: "a".to_string(),
-                    },
-                    Identifier {
-                        value: "b".to_string(),
-                    },
-                    Identifier {
-                        value: "c".to_string(),
-                    },
-                    Identifier {
-                        value: "d".to_string(),
-                    },
-                ],
-                body: Block { statements: vec![] },
-            })),
-        })));
-
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Function(Function {
-                parameters: vec![],
-                body: Block {
-                    statements: vec![Statement::Expression(Box::new(Expression {
-                        expression: Box::new(parser::expression::Expression::Integer(Integer {
-                            value: 1,
-                        })),
-                    }))],
-                },
-            })),
-        })));
-
+        // Test #3
         let parameters: Vec<Identifier> = vec![
             test_helper::generate_identifier("a"),
             test_helper::generate_identifier("b"),
             test_helper::generate_identifier("c"),
             test_helper::generate_identifier("d"),
         ];
-        let statements: Vec<Statement> = vec![
-            test_helper::generate_expression_suffix_v2(test_helper::generate_identifier("a"), '+',test_helper::generate_identifier("b")),
-            test_helper::generate_variable_declaration_suffix_v2("e", test_helper::generate_expression_suffix_v2(test_helper::generate_identifier("c"), '+',test_helper::generate_identifier("d")))
-        ];
-        let func = test_helper::generate_function(parameters, statements);
-        expected.push(generate_function_declaration("functionWithParameters", func));
+        let statements: Vec<Statement> = vec![];
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: test_helper::generate_function_v3_box(parameters, statements),
+        })));
 
-        expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: "functionWithParameters".to_string(),
-            },
-            value: Box::new(parser::expression::Expression::Function(Function {
-                parameters: vec![
-                    Identifier {
-                        value: "a".to_string(),
-                    },
-                    Identifier {
-                        value: "b".to_string(),
-                    },
-                    Identifier {
-                        value: "c".to_string(),
-                    },
-                    Identifier {
-                        value: "d".to_string(),
-                    },
-                ],
-                body: Block {
-                    statements: vec![
-                        Statement::Expression(Box::new(Expression {
-                            expression: Box::new(parser::expression::Expression::Suffix(Box::new(
-                                Suffix {
-                                    left: parser::expression::Expression::Identifier(Identifier {
-                                        value: "a".to_string(),
-                                    }),
-                                    operator: "+".to_string(),
-                                    right: parser::expression::Expression::Identifier(Identifier {
-                                        value: "b".to_string(),
-                                    }),
-                                },
-                            ))),
-                        })),
-                        Statement::VariableDeclaration(VariableDeclaration {
-                            ident: Identifier {
-                                value: "e".to_string(),
-                            },
-                            value: Box::new(parser::expression::Expression::Suffix(Box::new(
-                                Suffix {
-                                    left: parser::expression::Expression::Identifier(Identifier {
-                                        value: "c".to_string(),
-                                    }),
-                                    operator: "+".to_string(),
-                                    right: parser::expression::Expression::Identifier(Identifier {
-                                        value: "d".to_string(),
-                                    }),
-                                },
-                            ))),
-                        }),
-                    ],
-                },
-            })),
-        }));
+        // Test #4
+        let parameters: Vec<Identifier> = vec![];
+        let statements: Vec<Statement> = vec![test_helper::generate_expression_statement_v3(generate_integer_expression(1))];
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: test_helper::generate_function_v3_box(parameters, statements),
+        })));
+
+        // Test #5
+        let parameters: Vec<Identifier> = vec![
+            test_helper::generate_identifier("a"),
+            test_helper::generate_identifier("b"),
+            test_helper::generate_identifier("c"),
+            test_helper::generate_identifier("d"),
+        ];
+        let left = generate_identifier_expression_v3("a");
+        let right = generate_identifier_expression_v3("b");
+        let left2 = generate_identifier_expression_v3("c");
+        let right2 = generate_identifier_expression_v3("d");
+        let statements = vec![
+            test_helper::generate_expression_statement_v3(test_helper::generate_suffix_expression_v3(left, "+", right)),
+            test_helper::generate_variable_declaration_v3("e", generate_suffix_expression_v3(left2, "+", right2))
+        ];
+        let function = test_helper::generate_function_v3(parameters, statements);
+        let result = test_helper::generate_variable_declaration_v3("functionWithParameters", function);
+        expected.push(result);
 
         test_parser(input, expected);
     }
@@ -197,7 +132,10 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
+        // Test #1
         expected.push(test_helper::generate_boolean_expression_box(true));
+
+        // Test #2
         expected.push(test_helper::generate_boolean_expression_box(false));
 
         test_parser(input, expected);
@@ -209,7 +147,10 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
+        // Test #1
         expected.push(test_helper::generate_boolean_expression_box(false));
+
+        // Test #2
         expected.push(test_helper::generate_boolean_expression_box(true));
 
         test_parser(input, expected);
@@ -221,37 +162,29 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: test_helper::generate_boolean_expression(true),
-                operator: test_helper::generate_operator("=="),
-                right: test_helper::generate_boolean_expression(true),
-            }))),
-        })));
+        // Test #1
+        let left = test_helper::generate_boolean_expression(true);
+        let op = "==";
+        let right = test_helper::generate_boolean_expression(true);
+        expected.push(test_helper::generate_comparison_v3(left, op, right));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: test_helper::generate_integer_expression(1),
-                operator: test_helper::generate_operator("=="),
-                right: test_helper::generate_boolean_expression(true),
-            }))),
-        })));
+        // Test #2
+        let left = test_helper::generate_integer_expression(1);
+        let op = "==";
+        let right = test_helper::generate_boolean_expression(true);
+        expected.push(test_helper::generate_comparison_v3(left, op, right));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: test_helper::generate_integer_expression(3),
-                operator: test_helper::generate_operator(">"),
-                right: test_helper::generate_integer_expression(4),
-            }))),
-        })));
+        // Test #3
+        let left = test_helper::generate_integer_expression(3);
+        let op = ">";
+        let right = generate_integer_expression(4);
+        expected.push(test_helper::generate_comparison_v3(left, op, right));
 
-        expected.push(Statement::Expression(Box::new(Expression {
-            expression: Box::new(parser::expression::Expression::Suffix(Box::new(Suffix {
-                left: test_helper::generate_integer_expression(3),
-                operator: test_helper::generate_operator("<"),
-                right: test_helper::generate_integer_expression(4),
-            }))),
-        })));
+        // Test #4
+        let left = test_helper::generate_integer_expression(3);
+        let op = "<";
+        let right = generate_integer_expression(4);
+        expected.push(test_helper::generate_comparison_v3(left, op, right));
 
         test_parser(input, expected);
     }
@@ -265,9 +198,16 @@ mod tests {
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(test_helper::generate_variable_declaration("test", 1));
-        expected.push(test_helper::generate_variable_declaration("test2", 40));
-        expected.push(test_helper::generate_variable_declaration_suffix("test3", test_helper::generate_expression_suffix(10, '*', 2)));
+        // Test #1
+        expected.push(test_helper::generate_variable_declaration_v3("test", test_helper::generate_integer_expression(1)));
+
+        // Test #2
+        expected.push(test_helper::generate_variable_declaration_v3("test2", test_helper::generate_integer_expression(40)));
+
+        // Test #3
+        let left = test_helper::generate_integer_expression(10);
+        let right = test_helper::generate_integer_expression(2);
+        expected.push(test_helper::generate_variable_declaration_v3("test3", test_helper::generate_suffix_expression_v3(left, "*", right)));
 
         test_parser(input, expected);
     }
