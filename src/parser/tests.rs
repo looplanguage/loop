@@ -13,11 +13,7 @@ mod tests {
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
-    use crate::parser::test_helper;
-    use crate::parser::test_helper::{
-        generate_function_v3_box, generate_identifier_expression_v3, generate_identifier_v3,
-        generate_integer_expression, generate_suffix_expression_v3,
-    };
+    use crate::parser::test_helper::test_helper;
 
     #[test]
     fn conditionals() {
@@ -134,7 +130,7 @@ mod tests {
         // Test #4
         let parameters: Vec<Identifier> = vec![];
         let statements: Vec<Statement> = vec![test_helper::generate_expression_statement_v3(
-            generate_integer_expression(1),
+            test_helper::generate_integer_expression(1),
         )];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
@@ -147,17 +143,17 @@ mod tests {
             test_helper::generate_identifier_v3("c"),
             test_helper::generate_identifier_v3("d"),
         ];
-        let left = generate_identifier_expression_v3("a");
-        let right = generate_identifier_expression_v3("b");
-        let left2 = generate_identifier_expression_v3("c");
-        let right2 = generate_identifier_expression_v3("d");
+        let left = test_helper::generate_identifier_expression_v3("a");
+        let right = test_helper::generate_identifier_expression_v3("b");
+        let left2 = test_helper::generate_identifier_expression_v3("c");
+        let right2 = test_helper::generate_identifier_expression_v3("d");
         let statements = vec![
             test_helper::generate_expression_statement_v3(
                 test_helper::generate_suffix_expression_v3(left, "+", right),
             ),
             test_helper::generate_variable_declaration_v3(
                 "e",
-                generate_suffix_expression_v3(left2, "+", right2),
+                test_helper::generate_suffix_expression_v3(left2, "+", right2),
             ),
         ];
         let function = test_helper::generate_function_v3(parameters, statements);
@@ -219,13 +215,13 @@ mod tests {
         // Test #3
         let left = test_helper::generate_integer_expression(3);
         let op = ">";
-        let right = generate_integer_expression(4);
+        let right = test_helper::generate_integer_expression(4);
         expected.push(test_helper::generate_comparison_v3(left, op, right));
 
         // Test #4
         let left = test_helper::generate_integer_expression(3);
         let op = "<";
-        let right = generate_integer_expression(4);
+        let right = test_helper::generate_integer_expression(4);
         expected.push(test_helper::generate_comparison_v3(left, op, right));
 
         test_parser(input, expected);
