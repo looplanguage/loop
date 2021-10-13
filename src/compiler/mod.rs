@@ -231,6 +231,7 @@ impl Compiler {
         for statement in block.statements {
             let err = self.compile_statement(statement);
             if err.is_some() {
+                err.as_ref().unwrap().emit();
                 return err;
             }
         }
