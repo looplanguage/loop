@@ -2,8 +2,8 @@ use std::collections::HashMap;
 pub mod expression;
 pub mod program;
 pub mod statement;
-mod tests;
 mod test_helper;
+mod tests;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
