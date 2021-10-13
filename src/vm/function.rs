@@ -1,5 +1,5 @@
-use crate::object::function::Function;
-use crate::object::Object;
+use crate::lib::object::function::Function;
+use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
 use crate::vm::VM;
 use std::rc::Rc;

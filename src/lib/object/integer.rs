@@ -1,5 +1,5 @@
-use crate::object::float::Float;
-use crate::object::ObjectTrait;
+use crate::lib::object::float::Float;
+use crate::lib::object::ObjectTrait;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Integer {
@@ -7,7 +7,7 @@ pub struct Integer {
 }
 
 impl Integer {
-    pub fn to_float(&self) -> Float {
+    pub fn to_float(self) -> Float {
         Float {
             value: self.value as f64,
         }
