@@ -1,9 +1,4 @@
 use std::collections::HashMap;
-pub mod expression;
-pub mod program;
-pub mod statement;
-mod test_helper;
-mod tests;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
@@ -23,6 +18,11 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
+
+pub mod expression;
+pub mod program;
+pub mod statement;
+mod test;
 
 type PrefixParseFn = fn(parser: &mut Parser) -> Option<Node>;
 type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Option<Node>;
