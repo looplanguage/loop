@@ -115,6 +115,12 @@ impl Compiler {
         for statement in program.statements {
             let err = self.compile_statement(statement);
             if err.is_some() {
+                sentry::with_scope(|scope| {
+                    scope.set_tag("exception.type", "compiler");
+                }, || {
+                    sentry::capture_message(format!("{}", err.clone().unwrap()).as_str(), sentry::Level::Info);
+                });
+
                 return err;
             }
         }

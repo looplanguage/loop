@@ -69,6 +69,12 @@ impl Repl {
             let err = vm.run();
 
             if err.is_some() {
+                sentry::with_scope(|scope| {
+                    scope.set_tag("exception.type", "vm");
+                }, || {
+                    sentry::capture_message(format!("{}", err.clone().unwrap()).as_str(), sentry::Level::Info);
+                });
+
                 println!(
                     "{}",
                     format!("VirtualMachineException: {}", err.unwrap()).red()
