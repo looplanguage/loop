@@ -1,11 +1,12 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::statement::assign::VariableAssign;
 
 pub fn compile_statement_variable_assign(
     compiler: &mut Compiler,
     variable: VariableAssign,
-) -> Option<String> {
+) -> Option<CompilerException> {
     let symbol = compiler
         .symbol_table
         .borrow_mut()
@@ -32,5 +33,8 @@ pub fn compile_statement_variable_assign(
         }
     }
 
-    Some(format!("undefined variable {}", variable.ident.value))
+    Some(CompilerException::UnknownSymbol(UnknownSymbol {
+        name: variable.ident.value,
+        scope_depth: compiler.scope_index as u16,
+    }))
 }

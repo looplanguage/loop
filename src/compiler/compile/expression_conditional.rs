@@ -1,6 +1,7 @@
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
@@ -8,7 +9,7 @@ use crate::parser::statement::Statement;
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
-) -> Option<String> {
+) -> Option<CompilerException> {
     let err = compiler.compile_expression(*conditional.condition);
 
     if err.is_some() {
@@ -25,7 +26,7 @@ pub fn compile_expression_conditional(
 
     compiler.remove_last(OpCode::Pop);
 
-    // TODO: Again, improve this monstrosity somehow
+    // TODO: Improve this somehow
     if !compiler.last_is(OpCode::Return)
         && !compiler.last_is(OpCode::Constant)
         && !compiler.last_is(OpCode::GetVar)

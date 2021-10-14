@@ -33,7 +33,7 @@ pub fn load_config() -> LoadType {
 
     if config.is_err() {
         println!(
-            "Unable to load config from (after 3 attempts): {}\\.loop\\config.toml",
+            "Unable to load config from (after 3 attempts): {}/.loop/config.toml",
             home_dir().unwrap().to_str().unwrap()
         );
         return Normal(Config::default());
@@ -54,9 +54,9 @@ impl TryLoadConfig {
             return Result::Err(Exception::Runtime(RuntimeException::NoHomeFolderDetected));
         }
 
-        let directory = format!("{}\\.loop", home.unwrap().to_str().unwrap());
+        let directory = format!("{}/.loop", home.unwrap().to_str().unwrap());
 
-        let config_file = format!("{}\\config.toml", directory);
+        let config_file = format!("{}/config.toml", directory);
 
         let content = read_to_string(config_file);
 
@@ -76,7 +76,7 @@ impl TryLoadConfig {
                 )));
             }
 
-            let file = File::create(Path::new(format!("{}\\config.toml", dir.clone()).as_str()));
+            let file = File::create(Path::new(format!("{}/config.toml", dir.clone()).as_str()));
 
             if file.is_err() {
                 return Result::Err(Exception::Runtime(RuntimeException::UnableToWriteFile(

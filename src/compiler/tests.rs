@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::compiler::instructions::pretty_print_instructions;
+    use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
+    use crate::lib::exception::Exception;
     use crate::lib::object::Object;
     use crate::{compiler, lexer, parser};
     use std::borrow::Borrow;
@@ -64,7 +66,10 @@ mod tests {
     fn scoping_rules_2() {
         compiler_test_error(
             "var test = 100; if(true) { var test2 = test }; test2",
-            Some(String::from("unknown variable. got=\"test2\"")),
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "test2".to_string(),
+                scope_depth: 0,
+            })),
         );
     }
 
@@ -72,13 +77,19 @@ mod tests {
     fn scoping_rules_3() {
         compiler_test_error(
             "var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test3; };",
-            Some(String::from("unknown variable. got=\"test3\"")),
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "test3".to_string(),
+                scope_depth: 0,
+            })),
         );
     }
 
     #[test]
     fn scoping_rules_4() {
-        compiler_test_error("var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test2; }; test3", Some(String::from("unknown variable. got=\"test3\"")));
+        compiler_test_error("var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test2; }; test3", Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            name: "test3".to_string(),
+            scope_depth: 0
+        })),);
     }
 
     #[test]
@@ -91,7 +102,10 @@ mod tests {
         }\
         hello;
         ",
-            Some(String::from("unknown variable. got=\"hello\"")),
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "hello".to_string(),
+                scope_depth: 0,
+            })),
         );
     }
 
@@ -108,7 +122,10 @@ mod tests {
             hello2;
         }\
         ",
-            Some(String::from("unknown variable. got=\"hello2\"")),
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "hello2".to_string(),
+                scope_depth: 1,
+            })),
         );
     }
 
@@ -142,7 +159,10 @@ mod tests {
             hello2;
         }\
         ",
-            Some(String::from("unknown variable. got=\"hello2\"")),
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "hello2".to_string(),
+                scope_depth: 1,
+            })),
         );
     }
 
@@ -165,12 +185,12 @@ mod tests {
 
     #[test]
     fn divide_by_zero_integer() {
-        compiler_test_error("100 / 0", Some("can not divide by 0".to_string()))
+        compiler_test_error("100 / 0", Some(CompilerException::DivideByZero))
     }
 
     #[test]
     fn divide_by_zero_float() {
-        compiler_test_error("302 / 0.0", Some("can not divide by 0".to_string()))
+        compiler_test_error("302 / 0.0", Some(CompilerException::DivideByZero))
     }
 
     #[test]
@@ -183,7 +203,7 @@ mod tests {
         compiler_test_error("302 / 1.14", None)
     }
 
-    fn compiler_test_error(input: &str, expected: Option<String>) {
+    fn compiler_test_error(input: &str, expected: Option<CompilerException>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
 
@@ -191,7 +211,9 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                println!("ParserException: {}", err);
+                if let Exception::Parser(err) = err {
+                    println!("ParserException: {}", err);
+                }
             }
 
             panic!("Parser exceptions occurred!")
@@ -200,7 +222,13 @@ mod tests {
         let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
-        assert_eq!(expected, err);
+        if expected.is_some() && err.is_ok() {
+            panic!("expected error to be \"{:?}\". got=NULL", expected.unwrap())
+        }
+
+        if expected.is_some() && err.is_err() {
+            assert_eq!(expected.unwrap(), err.err().unwrap())
+        }
     }
 
     fn compiler_test_constants(input: &str, expected: Vec<&str>) {
@@ -211,7 +239,9 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                println!("ParserException: {}", err);
+                if let Exception::Parser(err) = err {
+                    println!("ParserException: {}", err);
+                }
             }
 
             panic!("Parser exceptions occurred!")
@@ -242,7 +272,9 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                println!("ParserException: {}", err);
+                if let Exception::Parser(err) = err {
+                    println!("ParserException: {}", err);
+                }
             }
 
             panic!("Parser exceptions occurred!")

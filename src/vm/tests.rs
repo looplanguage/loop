@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::lib::exception::Exception;
     use crate::lib::object::null;
     use crate::lib::object::Object;
     use crate::lib::object::Object::Float;
@@ -211,7 +212,9 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                println!("ParserException: {}", err);
+                if let Exception::Parser(err) = err {
+                    println!("ParserException: {}", err);
+                }
             }
 
             panic!("Parser exceptions occurred!")
@@ -220,8 +223,8 @@ mod tests {
         let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
-        if err.is_some() {
-            panic!("{}", err.unwrap());
+        if err.is_err() {
+            panic!("{:?}", err.err().unwrap());
         }
 
         let mut vm = build_vm(comp.get_bytecode(), None);

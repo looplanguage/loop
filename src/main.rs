@@ -2,12 +2,13 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use colored::Colorize;
 use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
 
 use crate::lib::config::{load_config, LoadType};
-use crate::lib::telemetry::enable_telemetry;
+use crate::lib::exception::Exception;
 use lib::flags;
 use lib::repl::build_repl;
 
@@ -18,6 +19,16 @@ pub mod lexer;
 mod lib;
 pub mod parser;
 mod vm;
+
+#[cfg(debug_assertions)]
+fn get_build() -> String {
+    "development".to_string()
+}
+
+#[cfg(not(debug_assertions))]
+fn get_build() -> String {
+    "release".to_string()
+}
 
 fn main() {
     let config = match load_config() {
@@ -35,8 +46,17 @@ fn main() {
         LoadType::Normal(cfg) => cfg,
     };
 
-    if config.enable_telemetry {
-        enable_telemetry();
+    let _guard = sentry::init((
+        "https://d071f32c72f44690a1a7f9821cd15ace@o1037493.ingest.sentry.io/6005454",
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
+            environment: Some(get_build().into()),
+            ..Default::default()
+        },
+    ));
+
+    if !config.enable_telemetry {
+        _guard.close(None);
     }
 
     let flags = get_flags();
@@ -63,17 +83,21 @@ fn run_file(file: String) {
 
     if !parser.errors.is_empty() {
         for err in parser.errors {
-            println!("ParserException: {}", err);
+            if let Exception::Parser(msg) = err {
+                println!("ParserException: {}", msg);
+            }
         }
 
         panic!("Parser exceptions occurred!")
     }
 
     let mut comp = compiler::build_compiler(None);
-    let err = comp.compile(program);
+    let error = comp.compile(program);
 
-    if err.is_some() {
-        panic!("{}", err.unwrap());
+    if error.is_err() {
+        let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
+        println!("{}", message.as_str().red());
+        return;
     }
 
     let mut vm = build_vm(comp.get_bytecode(), None);
