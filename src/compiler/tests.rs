@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     use crate::compiler::instructions::pretty_print_instructions;
+    use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
+    use crate::lib::exception::Exception;
     use crate::lib::object::Object;
     use crate::{compiler, lexer, parser};
     use std::borrow::Borrow;
-    use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
-    use crate::lib::exception::Exception;
 
     #[test]
     fn closures() {
@@ -68,7 +68,7 @@ mod tests {
             "var test = 100; if(true) { var test2 = test }; test2",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "test2".to_string(),
-                scope_depth: 0
+                scope_depth: 0,
             })),
         );
     }
@@ -79,7 +79,7 @@ mod tests {
             "var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test3; };",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "test3".to_string(),
-                scope_depth: 0
+                scope_depth: 0,
             })),
         );
     }
@@ -104,8 +104,8 @@ mod tests {
         ",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "hello".to_string(),
-                scope_depth: 0
-            }))
+                scope_depth: 0,
+            })),
         );
     }
 
@@ -124,7 +124,7 @@ mod tests {
         ",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "hello2".to_string(),
-                scope_depth: 1
+                scope_depth: 1,
             })),
         );
     }
@@ -161,7 +161,7 @@ mod tests {
         ",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "hello2".to_string(),
-                scope_depth: 1
+                scope_depth: 1,
             })),
         );
     }
