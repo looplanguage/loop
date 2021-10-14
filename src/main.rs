@@ -44,7 +44,6 @@ fn main() {
             cfg
         }
 
-
         LoadType::Normal(cfg) => cfg,
     };
 
