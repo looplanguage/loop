@@ -2,6 +2,7 @@
 pub enum FlagTypes {
     None,
     Debug,
+    Benchmark,
 }
 
 pub fn build_flags() -> Flags {
@@ -20,6 +21,7 @@ impl Flags {
     fn get_flag(string: &str) -> FlagTypes {
         match string {
             "--debug" | "-d" => FlagTypes::Debug,
+            "--benchmark" | "-b" => FlagTypes::Benchmark,
             &_ => FlagTypes::None,
         }
     }
@@ -45,7 +47,7 @@ impl Flags {
         i
     }
 
-    pub fn contains(self, flag: FlagTypes) -> bool {
+    pub fn contains(&self, flag: FlagTypes) -> bool {
         self.flags.contains(&flag)
     }
 }

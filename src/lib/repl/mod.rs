@@ -1,3 +1,4 @@
+use chrono::Utc;
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
@@ -14,6 +15,7 @@ pub struct Repl {
     debug: bool,
     compiler_state: Option<CompilerState>,
     vm_state: Option<VMState>,
+    benchmark: bool,
 }
 
 pub fn build_repl(flags: Flags) -> Repl {
@@ -22,6 +24,7 @@ pub fn build_repl(flags: Flags) -> Repl {
         compiler_state: None,
         vm_state: None,
         debug: flags.contains(FlagTypes::Debug),
+        benchmark: flags.contains(FlagTypes::Benchmark),
     }
 }
 
@@ -68,7 +71,12 @@ impl Repl {
             }
 
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
+
+            let started = Utc::now();
+
             let err = vm.run();
+
+            let duration = Utc::now().signed_duration_since(started);
 
             if err.is_some() {
                 sentry::with_scope(
@@ -86,6 +94,11 @@ impl Repl {
                 );
             } else if vm.last_popped.is_some() {
                 self.vm_state = Some(vm.get_state());
+
+                if self.benchmark {
+                    let formatted = duration.to_string().replace("PT", "");
+                    println!("Execution Took: {}", formatted);
+                }
 
                 println!("{}", vm.last_popped.unwrap().inspect().green());
             }
