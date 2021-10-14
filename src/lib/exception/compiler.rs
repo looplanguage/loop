@@ -1,13 +1,13 @@
 use sentry::protocol::Value;
 use std::collections::BTreeMap;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UnknownSymbol {
     pub name: String,
     pub scope_depth: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum CompilerException {
     UnknownSymbol(UnknownSymbol),
     DivideByZero,

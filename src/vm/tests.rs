@@ -8,6 +8,7 @@ mod tests {
     use crate::lib::object::{float, integer};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use crate::lib::exception::Exception;
 
     #[test]
     fn recursive_functions() {}
@@ -211,7 +212,9 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                println!("ParserException: {}", err);
+                if let Exception::Parser(err) = err {
+                    println!("ParserException: {}", err);
+                }
             }
 
             panic!("Parser exceptions occurred!")
@@ -220,8 +223,8 @@ mod tests {
         let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
-        if err.is_some() {
-            panic!("{}", err.unwrap());
+        if err.is_err() {
+            panic!("{:?}", err.err().unwrap());
         }
 
         let mut vm = build_vm(comp.get_bytecode(), None);
