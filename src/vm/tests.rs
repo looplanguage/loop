@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::lib::exception::Exception;
     use crate::lib::object::null;
     use crate::lib::object::Object;
     use crate::lib::object::Object::Float;
@@ -8,7 +9,6 @@ mod tests {
     use crate::lib::object::{float, integer};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
-    use crate::lib::exception::Exception;
 
     #[test]
     fn recursive_functions() {}
