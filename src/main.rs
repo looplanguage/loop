@@ -11,6 +11,7 @@ use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
 use lib::flags;
 use lib::repl::build_repl;
+use crate::lib::flags::Flags;
 
 use crate::vm::build_vm;
 
@@ -62,14 +63,14 @@ fn main() {
 
     let flags = get_flags();
 
-    if let Some(file) = flags.file {
-        run_file(file);
+    if let Some(file) = flags.file.clone() {
+        run_file(file, flags);
     } else {
         build_repl(flags).start();
     }
 }
 
-fn run_file(file: String) {
+fn run_file(file: String, flags: Flags) {
     let content = read_to_string(file);
 
     if let Err(e) = content {
