@@ -44,18 +44,12 @@ impl CompilerException {
 
                         let mut map: BTreeMap<String, Value> = std::collections::BTreeMap::new();
                         map.insert(String::from("variable_name"), symbol.name.clone().into());
-                        map.insert(
-                            String::from("scope_depth"),
-                            symbol.scope_depth.clone().into(),
-                        );
+                        map.insert(String::from("scope_depth"), symbol.scope_depth.into());
 
                         scope.set_context("", sentry::protocol::Context::Other(map));
                     },
                     || {
-                        sentry::capture_message(
-                            format!("UnknownSymbol").as_str(),
-                            sentry::Level::Info,
-                        );
+                        sentry::capture_message("UnknownSymbol", sentry::Level::Info);
                     },
                 );
             }
