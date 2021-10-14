@@ -9,16 +9,20 @@
     </p>
 <br>
 
-**Note:** currently Loop is being re-written into Rust. Meaning that while this change is happening not all features of Loop are implemented.
+**Note:** currently Loop is being re-written into Rust. Meaning that while this
+change is happening not all features of Loop are implemented.
 
-In this repository, you will find the lexer, parser, compiler and virtual machine.<br>
+In this repository, you will find the lexer, parser, compiler and virtual
+machine.<br>
 
 ## Get started (usage)
+
 1. Download a pre-built binary from the releases section for your platform
 2. Run `./loop` to start the REPL environment or
 3. Run `./loop FILENAME.lp` to run a specific file.
 
 ## Get Started (development)
+
 1. Make sure you have [Rust](https://www.rust-lang.org/) installed
 2. Clone the repository `git clone https://github.com/looplanguage/loop`
 3. Enter the repository `cd loop`
