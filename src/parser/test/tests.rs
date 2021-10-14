@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::lexer;
+    use crate::lib::exception::Exception;
     use crate::parser;
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
@@ -346,7 +347,9 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                println!("ParserException: {}", err);
+                if let Exception::Parser(err) = err {
+                    println!("ParserException: {}", err);
+                }
             }
 
             panic!("Parser exceptions occurred!")

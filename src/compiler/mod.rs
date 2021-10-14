@@ -25,6 +25,7 @@ use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
 use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, VariableScope,
 };
+use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use crate::parser::expression::Expression;
@@ -111,24 +112,17 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
 }
 
 impl Compiler {
-    pub fn compile(&mut self, program: Program) -> Option<String> {
+    pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
         for statement in program.statements {
             let err = self.compile_statement(statement);
-            if err.is_some() {
-                sentry::with_scope(
-                    |scope| {
-                        scope.set_tag("exception.type", "compiler");
-                    },
-                    || {
-                        sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
-                    },
-                );
+            if let Some(err) = err {
+                err.emit();
 
-                return err;
+                return Result::Err(err);
             }
         }
 
-        None
+        Result::Ok(self.get_bytecode())
     }
 
     pub fn get_state(&self) -> CompilerState {
@@ -205,7 +199,7 @@ impl Compiler {
         }
     }
 
-    fn compile_expression(&mut self, expr: Expression) -> Option<String> {
+    fn compile_expression(&mut self, expr: Expression) -> Option<CompilerException> {
         let err = match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
@@ -227,7 +221,7 @@ impl Compiler {
         None
     }
 
-    fn compile_block(&mut self, block: Block) -> Option<String> {
+    fn compile_block(&mut self, block: Block) -> Option<CompilerException> {
         self.enter_variable_scope();
 
         if block.statements.is_empty() {
@@ -237,6 +231,7 @@ impl Compiler {
         for statement in block.statements {
             let err = self.compile_statement(statement);
             if err.is_some() {
+                err.as_ref().unwrap().emit();
                 return err;
             }
         }
@@ -246,7 +241,7 @@ impl Compiler {
         None
     }
 
-    fn compile_statement(&mut self, stmt: Statement) -> Option<String> {
+    fn compile_statement(&mut self, stmt: Statement) -> Option<CompilerException> {
         match stmt {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
