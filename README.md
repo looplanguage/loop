@@ -1,3 +1,6 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Build Status - GitHub](https://github.com/looplanguage/loop/workflows/CI/badge.svg)
+
 <h1 align="center">Loop Language</h1>
     <p align="center">
         <a href="https://looplang.org/docs">Documentation</a> |
