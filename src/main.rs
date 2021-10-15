@@ -107,7 +107,7 @@ fn run_file(file: String, flags: Flags) {
 
     let started = Utc::now();
 
-    let ran = vm.run();
+    let ran = vm.run(flags.contains(FlagTypes::JIT));
 
     let duration = Utc::now().signed_duration_since(started);
 

@@ -3,6 +3,7 @@ pub enum FlagTypes {
     None,
     Debug,
     Benchmark,
+    JIT,
 }
 
 pub fn build_flags() -> Flags {
@@ -22,6 +23,7 @@ impl Flags {
         match string {
             "--debug" | "-d" => FlagTypes::Debug,
             "--benchmark" | "-b" => FlagTypes::Benchmark,
+            "--jit" | "-j" => FlagTypes::JIT,
             &_ => FlagTypes::None,
         }
     }

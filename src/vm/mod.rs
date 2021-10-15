@@ -81,7 +81,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
 }
 
 impl VM {
-    pub fn run(&mut self) -> Result<Rc<Object>, String> {
+    pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<Object>, String> {
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;
             let _op = lookup_op(self.current_frame().instructions()[ip as usize]);
@@ -196,7 +196,7 @@ impl VM {
 
                     self.current_frame().ip += 1;
 
-                    run_function(self, args)
+                    run_function(self, args, attempt_jit)
                 }
                 OpCode::GetLocal => {
                     let ip = self.current_frame().ip;
