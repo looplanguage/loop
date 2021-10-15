@@ -1,4 +1,3 @@
-use chrono::Utc;
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
@@ -6,6 +5,7 @@ use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
+use chrono::Utc;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
