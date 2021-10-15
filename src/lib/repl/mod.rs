@@ -5,6 +5,7 @@ use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
+use chrono::Utc;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -14,6 +15,7 @@ pub struct Repl {
     debug: bool,
     compiler_state: Option<CompilerState>,
     vm_state: Option<VMState>,
+    benchmark: bool,
 }
 
 pub fn build_repl(flags: Flags) -> Repl {
@@ -22,6 +24,7 @@ pub fn build_repl(flags: Flags) -> Repl {
         compiler_state: None,
         vm_state: None,
         debug: flags.contains(FlagTypes::Debug),
+        benchmark: flags.contains(FlagTypes::Benchmark),
     }
 }
 
@@ -70,7 +73,10 @@ impl Repl {
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
             let ran = vm.run();
 
+            let started = Utc::now();
+
             if ran.is_err() {
+                let duration = Utc::now().signed_duration_since(started);
                 sentry::with_scope(
                     |scope| {
                         scope.set_tag("exception.type", "vm");
@@ -89,6 +95,11 @@ impl Repl {
                 );
             } else {
                 self.vm_state = Some(vm.get_state());
+
+                if self.benchmark {
+                    let formatted = duration.to_string().replace("PT", "");
+                    println!("Execution Took: {}", formatted);
+                }
 
                 println!("{}", ran.ok().unwrap().inspect().green());
             }
