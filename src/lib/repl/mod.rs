@@ -16,6 +16,7 @@ pub struct Repl {
     compiler_state: Option<CompilerState>,
     vm_state: Option<VMState>,
     benchmark: bool,
+    jit: bool,
 }
 
 pub fn build_repl(flags: Flags) -> Repl {
@@ -25,6 +26,7 @@ pub fn build_repl(flags: Flags) -> Repl {
         vm_state: None,
         debug: flags.contains(FlagTypes::Debug),
         benchmark: flags.contains(FlagTypes::Benchmark),
+        jit: flags.contains(FlagTypes::JIT),
     }
 }
 
@@ -43,6 +45,13 @@ impl Repl {
         "
         );
         println!("Welcome to Loop v{}", VERSION);
+
+        if self.jit {
+            println!(
+                "{}you're running Loop in JIT mode. More info: https://looplang.org/docs/jit",
+                "WARNING: ".red()
+            );
+        }
 
         self.run()
     }
@@ -73,7 +82,7 @@ impl Repl {
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
 
             let started = Utc::now();
-            let ran = vm.run();
+            let ran = vm.run(self.jit);
             let duration = Utc::now().signed_duration_since(started);
 
             if ran.is_err() {
