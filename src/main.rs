@@ -2,6 +2,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use chrono::Utc;
 use colored::Colorize;
 use dirs::home_dir;
 use std::env;
@@ -9,6 +10,7 @@ use std::fs::read_to_string;
 
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
+use crate::lib::flags::{FlagTypes, Flags};
 use lib::flags;
 use lib::repl::build_repl;
 
@@ -104,17 +106,26 @@ fn run_file(file: String) {
     let mut vm = build_vm(comp.get_bytecode(), None);
     let ran = vm.run();
 
+    let started = Utc::now();
+
+    let duration = Utc::now().signed_duration_since(started);
+
     if ran.is_err() {
         sentry::with_scope(
             |scope| {
                 scope.set_tag("exception.type", "vm");
             },
             || {
-                sentry::capture_message(&*ran.clone().err().unwrap(), sentry::Level::Info);
+                sentry::capture_message(ran.err().clone().unwrap().as_str(), sentry::Level::Info);
             },
         );
 
         panic!("{}", ran.err().unwrap());
+    }
+
+    if flags.contains(FlagTypes::Benchmark) {
+        let formatted = duration.to_string().replace("PT", "");
+        println!("Execution Took: {}", formatted);
     }
 
     if let Some(last) = ran.ok() {
