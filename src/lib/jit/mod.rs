@@ -5,7 +5,9 @@ use crate::lib::object;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
 use crate::lib::object::Object::Null;
+use dynasmrt::x64::Assembler;
 use dynasmrt::{dynasm, AssemblyOffset, DynasmApi, DynasmLabelApi, ExecutableBuffer};
+use std::borrow::BorrowMut;
 use std::io::Write;
 use std::ops::Deref;
 use std::rc::Rc;
@@ -16,10 +18,24 @@ pub struct JitFunction {
     pub(crate) instructions: Vec<u8>,
     pub(crate) pointer: Option<AssemblyOffset>,
     pub(crate) buffer: Option<ExecutableBuffer>,
+    pub(crate) constants: Vec<Rc<Object>>,
+    last_used_adr: String,
 }
 
+pub fn build_jit_function(instructions: Vec<u8>, constants: Vec<Rc<Object>>) -> JitFunction {
+    JitFunction {
+        ip: 0,
+        constants,
+        instructions,
+        pointer: None,
+        buffer: None,
+        last_used_adr: String::new(),
+    }
+}
+
+// TODO: Document this quite a bit more, as this is a little complicated
 impl JitFunction {
-    pub fn compile(&mut self, constants: Vec<Rc<Object>>) -> bool {
+    pub fn compile(&mut self) -> bool {
         let mut ops = dynasmrt::x64::Assembler::new().unwrap();
 
         dynasm!(ops
@@ -28,7 +44,7 @@ impl JitFunction {
 
         let offset = ops.offset();
 
-        let mut available_addresses: Vec<&str> = vec!["rcx", "rbx", "rax"];
+        let mut available_addresses = vec!["rcx".to_string(), "rbx".to_string(), "rax".to_string()];
 
         while self.ip < (self.instructions.len()) as i32 {
             let ip = self.ip;
@@ -44,13 +60,14 @@ impl JitFunction {
                     let idx = read_uint32(self.instructions[ip as usize..].to_owned());
                     self.ip += 4;
 
-                    let number = &constants[idx as usize];
+                    let number = &self.constants[idx as usize];
 
                     if let Object::Integer(number) = number.clone().deref() {
                         let adr = available_addresses.pop().unwrap();
 
-                        println!("{}", adr);
-                        match adr {
+                        self.last_used_adr = adr.to_string();
+
+                        match adr.as_str() {
                             "rax" => {
                                 dynasm!(ops
                                     ; mov rax, number.value as _
@@ -75,14 +92,24 @@ impl JitFunction {
                         ; add rax, rbx
                     );
 
-                    available_addresses.push("rbx");
+                    available_addresses.push(self.last_used_adr.clone());
                 }
                 OpCode::Multiply => {
                     dynasm!(ops
                         ; mul rbx
                     );
 
-                    available_addresses.push("rbx");
+                    available_addresses.push(self.last_used_adr.clone());
+                }
+                OpCode::Return => {
+                    dynasm!(ops
+                        ; ret
+                    );
+
+                    available_addresses.push(self.last_used_adr.clone());
+                }
+                OpCode::Pop => {
+                    available_addresses.push(self.last_used_adr.clone());
                 }
                 _ => {
                     return false;
