@@ -102,24 +102,22 @@ fn run_file(file: String) {
     }
 
     let mut vm = build_vm(comp.get_bytecode(), None);
-    let err = vm.run();
+    let ran = vm.run();
 
-    if err.is_some() {
+    if ran.is_err() {
         sentry::with_scope(
             |scope| {
                 scope.set_tag("exception.type", "vm");
             },
             || {
-                sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
+                sentry::capture_message(&*ran.clone().err().unwrap(), sentry::Level::Info);
             },
         );
 
-        panic!("{}", err.unwrap());
+        panic!("{}", ran.err().unwrap());
     }
 
-    let last_popped = vm.last_popped;
-
-    if let Some(last) = last_popped {
+    if let Some(last) = ran.ok() {
         println!("{}", last.inspect());
     } else {
         println!("VMException: VM did not return anything")

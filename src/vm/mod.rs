@@ -22,8 +22,7 @@ pub struct VM {
     sp: u16,
     frames: Vec<Frame>,
     pub frame_index: i32,
-    constants: Vec<Object>,
-    pub last_popped: Option<Rc<Object>>,
+    constants: Vec<Rc<Object>>,
     variables: HashMap<u32, Rc<Object>>,
 }
 
@@ -57,7 +56,6 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
             frame_index: 0,
             sp: 0,
             constants: bt.constants,
-            last_popped: None,
             variables: st.variables.clone(),
         };
     }
@@ -78,22 +76,24 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
         frame_index: 0,
         sp: 0,
         constants: bt.constants,
-        last_popped: None,
         variables: HashMap::new(),
     }
 }
 
 impl VM {
-    pub fn run(&mut self) -> Option<String> {
+    pub fn run(&mut self) -> Result<Rc<Object>, String> {
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;
             let _op = lookup_op(self.current_frame().instructions()[ip as usize]);
 
-            _op.as_ref()?;
+            if _op.is_none() {
+                return Err(format!("OpCode not found: {}", ip));
+            }
 
             let op = _op.unwrap();
 
             self.current_frame().ip += 1;
+
             let err = match op {
                 OpCode::Constant => {
                     let ip = self.current_frame().ip;
@@ -101,7 +101,7 @@ impl VM {
                         read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
                     self.current_frame().ip += 4;
 
-                    self.push(Rc::new(self.constants[idx as usize].clone()));
+                    self.push(Rc::clone(&self.constants[idx as usize]));
 
                     None
                 }
@@ -226,12 +226,12 @@ impl VM {
                 }
             };
 
-            if err.is_some() {
-                return err;
+            if let Some(err) = err {
+                return Err(err);
             }
         }
 
-        None
+        Ok(Rc::clone(self.stack.first().unwrap()))
     }
 
     pub fn push_frame(&mut self, frame: Frame) {
@@ -268,11 +268,9 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Rc<Object> {
-        let popped = self.stack.get((self.sp as usize) - 1);
+        let popped = self.stack[self.sp as usize - 1].to_owned();
         self.sp -= 1;
 
-        self.last_popped = Option::from(popped.map(|o| Rc::clone(o)).expect("no object to pop"));
-
-        popped.map(|o| Rc::clone(o)).expect("no object to pop")
+        popped
     }
 }
