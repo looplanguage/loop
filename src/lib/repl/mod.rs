@@ -48,7 +48,7 @@ impl Repl {
 
         if self.jit {
             println!(
-                "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/jit",
+                "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/internal/jit",
                 "WARNING: ".red()
             );
         }

@@ -1,4 +1,4 @@
-use crate::lib::jit::JitFunction;
+use crate::lib::jit::{build_jit_function, JitFunction};
 use crate::lib::object::function::Function;
 use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
@@ -12,16 +12,13 @@ pub fn run_function(vm: &mut VM, args: u8, attempt_jit: bool) -> Option<String> 
     if let Object::Function(func) = func_obj {
         // Attempt to JIT the function, otherwise fall back to interpreted execution.
         if attempt_jit {
-            let mut jit_func = JitFunction {
-                ip: 0,
-                instructions: func.func.instructions.clone(),
-                pointer: None,
-                buffer: None,
-            };
+            let mut jit_func =
+                build_jit_function(func.func.instructions.clone(), vm.constants.clone());
 
-            let compile_success = jit_func.compile(vm.constants.clone());
+            let compile_success = { jit_func.compile() };
 
             if compile_success {
+                vm.pop();
                 vm.push(Rc::from(jit_func.run()));
                 return None;
             }
