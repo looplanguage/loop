@@ -71,12 +71,12 @@ impl Repl {
             }
 
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
-            let ran = vm.run();
 
             let started = Utc::now();
+            let ran = vm.run();
+            let duration = Utc::now().signed_duration_since(started);
 
             if ran.is_err() {
-                let duration = Utc::now().signed_duration_since(started);
                 sentry::with_scope(
                     |scope| {
                         scope.set_tag("exception.type", "vm");

@@ -64,14 +64,14 @@ fn main() {
 
     let flags = get_flags();
 
-    if let Some(file) = flags.file {
-        run_file(file);
+    if let Some(file) = flags.file.clone() {
+        run_file(file, flags);
     } else {
         build_repl(flags).start();
     }
 }
 
-fn run_file(file: String) {
+fn run_file(file: String, flags: Flags) {
     let content = read_to_string(file);
 
     if let Err(e) = content {
@@ -104,9 +104,10 @@ fn run_file(file: String) {
     }
 
     let mut vm = build_vm(comp.get_bytecode(), None);
-    let ran = vm.run();
 
     let started = Utc::now();
+
+    let ran = vm.run();
 
     let duration = Utc::now().signed_duration_since(started);
 
@@ -116,7 +117,7 @@ fn run_file(file: String) {
                 scope.set_tag("exception.type", "vm");
             },
             || {
-                sentry::capture_message(ran.err().clone().unwrap().as_str(), sentry::Level::Info);
+                sentry::capture_message(ran.clone().err().unwrap().as_str(), sentry::Level::Info);
             },
         );
 

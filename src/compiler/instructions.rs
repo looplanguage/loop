@@ -2,6 +2,7 @@ use crate::compiler::definition::{get_definition, lookup, Definition};
 use crate::compiler::opcode::OpCode;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use colored::Colorize;
+use std::convert::TryInto;
 use std::io::Cursor;
 
 pub type Instructions = Vec<u8>;
@@ -72,34 +73,15 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i64>, i32) {
 }
 
 pub fn read_uint8(ins: Vec<u8>) -> u8 {
-    let mut rdr = Cursor::new(ins);
-    let try_read = rdr.read_u8();
-
-    if try_read.is_err() {
-        return u8::MAX;
-    }
-
-    try_read.unwrap()
+    ins[0]
 }
 
 pub fn read_uint16(ins: Instructions) -> u16 {
-    let mut rdr = Cursor::new(ins);
-    let try_read = rdr.read_u16::<BigEndian>();
-    if try_read.is_err() {
-        return u16::MAX;
-    }
-
-    try_read.unwrap()
+    u16::from_be_bytes((&ins.as_slice()[0..1]).try_into().unwrap())
 }
 
 pub fn read_uint32(ins: Instructions) -> u32 {
-    let mut rdr = Cursor::new(ins);
-    let try_read = rdr.read_u32::<BigEndian>();
-    if try_read.is_err() {
-        return u32::MAX;
-    }
-
-    try_read.unwrap()
+    u32::from_be_bytes((&ins.as_slice()[0..4]).try_into().unwrap())
 }
 
 pub fn make_instruction(op: OpCode, operands: Vec<u32>) -> Vec<u8> {
