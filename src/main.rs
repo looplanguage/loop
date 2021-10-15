@@ -6,12 +6,13 @@ use colored::Colorize;
 use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
+use chrono::Utc;
 
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
 use lib::flags;
 use lib::repl::build_repl;
-use crate::lib::flags::Flags;
+use crate::lib::flags::{Flags, FlagTypes};
 
 use crate::vm::build_vm;
 
@@ -103,7 +104,12 @@ fn run_file(file: String, flags: Flags) {
     }
 
     let mut vm = build_vm(comp.get_bytecode(), None);
+
+    let started = Utc::now();
+
     let err = vm.run();
+
+    let duration = Utc::now().signed_duration_since(started);
 
     if err.is_some() {
         sentry::with_scope(
@@ -119,6 +125,11 @@ fn run_file(file: String, flags: Flags) {
     }
 
     let last_popped = vm.last_popped;
+
+    if flags.contains(FlagTypes::Benchmark) {
+        let formatted = duration.to_string().replace("PT", "");
+        println!("Execution Took: {}", formatted);
+    }
 
     if let Some(last) = last_popped {
         println!("{}", last.inspect());
