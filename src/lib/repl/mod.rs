@@ -68,26 +68,29 @@ impl Repl {
             }
 
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
-            let err = vm.run();
+            let ran = vm.run();
 
-            if err.is_some() {
+            if ran.is_err() {
                 sentry::with_scope(
                     |scope| {
                         scope.set_tag("exception.type", "vm");
                     },
                     || {
-                        sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
+                        sentry::capture_message(
+                            ran.clone().err().unwrap().as_str(),
+                            sentry::Level::Info,
+                        );
                     },
                 );
 
                 println!(
                     "{}",
-                    format!("VirtualMachineException: {}", err.unwrap()).red()
+                    format!("VirtualMachineException: {}", ran.err().unwrap()).red()
                 );
-            } else if vm.last_popped.is_some() {
+            } else {
                 self.vm_state = Some(vm.get_state());
 
-                println!("{}", vm.last_popped.unwrap().inspect().green());
+                println!("{}", ran.ok().unwrap().inspect().green());
             }
         } else {
             for err in p.errors {
