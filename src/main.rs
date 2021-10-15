@@ -2,6 +2,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use chrono::Utc;
 use colored::Colorize;
 use dirs::home_dir;
 use std::env;
@@ -9,6 +10,7 @@ use std::fs::read_to_string;
 
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
+use crate::lib::flags::{FlagTypes, Flags};
 use lib::flags;
 use lib::repl::build_repl;
 
@@ -62,14 +64,14 @@ fn main() {
 
     let flags = get_flags();
 
-    if let Some(file) = flags.file {
-        run_file(file);
+    if let Some(file) = flags.file.clone() {
+        run_file(file, flags);
     } else {
         build_repl(flags).start();
     }
 }
 
-fn run_file(file: String) {
+fn run_file(file: String, flags: Flags) {
     let content = read_to_string(file);
 
     if let Err(e) = content {
@@ -102,7 +104,12 @@ fn run_file(file: String) {
     }
 
     let mut vm = build_vm(comp.get_bytecode(), None);
+
+    let started = Utc::now();
+
     let err = vm.run();
+
+    let duration = Utc::now().signed_duration_since(started);
 
     if err.is_some() {
         sentry::with_scope(
@@ -118,6 +125,11 @@ fn run_file(file: String) {
     }
 
     let last_popped = vm.last_popped;
+
+    if flags.contains(FlagTypes::Benchmark) {
+        let formatted = duration.to_string().replace("PT", "");
+        println!("Execution Took: {}", formatted);
+    }
 
     if let Some(last) = last_popped {
         println!("{}", last.inspect());
