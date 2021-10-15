@@ -2,17 +2,17 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use chrono::Utc;
 use colored::Colorize;
 use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
-use chrono::Utc;
 
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
+use crate::lib::flags::{FlagTypes, Flags};
 use lib::flags;
 use lib::repl::build_repl;
-use crate::lib::flags::{Flags, FlagTypes};
 
 use crate::vm::build_vm;
 
