@@ -19,4 +19,3 @@ dynasmrt = "1.1.0"
 
 [profile.release]
 debug = true
-lto = true
