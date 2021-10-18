@@ -45,7 +45,7 @@ impl JitFunction {
         let offset = ops.offset();
 
         let mut available_addresses = vec!["rcx".to_string(), "rbx".to_string(), "rax".to_string()];
-
+/*
         while self.ip < (self.instructions.len()) as i32 {
             let ip = self.ip;
             let _op = lookup_op(self.instructions[ip as usize]);
@@ -53,6 +53,7 @@ impl JitFunction {
             let op = _op.unwrap();
 
             self.ip += 1;
+
 
             let err = match op {
                 OpCode::Constant => {
@@ -116,6 +117,7 @@ impl JitFunction {
                 }
             };
         }
+        */
 
         dynasm!(ops
             ; ret

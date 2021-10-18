@@ -11,6 +11,8 @@ pub fn run_function(vm: &mut VM, args: u8, attempt_jit: bool) -> Option<String> 
 
     if let Object::Function(func) = func_obj {
         // Attempt to JIT the function, otherwise fall back to interpreted execution.
+        // TODO: Re-enable when more thoroughly tested and developed
+        /*
         if attempt_jit {
             let mut jit_func =
                 build_jit_function(func.func.instructions.clone(), vm.constants.clone());
@@ -23,6 +25,7 @@ pub fn run_function(vm: &mut VM, args: u8, attempt_jit: bool) -> Option<String> 
                 return None;
             }
         }
+         */
 
         let parameters = func.func.num_parameters;
 
