@@ -21,9 +21,9 @@ pub struct VM {
     stack: Vec<Rc<Object>>,
     sp: u16,
     frames: Vec<Frame>,
-    pub frame_index: i32,
+    pub frame_index: usize,
     constants: Vec<Rc<Object>>,
-    variables: HashMap<u32, Rc<Object>>,
+    variables: HashMap<u32, Rc<Object>>
 }
 
 const STACK_SIZE: usize = 2048;
@@ -39,44 +39,36 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
         stack.push(Rc::new(Object::Null(Null {})))
     }
 
+    let default_frame = build_frame(
+        Function {
+            func: CompiledFunction {
+                instructions: bt.instructions.clone(),
+                num_locals: 0,
+                num_parameters: 0,
+            },
+            free: vec![],
+        },
+        0,
+    );
+
     if let Some(st) = state {
         return VM {
             stack,
-            frames: vec![build_frame(
-                Function {
-                    func: CompiledFunction {
-                        instructions: bt.instructions.clone(),
-                        num_locals: 0,
-                        num_parameters: 0,
-                    },
-                    free: vec![],
-                },
-                0,
-            )],
+            frames: vec![default_frame],
             frame_index: 0,
             sp: 0,
             constants: bt.constants,
-            variables: st.variables.clone(),
+            variables: st.variables.clone()
         };
     }
 
     VM {
         stack,
-        frames: vec![build_frame(
-            Function {
-                func: CompiledFunction {
-                    instructions: bt.instructions.clone(),
-                    num_locals: 0,
-                    num_parameters: 0,
-                },
-                free: vec![],
-            },
-            0,
-        )],
+        frames: vec![default_frame],
         frame_index: 0,
         sp: 0,
         constants: bt.constants,
-        variables: HashMap::new(),
+        variables: HashMap::new()
     }
 }
 
@@ -246,7 +238,7 @@ impl VM {
     }
 
     pub fn current_frame(&mut self) -> &mut Frame {
-        self.frames[self.frame_index as usize].borrow_mut()
+        self.frames[self.frame_index].borrow_mut()
     }
 
     pub fn get_state(&self) -> VMState {
