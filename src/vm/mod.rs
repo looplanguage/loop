@@ -23,7 +23,7 @@ pub struct VM {
     frames: Vec<Frame>,
     pub frame_index: usize,
     constants: Vec<Rc<Object>>,
-    variables: HashMap<u32, Rc<Object>>
+    variables: HashMap<u32, Rc<Object>>,
 }
 
 const STACK_SIZE: usize = 2048;
@@ -58,7 +58,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
             frame_index: 0,
             sp: 0,
             constants: bt.constants,
-            variables: st.variables.clone()
+            variables: st.variables.clone(),
         };
     }
 
@@ -68,7 +68,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
         frame_index: 0,
         sp: 0,
         constants: bt.constants,
-        variables: HashMap::new()
+        variables: HashMap::new(),
     }
 }
 
@@ -89,8 +89,7 @@ impl VM {
             let err = match op {
                 OpCode::Constant => {
                     let ip = self.current_frame().ip;
-                    let idx =
-                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     self.push(Rc::clone(&self.constants[idx as usize]));
@@ -109,8 +108,7 @@ impl VM {
                 OpCode::Closure => None,
                 OpCode::SetVar => {
                     let ip = self.current_frame().ip;
-                    let idx =
-                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     let item = self.pop();
@@ -119,8 +117,7 @@ impl VM {
                 }
                 OpCode::GetVar => {
                     let ip = self.current_frame().ip;
-                    let idx =
-                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     let variable = self.variables.get(&idx).unwrap().clone();
@@ -134,8 +131,7 @@ impl VM {
                 OpCode::GreaterThan => run_suffix_expression(self, ">"),
                 OpCode::Jump => {
                     let ip = self.current_frame().ip;
-                    let jump_to =
-                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    let jump_to = read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
                     self.current_frame().ip = jump_to;
 
@@ -147,9 +143,8 @@ impl VM {
                     if !condition.is_truthy() {
                         let ip = self.current_frame().ip;
 
-                        let jump_to = read_uint32(
-                            &self.current_frame().instructions()[ip as usize..],
-                        );
+                        let jump_to =
+                            read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
                         self.current_frame().ip = jump_to;
                     } else {
@@ -169,8 +164,7 @@ impl VM {
                 OpCode::Function => {
                     let ip = self.current_frame().ip;
 
-                    let ct =
-                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    let ct = read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     let ip = self.current_frame().ip;
