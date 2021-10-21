@@ -90,7 +90,7 @@ impl VM {
                 OpCode::Constant => {
                     let ip = self.current_frame().ip;
                     let idx =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
+                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     self.push(Rc::clone(&self.constants[idx as usize]));
@@ -110,7 +110,7 @@ impl VM {
                 OpCode::SetVar => {
                     let ip = self.current_frame().ip;
                     let idx =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
+                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     let item = self.pop();
@@ -120,7 +120,7 @@ impl VM {
                 OpCode::GetVar => {
                     let ip = self.current_frame().ip;
                     let idx =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
+                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     let variable = self.variables.get(&idx).unwrap().clone();
@@ -135,7 +135,7 @@ impl VM {
                 OpCode::Jump => {
                     let ip = self.current_frame().ip;
                     let jump_to =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
+                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
                     self.current_frame().ip = jump_to;
 
@@ -148,7 +148,7 @@ impl VM {
                         let ip = self.current_frame().ip;
 
                         let jump_to = read_uint32(
-                            self.current_frame().instructions()[ip as usize..].to_owned(),
+                            &self.current_frame().instructions()[ip as usize..],
                         );
 
                         self.current_frame().ip = jump_to;
@@ -170,13 +170,13 @@ impl VM {
                     let ip = self.current_frame().ip;
 
                     let ct =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
+                        read_uint32(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 4;
 
                     let ip = self.current_frame().ip;
 
                     let parameters =
-                        read_uint8(self.current_frame().instructions()[ip as usize..].to_owned());
+                        read_uint8(&self.current_frame().instructions()[ip as usize..]);
                     self.current_frame().ip += 1;
 
                     run_function_stack(self, ct, parameters)
@@ -184,7 +184,7 @@ impl VM {
                 OpCode::Call => {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
-                    let args = read_uint8(ins[ip as usize..].to_owned());
+                    let args = read_uint8(&ins[ip as usize..]);
 
                     self.current_frame().ip += 1;
 
@@ -193,7 +193,7 @@ impl VM {
                 OpCode::GetLocal => {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
-                    let idx = read_uint8(ins[ip as usize..].to_owned());
+                    let idx = read_uint8(&ins[ip as usize..]);
                     self.current_frame().ip += 1;
 
                     let frame = self.current_frame();
@@ -205,7 +205,7 @@ impl VM {
                 OpCode::GetFree => {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
-                    let idx = read_uint8(ins[ip as usize..].to_owned());
+                    let idx = read_uint8(&ins[ip as usize..]);
                     self.current_frame().ip += 1;
 
                     let current = self.current_frame().func.clone();

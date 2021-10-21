@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use crate::compiler::definition::{get_definition, lookup, Definition};
 use crate::compiler::opcode::OpCode;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
@@ -60,9 +61,9 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i64>, i32) {
 
     for (i, width) in def.operand_width.iter().enumerate() {
         match *width {
-            4 => operands[i] = read_uint32(ins[offset..].to_owned()) as i64,
-            2 => operands[i] = read_uint16(ins[offset..].to_owned()) as i64,
-            1 => operands[i] = read_uint8(ins[offset..].to_owned()) as i64,
+            4 => operands[i] = read_uint32(&ins[offset..]) as i64,
+            2 => operands[i] = read_uint16(&ins[offset..]) as i64,
+            1 => operands[i] = read_uint8(ins.borrow()) as i64,
             _ => {}
         }
 
@@ -72,16 +73,16 @@ pub fn read_operands(def: Definition, ins: Vec<u8>) -> (Vec<i64>, i32) {
     (operands, offset as i32)
 }
 
-pub fn read_uint8(ins: Vec<u8>) -> u8 {
+pub fn read_uint8(ins: &[u8]) -> u8 {
     ins[0]
 }
 
-pub fn read_uint16(ins: Instructions) -> u16 {
-    u16::from_be_bytes((&ins.as_slice()[0..1]).try_into().unwrap())
+pub fn read_uint16(ins: &[u8]) -> u16 {
+    u16::from_be_bytes((ins[0..1]).try_into().unwrap())
 }
 
-pub fn read_uint32(ins: Instructions) -> u32 {
-    u32::from_be_bytes((&ins.as_slice()[0..4]).try_into().unwrap())
+pub fn read_uint32(ins: &[u8]) -> u32 {
+    u32::from_be_bytes((ins[0..4]).try_into().unwrap())
 }
 
 pub fn make_instruction(op: OpCode, operands: Vec<u32>) -> Vec<u8> {
