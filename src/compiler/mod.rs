@@ -14,6 +14,7 @@ use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_null::compile_expression_null;
+use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
@@ -212,7 +213,7 @@ impl Compiler {
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
             Expression::Float(float) => compile_expression_float(self, float),
-            Expression::String(_) => None,
+            Expression::String(string) => compile_expression_string(self, string),
         };
 
         if err.is_some() {

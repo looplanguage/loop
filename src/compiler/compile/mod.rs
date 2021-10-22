@@ -6,6 +6,7 @@ pub mod expression_function;
 pub mod expression_identifier;
 pub mod expression_integer;
 pub mod expression_null;
+pub mod expression_string;
 pub mod expression_suffix;
 pub mod statement_return;
 pub mod statement_variable_assign;
