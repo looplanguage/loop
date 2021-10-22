@@ -111,7 +111,10 @@ impl Lexer {
     fn find_keyword(&mut self, ch: char) -> Token {
         let mut keyword: String = String::from(ch);
 
-        while self.peek_character().is_alphanumeric() {
+        while self.peek_character().is_alphanumeric()
+            || self.peek_character() == '.'
+            || self.peek_character() == '_'
+        {
             keyword.push_str(self.peek_character().to_string().as_str());
             self.current += 1;
         }
@@ -176,9 +179,16 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         _ => {
             if keyword.parse::<i64>().is_ok() {
                 return TokenType::Integer;
+            } else if keyword.parse::<f64>().is_ok() {
+                return TokenType::Float;
             }
-
-            TokenType::Identifier
+            if !keyword.contains('.') {
+                return TokenType::Identifier;
+            }
+            panic!(
+                "Error -> Keyword: {}, contains a '.', This is not allowed.",
+                keyword
+            )
         }
     }
 }
