@@ -8,6 +8,7 @@ mod tests {
     use crate::parser::expression::function::Function;
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
+    use crate::parser::expression::string::LoopString;
     use crate::parser::expression::suffix::Suffix;
     use crate::parser::program::Node;
     use crate::parser::statement::assign::VariableAssign;
@@ -270,6 +271,31 @@ mod tests {
 
         // Test #2
         expected.push(test_helper::generate_boolean_expression_box(true));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn strings() {
+        let input = "\"hello world!\" \"hello world, from a string!\"";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::new(
+                (parser::expression::Expression::String(LoopString {
+                    value: String::from("hello world!"),
+                })),
+            ),
+        })));
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::new(
+                (parser::expression::Expression::String(LoopString {
+                    value: String::from("hello world, from a string!"),
+                })),
+            ),
+        })));
 
         test_parser(input, expected);
     }

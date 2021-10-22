@@ -212,6 +212,7 @@ impl Compiler {
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
             Expression::Float(float) => compile_expression_float(self, float),
+            Expression::String(_) => None,
         };
 
         if err.is_some() {
