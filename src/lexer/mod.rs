@@ -111,7 +111,7 @@ impl Lexer {
     fn find_keyword(&mut self, ch: char) -> Token {
         let mut keyword: String = String::from(ch);
 
-        while self.peek_character().is_alphanumeric() || ".".parse().unwrap() {
+        while self.peek_character().is_alphanumeric() || self.peek_character() == '.' {
             keyword.push_str(self.peek_character().to_string().as_str());
             self.current += 1;
         }

@@ -6,12 +6,17 @@ mod tests {
 
     #[test]
     fn variable_declaration() {
-        let input = "var test = 1;";
+        let input = "var test = 1; var foo = 1.1;";
         let expected = vec![
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("test", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
             test_helper::generate_token("1", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("var", TokenType::VariableDeclaration),
+            test_helper::generate_token("foo", TokenType::Identifier),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("1.1", TokenType::Float),
             test_helper::generate_token(";", TokenType::Semicolon),
         ];
 
