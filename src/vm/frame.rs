@@ -1,6 +1,6 @@
-use std::borrow::Borrow;
 use crate::compiler::instructions::Instructions;
 use crate::lib::object::function::Function;
+use std::borrow::Borrow;
 
 pub struct Frame {
     pub func: Function,
