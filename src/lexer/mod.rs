@@ -60,6 +60,7 @@ impl Lexer {
             '[' => create_token(TokenType::LeftBracket, ch.to_string()),
             ']' => create_token(TokenType::RightBracket, ch.to_string()),
             '.' => create_token(TokenType::Dot, ch.to_string()),
+            '"' => self.find_string(),
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
@@ -106,6 +107,18 @@ impl Lexer {
             }
             _ => self.find_keyword(ch),
         }
+    }
+
+    fn find_string(&mut self) -> Token {
+        let mut string: String = String::new();
+        self.current += 1;
+
+        while self.current_character() != '"' && self.current_character() != char::from(0) {
+            string.push_str(self.current_character().to_string().as_str());
+            self.current += 1;
+        }
+
+        create_token(TokenType::String, string)
     }
 
     fn find_keyword(&mut self, ch: char) -> Token {

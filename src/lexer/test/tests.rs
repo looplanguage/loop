@@ -106,6 +106,28 @@ mod tests {
         do_test(input, expected);
     }
 
+    #[test]
+    fn strings() {
+        let input = "\"hello\" \"world!\"";
+        let expected = vec![
+            test_helper::generate_token("hello", TokenType::String),
+            test_helper::generate_token("world!", TokenType::String),
+        ];
+
+        do_test(input, expected);
+    }
+
+    #[test]
+    fn strings_with_spaces() {
+        let input = "\"hello world\" \"Even more spaces! And cool tokens :)\"";
+        let expected = vec![
+            test_helper::generate_token("hello world", TokenType::String),
+            test_helper::generate_token("Even more spaces! And cool tokens :)", TokenType::String),
+        ];
+
+        do_test(input, expected);
+    }
+
     fn do_test(input: &str, expected: Vec<Token>) {
         let mut l = lexer::build_lexer(input);
         let mut current_token: Token = l.current_token.clone().unwrap();
