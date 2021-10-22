@@ -111,7 +111,7 @@ impl Lexer {
     fn find_keyword(&mut self, ch: char) -> Token {
         let mut keyword: String = String::from(ch);
 
-        while self.peek_character().is_alphanumeric() {
+        while self.peek_character().is_alphanumeric() || ".".parse().unwrap() {
             keyword.push_str(self.peek_character().to_string().as_str());
             self.current += 1;
         }
@@ -177,7 +177,9 @@ fn lookup_keyword(keyword: &str) -> TokenType {
             if keyword.parse::<i64>().is_ok() {
                 return TokenType::Integer;
             }
-
+            else if keyword.parse::<f64>().is_ok(){
+                return TokenType::Float;
+            }
             TokenType::Identifier
         }
     }

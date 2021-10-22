@@ -10,6 +10,7 @@ pub enum TokenType {
     VariableDeclaration,
     Assign,
     Integer,
+    Float,
     Semicolon,
     Plus,
     Minus,
