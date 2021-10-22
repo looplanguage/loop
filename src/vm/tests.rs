@@ -181,7 +181,6 @@ mod tests {
         test_vm("-100 / 100", Integer(integer::Integer { value: -1 }));
         //test_vm("10 / 100", Float(float::Float { value: 0.1 }));
         //test_vm("10 / 25", Float(float::Float { value: 0.4 }));
-
     }
 
     /*#[test]
