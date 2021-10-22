@@ -107,35 +107,30 @@ fn run_file(file: String, flags: Flags) {
 
     let started = Utc::now();
 
-    let err = vm.run();
+    let ran = vm.run(flags.contains(FlagTypes::Jit));
 
     let duration = Utc::now().signed_duration_since(started);
 
-    if err.is_some() {
+    if ran.is_err() {
         sentry::with_scope(
             |scope| {
                 scope.set_tag("exception.type", "vm");
             },
             || {
-                sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
+                sentry::capture_message(ran.clone().err().unwrap().as_str(), sentry::Level::Info);
             },
         );
 
-        panic!("{}", err.unwrap());
+        panic!("{}", ran.err().unwrap());
     }
-
-    let last_popped = vm.last_popped;
 
     if flags.contains(FlagTypes::Benchmark) {
         let formatted = duration.to_string().replace("PT", "");
         println!("Execution Took: {}", formatted);
     }
 
-    if let Some(last) = last_popped {
-        println!("{}", last.inspect());
-    } else {
-        println!("VMException: VM did not return anything")
-    }
+    let last = ran.ok().unwrap();
+    println!("{}", last.inspect());
 }
 
 fn get_flags() -> flags::Flags {
