@@ -6,6 +6,7 @@ use crate::parser::expression::function::{Call, Function};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::null::Null;
+use crate::parser::expression::string::LoopString;
 use crate::parser::expression::suffix::Suffix;
 
 pub mod boolean;
@@ -15,6 +16,7 @@ pub mod function;
 pub mod identifier;
 pub mod integer;
 pub mod null;
+pub mod string;
 pub mod suffix;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -28,6 +30,7 @@ pub enum Expression {
     Null(Null),
     Call(Call),
     Float(Float),
+    String(LoopString),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
