@@ -182,8 +182,6 @@ impl VM {
 
                     self.increment_ip(1);
 
-                    println!("ARgs: {}", args);
-
                     // TODO: Properly implement VM exceptions
                     run_function(self, args, attempt_jit);
 

@@ -38,8 +38,26 @@ pub fn lookup(name: &str) -> Option<Object> {
 }
 
 fn len(arguments: Vec<Rc<Object>>) -> EvalResult {
+    check_length(arguments.clone(), 1)?;
+
     match &arguments[0].borrow() {
-        Object::String(value) => Ok(Object::Integer(Integer { value: 50 })),
-        _ => Ok(Object::Integer(Integer { value: 100 })),
+        Object::String(string) => Ok(Object::Integer(Integer {
+            value: string.value.len() as i64,
+        })),
+        _ => Err(VMException::IncorrectType(format!(
+            "incorrect type for function 'len'. got=\"{:?}\"",
+            &arguments[0]
+        ))),
     }
+}
+
+fn check_length(args: Vec<Rc<Object>>, required_length: usize) -> EvalResult {
+    if args.len() != required_length {
+        return Err(VMException::IncorrectArgumentCount(
+            required_length as i32,
+            args.len() as i32,
+        ));
+    }
+
+    Ok(Object::Null(Null {}))
 }
