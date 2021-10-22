@@ -1,3 +1,4 @@
+use crate::lib::object::builtin::BUILTINS;
 use std::collections::HashMap;
 use std::mem;
 
@@ -55,7 +56,13 @@ impl SymbolTable {
     }
 
     pub fn new_with_builtins() -> Self {
-        SymbolTable::new()
+        let mut symbol_table = SymbolTable::new();
+
+        for (i, b) in BUILTINS.iter().enumerate() {
+            symbol_table.define_builtin(i as u16, b.name);
+        }
+
+        symbol_table
     }
 
     pub fn push(&mut self) {
@@ -71,6 +78,19 @@ impl SymbolTable {
                 popped.free_symbols
             }
         }
+    }
+
+    pub fn define_builtin(&mut self, index: u16, name: &str) -> &Symbol {
+        if !self.outers.is_empty() {
+            panic!("builtin can be defined only on top-level scope");
+        }
+
+        let symbol = Symbol {
+            index: index as u32,
+            scope: Scope::Builtin,
+        };
+
+        self.current.define_symbol(name, symbol)
     }
 
     pub fn define(&mut self, name: &str, global_index: u32) -> &Symbol {

@@ -7,6 +7,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
+use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -181,7 +182,12 @@ impl VM {
 
                     self.increment_ip(1);
 
-                    run_function(self, args, attempt_jit)
+                    println!("ARgs: {}", args);
+
+                    // TODO: Properly implement VM exceptions
+                    run_function(self, args, attempt_jit);
+
+                    None
                 }
                 OpCode::GetLocal => {
                     let ip = self.current_frame().ip;
@@ -208,6 +214,17 @@ impl VM {
                     self.push(Rc::clone(free));
 
                     None
+                }
+                OpCode::GetBuiltin => {
+                    let ip = self.current_frame().ip;
+
+                    let ct =
+                        read_uint8(&self.current_frame().instructions()[ip as usize..]) as usize;
+                    self.increment_ip(1);
+
+                    let builtin_function = Rc::new(BUILTINS[ct].builtin.clone());
+
+                    self.push(builtin_function)
                 }
             };
 

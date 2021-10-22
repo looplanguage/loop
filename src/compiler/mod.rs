@@ -148,7 +148,7 @@ impl Compiler {
             Scope::Local => self.emit(OpCode::GetLocal, vec![symbol.index]),
             Scope::Global => self.emit(OpCode::GetVar, vec![symbol.index]),
             Scope::Free => self.emit(OpCode::GetFree, vec![symbol.index]),
-            Scope::Builtin => 0_usize,
+            Scope::Builtin => self.emit(OpCode::GetBuiltin, vec![symbol.index]),
         };
     }
 

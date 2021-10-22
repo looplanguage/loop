@@ -1,3 +1,5 @@
+use crate::lib::exception::vm::VMException;
+use crate::lib::object::builtin::EvalResult;
 use crate::lib::object::function::Function;
 use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
@@ -5,44 +7,67 @@ use crate::vm::VM;
 use std::borrow::Borrow;
 use std::rc::Rc;
 
-pub fn run_function(vm: &mut VM, args: u8, _attempt_jit: bool) -> Option<String> {
-    let func_obj = (*vm.stack[(vm.sp - 1 - (args as u16)) as usize]).clone();
+pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
+    let func_obj = (*vm.stack[(vm.sp - 1 - (num_args as u16)) as usize]).clone();
+    match func_obj {
+        Object::Function(func) => {
+            // Attempt to JIT the function, otherwise fall back to interpreted execution.
+            // TODO: Re-enable when more thoroughly tested and developed
+            /*
+            if attempt_jit {
+                let mut jit_func =
+                    build_jit_function(func.func.instructions.clone(), vm.constants.clone());
 
-    if let Object::Function(func) = func_obj {
-        // Attempt to JIT the function, otherwise fall back to interpreted execution.
-        // TODO: Re-enable when more thoroughly tested and developed
-        /*
-        if attempt_jit {
-            let mut jit_func =
-                build_jit_function(func.func.instructions.clone(), vm.constants.clone());
+                let compile_success = { jit_func.compile() };
 
-            let compile_success = { jit_func.compile() };
+                if compile_success {
+                    vm.pop();
+                    vm.push(Rc::from(jit_func.run()));
+                    return None;
+                }
+            }
+             */
 
-            if compile_success {
-                vm.pop();
-                vm.push(Rc::from(jit_func.run()));
-                return None;
+            let parameters = func.func.num_parameters;
+
+            if parameters != num_args {
+                return Some(VMException::IncorrectArgumentCount(
+                    parameters as i32,
+                    num_args as i32,
+                ));
+            }
+
+            let num_locals = func.func.num_locals as usize;
+            let base_pointer = vm.sp - (num_args as u16);
+
+            let frame = build_frame(func, base_pointer as i32);
+
+            vm.push_frame(frame);
+
+            vm.sp = base_pointer + (num_locals as u16)
+        }
+        Object::Builtin(func) => {
+            let mut args = Vec::with_capacity(num_args as usize);
+            for _ in 0..num_args {
+                let arg = vm.pop();
+
+                args.push(arg.clone())
+            }
+
+            args.reverse();
+
+            let _function = vm.pop();
+
+            match func(args) {
+                Ok(result) => {
+                    vm.push(Rc::new(result));
+                }
+                Err(err) => {
+                    return Some(err);
+                }
             }
         }
-         */
-
-        let parameters = func.func.num_parameters;
-
-        if parameters != args {
-            return Some(format!(
-                "incorrect argument count. expected={}. got={}",
-                parameters, args
-            ));
-        }
-
-        let num_locals = func.func.num_locals as usize;
-        let base_pointer = vm.sp - (args as u16);
-
-        let frame = build_frame(func, base_pointer as i32);
-
-        vm.push_frame(frame);
-
-        vm.sp = base_pointer + (num_locals as u16)
+        _ => {}
     }
 
     None
