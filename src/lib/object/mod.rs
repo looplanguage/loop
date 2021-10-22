@@ -1,4 +1,5 @@
 use crate::lib::object::boolean::Boolean;
+use crate::lib::object::builtin::BuiltinFunction;
 use crate::lib::object::float::Float;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer::Integer;
@@ -6,6 +7,7 @@ use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 
 pub mod boolean;
+pub mod builtin;
 pub mod float;
 pub mod function;
 pub mod integer;
@@ -21,6 +23,7 @@ pub enum Object {
     Function(Function),
     Float(Float),
     String(LoopString),
+    Builtin(BuiltinFunction),
 }
 
 impl Object {
@@ -33,6 +36,7 @@ impl Object {
             Object::Function(func) => func.inspect(),
             Object::Float(float) => float.inspect(),
             Object::String(string) => string.inspect(),
+            Object::Builtin(builtin) => format!("Builtin[{:p}]", builtin),
         }
     }
 
