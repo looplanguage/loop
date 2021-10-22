@@ -84,13 +84,13 @@ impl VM {
 
             let op = _op.unwrap();
 
-            self.current_frame().ip += 1;
+            self.increment_ip(1);
 
             let err = match op {
                 OpCode::Constant => {
                     let ip = self.current_frame().ip;
                     let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
-                    self.current_frame().ip += 4;
+                    self.increment_ip(4);
 
                     self.push(Rc::clone(&self.constants[idx as usize]));
 
@@ -109,7 +109,7 @@ impl VM {
                 OpCode::SetVar => {
                     let ip = self.current_frame().ip;
                     let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
-                    self.current_frame().ip += 4;
+                    self.increment_ip(4);
 
                     let item = self.pop();
                     self.variables.insert(idx, item);
@@ -118,7 +118,7 @@ impl VM {
                 OpCode::GetVar => {
                     let ip = self.current_frame().ip;
                     let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
-                    self.current_frame().ip += 4;
+                    self.increment_ip(4);
 
                     let variable = self.variables.get(&idx).unwrap().clone();
 
@@ -133,7 +133,7 @@ impl VM {
                     let ip = self.current_frame().ip;
                     let jump_to = read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
-                    self.current_frame().ip = jump_to;
+                    self.set_ip(jump_to);
 
                     None
                 }
@@ -146,9 +146,9 @@ impl VM {
                         let jump_to =
                             read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
-                        self.current_frame().ip = jump_to;
+                        self.set_ip(jump_to);
                     } else {
-                        self.current_frame().ip += 4;
+                        self.increment_ip(4);
                     }
 
                     None
@@ -165,13 +165,13 @@ impl VM {
                     let ip = self.current_frame().ip;
 
                     let ct = read_uint32(&self.current_frame().instructions()[ip as usize..]);
-                    self.current_frame().ip += 4;
+                    self.increment_ip(4);
 
                     let ip = self.current_frame().ip;
 
                     let parameters =
                         read_uint8(&self.current_frame().instructions()[ip as usize..]);
-                    self.current_frame().ip += 1;
+                    self.increment_ip(1);
 
                     run_function_stack(self, ct, parameters)
                 }
@@ -180,7 +180,7 @@ impl VM {
                     let ins = self.current_frame().instructions();
                     let args = read_uint8(&ins[ip as usize..]);
 
-                    self.current_frame().ip += 1;
+                    self.increment_ip(1);
 
                     run_function(self, args, attempt_jit)
                 }
@@ -188,7 +188,7 @@ impl VM {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
                     let idx = read_uint8(&ins[ip as usize..]);
-                    self.current_frame().ip += 1;
+                    self.increment_ip(1);
 
                     let frame = self.current_frame();
                     let base_pointer = frame.base_pointer;
@@ -200,7 +200,7 @@ impl VM {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
                     let idx = read_uint8(&ins[ip as usize..]);
-                    self.current_frame().ip += 1;
+                    self.increment_ip(1);
 
                     let current = self.current_frame().func.clone();
 
@@ -225,14 +225,21 @@ impl VM {
         self.frame_index += 1;
     }
 
+    pub fn increment_ip(&mut self, increment: u32) {
+        self.frames[self.frame_index].ip += increment;
+    }
+    pub fn set_ip(&mut self, ip: u32) {
+        self.frames[self.frame_index].ip = ip;
+    }
+
     pub fn pop_frame(&mut self) -> Frame {
         self.frame_index -= 1;
 
         self.frames.pop().unwrap()
     }
 
-    pub fn current_frame(&mut self) -> &mut Frame {
-        self.frames[self.frame_index].borrow_mut()
+    pub fn current_frame(&mut self) -> &Frame {
+       &self.frames[self.frame_index]
     }
 
     pub fn get_state(&self) -> VMState {

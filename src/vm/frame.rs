@@ -17,7 +17,7 @@ pub fn build_frame(func: Function, base: i32) -> Frame {
 }
 
 impl Frame {
-    pub(crate) fn instructions(&mut self) -> &Instructions {
+    pub(crate) fn instructions(&self) -> &Instructions {
         self.func.func.instructions.borrow()
     }
 }
