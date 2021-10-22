@@ -10,13 +10,13 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
 
     match operator {
         "==" => {
-            vm.push(Rc::new(Object::Boolean(Boolean {
+            vm.push(Rc::from(Object::Boolean(Boolean {
                 value: left == right,
             })));
             return None;
         }
         "!=" => {
-            vm.push(Rc::new(Object::Boolean(Boolean {
+            vm.push(Rc::from(Object::Boolean(Boolean {
                 value: left != right,
             })));
             return None;
@@ -65,7 +65,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         Object::Integer(_) => obj,
         Object::Boolean(_) => obj,
         Object::Float(float) => {
-            if float.value.fract() == 0.0 {
+            if (float.value - (float.value as u32) as f64).abs() < 0.001 {
                 Object::Integer(float.to_integer())
             } else {
                 obj
@@ -79,7 +79,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         }
     };
 
-    vm.push(Rc::new(push_object));
+    vm.push(Rc::from(push_object));
 
     None
 }
