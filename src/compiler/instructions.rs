@@ -1,10 +1,9 @@
 use std::borrow::Borrow;
 use crate::compiler::definition::{get_definition, lookup, Definition};
 use crate::compiler::opcode::OpCode;
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, WriteBytesExt};
 use colored::Colorize;
 use std::convert::TryInto;
-use std::io::Cursor;
 
 pub type Instructions = Vec<u8>;
 

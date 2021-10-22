@@ -1,4 +1,3 @@
-use crate::lib::jit::{build_jit_function, JitFunction};
 use crate::lib::object::function::Function;
 use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
@@ -6,7 +5,7 @@ use crate::vm::VM;
 use std::borrow::Borrow;
 use std::rc::Rc;
 
-pub fn run_function(vm: &mut VM, args: u8, attempt_jit: bool) -> Option<String> {
+pub fn run_function(vm: &mut VM, args: u8, _attempt_jit: bool) -> Option<String> {
     let func_obj = (*vm.stack[(vm.sp - 1 - (args as u16)) as usize]).clone();
 
     if let Object::Function(func) = func_obj {
