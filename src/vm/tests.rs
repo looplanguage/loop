@@ -116,12 +116,12 @@ mod tests {
     fn recursive_fibonacci() {
         test_vm(
             "
-            var fib = fn(x) { 
-                if(x < 2) { 
-                    return 1 
-                } else { 
-                    return fib(x - 1) + fib(x - 2) 
-                } 
+            var fib = fn(x) {
+                if(x < 2) {
+                    return 1
+                } else {
+                    return fib(x - 1) + fib(x - 2)
+                }
             }
             fib(10)
         ",
