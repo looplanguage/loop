@@ -238,7 +238,7 @@ impl VM {
     }
 
     pub fn current_frame(&mut self) -> &Frame {
-       &self.frames[self.frame_index]
+        &self.frames[self.frame_index]
     }
 
     pub fn get_state(&self) -> VMState {

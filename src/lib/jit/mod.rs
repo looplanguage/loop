@@ -1,8 +1,8 @@
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
-use dynasmrt::{dynasm, AssemblyOffset, ExecutableBuffer, DynasmApi};
-use std::rc::Rc;
+use dynasmrt::{dynasm, AssemblyOffset, DynasmApi, ExecutableBuffer};
 use std::mem;
+use std::rc::Rc;
 
 #[allow(dead_code)]
 pub struct JitFunction {
@@ -39,7 +39,7 @@ impl JitFunction {
         let offset = ops.offset();
 
         //let mut available_addresses = vec!["rcx".to_string(), "rbx".to_string(), "rax".to_string()];
-/*
+        /*
         while self.ip < (self.instructions.len()) as i32 {
             let ip = self.ip;
             let _op = lookup_op(self.instructions[ip as usize]);
