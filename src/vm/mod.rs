@@ -13,7 +13,6 @@ use crate::lib::object::Object;
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
-use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -21,9 +20,8 @@ pub struct VM {
     stack: Vec<Rc<Object>>,
     sp: u16,
     frames: Vec<Frame>,
-    pub frame_index: i32,
-    constants: Vec<Object>,
-    pub last_popped: Option<Rc<Object>>,
+    pub frame_index: usize,
+    constants: Vec<Rc<Object>>,
     variables: HashMap<u32, Rc<Object>>,
 }
 
@@ -40,68 +38,60 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
         stack.push(Rc::new(Object::Null(Null {})))
     }
 
+    let default_frame = build_frame(
+        Function {
+            func: CompiledFunction {
+                instructions: bt.instructions.clone(),
+                num_locals: 0,
+                num_parameters: 0,
+            },
+            free: vec![],
+        },
+        0,
+    );
+
     if let Some(st) = state {
         return VM {
             stack,
-            frames: vec![build_frame(
-                Function {
-                    func: CompiledFunction {
-                        instructions: bt.instructions.clone(),
-                        num_locals: 0,
-                        num_parameters: 0,
-                    },
-                    free: vec![],
-                },
-                0,
-            )],
+            frames: vec![default_frame],
             frame_index: 0,
             sp: 0,
             constants: bt.constants,
-            last_popped: None,
             variables: st.variables.clone(),
         };
     }
 
     VM {
         stack,
-        frames: vec![build_frame(
-            Function {
-                func: CompiledFunction {
-                    instructions: bt.instructions.clone(),
-                    num_locals: 0,
-                    num_parameters: 0,
-                },
-                free: vec![],
-            },
-            0,
-        )],
+        frames: vec![default_frame],
         frame_index: 0,
         sp: 0,
         constants: bt.constants,
-        last_popped: None,
         variables: HashMap::new(),
     }
 }
 
 impl VM {
-    pub fn run(&mut self) -> Option<String> {
+    pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<Object>, String> {
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;
             let _op = lookup_op(self.current_frame().instructions()[ip as usize]);
 
-            _op.as_ref()?;
+            if _op.is_none() {
+                return Err(format!("OpCode not found: {}", ip));
+            }
 
             let op = _op.unwrap();
 
-            self.current_frame().ip += 1;
+            self.increment_ip(1);
+
             let err = match op {
                 OpCode::Constant => {
                     let ip = self.current_frame().ip;
-                    let idx =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
-                    self.current_frame().ip += 4;
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    self.increment_ip(4);
 
-                    self.push(Rc::new(self.constants[idx as usize].clone()));
+                    self.push(Rc::clone(&self.constants[idx as usize]));
 
                     None
                 }
@@ -117,9 +107,8 @@ impl VM {
                 OpCode::Closure => None,
                 OpCode::SetVar => {
                     let ip = self.current_frame().ip;
-                    let idx =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
-                    self.current_frame().ip += 4;
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    self.increment_ip(4);
 
                     let item = self.pop();
                     self.variables.insert(idx, item);
@@ -127,9 +116,8 @@ impl VM {
                 }
                 OpCode::GetVar => {
                     let ip = self.current_frame().ip;
-                    let idx =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
-                    self.current_frame().ip += 4;
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    self.increment_ip(4);
 
                     let variable = self.variables.get(&idx).unwrap().clone();
 
@@ -142,10 +130,9 @@ impl VM {
                 OpCode::GreaterThan => run_suffix_expression(self, ">"),
                 OpCode::Jump => {
                     let ip = self.current_frame().ip;
-                    let jump_to =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
+                    let jump_to = read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
-                    self.current_frame().ip = jump_to;
+                    self.set_ip(jump_to);
 
                     None
                 }
@@ -155,13 +142,12 @@ impl VM {
                     if !condition.is_truthy() {
                         let ip = self.current_frame().ip;
 
-                        let jump_to = read_uint32(
-                            self.current_frame().instructions()[ip as usize..].to_owned(),
-                        );
+                        let jump_to =
+                            read_uint32(&self.current_frame().instructions()[ip as usize..]);
 
-                        self.current_frame().ip = jump_to;
+                        self.set_ip(jump_to);
                     } else {
-                        self.current_frame().ip += 4;
+                        self.increment_ip(4);
                     }
 
                     None
@@ -177,32 +163,31 @@ impl VM {
                 OpCode::Function => {
                     let ip = self.current_frame().ip;
 
-                    let ct =
-                        read_uint32(self.current_frame().instructions()[ip as usize..].to_owned());
-                    self.current_frame().ip += 4;
+                    let ct = read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    self.increment_ip(4);
 
                     let ip = self.current_frame().ip;
 
                     let parameters =
-                        read_uint8(self.current_frame().instructions()[ip as usize..].to_owned());
-                    self.current_frame().ip += 1;
+                        read_uint8(&self.current_frame().instructions()[ip as usize..]);
+                    self.increment_ip(1);
 
                     run_function_stack(self, ct, parameters)
                 }
                 OpCode::Call => {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
-                    let args = read_uint8(ins[ip as usize..].to_owned());
+                    let args = read_uint8(&ins[ip as usize..]);
 
-                    self.current_frame().ip += 1;
+                    self.increment_ip(1);
 
-                    run_function(self, args)
+                    run_function(self, args, attempt_jit)
                 }
                 OpCode::GetLocal => {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
-                    let idx = read_uint8(ins[ip as usize..].to_owned());
-                    self.current_frame().ip += 1;
+                    let idx = read_uint8(&ins[ip as usize..]);
+                    self.increment_ip(1);
 
                     let frame = self.current_frame();
                     let base_pointer = frame.base_pointer;
@@ -213,8 +198,8 @@ impl VM {
                 OpCode::GetFree => {
                     let ip = self.current_frame().ip;
                     let ins = self.current_frame().instructions();
-                    let idx = read_uint8(ins[ip as usize..].to_owned());
-                    self.current_frame().ip += 1;
+                    let idx = read_uint8(&ins[ip as usize..]);
+                    self.increment_ip(1);
 
                     let current = self.current_frame().func.clone();
 
@@ -226,17 +211,24 @@ impl VM {
                 }
             };
 
-            if err.is_some() {
-                return err;
+            if let Some(err) = err {
+                return Err(err);
             }
         }
 
-        None
+        Ok(Rc::clone(self.stack.first().unwrap()))
     }
 
     pub fn push_frame(&mut self, frame: Frame) {
         self.frames.push(frame);
         self.frame_index += 1;
+    }
+
+    pub fn increment_ip(&mut self, increment: u32) {
+        self.frames[self.frame_index].ip += increment;
+    }
+    pub fn set_ip(&mut self, ip: u32) {
+        self.frames[self.frame_index].ip = ip;
     }
 
     pub fn pop_frame(&mut self) -> Frame {
@@ -245,8 +237,8 @@ impl VM {
         self.frames.pop().unwrap()
     }
 
-    pub fn current_frame(&mut self) -> &mut Frame {
-        self.frames[self.frame_index as usize].borrow_mut()
+    pub fn current_frame(&mut self) -> &Frame {
+        &self.frames[self.frame_index]
     }
 
     pub fn get_state(&self) -> VMState {
@@ -268,11 +260,9 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Rc<Object> {
-        let popped = self.stack.get((self.sp as usize) - 1);
+        let popped = self.stack[self.sp as usize - 1].to_owned();
         self.sp -= 1;
 
-        self.last_popped = Option::from(popped.map(|o| Rc::clone(o)).expect("no object to pop"));
-
-        popped.map(|o| Rc::clone(o)).expect("no object to pop")
+        popped
     }
 }

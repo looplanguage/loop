@@ -9,6 +9,8 @@ mod tests {
     use crate::lib::object::{float, integer};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use std::borrow::Borrow;
+    use std::ops::Deref;
 
     #[test]
     fn recursive_functions() {}
@@ -116,12 +118,12 @@ mod tests {
     fn recursive_fibonacci() {
         test_vm(
             "
-            var fib = fn(x) { 
-                if(x < 2) { 
-                    return 1 
-                } else { 
-                    return fib(x - 1) + fib(x - 2) 
-                } 
+            var fib = fn(x) {
+                if(x < 2) {
+                    return 1
+                } else {
+                    return fib(x - 1) + fib(x - 2)
+                }
             }
             fib(10)
         ",
@@ -174,9 +176,9 @@ mod tests {
         test_vm("100 / 2", Integer(integer::Integer { value: 50 }));
         test_vm("100 / 20", Integer(integer::Integer { value: 5 }));
         test_vm("1000 / 250", Integer(integer::Integer { value: 4 }));
-        test_vm("100 / -100", Integer(integer::Integer { value: -1 }));
+        test_vm("100 / -100", Float(float::Float { value: -1.0 }));
         test_vm("-100 / -100", Integer(integer::Integer { value: 1 }));
-        test_vm("-100 / 100", Integer(integer::Integer { value: -1 }));
+        test_vm("-100 / 100", Float(float::Float { value: -1.0 }));
         test_vm("10 / 100", Float(float::Float { value: 0.1 }));
         test_vm("10 / 25", Float(float::Float { value: 0.4 }));
     }
@@ -228,18 +230,14 @@ mod tests {
         }
 
         let mut vm = build_vm(comp.get_bytecode(), None);
-        let err = vm.run();
+        let err = vm.run(false);
 
-        if err.is_some() {
-            panic!("{}", err.unwrap());
+        if err.is_err() {
+            panic!("{}", err.err().unwrap());
         }
 
-        let last_popped = vm.last_popped;
+        let got = err.ok().unwrap().clone();
 
-        if last_popped.is_none() {
-            panic!("{}", "VM did not return. got=NONE");
-        }
-
-        assert_eq!(*last_popped.unwrap(), expected);
+        assert_eq!(*got, expected);
     }
 }

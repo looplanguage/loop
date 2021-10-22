@@ -16,6 +16,7 @@ pub struct Repl {
     compiler_state: Option<CompilerState>,
     vm_state: Option<VMState>,
     benchmark: bool,
+    jit: bool,
 }
 
 pub fn build_repl(flags: Flags) -> Repl {
@@ -25,6 +26,7 @@ pub fn build_repl(flags: Flags) -> Repl {
         vm_state: None,
         debug: flags.contains(FlagTypes::Debug),
         benchmark: flags.contains(FlagTypes::Benchmark),
+        jit: flags.contains(FlagTypes::Jit),
     }
 }
 
@@ -43,6 +45,13 @@ impl Repl {
         "
         );
         println!("Welcome to Loop v{}", VERSION);
+
+        if self.jit {
+            println!(
+                "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/internal/jit",
+                "WARNING: ".red()
+            );
+        }
 
         self.run()
     }
@@ -73,26 +82,27 @@ impl Repl {
             let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
 
             let started = Utc::now();
-
-            let err = vm.run();
-
+            let ran = vm.run(self.jit);
             let duration = Utc::now().signed_duration_since(started);
 
-            if err.is_some() {
+            if ran.is_err() {
                 sentry::with_scope(
                     |scope| {
                         scope.set_tag("exception.type", "vm");
                     },
                     || {
-                        sentry::capture_message(err.clone().unwrap().as_str(), sentry::Level::Info);
+                        sentry::capture_message(
+                            ran.clone().err().unwrap().as_str(),
+                            sentry::Level::Info,
+                        );
                     },
                 );
 
                 println!(
                     "{}",
-                    format!("VirtualMachineException: {}", err.unwrap()).red()
+                    format!("VirtualMachineException: {}", ran.err().unwrap()).red()
                 );
-            } else if vm.last_popped.is_some() {
+            } else {
                 self.vm_state = Some(vm.get_state());
 
                 if self.benchmark {
@@ -100,7 +110,7 @@ impl Repl {
                     println!("Execution Took: {}", formatted);
                 }
 
-                println!("{}", vm.last_popped.unwrap().inspect().green());
+                println!("{}", ran.ok().unwrap().inspect().green());
             }
         } else {
             for err in p.errors {
