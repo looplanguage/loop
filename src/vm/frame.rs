@@ -1,5 +1,6 @@
 use crate::compiler::instructions::Instructions;
 use crate::lib::object::function::Function;
+use std::borrow::Borrow;
 
 pub struct Frame {
     pub func: Function,
@@ -16,7 +17,7 @@ pub fn build_frame(func: Function, base: i32) -> Frame {
 }
 
 impl Frame {
-    pub(crate) fn instructions(&mut self) -> &mut Instructions {
-        self.func.func.instructions.as_mut()
+    pub(crate) fn instructions(&self) -> &Instructions {
+        self.func.func.instructions.borrow()
     }
 }

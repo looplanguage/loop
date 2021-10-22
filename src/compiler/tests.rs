@@ -32,14 +32,14 @@ mod tests {
             "\
 [0] OpGetFree 0
 [2] OpGetLocal 0
-[4] OpFunction 1 2
+[4] OpFunction 1 0
 [10] OpReturn",
         );
 
         expected.push(
             "\
 [0] OpGetLocal 0
-[2] OpFunction 2 1
+[2] OpFunction 2 0
 [8] OpReturn",
         );
 
@@ -250,7 +250,7 @@ mod tests {
 
         let mut i = 0;
         for constant in comp.constants {
-            if let Object::CompiledFunction(func) = constant {
+            if let Object::CompiledFunction(func) = constant.borrow() {
                 let ins = func.instructions.clone();
 
                 assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));
