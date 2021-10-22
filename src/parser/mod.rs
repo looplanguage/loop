@@ -85,6 +85,8 @@ impl Parser {
             .prefix_parser
             .get(&self.lexer.current_token.as_ref().unwrap().token);
 
+        println!("Token: {:?}", &self.lexer.current_token.as_ref().unwrap().token);
+
         if prefix_parser.is_none() {
             self.add_error(format!(
                 "no prefix parser for \"{:?}\"",
