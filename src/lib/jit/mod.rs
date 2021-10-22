@@ -1,18 +1,10 @@
-use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::read_uint32;
-use crate::compiler::opcode::OpCode;
-use crate::lib::object;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
-use crate::lib::object::Object::Null;
-use dynasmrt::x64::Assembler;
-use dynasmrt::{dynasm, AssemblyOffset, DynasmApi, DynasmLabelApi, ExecutableBuffer};
-use std::borrow::BorrowMut;
-use std::io::Write;
-use std::ops::Deref;
+use dynasmrt::{dynasm, AssemblyOffset, ExecutableBuffer, DynasmApi};
 use std::rc::Rc;
-use std::{io, mem, slice};
+use std::mem;
 
+#[allow(dead_code)]
 pub struct JitFunction {
     pub(crate) ip: i32,
     pub(crate) instructions: Vec<u8>,
@@ -22,6 +14,7 @@ pub struct JitFunction {
     last_used_adr: String,
 }
 
+#[allow(dead_code)]
 pub fn build_jit_function(instructions: Vec<u8>, constants: Vec<Rc<Object>>) -> JitFunction {
     JitFunction {
         ip: 0,
@@ -35,6 +28,7 @@ pub fn build_jit_function(instructions: Vec<u8>, constants: Vec<Rc<Object>>) -> 
 
 // TODO: Document this quite a bit more, as this is a little complicated
 impl JitFunction {
+    #[allow(dead_code)]
     pub fn compile(&mut self) -> bool {
         let mut ops = dynasmrt::x64::Assembler::new().unwrap();
 
@@ -44,7 +38,7 @@ impl JitFunction {
 
         let offset = ops.offset();
 
-        let mut available_addresses = vec!["rcx".to_string(), "rbx".to_string(), "rax".to_string()];
+        //let mut available_addresses = vec!["rcx".to_string(), "rbx".to_string(), "rax".to_string()];
 /*
         while self.ip < (self.instructions.len()) as i32 {
             let ip = self.ip;
@@ -133,6 +127,7 @@ impl JitFunction {
         true
     }
 
+    #[allow(dead_code)]
     pub fn run(&self) -> Object {
         let buf = self.buffer.as_ref().unwrap();
 

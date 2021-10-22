@@ -65,7 +65,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         Object::Integer(_) => obj,
         Object::Boolean(_) => obj,
         Object::Float(float) => {
-            if float.value == (float.value as u32) as f64 {
+            if (float.value - (float.value as u32) as f64).abs() < 0.001 {
                 Object::Integer(float.to_integer())
             } else {
                 obj

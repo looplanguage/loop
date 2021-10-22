@@ -107,7 +107,7 @@ fn run_file(file: String, flags: Flags) {
 
     let started = Utc::now();
 
-    let ran = vm.run(flags.contains(FlagTypes::JIT));
+    let ran = vm.run(flags.contains(FlagTypes::Jit));
 
     let duration = Utc::now().signed_duration_since(started);
 
@@ -129,11 +129,8 @@ fn run_file(file: String, flags: Flags) {
         println!("Execution Took: {}", formatted);
     }
 
-    if let Some(last) = ran.ok() {
-        println!("{}", last.inspect());
-    } else {
-        println!("VMException: VM did not return anything")
-    }
+    let last = ran.ok().unwrap();
+    println!("{}", last.inspect());
 }
 
 fn get_flags() -> flags::Flags {

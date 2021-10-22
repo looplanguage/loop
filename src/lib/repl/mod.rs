@@ -26,7 +26,7 @@ pub fn build_repl(flags: Flags) -> Repl {
         vm_state: None,
         debug: flags.contains(FlagTypes::Debug),
         benchmark: flags.contains(FlagTypes::Benchmark),
-        jit: flags.contains(FlagTypes::JIT),
+        jit: flags.contains(FlagTypes::Jit),
     }
 }
 

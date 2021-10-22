@@ -13,7 +13,6 @@ use crate::lib::object::Object;
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
-use std::borrow::BorrowMut;
 use std::collections::HashMap;
 use std::rc::Rc;
 
