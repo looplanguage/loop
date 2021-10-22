@@ -22,7 +22,7 @@ macro_rules! builtin {
     };
 }
 
-pub const BUILTINS: &[Builtin] = &[builtin!(len)];
+pub const BUILTINS: &[Builtin] = &[builtin!(len), builtin!(print), builtin!(println)];
 
 pub fn lookup(name: &str) -> Option<Object> {
     if name == "null" {
@@ -35,6 +35,22 @@ pub fn lookup(name: &str) -> Option<Object> {
         }
     }
     None
+}
+
+fn print(arguments: Vec<Rc<Object>>) -> EvalResult {
+    for argument in arguments {
+        print!("{}", argument.inspect())
+    }
+
+    Ok(Object::Null(Null {}))
+}
+
+fn println(arguments: Vec<Rc<Object>>) -> EvalResult {
+    for argument in arguments {
+        println!("{}", argument.inspect())
+    }
+
+    Ok(Object::Null(Null {}))
 }
 
 fn len(arguments: Vec<Rc<Object>>) -> EvalResult {
