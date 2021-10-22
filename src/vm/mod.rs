@@ -7,6 +7,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
+use crate::lib::exception::vm::VMException;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
@@ -183,7 +184,17 @@ impl VM {
                     self.increment_ip(1);
 
                     // TODO: Properly implement VM exceptions
-                    run_function(self, args, attempt_jit);
+                    let vm_exception = run_function(self, args, attempt_jit);
+
+                    if vm_exception.is_some() {
+                        return match vm_exception.unwrap() {
+                            VMException::IncorrectArgumentCount(expected, got) => Err(format!(
+                                "incorrect argument count. expected={}. got={}",
+                                expected, got
+                            )),
+                            VMException::IncorrectType(message) => Err(message),
+                        };
+                    }
 
                     None
                 }
