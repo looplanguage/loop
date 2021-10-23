@@ -25,24 +25,21 @@ impl Integer {
             _ => None,
         }
     }
-
-    pub fn to_string(&self, args: Vec<Rc<Object>>) -> EvalResult {
-        Ok(Object::String(LoopString {
-            value: self.value.to_string(),
-        }))
-    }
-}
-
-pub fn to_string(value: i64) -> impl Fn(Vec<Object>) -> EvalResult {
-    move |args| -> EvalResult {
-        Ok(Object::String(LoopString {
-            value: value.to_string(),
-        }))
-    }
 }
 
 impl ObjectTrait for Integer {
     fn inspect(&self) -> String {
         self.value.to_string()
+    }
+}
+
+// Extension methods
+
+// 0: to_string()
+pub fn to_string(value: i64) -> impl Fn(Vec<Object>) -> EvalResult {
+    move |args| -> EvalResult {
+        Ok(Object::String(LoopString {
+            value: value.to_string(),
+        }))
     }
 }
