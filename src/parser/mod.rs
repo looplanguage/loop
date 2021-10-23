@@ -211,7 +211,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
     p.add_prefix_parser(TokenType::Float, parse_float_literal);
-    p.add_prefix_parser(TokenType::Minus, parse_minus_integer);    //
+    p.add_prefix_parser(TokenType::Minus, parse_minus_integer); //
     p.add_prefix_parser(TokenType::MinusFloat, parse_minus_float); // Todo: there prob does not need t be a minus for float and integer
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
