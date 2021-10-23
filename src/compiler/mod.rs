@@ -62,6 +62,7 @@ pub struct Compiler {
     pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
+    pub last_extension_type: Option<Expression>,
 }
 
 pub struct CompilerState {
@@ -90,6 +91,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             symbol_table: cmp.symbol_table.clone(),
             variable_count: cmp.variable_count,
             variable_scope: cmp.variable_scope.clone(),
+            last_extension_type: None,
         };
     }
 
@@ -110,6 +112,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
         variable_count: 0,
         variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+        last_extension_type: None,
     }
 }
 

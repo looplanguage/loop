@@ -1,3 +1,4 @@
+use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
@@ -8,9 +9,9 @@ pub struct LoopString {
 }
 
 impl LoopString {
-    pub fn find_extension(&self, name: &str) -> Option<i32> {
+    pub fn find_extension(&self, name: &str) -> Option<(i32, Expression)> {
         match name {
-            "to_int" => Some(0),
+            "to_int" => Some((0, Expression::Integer(Integer { value: 0 }))),
             &_ => None,
         }
     }
