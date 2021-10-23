@@ -418,8 +418,15 @@ mod tests {
         let input = "var test = 1;
         var test2 = 40;
         var test3 = 10 * 2;
-        ";
 
+        ";
+/*
+        var test4 = 1.1;
+        var test5 = -1;
+        var test6 = -1.1;
+        var test7 = 1.1 + 1.1;
+        var test8 = 1.1 + 1;
+ */
         let mut expected: Vec<Statement> = Vec::new();
 
         // Test #1
