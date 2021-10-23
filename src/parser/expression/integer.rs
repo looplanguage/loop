@@ -1,5 +1,6 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::float::parse_float_literal;
+use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
@@ -10,9 +11,14 @@ pub struct Integer {
 }
 
 impl Integer {
-    pub fn find_extension(&self, name: &str) -> Option<i32> {
+    pub fn find_extension(&self, name: &str) -> Option<(i32, Expression)> {
         match name {
-            "to_string" => Some(0),
+            "to_string" => Some((
+                0,
+                Expression::String(LoopString {
+                    value: String::new(),
+                }),
+            )),
             &_ => None,
         }
     }
