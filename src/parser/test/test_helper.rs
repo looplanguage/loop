@@ -126,7 +126,7 @@ pub mod test_helper {
     pub fn generate_float_expression(value: f64) -> crate::parser::expression::Expression {
         parser::expression::Expression::Float(Float { value })
     }
-    
+
     pub fn generate_expression_suffix(
         left: i64,
         operator: char,
