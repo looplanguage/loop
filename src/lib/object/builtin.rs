@@ -55,7 +55,14 @@ fn print(arguments: Vec<Rc<Object>>) -> EvalResult {
 
 fn println(arguments: Vec<Rc<Object>>) -> EvalResult {
     for argument in arguments {
-        println!("{}", argument.inspect())
+        match &*argument {
+            Object::String(str) => {
+                println!("{}", str.value);
+            }
+            _ => {
+                println!("{}", argument.inspect());
+            }
+        }
     }
 
     Ok(Object::Null(Null {}))
