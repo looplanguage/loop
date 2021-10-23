@@ -58,6 +58,33 @@ mod tests {
     }
 
     #[test]
+    fn extension_methods() {
+        let input = "123.to_string(); \"123\".to_int()";
+
+        let expected = "[0] OpConstant 1
+[5] OpCallExtension 0 0
+[8] OpPop
+[9] OpConstant 2
+[14] OpCallExtension 0 0
+[17] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
+    fn extension_method_chained() {
+        let input = "123.to_string().to_int().to_string()";
+
+        let expected = "[0] OpConstant 1
+[5] OpCallExtension 0 0
+[8] OpCallExtension 0 0
+[11] OpCallExtension 0 0
+[14] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("var test = 100; if(true) { test }", None);
     }
