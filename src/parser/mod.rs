@@ -84,6 +84,7 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {
+        // Todo: This is a bit messy, it is because there is an minus for integer and float.
         let mut prefix_parser = None;
         if self.lexer.peek_token.as_ref().unwrap().token == TokenType::Float
             && self.lexer.current_token.as_ref().unwrap().token == TokenType::Minus
@@ -210,8 +211,8 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
     p.add_prefix_parser(TokenType::Float, parse_float_literal);
-    p.add_prefix_parser(TokenType::Minus, parse_minus_integer);
-    p.add_prefix_parser(TokenType::MinusFloat, parse_minus_float);
+    p.add_prefix_parser(TokenType::Minus, parse_minus_integer);    //
+    p.add_prefix_parser(TokenType::MinusFloat, parse_minus_float); // Todo: there prob does not need t be a minus for float and integer
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
     p.add_prefix_parser(TokenType::True, parse_boolean);
