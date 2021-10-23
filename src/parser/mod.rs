@@ -21,6 +21,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
+use crate::parser::expression::float::parse_float_literal;
 
 pub mod expression;
 pub mod program;
@@ -201,6 +202,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Prefix parsers
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
+    p.add_prefix_parser(TokenType::Float, parse_float_literal);
     p.add_prefix_parser(TokenType::Minus, parse_minus_integer);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
