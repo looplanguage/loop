@@ -1,5 +1,4 @@
 use crate::lib::exception::vm::VMException;
-use crate::lib::object::builtin::EvalResult;
 use crate::lib::object::function::Function;
 use crate::lib::object::Object;
 use crate::vm::frame::build_frame;

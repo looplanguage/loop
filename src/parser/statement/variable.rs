@@ -5,7 +5,6 @@ use crate::parser::program::Node;
 use crate::parser::Parser;
 
 use super::Statement;
-use std::borrow::Borrow;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableDeclaration {
