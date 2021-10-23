@@ -247,8 +247,6 @@ impl VM {
                             as usize;
                     self.increment_ip(1);
 
-                    println!("Method: {}, params: {}", method_id, parameters);
-
                     let perform_on = &*self.pop();
 
                     let push = perform_on.get_extension_method(method_id as i32).unwrap()(vec![]);

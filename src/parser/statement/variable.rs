@@ -19,7 +19,6 @@ pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
     }
 
     let ident = p.lexer.current_token.clone().unwrap();
-    println!("x: {:?}", ident.literal);
     if !p.lexer.next_is(TokenType::Assign) {
         return None;
     }
@@ -28,7 +27,7 @@ pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
 
     let expr = p.parse_expression(Precedence::Lowest);
     expr.as_ref()?;
-    println!("Expr: {:?}", Some(expr.borrow()));
+
     if let Node::Expression(exp) = expr.unwrap() {
         return Some(Node::Statement(Statement::VariableDeclaration(
             VariableDeclaration {
