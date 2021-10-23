@@ -4,6 +4,7 @@ use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::float::Float;
 use crate::parser::expression::function::{Call, Function};
 use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::null::Null;
 use crate::parser::expression::string::LoopString;
@@ -14,6 +15,7 @@ pub mod conditional;
 pub mod float;
 pub mod function;
 pub mod identifier;
+pub mod index;
 pub mod integer;
 pub mod null;
 pub mod string;
@@ -31,6 +33,7 @@ pub enum Expression {
     Call(Call),
     Float(Float),
     String(LoopString),
+    Index(Box<Index>),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -61,6 +64,7 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::LessThanOrEquals => Precedence::LessGreater,
         TokenType::GreaterThanOrEquals => Precedence::LessGreater,
         TokenType::Modulo => Precedence::Modulo,
+        TokenType::Dot => Precedence::Index,
         _ => Precedence::Lowest,
     }
 }

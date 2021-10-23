@@ -7,6 +7,6 @@ pub struct LoopString {
 
 impl ObjectTrait for LoopString {
     fn inspect(&self) -> String {
-        self.value.clone()
+        format!("\"{}\"", self.value.clone())
     }
 }

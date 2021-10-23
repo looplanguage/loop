@@ -21,4 +21,5 @@ pub enum OpCode {
     GetLocal,
     GetFree,
     GetBuiltin,
+    CallExtension,
 }
