@@ -1,5 +1,5 @@
 use crate::lib::object::boolean::Boolean;
-use crate::lib::object::builtin::BuiltinFunction;
+use crate::lib::object::builtin::{BuiltinFunction, EvalResult};
 use crate::lib::object::float::Float;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer::Integer;
@@ -46,6 +46,16 @@ impl Object {
             Object::String(string) => !string.value.is_empty(),
             Object::Null(_) => false,
             _ => true,
+        }
+    }
+
+    pub fn get_extension_method(
+        &self,
+        method: i32,
+    ) -> Option<Box<dyn Fn(Vec<Object>) -> EvalResult>> {
+        match self {
+            Object::Integer(integer) => integer.get_extension(method),
+            _ => None,
         }
     }
 }

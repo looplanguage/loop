@@ -12,6 +12,7 @@ use crate::compiler::compile::expression_conditional::compile_expression_conditi
 use crate::compiler::compile::expression_float::compile_expression_float;
 use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
+use crate::compiler::compile::expression_index::compile_expression_index;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
@@ -214,6 +215,7 @@ impl Compiler {
             Expression::Call(call) => compile_expression_call(self, call),
             Expression::Float(float) => compile_expression_float(self, float),
             Expression::String(string) => compile_expression_string(self, string),
+            Expression::Index(index) => compile_expression_index(self, *index),
         };
 
         if err.is_some() {

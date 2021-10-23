@@ -39,7 +39,14 @@ pub fn lookup(name: &str) -> Option<Object> {
 
 fn print(arguments: Vec<Rc<Object>>) -> EvalResult {
     for argument in arguments {
-        print!("{}", argument.inspect())
+        match &*argument {
+            Object::String(str) => {
+                print!("{}", str.value);
+            }
+            _ => {
+                print!("{}", argument.inspect());
+            }
+        }
     }
 
     Ok(Object::Null(Null {}))

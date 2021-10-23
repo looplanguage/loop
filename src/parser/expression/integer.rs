@@ -9,6 +9,15 @@ pub struct Integer {
     pub value: i64,
 }
 
+impl Integer {
+    pub fn find_extension(&self, name: &str) -> Option<i32> {
+        match name {
+            "to_string" => Some(0),
+            &_ => None,
+        }
+    }
+}
+
 pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
     let value = p
         .lexer
@@ -21,9 +30,9 @@ pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
 
     let exp = Expression::Integer(Integer { value });
 
-    if p.lexer.next_is(TokenType::Dot) {
-        return parse_float_literal(p, exp);
-    }
+    // if p.lexer.next_is(TokenType::Dot) {
+    //     return parse_float_literal(p, exp);
+    // }
 
     Some(Node::Expression(exp))
 }

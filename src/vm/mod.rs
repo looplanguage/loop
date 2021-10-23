@@ -235,6 +235,30 @@ impl VM {
 
                     self.push(builtin_function)
                 }
+                OpCode::CallExtension => {
+                    let ip = self.current_frame().ip;
+
+                    let method_id =
+                        read_uint8(&self.current_frame().instructions()[ip as usize..]) as usize;
+                    self.increment_ip(1);
+
+                    let parameters =
+                        read_uint8(&self.current_frame().instructions()[(ip + 1) as usize..])
+                            as usize;
+                    self.increment_ip(1);
+
+                    println!("Method: {}, params: {}", method_id, parameters);
+
+                    let perform_on = &*self.pop();
+
+                    let push = perform_on.get_extension_method(method_id as i32).unwrap()(vec![]);
+
+                    let object = push.ok().unwrap();
+
+                    self.push(Rc::from(object));
+
+                    None
+                }
             };
 
             if let Some(err) = err {
