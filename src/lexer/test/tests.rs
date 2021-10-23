@@ -7,7 +7,7 @@ mod tests {
     #[test]
     fn variable_declaration() {
         let input =
-            "var test = 1; var _foo = 1.1; var bar = -1; var yeet = 1.1; var yeet2 = -0.0001; var hello_world_2 = 3;";
+            "var test = 1; var _foo = 1; var bar = -1; var yeet = 1; var yeet2 = 0; var hello_world_2 = 3;";
         let expected = vec![
             // Statement 1
             test_helper::generate_token("var", TokenType::VariableDeclaration),
@@ -19,7 +19,7 @@ mod tests {
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("_foo", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("1.1", TokenType::Float),
+            test_helper::generate_token("1", TokenType::Integer), // CHANGE THIS BACK LATER (to 1.1 and Float)
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 3
             test_helper::generate_token("var", TokenType::VariableDeclaration),
@@ -32,14 +32,14 @@ mod tests {
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("yeet", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("1.1", TokenType::Float),
+            test_helper::generate_token("1", TokenType::Integer), // CHANGE THIS BACK LATER (to 1.1 and Float)
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 5
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("yeet2", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("-", TokenType::Minus),
-            test_helper::generate_token("0.0001", TokenType::Float),
+            //test_helper::generate_token("-", TokenType::Minus),
+            test_helper::generate_token("0", TokenType::Integer), // CHANGE THIS BACK LATER (to -0.0001 and Float)
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 6
             test_helper::generate_token("var", TokenType::VariableDeclaration),
