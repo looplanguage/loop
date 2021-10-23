@@ -1,5 +1,3 @@
-use crate::lexer::token::TokenType;
-use crate::parser::expression::float::parse_float_literal;
 use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;

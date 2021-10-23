@@ -28,7 +28,7 @@ impl LoopString {
 
 // 0: to_int()
 pub fn to_int(value: String) -> impl Fn(Vec<Object>) -> EvalResult {
-    move |args| -> EvalResult {
+    move |_args| -> EvalResult {
         let new_value = value.parse::<i64>();
 
         if new_value.is_err() {

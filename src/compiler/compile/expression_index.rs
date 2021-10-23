@@ -9,12 +9,10 @@ pub fn compile_expression_index(
     _compiler: &mut Compiler,
     _index: Index,
 ) -> Option<CompilerException> {
-    match _index.right.clone() {
-        Expression::Call(call) => {
-            return compile_expression_extension_method(_compiler, call, _index.left, true);
-        }
-        _ => {}
-    }
+    // Change to a match when indexing with [] (eg array[0])
+    if let Expression::Call(call) = _index.right.clone() {
+        return compile_expression_extension_method(_compiler, call, _index.left, true);
+    };
 
     None
 }
@@ -35,10 +33,9 @@ pub fn compile_expression_extension_method(
         Expression::Integer(integer) => {
             let extension = integer.find_extension(method.as_str());
 
-            if extension.is_some() {
-                compiler.last_extension_type = Option::from(extension.clone().unwrap().1);
-
-                Some(extension.unwrap().0)
+            if let Some(extension) = extension {
+                compiler.last_extension_type = Option::from(extension.1);
+                Some(extension.0)
             } else {
                 None
             }
@@ -46,10 +43,9 @@ pub fn compile_expression_extension_method(
         Expression::String(string) => {
             let extension = string.find_extension(method.as_str());
 
-            if extension.is_some() {
-                compiler.last_extension_type = Option::from(extension.clone().unwrap().1);
-
-                Some(extension.unwrap().0)
+            if let Some(extension) = extension {
+                compiler.last_extension_type = Option::from(extension.1);
+                Some(extension.0)
             } else {
                 None
             }

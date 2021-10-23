@@ -186,8 +186,8 @@ impl VM {
                     // TODO: Properly implement VM exceptions
                     let vm_exception = run_function(self, args, attempt_jit);
 
-                    if vm_exception.is_some() {
-                        return match vm_exception.unwrap() {
+                    if let Some(exception) = vm_exception {
+                        return match exception {
                             VMException::IncorrectArgumentCount(expected, got) => Err(format!(
                                 "incorrect argument count. expected={}. got={}",
                                 expected, got
@@ -245,7 +245,7 @@ impl VM {
                         read_uint8(&self.current_frame().instructions()[ip as usize..]) as usize;
                     self.increment_ip(1);
 
-                    let parameters =
+                    let _parameters =
                         read_uint8(&self.current_frame().instructions()[(ip + 1) as usize..])
                             as usize;
                     self.increment_ip(1);

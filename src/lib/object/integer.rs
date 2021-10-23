@@ -1,10 +1,7 @@
-use crate::lib::object::builtin::{Builtin, BuiltinFunction, EvalResult};
+use crate::lib::object::builtin::EvalResult;
 use crate::lib::object::float::Float;
-use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 use crate::lib::object::{Object, ObjectTrait};
-use std::env::args;
-use std::rc::Rc;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Integer {
@@ -37,7 +34,7 @@ impl ObjectTrait for Integer {
 
 // 0: to_string()
 pub fn to_string(value: i64) -> impl Fn(Vec<Object>) -> EvalResult {
-    move |args| -> EvalResult {
+    move |_args| -> EvalResult {
         Ok(Object::String(LoopString {
             value: value.to_string(),
         }))

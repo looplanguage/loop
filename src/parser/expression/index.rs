@@ -1,6 +1,6 @@
 use crate::parser::expression::function::parse_call;
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::{Expression, Precedence};
+use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
 
