@@ -12,6 +12,7 @@ pub mod test_helper {
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
+    use crate::parser::expression::float::Float;
 
     // ========================================================================
     // Everything with "v3" behind the identifier are newer functions for the refactor
@@ -122,6 +123,10 @@ pub mod test_helper {
         parser::expression::Expression::Integer(Integer { value })
     }
 
+    pub fn generate_float_expression(value: f64) -> crate::parser::expression::Expression {
+        parser::expression::Expression::Float(Float { value })
+    }
+    
     pub fn generate_expression_suffix(
         left: i64,
         operator: char,
