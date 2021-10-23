@@ -193,6 +193,9 @@ impl VM {
                                 expected, got
                             )),
                             VMException::IncorrectType(message) => Err(message),
+                            VMException::CannotParseInt(string) => {
+                                Err(format!("unable to parse to int. got=\"{}\"", string))
+                            }
                         };
                     }
 
@@ -249,7 +252,22 @@ impl VM {
 
                     let perform_on = &*self.pop();
 
-                    let push = perform_on.get_extension_method(method_id as i32).unwrap()(vec![]);
+                    let method = perform_on.get_extension_method(method_id as i32);
+
+                    let push = method.unwrap()(vec![]);
+
+                    if push.is_err() {
+                        return match push.err().unwrap() {
+                            VMException::IncorrectArgumentCount(expected, got) => Err(format!(
+                                "incorrect argument count. expected={}. got={}",
+                                expected, got
+                            )),
+                            VMException::IncorrectType(message) => Err(message),
+                            VMException::CannotParseInt(string) => {
+                                Err(format!("unable to parse to int. got=\"{}\"", string))
+                            }
+                        };
+                    }
 
                     let object = push.ok().unwrap();
 

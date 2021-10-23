@@ -55,6 +55,7 @@ impl Object {
     ) -> Option<Box<dyn Fn(Vec<Object>) -> EvalResult>> {
         match self {
             Object::Integer(integer) => integer.get_extension(method),
+            Object::String(string) => string.get_extension(method),
             _ => None,
         }
     }
