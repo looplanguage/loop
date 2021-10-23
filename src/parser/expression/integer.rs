@@ -1,5 +1,4 @@
-use crate::lexer::token::TokenType;
-use crate::parser::expression::float::parse_float_literal;
+use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
@@ -7,6 +6,20 @@ use crate::parser::Parser;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Integer {
     pub value: i64,
+}
+
+impl Integer {
+    pub fn find_extension(&self, name: &str) -> Option<(i32, Expression)> {
+        match name {
+            "to_string" => Some((
+                0,
+                Expression::String(LoopString {
+                    value: String::new(),
+                }),
+            )),
+            &_ => None,
+        }
+    }
 }
 
 pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
@@ -21,9 +34,9 @@ pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
 
     let exp = Expression::Integer(Integer { value });
 
-    if p.lexer.next_is(TokenType::Dot) {
-        return parse_float_literal(p, exp);
-    }
+    // if p.lexer.next_is(TokenType::Dot) {
+    //     return parse_float_literal(p, exp);
+    // }
 
     Some(Node::Expression(exp))
 }
