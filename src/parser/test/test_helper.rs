@@ -3,6 +3,7 @@ pub mod test_helper {
     use crate::parser;
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
+    use crate::parser::expression::float::Float;
     use crate::parser::expression::function::Function;
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
@@ -12,7 +13,6 @@ pub mod test_helper {
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
-    use crate::parser::expression::float::Float;
 
     // ========================================================================
     // Everything with "v3" behind the identifier are newer functions for the refactor

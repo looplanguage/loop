@@ -67,7 +67,5 @@ pub fn parse_minus_float(p: &mut Parser) -> Option<Node> {
         .parse::<f64>()
         .unwrap();
 
-    Some(Node::Expression(Expression::Float(Float {
-        value: -value,
-    })))
+    Some(Node::Expression(Expression::Float(Float { value: -value })))
 }

@@ -461,7 +461,7 @@ mod tests {
 
         // Test #6
         expected.push(test_helper::generate_variable_declaration_v3(
-            "test4",
+            "test6",
             test_helper::generate_float_expression(-1.1),
         ));
 
@@ -470,15 +470,15 @@ mod tests {
         let right = test_helper::generate_float_expression(1.1);
         expected.push(test_helper::generate_variable_declaration_v3(
             "test7",
-            test_helper::generate_suffix_expression_v3(left, "*", right),
+            test_helper::generate_suffix_expression_v3(left, "+", right),
         ));
 
         // Test #8
         let left = test_helper::generate_float_expression(1.1);
         let right = test_helper::generate_integer_expression(1);
         expected.push(test_helper::generate_variable_declaration_v3(
-            "test7",
-            test_helper::generate_suffix_expression_v3(left, "*", right),
+            "test8",
+            test_helper::generate_suffix_expression_v3(left, "+", right),
         ));
 
         test_parser(input, expected);
