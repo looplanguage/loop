@@ -144,6 +144,8 @@ impl Lexer {
             token_type = TokenType::Float;
         }
 
+        println!("Token: {:?}, Value: {:?}", token_type, keyword);
+
         create_token(token_type, keyword.to_string())
     }
 

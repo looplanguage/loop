@@ -21,7 +21,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
-use crate::parser::expression::float::parse_float_literal;
+use crate::parser::expression::float::{parse_float_literal, parse_minus_float};
 
 pub mod expression;
 pub mod program;
@@ -84,9 +84,16 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {
-        let prefix_parser = self
-            .prefix_parser
-            .get(&self.lexer.current_token.as_ref().unwrap().token);
+        let mut prefix_parser = None;
+        if self.lexer.peek_token.as_ref().unwrap().token == TokenType::Float
+            && self.lexer.current_token.as_ref().unwrap().token == TokenType::Minus
+        {
+            prefix_parser = self.prefix_parser.get(&TokenType::MinusFloat);
+        } else {
+            prefix_parser = self
+                .prefix_parser
+                .get(&self.lexer.current_token.as_ref().unwrap().token);
+        }
 
         if prefix_parser.is_none() {
             self.add_error(format!(
@@ -204,6 +211,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
     p.add_prefix_parser(TokenType::Float, parse_float_literal);
     p.add_prefix_parser(TokenType::Minus, parse_minus_integer);
+    p.add_prefix_parser(TokenType::MinusFloat, parse_minus_float);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
     p.add_prefix_parser(TokenType::True, parse_boolean);
