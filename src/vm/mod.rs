@@ -7,6 +7,8 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
+use crate::lib::exception::vm::VMException;
+use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -181,7 +183,23 @@ impl VM {
 
                     self.increment_ip(1);
 
-                    run_function(self, args, attempt_jit)
+                    // TODO: Properly implement VM exceptions
+                    let vm_exception = run_function(self, args, attempt_jit);
+
+                    if let Some(exception) = vm_exception {
+                        return match exception {
+                            VMException::IncorrectArgumentCount(expected, got) => Err(format!(
+                                "incorrect argument count. expected={}. got={}",
+                                expected, got
+                            )),
+                            VMException::IncorrectType(message) => Err(message),
+                            VMException::CannotParseInt(string) => {
+                                Err(format!("unable to parse to int. got=\"{}\"", string))
+                            }
+                        };
+                    }
+
+                    None
                 }
                 OpCode::GetLocal => {
                     let ip = self.current_frame().ip;
@@ -206,6 +224,54 @@ impl VM {
                     let free = &current.free[idx as usize];
 
                     self.push(Rc::clone(free));
+
+                    None
+                }
+                OpCode::GetBuiltin => {
+                    let ip = self.current_frame().ip;
+
+                    let ct =
+                        read_uint8(&self.current_frame().instructions()[ip as usize..]) as usize;
+                    self.increment_ip(1);
+
+                    let builtin_function = Rc::new(BUILTINS[ct].builtin.clone());
+
+                    self.push(builtin_function)
+                }
+                OpCode::CallExtension => {
+                    let ip = self.current_frame().ip;
+
+                    let method_id =
+                        read_uint8(&self.current_frame().instructions()[ip as usize..]) as usize;
+                    self.increment_ip(1);
+
+                    let _parameters =
+                        read_uint8(&self.current_frame().instructions()[(ip + 1) as usize..])
+                            as usize;
+                    self.increment_ip(1);
+
+                    let perform_on = &*self.pop();
+
+                    let method = perform_on.get_extension_method(method_id as i32);
+
+                    let push = method.unwrap()(vec![]);
+
+                    if push.is_err() {
+                        return match push.err().unwrap() {
+                            VMException::IncorrectArgumentCount(expected, got) => Err(format!(
+                                "incorrect argument count. expected={}. got={}",
+                                expected, got
+                            )),
+                            VMException::IncorrectType(message) => Err(message),
+                            VMException::CannotParseInt(string) => {
+                                Err(format!("unable to parse to int. got=\"{}\"", string))
+                            }
+                        };
+                    }
+
+                    let object = push.ok().unwrap();
+
+                    self.push(Rc::from(object));
 
                     None
                 }

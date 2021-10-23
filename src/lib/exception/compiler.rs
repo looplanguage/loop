@@ -15,6 +15,7 @@ pub enum CompilerException {
     TooManyFrees,
     UnknownSuffixOperator(String),
     ReturnStatementNotAllowedOutsideFunction,
+    UnknownExtensionMethod(String),
 }
 
 impl CompilerException {
@@ -31,6 +32,9 @@ impl CompilerException {
             }
             CompilerException::ReturnStatementNotAllowedOutsideFunction => {
                 String::from("return statements are not allowed outside of functions")
+            }
+            CompilerException::UnknownExtensionMethod(method) => {
+                format!("unknown extension method. got=\"{}\"", method)
             }
         }
     }

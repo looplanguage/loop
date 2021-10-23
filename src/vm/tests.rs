@@ -3,10 +3,11 @@ mod tests {
     use crate::lib::exception::Exception;
     use crate::lib::object::null;
     use crate::lib::object::Object;
-    use crate::lib::object::Object::Float;
     use crate::lib::object::Object::Integer;
     use crate::lib::object::Object::Null;
-    use crate::lib::object::{float, integer};
+    use crate::lib::object::Object::String;
+    use crate::lib::object::Object::{Boolean, Float};
+    use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
     use std::borrow::Borrow;
@@ -204,6 +205,58 @@ mod tests {
         test_vm("10 % 10", Integer(integer::Integer { value: 0 }));
         test_vm("10 % 4", Integer(integer::Integer { value: 2 }));
         test_vm("10 % 10000", Integer(integer::Integer { value: 10 }));
+    }
+
+    #[test]
+    fn extension_methods() {
+        test_vm(
+            "123.to_string();",
+            String(string::LoopString {
+                value: "123".to_string(),
+            }),
+        );
+
+        test_vm(
+            "\"123\".to_int();",
+            Integer(integer::Integer { value: 123 }),
+        );
+    }
+
+    #[test]
+    fn extension_method_chained() {
+        test_vm(
+            "123.to_string().to_int();",
+            Integer(integer::Integer { value: 123 }),
+        );
+        test_vm(
+            "123.to_string().to_int().to_string();",
+            String(string::LoopString {
+                value: "123".to_string(),
+            }),
+        );
+    }
+
+    #[test]
+    fn extension_method_suffix() {
+        test_vm(
+            "123.to_string().to_int() == 123",
+            Boolean(boolean::Boolean { value: true }),
+        );
+
+        test_vm(
+            "123.to_string().to_int().to_string() == 123",
+            Boolean(boolean::Boolean { value: false }),
+        );
+
+        test_vm(
+            "123.to_string().to_int().to_string() == \"123\"",
+            Boolean(boolean::Boolean { value: true }),
+        );
+
+        test_vm(
+            "123.to_string().to_int() + 1 == 124",
+            Boolean(boolean::Boolean { value: true }),
+        );
     }
 
     fn test_vm(input: &str, expected: Object) {

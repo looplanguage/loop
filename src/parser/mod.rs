@@ -7,8 +7,10 @@ use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
+use crate::parser::expression::index::parse_index_expression;
 use crate::parser::expression::integer::{parse_integer_literal, parse_minus_integer};
 use crate::parser::expression::null::parse_expression_null;
+use crate::parser::expression::string::parse_string_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
@@ -84,11 +86,6 @@ impl Parser {
         let prefix_parser = self
             .prefix_parser
             .get(&self.lexer.current_token.as_ref().unwrap().token);
-
-        println!(
-            "Token: {:?}",
-            &self.lexer.current_token.as_ref().unwrap().token
-        );
 
         if prefix_parser.is_none() {
             self.add_error(format!(
@@ -213,6 +210,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::Function, parse_function);
     p.add_prefix_parser(TokenType::If, parse_conditional);
     p.add_prefix_parser(TokenType::Null, parse_expression_null);
+    p.add_prefix_parser(TokenType::String, parse_string_literal);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
@@ -221,6 +219,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
     p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
     p.add_infix_parser(TokenType::LeftParenthesis, parse_call);
+    p.add_infix_parser(TokenType::Dot, parse_index_expression);
 
     // Infix Parsers Comparisons
     p.add_infix_parser(TokenType::Equals, parse_suffix_expression);

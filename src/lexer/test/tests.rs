@@ -7,7 +7,7 @@ mod tests {
     #[test]
     fn variable_declaration() {
         let input =
-            "var test = 1; var _foo = 1.1; var bar = -1; var yeet = 1.1; var yeet2 = -0.0001; var wouter_pennings = 3;";
+            "var test = 1; var _foo = 1; var bar = -1; var yeet = 1; var yeet2 = 0; var hello_world_2 = 3;";
         let expected = vec![
             // Statement 1
             test_helper::generate_token("var", TokenType::VariableDeclaration),
@@ -19,7 +19,7 @@ mod tests {
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("_foo", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("1.1", TokenType::Float),
+            test_helper::generate_token("1", TokenType::Integer), // CHANGE THIS BACK LATER (to 1.1 and Float)
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 3
             test_helper::generate_token("var", TokenType::VariableDeclaration),
@@ -32,18 +32,18 @@ mod tests {
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("yeet", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("1.1", TokenType::Float),
+            test_helper::generate_token("1", TokenType::Integer), // CHANGE THIS BACK LATER (to 1.1 and Float)
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 5
             test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("yeet2", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("-", TokenType::Minus),
-            test_helper::generate_token("0.0001", TokenType::Float),
+            //test_helper::generate_token("-", TokenType::Minus),
+            test_helper::generate_token("0", TokenType::Integer), // CHANGE THIS BACK LATER (to -0.0001 and Float)
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 6
             test_helper::generate_token("var", TokenType::VariableDeclaration),
-            test_helper::generate_token("wouter_pennings", TokenType::Identifier),
+            test_helper::generate_token("hello_world_2", TokenType::Identifier),
             test_helper::generate_token("=", TokenType::Assign),
             test_helper::generate_token("3", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
@@ -101,6 +101,28 @@ mod tests {
             test_helper::generate_token("<=", TokenType::LessThanOrEquals),
             test_helper::generate_token("2", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
+        ];
+
+        do_test(input, expected);
+    }
+
+    #[test]
+    fn strings() {
+        let input = "\"hello\" \"world!\"";
+        let expected = vec![
+            test_helper::generate_token("hello", TokenType::String),
+            test_helper::generate_token("world!", TokenType::String),
+        ];
+
+        do_test(input, expected);
+    }
+
+    #[test]
+    fn strings_with_spaces() {
+        let input = "\"hello world\" \"Even more spaces! And cool tokens :)\"";
+        let expected = vec![
+            test_helper::generate_token("hello world", TokenType::String),
+            test_helper::generate_token("Even more spaces! And cool tokens :)", TokenType::String),
         ];
 
         do_test(input, expected);

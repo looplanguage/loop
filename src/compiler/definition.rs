@@ -88,6 +88,14 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpGetFree".to_string(),
             operand_width: vec![1],
         },
+        OpCode::GetBuiltin => Definition {
+            name: "OpGetBuiltin".to_string(),
+            operand_width: vec![1],
+        },
+        OpCode::CallExtension => Definition {
+            name: "OpCallExtension".to_string(),
+            operand_width: vec![1, 1],
+        },
     }
 }
 
@@ -113,6 +121,8 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         17 => Some(OpCode::Call),
         18 => Some(OpCode::GetLocal),
         19 => Some(OpCode::GetFree),
+        20 => Some(OpCode::GetBuiltin),
+        21 => Some(OpCode::CallExtension),
         _ => None,
     }
 }
@@ -139,6 +149,8 @@ pub fn lookup(op: u8) -> Option<Definition> {
         17 => Some(get_definition(OpCode::Call)),
         18 => Some(get_definition(OpCode::GetLocal)),
         19 => Some(get_definition(OpCode::GetFree)),
+        20 => Some(get_definition(OpCode::GetBuiltin)),
+        21 => Some(get_definition(OpCode::CallExtension)),
         _ => None,
     }
 }

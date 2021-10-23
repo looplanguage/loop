@@ -12,8 +12,10 @@ use crate::compiler::compile::expression_conditional::compile_expression_conditi
 use crate::compiler::compile::expression_float::compile_expression_float;
 use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
+use crate::compiler::compile::expression_index::compile_expression_index;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_null::compile_expression_null;
+use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
@@ -60,6 +62,7 @@ pub struct Compiler {
     pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
+    pub last_extension_type: Option<Expression>,
 }
 
 pub struct CompilerState {
@@ -88,6 +91,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             symbol_table: cmp.symbol_table.clone(),
             variable_count: cmp.variable_count,
             variable_scope: cmp.variable_scope.clone(),
+            last_extension_type: None,
         };
     }
 
@@ -108,6 +112,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
         symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
         variable_count: 0,
         variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+        last_extension_type: None,
     }
 }
 
@@ -147,7 +152,7 @@ impl Compiler {
             Scope::Local => self.emit(OpCode::GetLocal, vec![symbol.index]),
             Scope::Global => self.emit(OpCode::GetVar, vec![symbol.index]),
             Scope::Free => self.emit(OpCode::GetFree, vec![symbol.index]),
-            Scope::Builtin => 0_usize,
+            Scope::Builtin => self.emit(OpCode::GetBuiltin, vec![symbol.index]),
         };
     }
 
@@ -212,6 +217,8 @@ impl Compiler {
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
             Expression::Float(float) => compile_expression_float(self, float),
+            Expression::String(string) => compile_expression_string(self, string),
+            Expression::Index(index) => compile_expression_index(self, *index),
         };
 
         if err.is_some() {
