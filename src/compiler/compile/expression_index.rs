@@ -11,7 +11,7 @@ pub fn compile_expression_index(
 ) -> Option<CompilerException> {
     match _index.right.clone() {
         Expression::Call(call) => {
-            compile_expression_extension_method(_compiler, call, _index.left);
+            return compile_expression_extension_method(_compiler, call, _index.left);
         }
         _ => {}
     }
@@ -31,11 +31,11 @@ pub fn compile_expression_extension_method(
 
     let method_id = match left.clone() {
         Expression::Integer(integer) => integer.find_extension(method.as_str()),
-        _ => None,
+        _ => return Some(CompilerException::UnknownExtensionMethod(method)),
     };
 
     if method_id.is_none() {
-        return None;
+        return Some(CompilerException::UnknownExtensionMethod(method));
     }
 
     for parameter in call.parameters.clone() {
