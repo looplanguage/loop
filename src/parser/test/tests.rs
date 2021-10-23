@@ -418,15 +418,13 @@ mod tests {
         let input = "var test = 1;
         var test2 = 40;
         var test3 = 10 * 2;
-
-        ";
-/*
         var test4 = 1.1;
         var test5 = -1;
         var test6 = -1.1;
         var test7 = 1.1 + 1.1;
         var test8 = 1.1 + 1;
- */
+        ";
+
         let mut expected: Vec<Statement> = Vec::new();
 
         // Test #1
@@ -446,6 +444,40 @@ mod tests {
         let right = test_helper::generate_integer_expression(2);
         expected.push(test_helper::generate_variable_declaration_v3(
             "test3",
+            test_helper::generate_suffix_expression_v3(left, "*", right),
+        ));
+
+        // Test #4
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test4",
+            test_helper::generate_float_expression(1.1),
+        ));
+
+        // Test #5
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test5",
+            test_helper::generate_integer_expression(-1),
+        ));
+
+        // Test #6
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test4",
+            test_helper::generate_float_expression(-1.1),
+        ));
+
+        // Test #7
+        let left = test_helper::generate_float_expression(1.1);
+        let right = test_helper::generate_float_expression(1.1);
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test7",
+            test_helper::generate_suffix_expression_v3(left, "*", right),
+        ));
+
+        // Test #8
+        let left = test_helper::generate_float_expression(1.1);
+        let right = test_helper::generate_integer_expression(1);
+        expected.push(test_helper::generate_variable_declaration_v3(
+            "test7",
             test_helper::generate_suffix_expression_v3(left, "*", right),
         ));
 
