@@ -7,6 +7,15 @@ pub struct LoopString {
     pub value: std::string::String,
 }
 
+impl LoopString {
+    pub fn find_extension(&self, name: &str) -> Option<i32> {
+        match name {
+            "to_int" => Some(0),
+            &_ => None,
+        }
+    }
+}
+
 pub fn parse_string_literal(p: &mut Parser) -> Option<Node> {
     let value = p.lexer.current_token.clone().unwrap().literal;
 

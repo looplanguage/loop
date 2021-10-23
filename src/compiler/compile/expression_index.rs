@@ -32,6 +32,7 @@ pub fn compile_expression_extension_method(
     // Search for extension method based on type
     let method_id = match left.clone() {
         Expression::Integer(integer) => integer.find_extension(method.as_str()),
+        Expression::String(string) => string.find_extension(method.as_str()),
         _ => return Some(CompilerException::UnknownExtensionMethod(method)),
     };
 
