@@ -5,11 +5,12 @@ mod tests {
     use crate::parser;
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
-    use crate::parser::expression::function::Function;
+    use crate::parser::expression::function::{Call, Function};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
     use crate::parser::expression::string::LoopString;
     use crate::parser::expression::suffix::Suffix;
+    use crate::parser::expression::Expression::Index;
     use crate::parser::program::Node;
     use crate::parser::statement::assign::VariableAssign;
     use crate::parser::statement::block::Block;
@@ -38,6 +39,85 @@ mod tests {
                     })],
                 },
             })),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn extension_methods_chained() {
+        let input = "
+    \"123\".to_int().to_string().to_int();
+";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(Index(Box::new(parser::expression::index::Index {
+                left: Index(Box::new(parser::expression::index::Index {
+                    left: Index(Box::new(parser::expression::index::Index {
+                        left: parser::expression::Expression::String(LoopString {
+                            value: "123".to_string(),
+                        }),
+                        right: parser::expression::Expression::Call(Call {
+                            identifier: Box::new(parser::Expression::Identifier(Identifier {
+                                value: "to_int".to_string(),
+                            })),
+                            parameters: vec![],
+                        }),
+                    })),
+                    right: parser::expression::Expression::Call(Call {
+                        identifier: Box::new(parser::Expression::Identifier(Identifier {
+                            value: "to_string".to_string(),
+                        })),
+                        parameters: vec![],
+                    }),
+                })),
+                right: parser::expression::Expression::Call(Call {
+                    identifier: Box::new(parser::Expression::Identifier(Identifier {
+                        value: "to_int".to_string(),
+                    })),
+                    parameters: vec![],
+                }),
+            }))),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn extension_methods() {
+        let input = "
+    \"123\".to_int();
+    123.to_string();
+";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(Index(Box::new(parser::expression::index::Index {
+                left: parser::expression::Expression::String(LoopString {
+                    value: "123".to_string(),
+                }),
+                right: parser::expression::Expression::Call(Call {
+                    identifier: Box::new(parser::Expression::Identifier(Identifier {
+                        value: "to_int".to_string(),
+                    })),
+                    parameters: vec![],
+                }),
+            }))),
+        })));
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(Index(Box::new(parser::expression::index::Index {
+                left: parser::expression::Expression::Integer(Integer { value: 123 }),
+                right: parser::expression::Expression::Call(Call {
+                    identifier: Box::new(parser::Expression::Identifier(Identifier {
+                        value: "to_string".to_string(),
+                    })),
+                    parameters: vec![],
+                }),
+            }))),
         })));
 
         test_parser(input, expected);
