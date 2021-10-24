@@ -22,6 +22,12 @@ In this repository, you will find the lexer, parser, compiler and virtual machin
 4. Run the command `cargo run`
 5. The Loop shell should now popup
 
+## Contributor Guidelines
+To read our contributor guidelines go to our [website](https://looplang.org/contributor_guidelines)
+
+## Code of Conduct
+To read our code of conduct go to our [website](https://looplang.org/conduct)
+
 ---
 
 Website: [https://looplang.org](https://looplang.org)
