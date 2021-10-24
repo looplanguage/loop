@@ -20,7 +20,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
-use crate::parser::expression::number::{parse_number_literal, parse_negative_number};
+use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 
 pub mod expression;
 pub mod program;
