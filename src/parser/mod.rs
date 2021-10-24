@@ -8,7 +8,6 @@ use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::index::parse_index_expression;
-use crate::parser::expression::integer::{parse_integer_literal, parse_minus_integer};
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
@@ -21,7 +20,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
-use crate::parser::expression::float::{parse_float_literal, parse_minus_float};
+use crate::parser::expression::number::{parse_number_literal, parse_negative_number};
 
 pub mod expression;
 pub mod program;
@@ -84,17 +83,9 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {
-        // Todo: This is a bit messy, it is because there is an minus for integer and float.
-        let prefix_parser;
-        if self.lexer.peek_token.as_ref().unwrap().token == TokenType::Float
-            && self.lexer.current_token.as_ref().unwrap().token == TokenType::Minus
-        {
-            prefix_parser = self.prefix_parser.get(&TokenType::MinusFloat);
-        } else {
-            prefix_parser = self
-                .prefix_parser
-                .get(&self.lexer.current_token.as_ref().unwrap().token);
-        }
+        let prefix_parser = self
+            .prefix_parser
+            .get(&self.lexer.current_token.as_ref().unwrap().token);
 
         if prefix_parser.is_none() {
             self.add_error(format!(
@@ -209,10 +200,9 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     };
 
     // Prefix parsers
-    p.add_prefix_parser(TokenType::Integer, parse_integer_literal);
-    p.add_prefix_parser(TokenType::Float, parse_float_literal);
-    p.add_prefix_parser(TokenType::Minus, parse_minus_integer); //
-    p.add_prefix_parser(TokenType::MinusFloat, parse_minus_float); // Todo: there prob does not need t be a minus for float and integer
+    p.add_prefix_parser(TokenType::Integer, parse_number_literal);
+    p.add_prefix_parser(TokenType::Float, parse_number_literal);
+    p.add_prefix_parser(TokenType::Minus, parse_negative_number);
     p.add_prefix_parser(TokenType::LeftParenthesis, parse_grouped_expression);
     p.add_prefix_parser(TokenType::Identifier, parse_identifier);
     p.add_prefix_parser(TokenType::True, parse_boolean);

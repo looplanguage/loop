@@ -21,7 +21,7 @@ impl Integer {
         }
     }
 }
-
+/*
 pub fn parse_integer_literal(p: &mut Parser) -> Option<Node> {
     let value = p
         .lexer
@@ -56,4 +56,4 @@ pub fn parse_minus_integer(p: &mut Parser) -> Option<Node> {
     Some(Node::Expression(Expression::Integer(Integer {
         value: -value,
     })))
-}
+}*/
