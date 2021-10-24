@@ -28,12 +28,12 @@ machine.<br>
 
 ## Contributor Guidelines
 
-To read our contributor guidelines go to our
+To read our contributor guidelines, go to our
 [website](https://looplang.org/contributor_guidelines)
 
 ## Code of Conduct
 
-To read our code of conduct go to our [website](https://looplang.org/conduct)
+To read our code of conduct, go to our [website](https://looplang.org/conduct)
 
 ---
 
