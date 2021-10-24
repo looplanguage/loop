@@ -5,7 +5,7 @@ use crate::parser::program::Node;
 use crate::parser::Parser;
 
 pub fn parse_number_literal(p: &mut Parser) -> Option<Node> {
-    let mut value = p.lexer.current_token.clone().unwrap().literal;
+    let value = p.lexer.current_token.clone().unwrap().literal;
 
     if value.parse::<i64>().is_ok() {
         Some(Node::Expression(Expression::Integer(Integer {
