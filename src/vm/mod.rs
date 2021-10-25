@@ -313,6 +313,7 @@ impl VM {
 
                     None
                 }
+                OpCode::AssignIndex => None,
             };
 
             if let Some(err) = err {

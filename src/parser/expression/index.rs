@@ -1,4 +1,5 @@
 use crate::lexer::token::TokenType;
+use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::parse_call;
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::{Expression, Precedence};
@@ -20,6 +21,23 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
 
         if let Node::Expression(index) = index_exp.unwrap() {
             p.lexer.next_token();
+
+            // Now we check if we want to assign to this index, otherwise just return the index
+            if p.lexer.next_is(TokenType::Assign) {
+                p.lexer.next_token();
+
+                let value = p.parse_expression(Precedence::Lowest);
+
+                if let Node::Expression(exp) = value.unwrap() {
+                    return Some(Node::Expression(Expression::AssignIndex(Box::from(
+                        AssignIndex {
+                            left,
+                            index,
+                            value: exp,
+                        },
+                    ))));
+                }
+            }
 
             return Some(Node::Expression(Expression::Index(Box::from(Index {
                 left,
