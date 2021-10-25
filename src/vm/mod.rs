@@ -275,6 +275,7 @@ impl VM {
 
                     None
                 }
+                OpCode::Array => None,
             };
 
             if let Some(err) = err {
