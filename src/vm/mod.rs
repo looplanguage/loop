@@ -4,10 +4,11 @@ mod suffix;
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{read_uint32, read_uint8};
+use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::lib::exception::vm::VMException;
+use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
@@ -275,7 +276,25 @@ impl VM {
 
                     None
                 }
-                OpCode::Array => None,
+                OpCode::Array => {
+                    let ip = self.current_frame().ip;
+
+                    let element_amount =
+                        read_uint16(&self.current_frame().instructions()[ip as usize..]);
+
+                    self.increment_ip(2);
+
+                    let mut elements: Vec<Rc<Object>> = Vec::new();
+
+                    for i in 0..element_amount {
+                        let element = self.pop();
+                        elements.push(element.clone());
+                    }
+
+                    let array = Object::Array(Array { values: elements });
+
+                    self.push(Rc::from(array))
+                }
             };
 
             if let Some(err) = err {

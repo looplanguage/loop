@@ -7,7 +7,7 @@ use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 
-mod array;
+pub mod array;
 pub mod boolean;
 pub mod builtin;
 pub mod float;
