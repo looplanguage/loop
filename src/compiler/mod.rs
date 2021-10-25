@@ -219,6 +219,7 @@ impl Compiler {
             Expression::Float(float) => compile_expression_float(self, float),
             Expression::String(string) => compile_expression_string(self, string),
             Expression::Index(index) => compile_expression_index(self, *index),
+            Expression::Array(array) => {}
         };
 
         if err.is_some() {

@@ -1,4 +1,5 @@
 use crate::lexer::token::TokenType;
+use crate::parser::expression::array::Array;
 use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::float::Float;
@@ -21,6 +22,7 @@ pub mod null;
 pub mod number;
 pub mod string;
 pub mod suffix;
+pub mod array;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
@@ -35,6 +37,7 @@ pub enum Expression {
     Float(Float),
     String(LoopString),
     Index(Box<Index>),
+    Array(Box<Array>)
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
