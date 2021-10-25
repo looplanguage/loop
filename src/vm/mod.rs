@@ -295,6 +295,24 @@ impl VM {
 
                     self.push(Rc::from(array))
                 }
+                OpCode::Index => {
+                    let index = self.pop();
+                    let indexed = self.pop();
+
+                    if let Object::Array(array) = &*indexed {
+                        if let Object::Integer(id) = &*index {
+                            let item = array.values.get(id.value as usize);
+
+                            if item.is_none() {
+                                self.push(Rc::from(Object::Null(Null {})));
+                            } else {
+                                self.push(item.unwrap().clone());
+                            }
+                        }
+                    }
+
+                    None
+                }
             };
 
             if let Some(err) = err {

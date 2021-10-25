@@ -59,21 +59,21 @@ mod tests {
                         left: parser::expression::Expression::String(LoopString {
                             value: "123".to_string(),
                         }),
-                        right: parser::expression::Expression::Call(Call {
+                        index: parser::expression::Expression::Call(Call {
                             identifier: Box::new(parser::Expression::Identifier(Identifier {
                                 value: "to_int".to_string(),
                             })),
                             parameters: vec![],
                         }),
                     })),
-                    right: parser::expression::Expression::Call(Call {
+                    index: parser::expression::Expression::Call(Call {
                         identifier: Box::new(parser::Expression::Identifier(Identifier {
                             value: "to_string".to_string(),
                         })),
                         parameters: vec![],
                     }),
                 })),
-                right: parser::expression::Expression::Call(Call {
+                index: parser::expression::Expression::Call(Call {
                     identifier: Box::new(parser::Expression::Identifier(Identifier {
                         value: "to_int".to_string(),
                     })),
@@ -99,7 +99,7 @@ mod tests {
                 left: parser::expression::Expression::String(LoopString {
                     value: "123".to_string(),
                 }),
-                right: parser::expression::Expression::Call(Call {
+                index: parser::expression::Expression::Call(Call {
                     identifier: Box::new(parser::Expression::Identifier(Identifier {
                         value: "to_int".to_string(),
                     })),
@@ -111,7 +111,7 @@ mod tests {
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(Index(Box::new(parser::expression::index::Index {
                 left: parser::expression::Expression::Integer(Integer { value: 123 }),
-                right: parser::expression::Expression::Call(Call {
+                index: parser::expression::Expression::Call(Call {
                     identifier: Box::new(parser::Expression::Identifier(Identifier {
                         value: "to_string".to_string(),
                     })),

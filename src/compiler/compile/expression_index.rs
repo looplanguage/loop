@@ -10,9 +10,26 @@ pub fn compile_expression_index(
     _index: Index,
 ) -> Option<CompilerException> {
     // Change to a match when indexing with [] (eg array[0])
-    if let Expression::Call(call) = _index.right.clone() {
-        return compile_expression_extension_method(_compiler, call, _index.left, true);
+
+    match _index.index.clone() {
+        Expression::Call(call) => {
+            compile_expression_extension_method(_compiler, call, _index.left, true)
+        }
+        _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
     };
+
+    None
+}
+
+fn compile_expression_index_internal(
+    compiler: &mut Compiler,
+    left: Expression,
+    index: Expression,
+) -> Option<CompilerException> {
+    compiler.compile_expression(left);
+    compiler.compile_expression(index);
+
+    compiler.emit(OpCode::Index, vec![]);
 
     None
 }

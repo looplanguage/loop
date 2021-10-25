@@ -11,6 +11,7 @@ use crate::parser::expression::null::Null;
 use crate::parser::expression::string::LoopString;
 use crate::parser::expression::suffix::Suffix;
 
+pub mod array;
 pub mod boolean;
 pub mod conditional;
 pub mod float;
@@ -22,7 +23,6 @@ pub mod null;
 pub mod number;
 pub mod string;
 pub mod suffix;
-pub mod array;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
@@ -37,7 +37,7 @@ pub enum Expression {
     Float(Float),
     String(LoopString),
     Index(Box<Index>),
-    Array(Box<Array>)
+    Array(Box<Array>),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -69,6 +69,7 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::GreaterThanOrEquals => Precedence::LessGreater,
         TokenType::Modulo => Precedence::Modulo,
         TokenType::Dot => Precedence::Index,
+        TokenType::LeftBracket => Precedence::Index,
         _ => Precedence::Lowest,
     }
 }
