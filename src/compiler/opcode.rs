@@ -23,4 +23,5 @@ pub enum OpCode {
     GetBuiltin,    // 20
     CallExtension, // 21
     Array,         // 22
+    Index,         // 23
 }
