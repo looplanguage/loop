@@ -14,6 +14,7 @@ pub enum TokenType {
     Semicolon,
     Plus,
     Minus,
+    MinusFloat,
     Multiply,
     Divide,
     Modulo,
