@@ -111,11 +111,11 @@ impl Lexer {
 
     fn find_string(&mut self) -> Token {
         let mut string: String = String::new();
-        self.current += 1;
+        self.next_character();
 
         while self.current_character() != '"' && self.current_character() != char::from(0) {
             string.push_str(self.current_character().to_string().as_str());
-            self.current += 1;
+            self.next_character();
         }
 
         create_token(TokenType::String, string)
@@ -126,16 +126,39 @@ impl Lexer {
 
         while self.peek_character().is_alphanumeric() || self.peek_character() == '_' {
             keyword.push_str(self.peek_character().to_string().as_str());
-            self.current += 1;
+            self.next_character();
         }
 
-        let token_type: TokenType = lookup_keyword(keyword.as_str());
+        let mut token_type: TokenType = lookup_keyword(keyword.as_str());
+
+        if token_type == TokenType::Integer
+            && self.peek_character() == '.'
+            && self.double_peek_character().is_numeric()
+        {
+            keyword.push_str(self.peek_character().to_string().as_str());
+            self.next_character();
+            while self.peek_character().is_numeric() {
+                keyword.push_str(self.peek_character().to_string().as_str());
+                self.next_character();
+            }
+            token_type = TokenType::Float;
+        }
 
         create_token(token_type, keyword.to_string())
     }
 
     fn peek_character(&self) -> char {
         let val = self.input.chars().nth((self.current) as usize);
+
+        if val == None {
+            return char::from(0);
+        }
+
+        val.unwrap()
+    }
+
+    fn double_peek_character(&self) -> char {
+        let val = self.input.chars().nth((self.current + 1) as usize);
 
         if val == None {
             return char::from(0);
