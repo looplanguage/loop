@@ -1,3 +1,4 @@
+use crate::lib::object::array::Array;
 use crate::lib::object::boolean::Boolean;
 use crate::lib::object::builtin::{BuiltinFunction, EvalResult};
 use crate::lib::object::float::Float;
@@ -13,6 +14,7 @@ pub mod function;
 pub mod integer;
 pub mod null;
 pub mod string;
+mod array;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
@@ -24,6 +26,7 @@ pub enum Object {
     Float(Float),
     String(LoopString),
     Builtin(BuiltinFunction),
+    Array(Array),
 }
 
 impl Object {

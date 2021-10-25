@@ -12,6 +12,7 @@ use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
+use crate::parser::expression::array::parse_expression_array;
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::block::parse_block_statement;
@@ -212,6 +213,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::If, parse_conditional);
     p.add_prefix_parser(TokenType::Null, parse_expression_null);
     p.add_prefix_parser(TokenType::String, parse_string_literal);
+    p.add_prefix_parser(TokenType::LeftBracket, parse_expression_array);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
