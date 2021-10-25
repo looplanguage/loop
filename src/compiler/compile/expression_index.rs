@@ -1,6 +1,7 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
+use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
@@ -17,6 +18,19 @@ pub fn compile_expression_index(
         }
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
     };
+
+    None
+}
+
+pub fn compile_expression_assign_index(
+    compiler: &mut Compiler,
+    assign: AssignIndex,
+) -> Option<CompilerException> {
+    compiler.compile_expression(assign.left);
+    compiler.compile_expression(assign.index);
+    compiler.compile_expression(assign.value);
+
+    compiler.emit(OpCode::AssignIndex, vec![]);
 
     None
 }

@@ -24,4 +24,5 @@ pub enum OpCode {
     CallExtension, // 21
     Array,         // 22
     Index,         // 23
+    AssignIndex,   // 24
 }

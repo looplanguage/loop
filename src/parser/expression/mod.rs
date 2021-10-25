@@ -1,5 +1,6 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::array::Array;
+use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::float::Float;
@@ -12,6 +13,7 @@ use crate::parser::expression::string::LoopString;
 use crate::parser::expression::suffix::Suffix;
 
 pub mod array;
+pub mod assign_index;
 pub mod boolean;
 pub mod conditional;
 pub mod float;
@@ -38,6 +40,7 @@ pub enum Expression {
     String(LoopString),
     Index(Box<Index>),
     Array(Box<Array>),
+    AssignIndex(Box<AssignIndex>),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -52,6 +55,7 @@ pub enum Precedence {
     Prefix,
     Call,
     Index,
+    Assign,
 }
 
 pub fn get_precedence(tok: TokenType) -> Precedence {
@@ -70,6 +74,7 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::Modulo => Precedence::Modulo,
         TokenType::Dot => Precedence::Index,
         TokenType::LeftBracket => Precedence::Index,
+        TokenType::Assign => Precedence::Assign,
         _ => Precedence::Lowest,
     }
 }
