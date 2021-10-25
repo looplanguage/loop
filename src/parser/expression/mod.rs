@@ -18,6 +18,7 @@ pub mod identifier;
 pub mod index;
 pub mod integer;
 pub mod null;
+pub mod number;
 pub mod string;
 pub mod suffix;
 

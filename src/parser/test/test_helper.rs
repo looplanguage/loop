@@ -3,6 +3,7 @@ pub mod test_helper {
     use crate::parser;
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
+    use crate::parser::expression::float::Float;
     use crate::parser::expression::function::Function;
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
@@ -120,6 +121,10 @@ pub mod test_helper {
 
     pub fn generate_integer_expression(value: i64) -> crate::parser::expression::Expression {
         parser::expression::Expression::Integer(Integer { value })
+    }
+
+    pub fn generate_float_expression(value: f64) -> crate::parser::expression::Expression {
+        parser::expression::Expression::Float(Float { value })
     }
 
     pub fn generate_expression_suffix(
