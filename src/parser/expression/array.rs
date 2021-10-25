@@ -1,8 +1,8 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::Precedence::Lowest;
-use crate::parser::Parser;
 use crate::parser::program::Node;
 use crate::parser::statement::expression::Expression;
+use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Array {
@@ -14,13 +14,15 @@ pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {
 
     p.lexer.next_token();
 
-    while p.lexer.current_token.clone().unwrap().token == TokenType::Identifier {
-        let exp =  p.parse_expression(Lowest);
+    while p.lexer.current_token.clone().unwrap().token != TokenType::RightBracket
+        && p.lexer.current_token.clone().unwrap().token != TokenType::Eof
+    {
+        let exp = p.parse_expression(Lowest);
 
         if let Some(exp) = exp {
             if let Node::Expression(exp) = exp {
                 elements.push(Expression {
-                    expression: Box::from(exp)
+                    expression: Box::from(exp),
                 });
             }
         }
@@ -32,7 +34,7 @@ pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {
         }
     }
 
-    Some(Node::Expression(crate::parser::Expression::Array(Box::from(Array {
-        values: elements
-    }))))
+    Some(Node::Expression(crate::parser::Expression::Array(
+        Box::from(Array { values: elements }),
+    )))
 }
