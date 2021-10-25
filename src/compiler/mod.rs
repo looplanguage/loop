@@ -6,6 +6,7 @@ mod symbol_table;
 mod tests;
 mod variable_table;
 
+use crate::compiler::compile::expression_array::compile_expression_array;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
@@ -219,7 +220,7 @@ impl Compiler {
             Expression::Float(float) => compile_expression_float(self, float),
             Expression::String(string) => compile_expression_string(self, string),
             Expression::Index(index) => compile_expression_index(self, *index),
-            Expression::Array(array) => {}
+            Expression::Array(array) => compile_expression_array(self, *array),
         };
 
         if err.is_some() {

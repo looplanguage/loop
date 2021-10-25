@@ -1,3 +1,4 @@
+pub mod expression_array;
 pub mod expression_bool;
 pub mod expression_call;
 pub mod expression_conditional;
@@ -12,4 +13,3 @@ pub mod expression_suffix;
 pub mod statement_return;
 pub mod statement_variable_assign;
 pub mod statement_variable_declaration;
-mod expression_array;

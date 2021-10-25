@@ -7,6 +7,7 @@ use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 
+mod array;
 pub mod boolean;
 pub mod builtin;
 pub mod float;
@@ -14,7 +15,6 @@ pub mod function;
 pub mod integer;
 pub mod null;
 pub mod string;
-mod array;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
@@ -40,6 +40,7 @@ impl Object {
             Object::Float(float) => float.inspect(),
             Object::String(string) => string.inspect(),
             Object::Builtin(builtin) => format!("Builtin[{:p}]", builtin),
+            Object::Array(array) => array.inspect(),
         }
     }
 
