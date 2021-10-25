@@ -288,7 +288,7 @@ impl VM {
 
                     for i in 0..element_amount {
                         let element = self.pop();
-                        elements.push(element.clone());
+                        elements.insert(0, element.clone());
                     }
 
                     let array = Object::Array(Array { values: elements });
