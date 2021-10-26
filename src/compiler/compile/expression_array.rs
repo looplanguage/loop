@@ -1,8 +1,6 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
-use crate::lib::object::Object;
-use crate::parser::expression::array;
 use crate::parser::expression::array::Array;
 
 pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Option<CompilerException> {
