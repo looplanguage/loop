@@ -4,10 +4,11 @@ mod suffix;
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{read_uint32, read_uint8};
+use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::lib::exception::vm::VMException;
+use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
@@ -16,6 +17,7 @@ use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
 use std::collections::HashMap;
+use std::ops::Deref;
 use std::rc::Rc;
 
 pub struct VM {
@@ -123,7 +125,7 @@ impl VM {
 
                     let variable = self.variables.get(&idx).unwrap().clone();
 
-                    self.push(Rc::clone(&variable));
+                    self.push(variable);
 
                     None
                 }
@@ -272,6 +274,73 @@ impl VM {
                     let object = push.ok().unwrap();
 
                     self.push(Rc::from(object));
+
+                    None
+                }
+                OpCode::Array => {
+                    let ip = self.current_frame().ip;
+
+                    let element_amount =
+                        read_uint16(&self.current_frame().instructions()[ip as usize..]);
+
+                    self.increment_ip(2);
+
+                    let mut elements: Vec<Object> = Vec::new();
+
+                    for _i in 0..element_amount {
+                        let element = self.pop();
+                        elements.insert(0, element.deref().clone());
+                    }
+
+                    let array = Object::Array(Array { values: elements });
+
+                    self.push(Rc::from(array))
+                }
+                OpCode::Index => {
+                    let index = self.pop();
+                    let indexed = self.pop();
+
+                    if let Object::Array(array) = &*indexed {
+                        if let Object::Integer(id) = &*index {
+                            let item = array.values.get(id.value as usize);
+
+                            if let Some(item) = item {
+                                self.push(Rc::from(item.deref().clone()));
+                            } else {
+                                self.push(Rc::from(Object::Null(Null {})));
+                            }
+                        }
+                    }
+
+                    None
+                }
+                OpCode::AssignIndex => {
+                    let value = self.pop();
+                    let index = self.pop();
+
+                    let ip = self.current_frame().ip;
+
+                    let id = read_uint16(&self.current_frame().instructions()[ip as usize..]);
+
+                    self.increment_ip(2);
+
+                    let arr = self.variables.get(&(id as u32)).unwrap().deref().clone();
+
+                    let new_array = match arr {
+                        Object::Array(mut array) => {
+                            if let Object::Integer(index) = &*index {
+                                array.values[index.value as usize] = value.deref().clone()
+                            }
+
+                            Some(array)
+                        }
+                        _ => None,
+                    };
+
+                    self.variables
+                        .insert(id as u32, Rc::from(Object::Array(new_array.unwrap())));
+
+                    self.push(value.clone());
 
                     None
                 }

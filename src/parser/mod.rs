@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
 use crate::lib::exception::Exception;
+use crate::parser::expression::array::parse_expression_array;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
@@ -212,6 +213,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::If, parse_conditional);
     p.add_prefix_parser(TokenType::Null, parse_expression_null);
     p.add_prefix_parser(TokenType::String, parse_string_literal);
+    p.add_prefix_parser(TokenType::LeftBracket, parse_expression_array);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
@@ -221,6 +223,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::Modulo, parse_suffix_expression);
     p.add_infix_parser(TokenType::LeftParenthesis, parse_call);
     p.add_infix_parser(TokenType::Dot, parse_index_expression);
+    p.add_infix_parser(TokenType::LeftBracket, parse_index_expression);
 
     // Infix Parsers Comparisons
     p.add_infix_parser(TokenType::Equals, parse_suffix_expression);
