@@ -77,7 +77,7 @@ pub fn read_uint8(ins: &[u8]) -> u8 {
 }
 
 pub fn read_uint16(ins: &[u8]) -> u16 {
-    u16::from_be_bytes((ins[0..1]).try_into().unwrap())
+    u16::from_be_bytes((ins[0..2]).try_into().unwrap())
 }
 
 pub fn read_uint32(ins: &[u8]) -> u32 {
