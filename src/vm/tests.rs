@@ -268,9 +268,9 @@ mod tests {
             "var x = [0, 1, 2]; x[2] = 400; x",
             Array(array::Array {
                 values: vec![
-                    Box::from(Object::Integer(integer::Integer { value: 0 })),
-                    Box::from(Object::Integer(integer::Integer { value: 1 })),
-                    Box::from(Object::Integer(integer::Integer { value: 400 })),
+                    Object::Integer(integer::Integer { value: 0 }),
+                    Object::Integer(integer::Integer { value: 1 }),
+                    Object::Integer(integer::Integer { value: 400 }),
                 ],
             }),
         );
@@ -284,9 +284,9 @@ mod tests {
             "[1, 2, 3]",
             Array(array::Array {
                 values: vec![
-                    Box::from(Object::Integer(integer::Integer { value: 1 })),
-                    Box::from(Object::Integer(integer::Integer { value: 2 })),
-                    Box::from(Object::Integer(integer::Integer { value: 3 })),
+                    Object::Integer(integer::Integer { value: 1 }),
+                    Object::Integer(integer::Integer { value: 2 }),
+                    Object::Integer(integer::Integer { value: 3 }),
                 ],
             }),
         );
@@ -295,9 +295,9 @@ mod tests {
             "[1, null, true]",
             Array(array::Array {
                 values: vec![
-                    Box::from(Object::Integer(integer::Integer { value: 1 })),
-                    Box::from(Object::Null(null::Null {})),
-                    Box::from(Object::Boolean(boolean::Boolean { value: true })),
+                    Object::Integer(integer::Integer { value: 1 }),
+                    Object::Null(null::Null {}),
+                    Object::Boolean(boolean::Boolean { value: true }),
                 ],
             }),
         );
