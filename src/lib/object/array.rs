@@ -1,9 +1,20 @@
 use crate::lib::object::{Object, ObjectTrait};
+use std::borrow::BorrowMut;
 use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Array {
-    pub(crate) values: Vec<Rc<Object>>,
+    pub(crate) values: Vec<Box<Object>>,
+}
+
+impl Array {
+    pub fn change_value(&self, index: usize, value: Object) {
+        let cur_value = self.values.get(index);
+
+        println!("{:?}", value);
+
+        *cur_value.unwrap().borrow_mut() = &Box::from(value);
+    }
 }
 
 impl ObjectTrait for Array {

@@ -16,6 +16,7 @@ pub enum CompilerException {
     UnknownSuffixOperator(String),
     ReturnStatementNotAllowedOutsideFunction,
     UnknownExtensionMethod(String),
+    CanOnlyAssignToVariableArray,
 }
 
 impl CompilerException {
@@ -35,6 +36,9 @@ impl CompilerException {
             }
             CompilerException::UnknownExtensionMethod(method) => {
                 format!("unknown extension method. got=\"{}\"", method)
+            }
+            CompilerException::CanOnlyAssignToVariableArray => {
+                String::from("you can only assign to variable arrays")
             }
         }
     }
