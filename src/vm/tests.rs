@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
     use crate::lib::exception::Exception;
-    use crate::lib::object::null;
     use crate::lib::object::Object;
-    use crate::lib::object::Object::Integer;
     use crate::lib::object::Object::Null;
     use crate::lib::object::Object::String;
+    use crate::lib::object::Object::{Array, Integer};
     use crate::lib::object::Object::{Boolean, Float};
+    use crate::lib::object::{array, null};
     use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
@@ -232,6 +232,73 @@ mod tests {
             "123.to_string().to_int().to_string();",
             String(string::LoopString {
                 value: "123".to_string(),
+            }),
+        );
+    }
+
+    #[test]
+    fn array_index() {
+        test_vm(
+            "[1, 2, 3][0]",
+            Object::Integer(integer::Integer { value: 1 }),
+        );
+
+        test_vm(
+            "var x = [1, 2, 3]; x[2]",
+            Object::Integer(integer::Integer { value: 3 }),
+        );
+    }
+
+    #[test]
+    fn array_index_deep() {
+        test_vm(
+            "[[0, 1, 2], [3, 4, 5]][1][0]",
+            Object::Integer(integer::Integer { value: 3 }),
+        );
+
+        test_vm(
+            "var x = [[0, 1, 2], [3, 4, 5]]; x[1][0]",
+            Object::Integer(integer::Integer { value: 3 }),
+        );
+    }
+
+    #[test]
+    fn array_assign_index() {
+        test_vm(
+            "var x = [0, 1, 2]; x[2] = 400; x",
+            Array(array::Array {
+                values: vec![
+                    Box::from(Object::Integer(integer::Integer { value: 0 })),
+                    Box::from(Object::Integer(integer::Integer { value: 1 })),
+                    Box::from(Object::Integer(integer::Integer { value: 400 })),
+                ],
+            }),
+        );
+    }
+
+    #[test]
+    fn arrays() {
+        test_vm("[]", Array(array::Array { values: vec![] }));
+
+        test_vm(
+            "[1, 2, 3]",
+            Array(array::Array {
+                values: vec![
+                    Box::from(Object::Integer(integer::Integer { value: 1 })),
+                    Box::from(Object::Integer(integer::Integer { value: 2 })),
+                    Box::from(Object::Integer(integer::Integer { value: 3 })),
+                ],
+            }),
+        );
+
+        test_vm(
+            "[1, null, true]",
+            Array(array::Array {
+                values: vec![
+                    Box::from(Object::Integer(integer::Integer { value: 1 })),
+                    Box::from(Object::Null(null::Null {})),
+                    Box::from(Object::Boolean(boolean::Boolean { value: true })),
+                ],
             }),
         );
     }
