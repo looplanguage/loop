@@ -13,9 +13,11 @@ pub struct Index {
 }
 
 pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> {
-    if p.lexer.current_token.clone().unwrap().token == TokenType::LeftBracket {
+    let check_token = p.lexer.current_token.clone().unwrap().token;
+    p.lexer.next_token();
+
+    if check_token == TokenType::LeftBracket {
         // This index expression is for: Arrays OR Hashmaps
-        p.lexer.next_token();
 
         let index_exp = p.parse_expression(Precedence::Lowest);
 
@@ -46,8 +48,6 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         }
     } else {
         // This index expression is for: Extension methods OR Hashmaps
-        p.lexer.next_token();
-
         let identifier = parse_identifier(p);
         if let Node::Expression(ident_exp) = identifier.unwrap() {
             p.lexer.next_token();

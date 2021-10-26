@@ -19,12 +19,10 @@ pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {
     {
         let exp = p.parse_expression(Lowest);
 
-        if let Some(exp) = exp {
-            if let Node::Expression(exp) = exp {
-                elements.push(Expression {
-                    expression: Box::from(exp),
-                });
-            }
+        if let Some(Node::Expression(exp)) = exp {
+            elements.push(Expression {
+                expression: Box::from(exp),
+            });
         }
 
         p.lexer.next_token();
