@@ -106,7 +106,7 @@ pub fn get_definition(op: OpCode) -> Definition {
         },
         OpCode::AssignIndex => Definition {
             name: "OpAssignIndex".to_string(),
-            operand_width: vec![],
+            operand_width: vec![2],
         },
     }
 }
