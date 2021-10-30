@@ -68,6 +68,7 @@ pub struct Compiler {
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
     pub location: String,
+    pub export_name: String,
 }
 
 pub struct CompilerState {
@@ -97,6 +98,7 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
         variable_scope: state.variable_scope.clone(),
         last_extension_type: None,
         location: String::new(),
+        export_name: String::new(),
     }
 }
 
