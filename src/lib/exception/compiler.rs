@@ -17,6 +17,7 @@ pub enum CompilerException {
     ReturnStatementNotAllowedOutsideFunction,
     UnknownExtensionMethod(String),
     CanOnlyAssignToVariableArray,
+    CanNotReadFile(String),
 }
 
 impl CompilerException {
@@ -39,6 +40,9 @@ impl CompilerException {
             }
             CompilerException::CanOnlyAssignToVariableArray => {
                 String::from("you can only assign to variable arrays")
+            }
+            CompilerException::CanNotReadFile(error) => {
+                format!("unable to read file. got=\"{}\"", error)
             }
         }
     }

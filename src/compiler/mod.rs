@@ -67,6 +67,7 @@ pub struct Compiler {
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
+    pub location: String,
 }
 
 pub struct CompilerState {
@@ -95,6 +96,7 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
         variable_count: state.variable_count,
         variable_scope: state.variable_scope.clone(),
         last_extension_type: None,
+        location: String::new(),
     }
 }
 
