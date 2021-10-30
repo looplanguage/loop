@@ -7,10 +7,10 @@ pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
 ) -> Option<CompilerException> {
-    let var = compiler
-        .variable_scope
-        .borrow_mut()
-        .define(compiler.variable_count, variable.ident.value);
+    let var = compiler.variable_scope.borrow_mut().define(
+        compiler.variable_count,
+        format!("{}{}", compiler.location, variable.ident.value),
+    );
 
     compiler.variable_count += 1;
     let err = compiler.compile_expression(*variable.value);
