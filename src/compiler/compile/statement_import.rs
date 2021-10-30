@@ -12,15 +12,16 @@ pub fn compile_import_statement(
     import: Import,
 ) -> Option<CompilerException> {
     // Keep hold of last_location
+    let before_last_location = _compiler.prev_location.clone();
     let last_location = _compiler.location.clone();
     let last_import_location = _compiler.export_name.clone();
 
     let mut location = Path::new(import.file.as_str());
 
-    let loc = format!("{}\\{}", last_location, import.file);
+    let loc = Path::new(last_location.as_str()).join(location);
 
     if !last_location.is_empty() {
-        location = Path::new(loc.as_str());
+        location = loc.as_path();
     }
 
     let contents = fs::read_to_string(location);
@@ -32,7 +33,8 @@ pub fn compile_import_statement(
     }
 
     // Set required context for compiling
-    _compiler.location = String::from(location.clone().to_str().unwrap());
+    _compiler.prev_location = last_location.clone();
+    _compiler.location = String::from(location.clone().parent().unwrap().to_str().unwrap());
     _compiler.export_name = import.identifier.clone();
 
     let contents = contents.unwrap();
@@ -56,9 +58,14 @@ pub fn compile_import_statement(
     }
 
     // Compile
-    _compiler.compile(program);
+    let err = _compiler.compile(program);
+
+    if err.is_err() {
+        return err.err();
+    }
 
     // Set last_location back
+    _compiler.prev_location = before_last_location.clone();
     _compiler.location = last_location;
     _compiler.export_name = last_import_location;
 
