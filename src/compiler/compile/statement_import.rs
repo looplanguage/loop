@@ -13,6 +13,7 @@ pub fn compile_import_statement(
 ) -> Option<CompilerException> {
     // Keep hold of last_location
     let last_location = _compiler.location.clone();
+    let last_import_location = _compiler.export_name.clone();
 
     let mut location = Path::new(import.file.as_str());
 
@@ -29,6 +30,10 @@ pub fn compile_import_statement(
             contents.err().unwrap().to_string(),
         ));
     }
+
+    // Set required context for compiling
+    _compiler.location = String::from(location.clone().to_str().unwrap());
+    _compiler.export_name = import.identifier.clone();
 
     let contents = contents.unwrap();
 
@@ -55,6 +60,7 @@ pub fn compile_import_statement(
 
     // Set last_location back
     _compiler.location = last_location;
+    _compiler.export_name = last_import_location;
 
     None
 }
