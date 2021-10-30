@@ -22,6 +22,7 @@ use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
+use crate::parser::statement::import::parse_import_statement;
 
 pub mod expression;
 pub mod program;
@@ -67,6 +68,7 @@ impl Parser {
             }
             TokenType::Return => parse_return_statement(self),
             TokenType::LeftBrace => parse_block_statement(self),
+            TokenType::Import => parse_import_statement(self),
             _ => self.parse_expression_statement(token),
         };
 
