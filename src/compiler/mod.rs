@@ -70,6 +70,7 @@ pub struct Compiler {
     pub last_extension_type: Option<Expression>,
     pub location: String,
     pub export_name: String,
+    pub prev_location: String,
 }
 
 pub struct CompilerState {
@@ -100,6 +101,7 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
         last_extension_type: None,
         location: String::new(),
         export_name: String::new(),
+        prev_location: String::new(),
     }
 }
 

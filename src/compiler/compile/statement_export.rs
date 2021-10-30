@@ -12,10 +12,14 @@ pub fn compile_export_statement(
         return None;
     }
 
-    let var = _compiler
-        .variable_scope
-        .borrow_mut()
-        .define(_compiler.variable_count, _compiler.export_name.clone());
+    let var = _compiler.variable_scope.borrow_mut().define(
+        _compiler.variable_count,
+        format!(
+            "{}{}",
+            _compiler.prev_location,
+            _compiler.export_name.clone()
+        ),
+    );
 
     _compiler.variable_count += 1;
 
