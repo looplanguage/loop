@@ -2,7 +2,6 @@ use crate::lib::exception::vm::VMException;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 

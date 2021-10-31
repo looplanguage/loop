@@ -11,7 +11,6 @@ use crate::lib::exception::vm::VMException;
 use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
-use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use crate::vm::frame::{build_frame, Frame};
@@ -19,7 +18,6 @@ use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::ops::Deref;
 use std::rc::Rc;
 
 pub struct VM {
