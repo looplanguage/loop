@@ -322,8 +322,6 @@ impl VM {
                     let index = self.pop();
                     let array = self.pop();
 
-                    let ip = self.current_frame().ip;
-
                     match &*array.as_ref().borrow() {
                         Object::Array(arr) => {
                             if let Object::Integer(index) = &*index.as_ref().borrow() {
@@ -334,26 +332,6 @@ impl VM {
                         _ => {}
                     }
 
-                    println!("{:?}", array);
-
-                    //let arr = self.variables.get(&(id as u32)).unwrap().deref().clone();
-                    /*
-                                        let new_array = match arr {
-                                            Object::Array(mut array) => {
-                                                if let Object::Integer(index) = &*index {
-                                                    array.values[index.value as usize] = value.deref().clone()
-                                                }
-
-                                                Some(array)
-                                            }
-                                            _ => None,
-                                        };
-
-                                        self.variables.insert(
-                                            id as u32,
-                                            Rc::from(RefCell::from(Object::Array(new_array.unwrap()))),
-                                        );
-                    */
                     self.push(value.clone());
 
                     None
