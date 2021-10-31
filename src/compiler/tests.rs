@@ -85,6 +85,33 @@ mod tests {
     }
 
     #[test]
+    fn array() {
+        let input = "[0, 1]";
+
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpArray 2
+[13] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
+    fn array_assign() {
+        let input = "[0, 1][0] = 1";
+
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpArray 2
+[13] OpConstant 3
+[18] OpConstant 4
+[23] OpAssignIndex
+[24] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("var test = 100; if(true) { test }", None);
     }
