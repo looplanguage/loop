@@ -34,7 +34,7 @@ pub fn compile_import_statement(
 
     // Set required context for compiling
     _compiler.prev_location = last_location.clone();
-    _compiler.location = String::from(location.clone().parent().unwrap().to_str().unwrap());
+    _compiler.location = String::from(location.parent().unwrap().to_str().unwrap());
     _compiler.export_name = import.identifier.clone();
 
     let contents = contents.unwrap();
@@ -65,7 +65,7 @@ pub fn compile_import_statement(
     }
 
     // Set last_location back
-    _compiler.prev_location = before_last_location.clone();
+    _compiler.prev_location = before_last_location;
     _compiler.location = last_location;
     _compiler.export_name = last_import_location;
 

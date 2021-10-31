@@ -322,14 +322,11 @@ impl VM {
                     let index = self.pop();
                     let array = self.pop();
 
-                    match &*array.as_ref().borrow() {
-                        Object::Array(arr) => {
-                            if let Object::Integer(index) = &*index.as_ref().borrow() {
-                                *arr.values[index.value as usize].borrow_mut() =
-                                    value.as_ref().borrow().clone();
-                            }
+                    if let Object::Array(arr) = &*array.as_ref().borrow() {
+                        if let Object::Integer(index) = &*index.as_ref().borrow() {
+                            *arr.values[index.value as usize].borrow_mut() =
+                                value.as_ref().borrow().clone();
                         }
-                        _ => {}
                     }
 
                     self.push(value.clone());

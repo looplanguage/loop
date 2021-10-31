@@ -29,7 +29,9 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
-use crate::compiler::variable_table::{build_deeper_variable_scope, VariableScope};
+use crate::compiler::variable_table::{
+    build_deeper_variable_scope, build_variable_scope, VariableScope,
+};
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -115,10 +117,7 @@ fn empty_state() -> CompilerState {
     CompilerState {
         constants: vec![Rc::from(RefCell::from(Object::Null(Null {})))],
         symbol_table: Rc::from(RefCell::new(symbol_table::SymbolTable::new_with_builtins())),
-        variable_scope: Rc::new(RefCell::new(VariableScope {
-            variables: vec![],
-            outer: None,
-        })),
+        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
         variable_count: 0,
     }
 }
