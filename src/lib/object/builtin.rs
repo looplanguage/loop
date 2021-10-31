@@ -24,6 +24,7 @@ macro_rules! builtin {
 
 pub const BUILTINS: &[Builtin] = &[builtin!(len), builtin!(print), builtin!(println)];
 
+/*
 pub fn lookup(name: &str) -> Option<Object> {
     if name == "null" {
         return Some(Object::Null(Null {}));
@@ -35,7 +36,7 @@ pub fn lookup(name: &str) -> Option<Object> {
         }
     }
     None
-}
+}*/
 
 fn print(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
     for argument in arguments {
