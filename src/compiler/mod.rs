@@ -105,7 +105,7 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
 
 pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
     if let Some(cmp) = state {
-        return build_compiler_internal(state.unwrap());
+        return build_compiler_internal(cmp);
     }
 
     build_compiler_internal(&empty_state())
