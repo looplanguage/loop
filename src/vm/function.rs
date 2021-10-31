@@ -4,11 +4,14 @@ use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
 use crate::vm::VM;
 use std::borrow::Borrow;
+use std::cell::RefCell;
+use std::ops::Deref;
 use std::rc::Rc;
 
 pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
-    let func_obj = (*vm.stack[(vm.sp - 1 - (num_args as u16)) as usize]).clone();
-    match func_obj {
+    let func_obj = &(*vm.stack[(vm.sp - 1 - (num_args as u16)) as usize]).clone();
+
+    match &*func_obj.borrow().deref() {
         Object::Function(func) => {
             // Attempt to JIT the function, otherwise fall back to interpreted execution.
             // TODO: Re-enable when more thoroughly tested and developed
@@ -39,7 +42,7 @@ pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VME
             let num_locals = func.func.num_locals as usize;
             let base_pointer = vm.sp - (num_args as u16);
 
-            let frame = build_frame(func, base_pointer as i32);
+            let frame = build_frame(func.clone(), base_pointer as i32);
 
             vm.push_frame(frame);
 
@@ -59,7 +62,7 @@ pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VME
 
             match func(args) {
                 Ok(result) => {
-                    vm.push(Rc::new(result));
+                    vm.push(Rc::new(RefCell::from(result)));
                 }
                 Err(err) => {
                     return Some(err);
@@ -75,7 +78,7 @@ pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VME
 pub fn run_function_stack(vm: &mut VM, constant: u32, free_count: u8) -> Option<String> {
     let func_obj = vm.constants[constant as usize].clone();
 
-    if let Object::CompiledFunction(func) = func_obj.borrow() {
+    if let Object::CompiledFunction(func) = &*func_obj.as_ref().borrow() {
         let mut free = Vec::new();
 
         for _ in 0..free_count {
@@ -88,7 +91,7 @@ pub fn run_function_stack(vm: &mut VM, constant: u32, free_count: u8) -> Option<
             free,
         });
 
-        vm.push(Rc::new(func));
+        vm.push(Rc::new(RefCell::from(func)));
     }
 
     None
