@@ -29,9 +29,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{make_instruction, Instructions};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
-use crate::compiler::variable_table::{
-    build_deeper_variable_scope, build_variable_scope, VariableScope,
-};
+use crate::compiler::variable_table::{build_deeper_variable_scope, VariableScope};
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;

@@ -2,7 +2,6 @@ use crate::lib::object::boolean::Boolean;
 use crate::lib::object::float::Float;
 use crate::lib::object::Object;
 use crate::vm::VM;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
