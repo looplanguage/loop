@@ -112,6 +112,27 @@ mod tests {
     }
 
     #[test]
+    fn array_assign_3d() {
+        let input = "[[[0, 1]]][0][0][0] = 1";
+
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpArray 2
+[13] OpArray 1
+[16] OpArray 1
+[19] OpConstant 3
+[24] OpIndex
+[25] OpConstant 4
+[30] OpIndex
+[31] OpConstant 5
+[36] OpConstant 6
+[41] OpAssignIndex
+[42] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("var test = 100; if(true) { test }", None);
     }

@@ -285,6 +285,35 @@ mod tests {
     }
 
     #[test]
+    fn array_3d_assign_index() {
+        test_vm(
+            "var x = [[[0, 1, 2]], []]; x[0][0][1] = 200; x",
+            Array(array::Array {
+                values: vec![
+                    Rc::from(RefCell::from(Object::Array(array::Array {
+                        values: vec![Rc::from(RefCell::from(Object::Array(array::Array {
+                            values: vec![
+                                Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                                    value: 0,
+                                }))),
+                                Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                                    value: 200,
+                                }))),
+                                Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                                    value: 2,
+                                }))),
+                            ],
+                        })))],
+                    }))),
+                    Rc::from(RefCell::from(Object::Array(array::Array {
+                        values: vec![],
+                    }))),
+                ],
+            }),
+        );
+    }
+
+    #[test]
     fn arrays() {
         test_vm("[]", Array(array::Array { values: vec![] }));
 
