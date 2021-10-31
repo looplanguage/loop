@@ -277,7 +277,7 @@ mod tests {
 
         let mut i = 0;
         for constant in comp.constants {
-            if let Object::CompiledFunction(func) = constant.borrow() {
+            if let Object::CompiledFunction(func) = &*constant.as_ref().borrow() {
                 let ins = func.instructions.clone();
 
                 assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));
