@@ -3,11 +3,13 @@ mod tests {
     use crate::lexer;
     use crate::lib::exception::Exception;
     use crate::parser;
+    use crate::parser::expression::array::Array;
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
     use crate::parser::expression::function::{Call, Function};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
+    use crate::parser::expression::null::Null;
     use crate::parser::expression::string::LoopString;
     use crate::parser::expression::suffix::Suffix;
     use crate::parser::expression::Expression::Index;
@@ -480,6 +482,167 @@ mod tests {
             "test8",
             test_helper::generate_suffix_expression_v3(left, "+", right),
         ));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn array() {
+        let input = "[]";
+
+        let mut expected: Vec<Statement> = vec![];
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::new(parser::expression::Expression::Array(Box::from(Array {
+                values: vec![],
+            }))),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn array_content() {
+        let input = "[1, 2, 3]";
+
+        let mut expected: Vec<Statement> = vec![];
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::new(parser::expression::Expression::Array(Box::from(Array {
+                values: vec![
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::Integer(Integer {
+                            value: 1,
+                        })),
+                    },
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::Integer(Integer {
+                            value: 2,
+                        })),
+                    },
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::Integer(Integer {
+                            value: 3,
+                        })),
+                    },
+                ],
+            }))),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    fn add_array_mixed_content(mut expected: Vec<Statement>) -> Vec<Statement> {
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::new(parser::expression::Expression::Array(Box::from(Array {
+                values: vec![
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::Integer(Integer {
+                            value: 1,
+                        })),
+                    },
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::Null(Null {})),
+                    },
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::Boolean(Boolean {
+                            value: true,
+                        })),
+                    },
+                    Expression {
+                        expression: Box::from(parser::expression::Expression::String(LoopString {
+                            value: "hello world".to_string(),
+                        })),
+                    },
+                ],
+            }))),
+        })));
+
+        expected
+    }
+
+    #[test]
+    fn array_mixed_content() {
+        let input = "[1, null, true, \"hello world\"]";
+
+        let mut expected: Vec<Statement> = vec![];
+
+        let expected = add_array_mixed_content(expected);
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn arrays_mixed_content() {
+        let input = "[1, null, true, \"hello world\"]; [1, null, true, \"hello world\"]";
+
+        let mut expected: Vec<Statement> = vec![];
+
+        let expected = add_array_mixed_content(expected);
+        let expected = add_array_mixed_content(expected);
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn array_index() {
+        let input = "[0, 1][0]";
+
+        let mut expected: Vec<Statement> = vec![];
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::from(parser::Expression::Index(Box::from(
+                parser::expression::index::Index {
+                    left: parser::Expression::Array(Box::from(Array {
+                        values: vec![
+                            Expression {
+                                expression: Box::from(parser::Expression::Integer(Integer {
+                                    value: 0,
+                                })),
+                            },
+                            Expression {
+                                expression: Box::from(parser::Expression::Integer(Integer {
+                                    value: 1,
+                                })),
+                            },
+                        ],
+                    })),
+                    index: parser::Expression::Integer(Integer { value: 0 }),
+                },
+            ))),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn array_assign() {
+        let input = "[0, 1][0] = 300";
+
+        let mut expected: Vec<Statement> = vec![];
+
+        expected.push(Statement::Expression(Box::from(Expression {
+            expression: Box::from(parser::Expression::AssignIndex(Box::from(
+                parser::expression::assign_index::AssignIndex {
+                    left: parser::Expression::Array(Box::from(Array {
+                        values: vec![
+                            Expression {
+                                expression: Box::from(parser::Expression::Integer(Integer {
+                                    value: 0,
+                                })),
+                            },
+                            Expression {
+                                expression: Box::from(parser::Expression::Integer(Integer {
+                                    value: 1,
+                                })),
+                            },
+                        ],
+                    })),
+                    index: parser::Expression::Integer(Integer { value: 0 }),
+                    value: parser::Expression::Integer(Integer { value: 300 }),
+                },
+            ))),
+        })));
 
         test_parser(input, expected);
     }
