@@ -45,7 +45,7 @@ use std::rc::Rc;
 
 pub struct Bytecode {
     pub instructions: Instructions,
-    pub constants: Vec<Rc<Object>>,
+    pub constants: Vec<Rc<RefCell<Object>>>,
 }
 
 #[derive(Copy, Clone)]
@@ -63,7 +63,7 @@ pub struct CompilationScope {
 pub struct Compiler {
     pub scopes: Vec<CompilationScope>,
     pub scope_index: i32,
-    pub constants: Vec<Rc<Object>>,
+    pub constants: Vec<Rc<RefCell<Object>>>,
     pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
@@ -74,7 +74,7 @@ pub struct Compiler {
 }
 
 pub struct CompilerState {
-    constants: Vec<Rc<Object>>,
+    constants: Vec<Rc<RefCell<Object>>>,
     symbol_table: Rc<RefCell<SymbolTable>>,
     variable_scope: Rc<RefCell<VariableScope>>,
     variable_count: u32,
@@ -282,7 +282,7 @@ impl Compiler {
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {
-        self.constants.push(Rc::from(obj));
+        self.constants.push(Rc::from(RefCell::from(obj)));
 
         (self.constants.len() - 1) as u32
     }

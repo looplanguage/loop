@@ -11,35 +11,37 @@ use crate::lib::exception::vm::VMException;
 use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::function::{CompiledFunction, Function};
+use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 
 pub struct VM {
-    stack: Vec<Rc<Object>>,
+    stack: Vec<Rc<RefCell<Object>>>,
     sp: u16,
     frames: Vec<Frame>,
     pub frame_index: usize,
-    constants: Vec<Rc<Object>>,
-    variables: HashMap<u32, Rc<Object>>,
+    constants: Vec<Rc<RefCell<Object>>>,
+    variables: HashMap<u32, Rc<RefCell<Object>>>,
 }
 
 const STACK_SIZE: usize = 2048;
 
 pub struct VMState {
-    variables: HashMap<u32, Rc<Object>>,
+    variables: HashMap<u32, Rc<RefCell<Object>>>,
 }
 
 pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
     let mut stack = Vec::with_capacity(STACK_SIZE);
 
     for _ in 0..STACK_SIZE {
-        stack.push(Rc::new(Object::Null(Null {})))
+        stack.push(Rc::new(RefCell::new(Object::Null(Null {}))));
     }
 
     let default_frame = build_frame(
@@ -76,7 +78,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
 }
 
 impl VM {
-    pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<Object>, String> {
+    pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<RefCell<Object>>, String> {
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;
             let _op = lookup_op(self.current_frame().instructions()[ip as usize]);
@@ -141,7 +143,8 @@ impl VM {
                     None
                 }
                 OpCode::JumpIfFalse => {
-                    let condition = self.pop();
+                    let popped = self.pop();
+                    let condition = popped.borrow();
 
                     if !condition.is_truthy() {
                         let ip = self.current_frame().ip;
@@ -236,7 +239,7 @@ impl VM {
                         read_uint8(&self.current_frame().instructions()[ip as usize..]) as usize;
                     self.increment_ip(1);
 
-                    let builtin_function = Rc::new(BUILTINS[ct].builtin.clone());
+                    let builtin_function = Rc::new(RefCell::new(BUILTINS[ct].builtin.clone()));
 
                     self.push(builtin_function)
                 }
@@ -252,7 +255,9 @@ impl VM {
                             as usize;
                     self.increment_ip(1);
 
-                    let perform_on = &*self.pop();
+                    let popped = self.pop();
+
+                    let perform_on = &*popped.borrow();
 
                     let method = perform_on.get_extension_method(method_id as i32);
 
@@ -273,7 +278,7 @@ impl VM {
 
                     let object = push.ok().unwrap();
 
-                    self.push(Rc::from(object));
+                    self.push(Rc::from(RefCell::from(object)));
 
                     None
                 }
@@ -285,29 +290,29 @@ impl VM {
 
                     self.increment_ip(2);
 
-                    let mut elements: Vec<Object> = Vec::new();
+                    let mut elements: Vec<Rc<RefCell<Object>>> = Vec::new();
 
                     for _i in 0..element_amount {
                         let element = self.pop();
-                        elements.insert(0, element.deref().clone());
+                        elements.insert(0, element.clone());
                     }
 
                     let array = Object::Array(Array { values: elements });
 
-                    self.push(Rc::from(array))
+                    self.push(Rc::from(RefCell::from(array)))
                 }
                 OpCode::Index => {
                     let index = self.pop();
                     let indexed = self.pop();
 
-                    if let Object::Array(array) = &*indexed {
-                        if let Object::Integer(id) = &*index {
+                    if let Object::Array(array) = &*indexed.borrow() {
+                        if let Object::Integer(id) = &*index.borrow() {
                             let item = array.values.get(id.value as usize);
 
                             if let Some(item) = item {
-                                self.push(Rc::from(item.deref().clone()));
+                                self.push(item.clone());
                             } else {
-                                self.push(Rc::from(Object::Null(Null {})));
+                                self.push(Rc::from(RefCell::from(Object::Null(Null {}))));
                             }
                         }
                     }
@@ -317,29 +322,40 @@ impl VM {
                 OpCode::AssignIndex => {
                     let value = self.pop();
                     let index = self.pop();
+                    let array = self.pop();
 
                     let ip = self.current_frame().ip;
 
-                    let id = read_uint16(&self.current_frame().instructions()[ip as usize..]);
-
-                    self.increment_ip(2);
-
-                    let arr = self.variables.get(&(id as u32)).unwrap().deref().clone();
-
-                    let new_array = match arr {
-                        Object::Array(mut array) => {
-                            if let Object::Integer(index) = &*index {
-                                array.values[index.value as usize] = value.deref().clone()
+                    match &*array.as_ref().borrow() {
+                        Object::Array(arr) => {
+                            if let Object::Integer(index) = &*index.as_ref().borrow() {
+                                *arr.values[index.value as usize].borrow_mut() =
+                                    value.as_ref().borrow().clone();
                             }
-
-                            Some(array)
                         }
-                        _ => None,
-                    };
+                        _ => {}
+                    }
 
-                    self.variables
-                        .insert(id as u32, Rc::from(Object::Array(new_array.unwrap())));
+                    println!("{:?}", array);
 
+                    //let arr = self.variables.get(&(id as u32)).unwrap().deref().clone();
+                    /*
+                                        let new_array = match arr {
+                                            Object::Array(mut array) => {
+                                                if let Object::Integer(index) = &*index {
+                                                    array.values[index.value as usize] = value.deref().clone()
+                                                }
+
+                                                Some(array)
+                                            }
+                                            _ => None,
+                                        };
+
+                                        self.variables.insert(
+                                            id as u32,
+                                            Rc::from(RefCell::from(Object::Array(new_array.unwrap()))),
+                                        );
+                    */
                     self.push(value.clone());
 
                     None
@@ -382,7 +398,7 @@ impl VM {
         }
     }
 
-    pub fn push(&mut self, obj: Rc<Object>) -> Option<String> {
+    pub fn push(&mut self, obj: Rc<RefCell<Object>>) -> Option<String> {
         if (self.sp + 1) as usize >= 2048 {
             panic!("stack overflow")
         }
@@ -394,7 +410,7 @@ impl VM {
         None
     }
 
-    pub fn pop(&mut self) -> Rc<Object> {
+    pub fn pop(&mut self) -> Rc<RefCell<Object>> {
         let popped = self.stack[self.sp as usize - 1].to_owned();
         self.sp -= 1;
 

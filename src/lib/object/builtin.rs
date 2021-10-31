@@ -3,10 +3,11 @@ use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use std::borrow::Borrow;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 pub type EvalResult = Result<Object, VMException>;
-pub type BuiltinFunction = fn(Vec<Rc<Object>>) -> EvalResult;
+pub type BuiltinFunction = fn(Vec<Rc<RefCell<Object>>>) -> EvalResult;
 
 pub struct Builtin {
     pub name: &'static str,
@@ -37,14 +38,14 @@ pub fn lookup(name: &str) -> Option<Object> {
     None
 }
 
-fn print(arguments: Vec<Rc<Object>>) -> EvalResult {
+fn print(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
     for argument in arguments {
-        match &*argument {
+        match &*argument.as_ref().borrow() {
             Object::String(str) => {
                 print!("{}", str.value);
             }
             _ => {
-                print!("{}", argument.inspect());
+                print!("{}", argument.as_ref().borrow().inspect());
             }
         }
     }
@@ -52,14 +53,14 @@ fn print(arguments: Vec<Rc<Object>>) -> EvalResult {
     Ok(Object::Null(Null {}))
 }
 
-fn println(arguments: Vec<Rc<Object>>) -> EvalResult {
+fn println(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
     for argument in arguments {
-        match &*argument {
+        match &*argument.as_ref().borrow() {
             Object::String(str) => {
                 println!("{}", str.value);
             }
             _ => {
-                println!("{}", argument.inspect());
+                println!("{}", argument.as_ref().borrow().inspect());
             }
         }
     }
@@ -67,10 +68,10 @@ fn println(arguments: Vec<Rc<Object>>) -> EvalResult {
     Ok(Object::Null(Null {}))
 }
 
-fn len(arguments: Vec<Rc<Object>>) -> EvalResult {
+fn len(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
     check_length(arguments.clone(), 1)?;
 
-    match &arguments[0].borrow() {
+    match &*arguments[0].as_ref().borrow() {
         Object::String(string) => Ok(Object::Integer(Integer {
             value: string.value.len() as i64,
         })),
@@ -81,7 +82,7 @@ fn len(arguments: Vec<Rc<Object>>) -> EvalResult {
     }
 }
 
-fn check_length(args: Vec<Rc<Object>>, required_length: usize) -> EvalResult {
+fn check_length(args: Vec<Rc<RefCell<Object>>>, required_length: usize) -> EvalResult {
     if args.len() != required_length {
         return Err(VMException::IncorrectArgumentCount(
             required_length as i32,

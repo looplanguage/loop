@@ -135,7 +135,7 @@ fn run_file(file: String, flags: Flags) {
     }
 
     let last = ran.ok().unwrap();
-    println!("{}", last.inspect());
+    println!("{}", last.as_ref().borrow().inspect());
 }
 
 fn get_flags() -> flags::Flags {
