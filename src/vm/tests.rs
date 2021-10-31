@@ -374,7 +374,9 @@ mod tests {
             panic!("{}", err.err().unwrap());
         }
 
-        let got = err.ok().unwrap().clone().into_inner();
+        let cloned_err = err.ok().unwrap().clone();
+
+        let got = &*cloned_err.as_ref().borrow();
 
         assert_eq!(*got, expected);
     }

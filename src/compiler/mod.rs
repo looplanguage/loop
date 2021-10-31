@@ -115,7 +115,7 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
 
 fn empty_state() -> CompilerState {
     CompilerState {
-        constants: vec![],
+        constants: vec![Rc::from(RefCell::from(Object::Null(Null {})))],
         symbol_table: Rc::from(RefCell::new(symbol_table::SymbolTable::new_with_builtins())),
         variable_scope: Rc::new(RefCell::new(VariableScope {
             variables: vec![],
