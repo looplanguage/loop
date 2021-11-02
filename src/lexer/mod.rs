@@ -203,7 +203,7 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "import" => TokenType::Import,
         "export" => TokenType::Export,
         "else" => TokenType::Else,
-        "while" => TokenType::While,
+        "for" => TokenType::For,
         "and" | "&&" => TokenType::And,
         "or" | "||" => TokenType::Or,
         "null" => TokenType::Null,

@@ -227,6 +227,7 @@ impl Compiler {
             Expression::Index(index) => compile_expression_index(self, *index),
             Expression::Array(array) => compile_expression_array(self, *array),
             Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
+            Expression::Loop(lp) => todo!(),
         };
 
         if err.is_some() {
