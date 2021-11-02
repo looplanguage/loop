@@ -18,7 +18,8 @@ use crate::compiler::compile::expression_index::{
 };
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_loop::{
-    compile_loop_expression, compile_loop_iterator_expression,
+    compile_loop_array_iterator_expression, compile_loop_expression,
+    compile_loop_iterator_expression,
 };
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
@@ -232,6 +233,7 @@ impl Compiler {
             Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
             Expression::Loop(lp) => compile_loop_expression(self, lp),
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
+            Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
         };
 
         if err.is_some() {

@@ -19,6 +19,13 @@ pub struct LoopIterator {
     pub till: u32,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct LoopArrayIterator {
+    pub identifier: Identifier,
+    pub body: Block,
+    pub array: Box<Expression>,
+}
+
 pub fn parse_loop(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
@@ -35,11 +42,40 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
         if let Some(Node::Expression(Expression::Identifier(ident))) = identifier {
             if !p.lexer.next_is(TokenType::From) {
-                p.add_error(format!(
-                    "wrong token. got=\"{:?}\". expected=\"From\"",
-                    p.lexer.peek_token.clone().unwrap().token
-                ));
-                return None;
+                if p.lexer.next_is(TokenType::In) {
+                    p.lexer.next_token();
+
+                    let exp = p.parse_expression(Precedence::Lowest);
+
+                    if let Some(Node::Expression(expression)) = exp {
+                        p.lexer.next_token();
+                        p.lexer.next_token();
+
+                        if !p.lexer.next_current_is(TokenType::LeftBrace) {
+                            p.add_error(format!(
+                                "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
+                                p.lexer.current_token.clone().unwrap().token
+                            ));
+                            return None;
+                        }
+
+                        let body = parse_block(p);
+
+                        return Some(Node::Expression(Expression::LoopArrayIterator(
+                            LoopArrayIterator {
+                                identifier: ident,
+                                body,
+                                array: Box::from(expression),
+                            },
+                        )));
+                    }
+                } else {
+                    p.add_error(format!(
+                        "wrong token. got=\"{:?}\". expected=\"From or In\"",
+                        p.lexer.peek_token.clone().unwrap().token
+                    ));
+                    return None;
+                }
             }
 
             if !p.lexer.next_is(TokenType::Integer) {

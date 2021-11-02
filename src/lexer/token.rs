@@ -54,6 +54,7 @@ pub enum TokenType {
     For,
     From,
     To,
+    In,
     Eof,
 }
 
