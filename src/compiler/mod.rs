@@ -42,6 +42,7 @@ use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::compiler::compile::expression_loop::compile_loop_expression;
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -227,7 +228,7 @@ impl Compiler {
             Expression::Index(index) => compile_expression_index(self, *index),
             Expression::Array(array) => compile_expression_array(self, *array),
             Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
-            Expression::Loop(lp) => todo!(),
+            Expression::Loop(lp) => compile_loop_expression(self, lp),
         };
 
         if err.is_some() {
