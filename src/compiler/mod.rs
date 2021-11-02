@@ -17,6 +17,9 @@ use crate::compiler::compile::expression_index::{
     compile_expression_assign_index, compile_expression_index,
 };
 use crate::compiler::compile::expression_integer::compile_expression_integer;
+use crate::compiler::compile::expression_loop::{
+    compile_loop_expression, compile_loop_iterator_expression,
+};
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
@@ -42,7 +45,6 @@ use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::compiler::compile::expression_loop::compile_loop_expression;
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -229,6 +231,7 @@ impl Compiler {
             Expression::Array(array) => compile_expression_array(self, *array),
             Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
             Expression::Loop(lp) => compile_loop_expression(self, lp),
+            Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
         };
 
         if err.is_some() {
