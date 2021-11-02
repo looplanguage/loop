@@ -3,7 +3,7 @@ use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
-use crate::parser::expression::loops::{Loop, LoopIterator};
+use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use std::borrow::BorrowMut;
 
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<CompilerException> {
@@ -92,5 +92,12 @@ pub fn compile_loop_iterator_expression(
 
     compiler.exit_variable_scope();
 
+    None
+}
+
+pub fn compile_loop_array_iterator_expression(
+    compiler: &mut Compiler,
+    lp: LoopArrayIterator,
+) -> Option<CompilerException> {
     None
 }

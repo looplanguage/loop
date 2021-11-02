@@ -8,7 +8,7 @@ use crate::parser::expression::function::{Call, Function};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
-use crate::parser::expression::loops::{Loop, LoopIterator};
+use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::null::Null;
 use crate::parser::expression::string::LoopString;
 use crate::parser::expression::suffix::Suffix;
@@ -45,6 +45,7 @@ pub enum Expression {
     AssignIndex(Box<AssignIndex>),
     Loop(Loop),
     LoopIterator(LoopIterator),
+    LoopArrayIterator(LoopArrayIterator),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
