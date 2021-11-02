@@ -26,20 +26,11 @@ pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
 ) -> Option<CompilerException> {
-    //compiler.compile_expression(assign.left);
+    compiler.compile_expression(assign.left);
+    compiler.compile_expression(assign.index);
+    compiler.compile_expression(assign.value);
 
-    if let Expression::Identifier(left) = assign.left {
-        let var = compiler.variable_scope.borrow_mut().resolve(left.value);
-
-        if var.is_none() {
-            return Some(CompilerException::CanOnlyAssignToVariableArray);
-        }
-
-        compiler.compile_expression(assign.index);
-        compiler.compile_expression(assign.value);
-
-        compiler.emit(OpCode::AssignIndex, vec![var.unwrap().index]);
-    }
+    compiler.emit(OpCode::AssignIndex, vec![]);
 
     None
 }

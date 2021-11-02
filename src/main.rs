@@ -8,6 +8,7 @@ use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
 
+use crate::compiler::instructions::print_instructions;
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
@@ -103,6 +104,10 @@ fn run_file(file: String, flags: Flags) {
         return;
     }
 
+    if flags.contains(FlagTypes::Debug) {
+        print_instructions(comp.scope().instructions.clone());
+    }
+
     let mut vm = build_vm(comp.get_bytecode(), None);
 
     let started = Utc::now();
@@ -130,7 +135,7 @@ fn run_file(file: String, flags: Flags) {
     }
 
     let last = ran.ok().unwrap();
-    println!("{}", last.inspect());
+    println!("{}", last.as_ref().borrow().inspect());
 }
 
 fn get_flags() -> flags::Flags {

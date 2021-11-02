@@ -1,4 +1,5 @@
 use crate::lib::object::{Object, ObjectTrait};
+use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -11,7 +12,7 @@ pub struct CompiledFunction {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {
     pub func: CompiledFunction,
-    pub free: Vec<Rc<Object>>,
+    pub free: Vec<Rc<RefCell<Object>>>,
 }
 
 impl ObjectTrait for CompiledFunction {

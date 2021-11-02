@@ -85,6 +85,54 @@ mod tests {
     }
 
     #[test]
+    fn array() {
+        let input = "[0, 1]";
+
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpArray 2
+[13] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
+    fn array_assign() {
+        let input = "[0, 1][0] = 1";
+
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpArray 2
+[13] OpConstant 3
+[18] OpConstant 4
+[23] OpAssignIndex
+[24] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
+    fn array_assign_3d() {
+        let input = "[[[0, 1]]][0][0][0] = 1";
+
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpArray 2
+[13] OpArray 1
+[16] OpArray 1
+[19] OpConstant 3
+[24] OpIndex
+[25] OpConstant 4
+[30] OpIndex
+[31] OpConstant 5
+[36] OpConstant 6
+[41] OpAssignIndex
+[42] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("var test = 100; if(true) { test }", None);
     }
@@ -277,7 +325,7 @@ mod tests {
 
         let mut i = 0;
         for constant in comp.constants {
-            if let Object::CompiledFunction(func) = constant.borrow() {
+            if let Object::CompiledFunction(func) = &*constant.as_ref().borrow() {
                 let ins = func.instructions.clone();
 
                 assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));

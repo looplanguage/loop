@@ -51,6 +51,7 @@ pub enum TokenType {
     LeftBracket,
     RightBracket,
     String,
+    As,
     Eof,
 }
 

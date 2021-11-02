@@ -2,23 +2,27 @@ use crate::lib::object::boolean::Boolean;
 use crate::lib::object::float::Float;
 use crate::lib::object::Object;
 use crate::vm::VM;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
-    let right = &*vm.pop();
-    let left = &*vm.pop();
+    let right_popped = vm.pop();
+    let left_popped = vm.pop();
+
+    let right = &*right_popped.as_ref().borrow();
+    let left = &*left_popped.as_ref().borrow();
 
     match operator {
         "==" => {
-            vm.push(Rc::from(Object::Boolean(Boolean {
+            vm.push(Rc::from(RefCell::from(Object::Boolean(Boolean {
                 value: left == right,
-            })));
+            }))));
             return None;
         }
         "!=" => {
-            vm.push(Rc::from(Object::Boolean(Boolean {
+            vm.push(Rc::from(RefCell::from(Object::Boolean(Boolean {
                 value: left != right,
-            })));
+            }))));
             return None;
         }
         _ => {}
@@ -79,7 +83,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         }
     };
 
-    vm.push(Rc::from(push_object));
+    vm.push(Rc::from(RefCell::from(push_object)));
 
     None
 }

@@ -11,7 +11,9 @@ mod tests {
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
     use std::borrow::Borrow;
+    use std::cell::RefCell;
     use std::ops::Deref;
+    use std::rc::Rc;
 
     #[test]
     fn recursive_functions() {}
@@ -268,9 +270,44 @@ mod tests {
             "var x = [0, 1, 2]; x[2] = 400; x",
             Array(array::Array {
                 values: vec![
-                    Object::Integer(integer::Integer { value: 0 }),
-                    Object::Integer(integer::Integer { value: 1 }),
-                    Object::Integer(integer::Integer { value: 400 }),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 0,
+                    }))),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 1,
+                    }))),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 400,
+                    }))),
+                ],
+            }),
+        );
+    }
+
+    #[test]
+    fn array_3d_assign_index() {
+        test_vm(
+            "var x = [[[0, 1, 2]], []]; x[0][0][1] = 200; x",
+            Array(array::Array {
+                values: vec![
+                    Rc::from(RefCell::from(Object::Array(array::Array {
+                        values: vec![Rc::from(RefCell::from(Object::Array(array::Array {
+                            values: vec![
+                                Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                                    value: 0,
+                                }))),
+                                Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                                    value: 200,
+                                }))),
+                                Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                                    value: 2,
+                                }))),
+                            ],
+                        })))],
+                    }))),
+                    Rc::from(RefCell::from(Object::Array(array::Array {
+                        values: vec![],
+                    }))),
                 ],
             }),
         );
@@ -284,9 +321,15 @@ mod tests {
             "[1, 2, 3]",
             Array(array::Array {
                 values: vec![
-                    Object::Integer(integer::Integer { value: 1 }),
-                    Object::Integer(integer::Integer { value: 2 }),
-                    Object::Integer(integer::Integer { value: 3 }),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 1,
+                    }))),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 2,
+                    }))),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 3,
+                    }))),
                 ],
             }),
         );
@@ -295,9 +338,13 @@ mod tests {
             "[1, null, true]",
             Array(array::Array {
                 values: vec![
-                    Object::Integer(integer::Integer { value: 1 }),
-                    Object::Null(null::Null {}),
-                    Object::Boolean(boolean::Boolean { value: true }),
+                    Rc::from(RefCell::from(Object::Integer(integer::Integer {
+                        value: 1,
+                    }))),
+                    Rc::from(RefCell::from(Object::Null(null::Null {}))),
+                    Rc::from(RefCell::from(Object::Boolean(boolean::Boolean {
+                        value: true,
+                    }))),
                 ],
             }),
         );
@@ -356,7 +403,9 @@ mod tests {
             panic!("{}", err.err().unwrap());
         }
 
-        let got = err.ok().unwrap().clone();
+        let cloned_err = err.ok().unwrap().clone();
+
+        let got = &*cloned_err.as_ref().borrow();
 
         assert_eq!(*got, expected);
     }

@@ -110,7 +110,7 @@ impl Repl {
                     println!("Execution Took: {}", formatted);
                 }
 
-                println!("{}", ran.ok().unwrap().inspect().green());
+                println!("{}", ran.ok().unwrap().borrow().inspect().green());
             }
         } else {
             for err in p.errors {

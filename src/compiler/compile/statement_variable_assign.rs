@@ -10,7 +10,7 @@ pub fn compile_statement_variable_assign(
     let symbol = compiler
         .symbol_table
         .borrow_mut()
-        .resolve(variable.ident.value.as_str());
+        .resolve(format!("{}{}", compiler.location, variable.ident.value).as_str());
 
     if symbol.is_some() {
         let error = compiler.compile_expression(*variable.value);
@@ -22,7 +22,7 @@ pub fn compile_statement_variable_assign(
         let var = compiler
             .variable_scope
             .borrow_mut()
-            .resolve(variable.ident.value.clone());
+            .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
         if var.is_some() {
             let error = compiler.compile_expression(*variable.value);
