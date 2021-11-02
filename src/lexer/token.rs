@@ -52,6 +52,8 @@ pub enum TokenType {
     String,
     As,
     For,
+    From,
+    To,
     Eof,
 }
 
