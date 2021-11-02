@@ -20,6 +20,8 @@ use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
+use crate::compiler::compile::statement_export::compile_export_statement;
+use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
@@ -43,7 +45,7 @@ use std::rc::Rc;
 
 pub struct Bytecode {
     pub instructions: Instructions,
-    pub constants: Vec<Rc<Object>>,
+    pub constants: Vec<Rc<RefCell<Object>>>,
 }
 
 #[derive(Copy, Clone)]
@@ -61,43 +63,24 @@ pub struct CompilationScope {
 pub struct Compiler {
     pub scopes: Vec<CompilationScope>,
     pub scope_index: i32,
-    pub constants: Vec<Rc<Object>>,
+    pub constants: Vec<Rc<RefCell<Object>>>,
     pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
+    pub location: String,
+    pub export_name: String,
+    pub prev_location: String,
 }
 
 pub struct CompilerState {
-    constants: Vec<Rc<Object>>,
+    constants: Vec<Rc<RefCell<Object>>>,
     symbol_table: Rc<RefCell<SymbolTable>>,
     variable_scope: Rc<RefCell<VariableScope>>,
     variable_count: u32,
 }
 
-pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
-    if let Some(cmp) = state {
-        return Compiler {
-            scopes: vec![CompilationScope {
-                instructions: vec![],
-                last_instruction: EmittedInstruction {
-                    position: -1,
-                    op: OpCode::Constant,
-                },
-                previous_instruction: EmittedInstruction {
-                    position: -1,
-                    op: OpCode::Constant,
-                },
-            }],
-            scope_index: 0,
-            constants: cmp.constants.clone(),
-            symbol_table: cmp.symbol_table.clone(),
-            variable_count: cmp.variable_count,
-            variable_scope: cmp.variable_scope.clone(),
-            last_extension_type: None,
-        };
-    }
-
+fn build_compiler_internal(state: &CompilerState) -> Compiler {
     Compiler {
         scopes: vec![CompilationScope {
             instructions: vec![],
@@ -111,11 +94,31 @@ pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
             },
         }],
         scope_index: 0,
-        constants: vec![Rc::new(Object::Null(Null {}))],
-        symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
-        variable_count: 0,
-        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+        constants: state.constants.clone(),
+        symbol_table: state.symbol_table.clone(),
+        variable_count: state.variable_count,
+        variable_scope: state.variable_scope.clone(),
         last_extension_type: None,
+        location: String::new(),
+        export_name: String::new(),
+        prev_location: String::new(),
+    }
+}
+
+pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
+    if let Some(cmp) = state {
+        return build_compiler_internal(cmp);
+    }
+
+    build_compiler_internal(&empty_state())
+}
+
+fn empty_state() -> CompilerState {
+    CompilerState {
+        constants: vec![Rc::from(RefCell::from(Object::Null(Null {})))],
+        symbol_table: Rc::from(RefCell::new(symbol_table::SymbolTable::new_with_builtins())),
+        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+        variable_count: 0,
     }
 }
 
@@ -270,11 +273,13 @@ impl Compiler {
                 compile_statement_variable_assign(self, variable)
             }
             Statement::Return(_return) => compile_return_statement(self, _return),
+            Statement::Import(import) => compile_import_statement(self, import),
+            Statement::Export(export) => compile_export_statement(self, export),
         }
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {
-        self.constants.push(Rc::from(obj));
+        self.constants.push(Rc::from(RefCell::from(obj)));
 
         (self.constants.len() - 1) as u32
     }

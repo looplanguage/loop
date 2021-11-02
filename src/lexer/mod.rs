@@ -209,6 +209,7 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "null" => TokenType::Null,
         "return" => TokenType::Return,
         "if" => TokenType::If,
+        "as" => TokenType::As,
         _ => {
             if keyword.parse::<i64>().is_ok() {
                 return TokenType::Integer;

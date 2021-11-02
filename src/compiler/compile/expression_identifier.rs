@@ -19,7 +19,7 @@ pub fn compile_expression_identifier(
         let var = compiler
             .variable_scope
             .borrow_mut()
-            .resolve(identifier.value.clone());
+            .resolve(format!("{}{}", compiler.location, identifier.value));
 
         if var.is_some() {
             compiler.emit(OpCode::GetVar, vec![var.unwrap().index]);
