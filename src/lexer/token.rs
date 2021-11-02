@@ -52,9 +52,7 @@ pub enum TokenType {
     RightBracket,
     String,
     As,
-    LineComment,
-    StartCommentBlock,
-    EndCommentBlock,
+    Comment,
     Eof,
 }
 

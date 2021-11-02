@@ -4,6 +4,7 @@ pub mod token;
 use crate::lexer::token::create_token;
 use token::Token;
 use token::TokenType;
+use crate::lexer::token::TokenType::Null;
 
 pub struct Lexer {
     current: i32,
@@ -53,7 +54,6 @@ impl Lexer {
             '(' => create_token(TokenType::LeftParenthesis, ch.to_string()),
             ')' => create_token(TokenType::RightParenthesis, ch.to_string()),
             '-' => create_token(TokenType::Minus, ch.to_string()),
-            '/' => create_token(TokenType::Divide, ch.to_string()),
             ',' => create_token(TokenType::Comma, ch.to_string()),
             '{' => create_token(TokenType::LeftBrace, ch.to_string()),
             '}' => create_token(TokenType::RightBrace, ch.to_string()),
@@ -61,6 +61,16 @@ impl Lexer {
             ']' => create_token(TokenType::RightBracket, ch.to_string()),
             '.' => create_token(TokenType::Dot, ch.to_string()),
             '"' => self.find_string(),
+            '/' => {
+                if self.peek_character() != '<' {
+                    return create_token(TokenType::Divide, ch.to_string())
+                } else if self.peek_character() != '/' {
+                    println!("{}", self.get_line_comment());
+                    return create_token(TokenType::Divide,ch.to_string())
+                } else {
+                    return create_token(TokenType::Divide,ch.to_string())
+                }
+            }
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
@@ -173,6 +183,40 @@ impl Lexer {
 
     fn current_character(&self) -> char {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
+    }
+
+    fn get_line_comment(&mut self) -> &str {
+        let mut text: String;
+        let mut current_char;
+        self.next_character();
+        current_char = self.current_character();
+        while current_char != "\n" && current_char != None {
+            text.push_str(self.current_character().to_string().as_str());
+        }
+        text.as_str()
+    }
+
+    /*fn get_block_comment() -> &str {
+
+    }*/
+
+    fn remove_comment(&mut self){
+        let comment_start_index = self.current;
+        let comment_end_index = self.end_comment_index();
+        for _ in 0..comment_end_index - comment_start_index {
+            self.next_token();
+        }
+    }
+
+    fn end_comment_index(&mut self) -> i32 {
+        while self.current_character() != '>' {
+            self.next_character();
+            if self.peek_character() == '/' {
+                self.next_character();
+                return self.current;
+            }
+        }
+        panic!("Lexer Error --> No end to comment");
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
