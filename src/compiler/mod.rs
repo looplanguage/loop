@@ -243,6 +243,22 @@ impl Compiler {
         None
     }
 
+    fn compile_loop_block(&mut self, block: Block) -> Option<CompilerException> {
+        self.enter_variable_scope();
+
+        for statement in block.statements {
+            let err = self.compile_statement(statement);
+            if err.is_some() {
+                err.as_ref().unwrap().emit();
+                return err;
+            }
+        }
+
+        self.exit_variable_scope();
+
+        None
+    }
+
     fn compile_block(&mut self, block: Block) -> Option<CompilerException> {
         self.enter_variable_scope();
 
