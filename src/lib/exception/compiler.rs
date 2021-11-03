@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 #[derive(Debug, PartialEq)]
 pub struct UnknownSymbol {
     pub name: String,
