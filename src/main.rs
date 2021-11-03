@@ -23,45 +23,21 @@ mod lib;
 pub mod parser;
 mod vm;
 
-#[cfg(debug_assertions)]
-fn get_build() -> String {
-    "development".to_string()
-}
-
-#[cfg(not(debug_assertions))]
-fn get_build() -> String {
-    "release".to_string()
-}
-
 fn main() {
     let config = match load_config() {
         LoadType::FirstRun(cfg) => {
             println!("This is your first time running Loop! (Or your config was re-generated)");
-            println!("By default we enable telemetry, if you wish to opt out go to: ");
+            println!("Configuration file is at: ");
             println!(
                 "{}\\.loop\\config.toml",
                 home_dir().unwrap().to_str().unwrap()
             );
-            println!("If you wish to know more about our privacy policy go to: https://looplang.org/privacy");
 
             cfg
         }
 
         LoadType::Normal(cfg) => cfg,
     };
-
-    let _guard = sentry::init((
-        "https://d071f32c72f44690a1a7f9821cd15ace@o1037493.ingest.sentry.io/6005454",
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            environment: Some(get_build().into()),
-            ..Default::default()
-        },
-    ));
-
-    if !config.enable_telemetry {
-        _guard.close(None);
-    }
 
     let flags = get_flags();
 
@@ -75,10 +51,11 @@ fn main() {
 fn run_file(file: String, flags: Flags) {
     let content = read_to_string(file);
 
+    /*
     if let Err(e) = content {
         sentry::capture_error(&e);
         return;
-    }
+    }*/
 
     let l = lexer::build_lexer(content.unwrap().as_str());
     let mut parser = parser::build_parser(l);
@@ -117,6 +94,7 @@ fn run_file(file: String, flags: Flags) {
     let duration = Utc::now().signed_duration_since(started);
 
     if ran.is_err() {
+        /*
         sentry::with_scope(
             |scope| {
                 scope.set_tag("exception.type", "vm");
@@ -124,7 +102,7 @@ fn run_file(file: String, flags: Flags) {
             || {
                 sentry::capture_message(ran.clone().err().unwrap().as_str(), sentry::Level::Info);
             },
-        );
+        );*/
 
         panic!("{}", ran.err().unwrap());
     }
