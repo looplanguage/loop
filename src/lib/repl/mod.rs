@@ -86,6 +86,7 @@ impl Repl {
             let duration = Utc::now().signed_duration_since(started);
 
             if ran.is_err() {
+                /*
                 sentry::with_scope(
                     |scope| {
                         scope.set_tag("exception.type", "vm");
@@ -96,7 +97,7 @@ impl Repl {
                             sentry::Level::Info,
                         );
                     },
-                );
+                );*/
 
                 println!(
                     "{}",

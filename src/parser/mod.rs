@@ -9,11 +9,11 @@ use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::index::parse_index_expression;
+use crate::parser::expression::loops::parse_loop;
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
-use crate::parser::expression::loops::parse_loop;
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::block::parse_block_statement;
@@ -176,6 +176,7 @@ impl Parser {
     }
 
     pub fn add_error(&mut self, error: String) {
+        /*
         sentry::with_scope(
             |scope| {
                 scope.set_tag("exception.type", "parser");
@@ -183,7 +184,7 @@ impl Parser {
             || {
                 sentry::capture_message(error.as_str(), sentry::Level::Info);
             },
-        );
+        );*/
 
         self.errors.push(Exception::Parser(error));
     }
