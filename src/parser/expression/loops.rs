@@ -26,6 +26,7 @@ pub struct LoopArrayIterator {
     pub array: Box<Expression>,
 }
 
+// TODO: Stack overflow with above 2048 loops, probably not popping enough
 pub fn parse_loop(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
