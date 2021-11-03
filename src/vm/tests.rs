@@ -373,6 +373,30 @@ mod tests {
         );
     }
 
+    #[test]
+    fn loop_while() {
+        test_vm(
+            "var x = 0; for (x < 10) { x = x + 1 }; x",
+            Integer(integer::Integer { value: 10 }),
+        );
+    }
+
+    #[test]
+    fn loop_iterator() {
+        test_vm(
+            "var x = 0; for (var i from 0 to 10) { x = x + 1 }; x",
+            Integer(integer::Integer { value: 10 }),
+        );
+    }
+
+    #[test]
+    fn loop_array_iterator() {
+        test_vm(
+            "var x = 0; var array = [3, 8, 12, 56] for (var i in array) { x = i }; x",
+            Integer(integer::Integer { value: 56 }),
+        );
+    }
+
     fn test_vm(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
