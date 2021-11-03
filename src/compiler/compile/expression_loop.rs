@@ -67,25 +67,24 @@ pub fn compile_loop_iterator_expression(
     let one = compiler.add_constant(Object::Integer(Integer { value: 1 }));
 
     compiler.emit(OpCode::Constant, vec![from]);
-
     compiler.emit(OpCode::SetVar, vec![var.index]);
 
     let start = compiler.scope().instructions.len();
 
     // Compile the body that is executed
-    compiler.compile_block(lp.body);
+    compiler.compile_loop_block(lp.body);
 
     // Increase value at the end of body and check if we should go back to start
     compiler.emit(OpCode::Constant, vec![one]);
     compiler.emit(OpCode::GetVar, vec![var.index]);
     compiler.emit(OpCode::Add, vec![]);
-    compiler.emit(OpCode::SetVar, vec![var.index]);
+    compiler.emit(OpCode::SetVar, vec![var.index]); // 0
 
     // Check if we should go back to start or not
-    compiler.emit(OpCode::GetVar, vec![var.index]); // 10
-    compiler.emit(OpCode::Constant, vec![till]); // 9
-    compiler.emit(OpCode::GreaterThan, vec![]);
-    compiler.emit(OpCode::JumpIfFalse, vec![start as u32]);
+    compiler.emit(OpCode::GetVar, vec![var.index]); // 1
+    compiler.emit(OpCode::Constant, vec![till]); // 2
+    compiler.emit(OpCode::GreaterThan, vec![]); // 1
+    compiler.emit(OpCode::JumpIfFalse, vec![start as u32]); // 0
 
     // Emit a null if we didn't break with anything
     compiler.emit(OpCode::Constant, vec![0]);
