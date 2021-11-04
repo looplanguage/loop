@@ -253,13 +253,27 @@ impl VM {
                             as usize;
                     self.increment_ip(1);
 
+                    let mut params: Vec<Object> = vec![];
+
+                    for n in 0.._parameters {
+                        let item = self.pop();
+
+                        let item_dereffed = &*item.borrow();
+
+                        let obj = item_dereffed.clone();
+
+                        params.push(obj);
+                    }
+
+                    params.reverse();
+
                     let popped = self.pop();
 
-                    let perform_on = &*popped.borrow();
+                    let perform_on = popped.borrow().clone();
 
                     let method = perform_on.get_extension_method(method_id as i32);
 
-                    let push = method.unwrap()(vec![]);
+                    let push = method.unwrap()(popped, params);
 
                     if push.is_err() {
                         return match push.err().unwrap() {

@@ -1,4 +1,5 @@
 use crate::lexer::token::TokenType;
+use crate::parser;
 use crate::parser::expression::Precedence::Lowest;
 use crate::parser::program::Node;
 use crate::parser::statement::expression::Expression;
@@ -7,6 +8,18 @@ use crate::parser::Parser;
 #[derive(Debug, PartialEq, Clone)]
 pub struct Array {
     pub(crate) values: Vec<Expression>,
+}
+
+impl Array {
+    pub fn find_extension(&self, name: &str) -> Option<(i32, parser::Expression)> {
+        match name {
+            "add" => Some((
+                0,
+                parser::Expression::Array(Box::from(Array { values: vec![] }))
+            )),
+            &_ => None,
+        }
+    }
 }
 
 pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {

@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::lib::object::builtin::EvalResult;
 use crate::lib::object::float::Float;
 use crate::lib::object::string::LoopString;
@@ -15,7 +17,7 @@ impl Integer {
         }
     }
 
-    pub fn get_extension(&self, extension: i32) -> Option<Box<dyn Fn(Vec<Object>) -> EvalResult>> {
+    pub fn get_extension(&self, extension: i32) -> Option<Box<dyn Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult>> {
         match extension {
             // to_string
             0 => Some(Box::from(to_string(self.value))),
@@ -33,8 +35,8 @@ impl ObjectTrait for Integer {
 // Extension methods
 
 // 0: to_string()
-pub fn to_string(value: i64) -> impl Fn(Vec<Object>) -> EvalResult {
-    move |_args| -> EvalResult {
+pub fn to_string(value: i64) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult {
+    move |_mut_int, _args| -> EvalResult {
         Ok(Object::String(LoopString {
             value: value.to_string(),
         }))
