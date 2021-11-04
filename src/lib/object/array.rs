@@ -18,7 +18,7 @@ impl Array {
             // 1: remove
             1 => Some(Box::new(remove(self))),
             // 2: slice
-            2 => Some(Box::new(add(self))),
+            2 => Some(Box::new(slice(self))),
             _ => None,
         }
     }
@@ -65,6 +65,35 @@ pub fn remove(arr: &Array) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalR
                     removed = arr.values.remove(integer.value as usize).as_ref().borrow().clone();
                 } else {
                     return Err(VMException::EmptyArray);
+                }
+            } else {
+                return Err(VMException::IncorrectType(format!("wrong type. expected=\"Integer\". got=\"{:?}\"", _args[0])));
+            }
+        }
+
+        return Ok(removed);
+    }
+}
+
+// 2: slice(from: Integer, to: Integer)
+pub fn slice(arr: &Array) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult {
+    move |_mut_arr, _args| -> EvalResult {
+        if _args.len() != 2 {
+            return Err(VMException::IncorrectArgumentCount(2, _args.len() as i32));
+        }
+
+        let mut removed: Object = Object::Boolean(boolean::Boolean { value: true });
+        if let Object::Array(ref mut arr) = &mut *_mut_arr.as_ref().borrow_mut() {
+            if let Object::Integer(start) = _args[0] {
+                if let Object::Integer(end) = _args[1] {
+                    // 3, 0, 1
+                    if start.value <= end.value && arr.values.len() - 1 >= start.value as usize && arr.values.len() - 1 >= end.value as usize {
+                        arr.values = arr.values[start.value as usize..(end.value + 1) as usize].to_owned()
+                    } else {
+                        return Err(VMException::EmptyArray);
+                    }
+                } else {
+                    return Err(VMException::IncorrectType(format!("wrong type. expected=\"Integer\". got=\"{:?}\"", _args[0])));
                 }
             } else {
                 return Err(VMException::IncorrectType(format!("wrong type. expected=\"Integer\". got=\"{:?}\"", _args[0])));
