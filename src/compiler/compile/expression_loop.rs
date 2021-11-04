@@ -3,6 +3,7 @@ use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
+use crate::parser::expression::{array, Expression, integer};
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<CompilerException> {
@@ -48,7 +49,7 @@ pub fn compile_loop_iterator_expression(
         .variable_scope
         .as_ref()
         .borrow_mut()
-        .define(compiler.variable_count, lp.identifier.value);
+        .define(compiler.variable_count, lp.identifier.value, Expression::Integer(integer::Integer { value: 0 }));
     compiler.variable_count += 1;
 
     // The constant from where we are iterating
@@ -104,7 +105,7 @@ pub fn compile_loop_array_iterator_expression(
         .variable_scope
         .as_ref()
         .borrow_mut()
-        .define(compiler.variable_count, "/iterator-array".to_string());
+        .define(compiler.variable_count, "/iterator-array".to_string(), Expression::Array(Box::from(array::Array { values: vec![] })));
     compiler.variable_count += 1;
 
     compiler.compile_expression(*lp.array);
@@ -115,14 +116,14 @@ pub fn compile_loop_array_iterator_expression(
         .variable_scope
         .as_ref()
         .borrow_mut()
-        .define(compiler.variable_count, lp.identifier.value);
+        .define(compiler.variable_count, lp.identifier.value, Expression::Integer(integer::Integer { value: 0 }));
     compiler.variable_count += 1;
 
     let index = compiler
         .variable_scope
         .as_ref()
         .borrow_mut()
-        .define(compiler.variable_count, "/iterator-index".to_string());
+        .define(compiler.variable_count, "/iterator-index".to_string(), Expression::Integer(integer::Integer { value: 0 }));
     compiler.variable_count += 1;
 
     // Set index to 0
