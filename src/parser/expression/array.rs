@@ -17,6 +17,14 @@ impl Array {
                 0,
                 parser::Expression::Array(Box::from(Array { values: vec![] }))
             )),
+            "remove" => Some((
+                1,
+                parser::Expression::Array(Box::from(Array { values: vec![] }))
+            )),
+            "slice" => Some((
+                2,
+                parser::Expression::Array(Box::from(Array { values: vec![] }))
+            )),
             &_ => None,
         }
     }
