@@ -1,12 +1,12 @@
 use std::borrow::BorrowMut;
-use crate::lib::object::{boolean, Object, ObjectTrait};
+use crate::lib::object::{boolean, integer, Object, ObjectTrait};
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::builtin::EvalResult;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Array {
+pub struct Array{
     pub(crate) values: Vec<Rc<RefCell<Object>>>,
 }
 
@@ -19,6 +19,8 @@ impl Array {
             1 => Some(Box::new(remove(self))),
             // 2: slice
             2 => Some(Box::new(slice(self))),
+            // 3: length
+            3 => Some(Box::new(length(self))),
             _ => None,
         }
     }
@@ -61,7 +63,7 @@ pub fn remove(arr: &Array) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalR
         let mut removed: Object = Object::Boolean(boolean::Boolean { value: false });
         if let Object::Array(ref mut arr) = &mut *_mut_arr.as_ref().borrow_mut() {
             if let Object::Integer(integer) = _args[0] {
-                if arr.values.len() - 1 > integer.value as usize {
+                if arr.values.len() > integer.value as usize {
                     removed = arr.values.remove(integer.value as usize).as_ref().borrow().clone();
                 } else {
                     return Err(VMException::EmptyArray);
@@ -101,5 +103,16 @@ pub fn slice(arr: &Array) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalRe
         }
 
         return Ok(removed);
+    }
+}
+
+// 3: length()
+pub fn length(arr: &Array) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult {
+    move |_mut_arr, _args| -> EvalResult {
+        if let Object::Array(ref mut arr) = &mut *_mut_arr.as_ref().borrow_mut() {
+            return Ok(Object::Integer(integer::Integer { value: arr.values.len() as i64 }));
+        }
+
+        return Ok(Object::Integer(integer::Integer { value: 0 }));
     }
 }
