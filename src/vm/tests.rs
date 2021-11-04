@@ -247,6 +247,22 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn extension_methods_variables() {
+        test_vm(
+            "var x = 123; x.to_string();",
+            String(string::LoopString {
+                value: "123".to_string(),
+            }),
+        );
+
+        test_vm(
+            "var x = \"123\"; x.to_int();",
+            Integer(integer::Integer { value: 123 }),
+        );
+    }
+
     #[test]
     fn extension_method_chained() {
         test_vm(
