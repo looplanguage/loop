@@ -198,6 +198,9 @@ impl VM {
                             VMException::IncorrectType(message) => Err(message),
                             VMException::CannotParseInt(string) => {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
+                            },
+                            VMException::EmptyArray => {
+                                Err(format!("array index does not exist."))
                             }
                         };
                     }
@@ -284,6 +287,9 @@ impl VM {
                             VMException::IncorrectType(message) => Err(message),
                             VMException::CannotParseInt(string) => {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
+                            },
+                            VMException::EmptyArray => {
+                                Err(format!("array index does not exist."))
                             }
                         };
                     }
