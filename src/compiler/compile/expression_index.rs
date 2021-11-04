@@ -82,6 +82,16 @@ pub fn compile_expression_extension_method(
                 None
             }
         }
+        Expression::Array(array) => {
+            let extension = array.find_extension(method.as_str());
+
+            if let Some(extension) = extension {
+                compiler.last_extension_type = Option::from(extension.1);
+                Some(extension.0)
+            } else {
+                None
+            }
+        }
         Expression::Index(index) => {
             compile_expression_index(compiler, *index);
 

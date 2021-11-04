@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use crate::lib::object::array::Array;
 use crate::lib::object::boolean::Boolean;
 use crate::lib::object::builtin::{BuiltinFunction, EvalResult};
@@ -56,10 +58,11 @@ impl Object {
     pub fn get_extension_method(
         &self,
         method: i32,
-    ) -> Option<Box<dyn Fn(Vec<Object>) -> EvalResult>> {
+    ) -> Option<Box<dyn Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult>> {
         match self {
             Object::Integer(integer) => integer.get_extension(method),
             Object::String(string) => string.get_extension(method),
+            Object::Array(array) => array.get_extension(method),
             _ => None,
         }
     }
