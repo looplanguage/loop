@@ -9,6 +9,7 @@ mod tests {
     use crate::parser::expression::function::{Call, Function};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
+    use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
     use crate::parser::expression::null::Null;
     use crate::parser::expression::string::LoopString;
     use crate::parser::expression::suffix::Suffix;
@@ -40,6 +41,63 @@ mod tests {
                         })),
                     })],
                 },
+            })),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn loop_while() {
+        let input = "for(true) { }";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::Expression::Loop(Loop {
+                condition: Box::new(parser::Expression::Boolean(Boolean { value: true })),
+                body: Block { statements: vec![] },
+            })),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn loop_iterator() {
+        let input = "for(var i from 0 to 100) { }";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::Expression::LoopIterator(LoopIterator {
+                identifier: Identifier {
+                    value: "i".to_string(),
+                },
+                from: 0,
+                till: 100,
+                body: Block { statements: vec![] },
+            })),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn loop_array_iterator() {
+        let input = "for(var value in []) { }";
+
+        let mut expected: Vec<Statement> = Vec::new();
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::Expression::LoopArrayIterator(LoopArrayIterator {
+                identifier: Identifier {
+                    value: "value".to_string(),
+                },
+                body: Block { statements: vec![] },
+                array: Box::new(parser::Expression::Array(Box::new(Array {
+                    values: vec![],
+                }))),
             })),
         })));
 
