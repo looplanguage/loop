@@ -25,6 +25,10 @@ impl Array {
                 2,
                 parser::Expression::Array(Box::from(Array { values: vec![] }))
             )),
+            "length" => Some((
+                3,
+                parser::Expression::Array(Box::from(Array { values: vec![] }))
+            )),
             &_ => None,
         }
     }
