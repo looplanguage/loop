@@ -18,9 +18,7 @@ pub fn compile_expression_index(
             compile_expression_extension_method(_compiler, call, _index.left, true)
         }
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
-    };
-
-    None
+    }
 }
 
 pub fn compile_expression_assign_index(
