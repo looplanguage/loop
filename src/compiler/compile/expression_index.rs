@@ -1,3 +1,4 @@
+use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
@@ -87,6 +88,17 @@ pub fn compile_expression_extension_method(
             let last_extension_type = compiler.last_extension_type.clone().unwrap();
 
             return compile_expression_extension_method(compiler, call, last_extension_type, false);
+        }
+        Expression::Identifier(identifier) => {
+            compile_expression_identifier(compiler, identifier.clone());
+
+            let var = compiler.variable_scope.as_ref().borrow_mut().resolve(identifier.value);
+
+            return if let Some(var) = var {
+                compile_expression_extension_method(compiler, call, var._type, false)
+            } else {
+                Some(CompilerException::UnknownExtensionMethod(method))
+            }
         }
         _ => return Some(CompilerException::UnknownExtensionMethod(method)),
     };

@@ -10,6 +10,7 @@ pub fn compile_statement_variable_declaration(
     let var = compiler.variable_scope.borrow_mut().define(
         compiler.variable_count,
         format!("{}{}", compiler.location, variable.ident.value),
+        *variable.value.clone()
     );
 
     compiler.variable_count += 1;
