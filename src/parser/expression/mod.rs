@@ -8,6 +8,7 @@ use crate::parser::expression::function::{Call, Function};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
+use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::null::Null;
 use crate::parser::expression::string::LoopString;
 use crate::parser::expression::suffix::Suffix;
@@ -21,6 +22,7 @@ pub mod function;
 pub mod identifier;
 pub mod index;
 pub mod integer;
+pub mod loops;
 pub mod null;
 pub mod number;
 pub mod string;
@@ -41,6 +43,9 @@ pub enum Expression {
     Index(Box<Index>),
     Array(Box<Array>),
     AssignIndex(Box<AssignIndex>),
+    Loop(Loop),
+    LoopIterator(LoopIterator),
+    LoopArrayIterator(LoopArrayIterator),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]

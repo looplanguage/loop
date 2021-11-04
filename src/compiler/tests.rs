@@ -133,6 +133,70 @@ mod tests {
     }
 
     #[test]
+    fn loop_while() {
+        let input = "for(true) {}";
+
+        let expected = "[0] OpConstant 1
+[5] OpJumpIfFalse 20
+[10] OpConstant 0
+[15] OpJump 0
+[20] OpConstant 0
+[25] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
+    fn loop_iterator() {
+        let input = "for(var i from 0 to 100) {}";
+
+        let expected = "[0] OpConstant 1
+[5] OpSetVar 0
+[10] OpConstant 3
+[15] OpGetVar 0
+[20] OpAdd
+[21] OpSetVar 0
+[26] OpGetVar 0
+[31] OpConstant 2
+[36] OpGreaterThan
+[37] OpJumpIfFalse 10
+[42] OpConstant 0
+[47] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
+    fn loop_array_iterator() {
+        let input = "for(var i in []) {}";
+
+        let expected = "[0] OpArray 0
+[3] OpSetVar 0
+[8] OpConstant 1
+[13] OpSetVar 2
+[18] OpGetBuiltin 0
+[20] OpGetVar 0
+[25] OpCall 1
+[27] OpGetVar 2
+[32] OpGreaterThan
+[33] OpJumpIfFalse 80
+[38] OpGetVar 0
+[43] OpGetVar 2
+[48] OpIndex
+[49] OpSetVar 1
+[54] OpConstant 0
+[59] OpConstant 2
+[64] OpGetVar 2
+[69] OpAdd
+[70] OpSetVar 2
+[75] OpJump 18
+[80] OpConstant 0
+[85] OpPop";
+
+        compiler_test(input, expected);
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("var test = 100; if(true) { test }", None);
     }
