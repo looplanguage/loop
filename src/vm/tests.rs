@@ -203,6 +203,29 @@ mod tests {
     }*/
 
     #[test]
+    fn extension_method_array_length() {
+        test_vm("[].length()", Integer(integer::Integer { value: 0 }));
+        test_vm("[1, 2, 3].length()", Integer(integer::Integer { value: 3 }));
+    }
+
+    #[test]
+    fn extension_method_array_remove() {
+        test_vm("var arr = [1, 2, 3]; arr.remove(2)", Integer(integer::Integer { value: 3 }));
+        test_vm("var arr = [1, 2, 3]; arr.remove(0); arr[0]", Integer(integer::Integer { value: 2 }));
+    }
+
+    #[test]
+    fn extension_method_array_add() {
+        test_vm("var arr = [1, 2, 3]; arr.add(4); arr.length()", Integer(integer::Integer { value: 4 }));
+        test_vm("var arr = [1, 2, 3]; arr.add(4); arr[3]", Integer(integer::Integer { value: 4 }));
+    }
+    #[test]
+    fn extension_method_array_slice() {
+        test_vm("var arr = [1, 2, 3]; arr.slice(0, 1); arr.length()", Integer(integer::Integer { value: 2 }));
+        test_vm("var arr = [1, 2, 3]; arr.slice(1, 2); arr[0]", Integer(integer::Integer { value: 2 }));
+    }
+
+    #[test]
     fn modulo() {
         test_vm("10 % 10", Integer(integer::Integer { value: 0 }));
         test_vm("10 % 4", Integer(integer::Integer { value: 2 }));
