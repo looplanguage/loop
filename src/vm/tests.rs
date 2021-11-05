@@ -423,7 +423,7 @@ mod tests {
     #[test]
     fn loop_iterator() {
         test_vm(
-            "var x = 0; for (var i from 0 to 10) { x = x + 1 }; x",
+            "var x = 0; for (var i = 0 to 10) { x = x + 1 }; x",
             Integer(integer::Integer { value: 10 }),
         );
     }
