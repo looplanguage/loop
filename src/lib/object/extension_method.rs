@@ -121,7 +121,7 @@ pub fn remove(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalRes
                     "wrong type. expected=\"Integer\". got=\"{:?}\"",
                     arguments[0]
                 )))
-            }
+            };
         }
         _ => Err(VMException::IncorrectType(format!(
             "incorrect type. got=\"{:?}\"",
