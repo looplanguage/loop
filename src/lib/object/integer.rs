@@ -16,29 +16,10 @@ impl Integer {
             value: self.value as f64,
         }
     }
-
-    pub fn get_extension(&self, extension: i32) -> Option<Box<dyn Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult>> {
-        match extension {
-            // to_string
-            0 => Some(Box::from(to_string(self.value))),
-            _ => None,
-        }
-    }
 }
 
 impl ObjectTrait for Integer {
     fn inspect(&self) -> String {
         self.value.to_string()
-    }
-}
-
-// Extension methods
-
-// 0: to_string()
-pub fn to_string(value: i64) -> impl Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult {
-    move |_mut_int, _args| -> EvalResult {
-        Ok(Object::String(LoopString {
-            value: value.to_string(),
-        }))
     }
 }
