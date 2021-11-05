@@ -1,4 +1,3 @@
-use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;

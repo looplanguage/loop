@@ -1,6 +1,5 @@
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::integer::Integer;
-use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 use crate::lib::object::{boolean, Object};
 use std::cell::RefCell;

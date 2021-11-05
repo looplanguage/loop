@@ -1,9 +1,8 @@
 use crate::lexer::token::TokenType;
-use crate::parser;
 use crate::parser::expression::Precedence::Lowest;
+use crate::parser::Parser;
 use crate::parser::program::Node;
 use crate::parser::statement::expression::Expression;
-use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Array {

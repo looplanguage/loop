@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::lib::object::Object;
 use crate::parser::expression::Expression;
 
 pub struct Variable {

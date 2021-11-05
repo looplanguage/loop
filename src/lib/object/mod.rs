@@ -1,8 +1,6 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use crate::lib::object::array::Array;
 use crate::lib::object::boolean::Boolean;
-use crate::lib::object::builtin::{BuiltinFunction, EvalResult};
+use crate::lib::object::builtin::BuiltinFunction;
 use crate::lib::object::float::Float;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer::Integer;
