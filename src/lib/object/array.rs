@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Array{
+pub struct Array {
     pub(crate) values: Vec<Rc<RefCell<Object>>>,
 }
 

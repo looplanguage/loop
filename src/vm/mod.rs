@@ -10,6 +10,7 @@ use crate::compiler::Bytecode;
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
+use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -19,7 +20,6 @@ use crate::vm::suffix::run_suffix_expression;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::lib::object::extension_method::EXTENSION_METHODS;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -199,7 +199,7 @@ impl VM {
                             VMException::IncorrectType(message) => Err(message),
                             VMException::CannotParseInt(string) => {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
-                            },
+                            }
                             VMException::EmptyArray => {
                                 Err(String::from("array index does not exist."))
                             }
@@ -257,7 +257,6 @@ impl VM {
                             as usize;
                     self.increment_ip(1);
 
-
                     let popped = self.pop();
 
                     let mut params: Vec<Object> = vec![];
@@ -287,7 +286,7 @@ impl VM {
                             VMException::IncorrectType(message) => Err(message),
                             VMException::CannotParseInt(string) => {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
-                            },
+                            }
                             VMException::EmptyArray => {
                                 Err(String::from("array index does not exist."))
                             }

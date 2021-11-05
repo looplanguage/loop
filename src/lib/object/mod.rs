@@ -10,12 +10,12 @@ use crate::lib::object::string::LoopString;
 pub mod array;
 pub mod boolean;
 pub mod builtin;
+pub mod extension_method;
 pub mod float;
 pub mod function;
 pub mod integer;
 pub mod null;
 pub mod string;
-pub mod extension_method;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
