@@ -17,6 +17,7 @@ pub mod function;
 pub mod integer;
 pub mod null;
 pub mod string;
+pub mod extension_method;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {

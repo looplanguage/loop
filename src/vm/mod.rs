@@ -19,6 +19,7 @@ use crate::vm::suffix::run_suffix_expression;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::lib::object::extension_method::EXTENSION_METHODS;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -274,9 +275,9 @@ impl VM {
 
                     let perform_on = popped.borrow().clone();
 
-                    let method = perform_on.get_extension_method(method_id as i32);
+                    let method = &EXTENSION_METHODS[method_id];
 
-                    let push = method.unwrap()(popped, params);
+                    let push = (method.builtin)(popped, params);
 
                     if push.is_err() {
                         return match push.err().unwrap() {

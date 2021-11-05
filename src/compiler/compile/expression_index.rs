@@ -2,6 +2,7 @@ use crate::compiler::compile::expression_identifier::compile_expression_identifi
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
+use crate::lib::object::extension_method::lookup;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
@@ -58,58 +59,8 @@ pub fn compile_expression_extension_method(
         _ => String::from(""),
     };
 
-    // Search for extension method based on type
-    let method_id = match left.clone() {
-        Expression::Integer(integer) => {
-            let extension = integer.find_extension(method.as_str());
-
-            if let Some(extension) = extension {
-                compiler.last_extension_type = Option::from(extension.1);
-                Some(extension.0)
-            } else {
-                None
-            }
-        }
-        Expression::String(string) => {
-            let extension = string.find_extension(method.as_str());
-
-            if let Some(extension) = extension {
-                compiler.last_extension_type = Option::from(extension.1);
-                Some(extension.0)
-            } else {
-                None
-            }
-        }
-        Expression::Array(array) => {
-            let extension = array.find_extension(method.as_str());
-
-            if let Some(extension) = extension {
-                compiler.last_extension_type = Option::from(extension.1);
-                Some(extension.0)
-            } else {
-                None
-            }
-        }
-        Expression::Index(index) => {
-            compile_expression_index(compiler, *index);
-
-            let last_extension_type = compiler.last_extension_type.clone().unwrap();
-
-            return compile_expression_extension_method(compiler, call, last_extension_type, false);
-        }
-        Expression::Identifier(identifier) => {
-            compile_expression_identifier(compiler, identifier.clone());
-
-            let var = compiler.variable_scope.as_ref().borrow_mut().resolve(identifier.value);
-
-            return if let Some(var) = var {
-                compile_expression_extension_method(compiler, call, var._type, false)
-            } else {
-                Some(CompilerException::UnknownExtensionMethod(method))
-            }
-        }
-        _ => return Some(CompilerException::UnknownExtensionMethod(method)),
-    };
+    // Search extension id
+    let method_id = lookup(method.as_str());
 
     if method_id.is_none() {
         return Some(CompilerException::UnknownExtensionMethod(method));
