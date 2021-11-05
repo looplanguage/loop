@@ -1,5 +1,5 @@
-use crate::compiler::Compiler;
 use crate::compiler::opcode::OpCode;
+use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::array::Array;
 
