@@ -257,6 +257,9 @@ impl VM {
                             as usize;
                     self.increment_ip(1);
 
+
+                    let popped = self.pop();
+
                     let mut params: Vec<Object> = vec![];
 
                     for n in 0.._parameters {
@@ -270,10 +273,6 @@ impl VM {
                     }
 
                     params.reverse();
-
-                    let popped = self.pop();
-
-                    let perform_on = popped.borrow().clone();
 
                     let method = &EXTENSION_METHODS[method_id];
 
