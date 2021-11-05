@@ -201,7 +201,7 @@ impl VM {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
                             },
                             VMException::EmptyArray => {
-                                Err(format!("array index does not exist."))
+                                Err(String::from("array index does not exist."))
                             }
                         };
                     }
@@ -262,7 +262,7 @@ impl VM {
 
                     let mut params: Vec<Object> = vec![];
 
-                    for n in 0.._parameters {
+                    for _n in 0.._parameters {
                         let item = self.pop();
 
                         let item_dereffed = &*item.borrow();
@@ -289,7 +289,7 @@ impl VM {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
                             },
                             VMException::EmptyArray => {
-                                Err(format!("array index does not exist."))
+                                Err(String::from("array index does not exist."))
                             }
                         };
                     }
