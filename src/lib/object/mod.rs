@@ -55,18 +55,6 @@ impl Object {
             _ => true,
         }
     }
-
-    pub fn get_extension_method(
-        &self,
-        method: i32,
-    ) -> Option<Box<dyn Fn(Rc<RefCell<Object>>, Vec<Object>) -> EvalResult>> {
-        match self {
-            Object::Integer(integer) => integer.get_extension(method),
-            Object::String(string) => string.get_extension(method),
-            Object::Array(array) => array.get_extension(method),
-            _ => None,
-        }
-    }
 }
 
 pub trait ObjectTrait {

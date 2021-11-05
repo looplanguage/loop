@@ -10,30 +10,6 @@ pub struct Array {
     pub(crate) values: Vec<Expression>,
 }
 
-impl Array {
-    pub fn find_extension(&self, name: &str) -> Option<(i32, parser::Expression)> {
-        match name {
-            "add" => Some((
-                0,
-                parser::Expression::Array(Box::from(Array { values: vec![] }))
-            )),
-            "remove" => Some((
-                1,
-                parser::Expression::Array(Box::from(Array { values: vec![] }))
-            )),
-            "slice" => Some((
-                2,
-                parser::Expression::Array(Box::from(Array { values: vec![] }))
-            )),
-            "length" => Some((
-                3,
-                parser::Expression::Array(Box::from(Array { values: vec![] }))
-            )),
-            &_ => None,
-        }
-    }
-}
-
 pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {
     let mut elements: Vec<Expression> = Vec::new();
 
