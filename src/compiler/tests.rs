@@ -65,7 +65,7 @@ mod tests {
 [5] OpCallExtension 0 0
 [8] OpPop
 [9] OpConstant 2
-[14] OpCallExtension 0 0
+[14] OpCallExtension 1 1
 [17] OpPop";
 
         compiler_test(input, expected);
@@ -77,7 +77,7 @@ mod tests {
 
         let expected = "[0] OpConstant 1
 [5] OpCallExtension 0 0
-[8] OpCallExtension 0 0
+[8] OpCallExtension 1 1
 [11] OpCallExtension 0 0
 [14] OpPop";
 
@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn loop_iterator() {
-        let input = "for(var i from 0 to 100) {}";
+        let input = "for(var i = 0 to 100) {}";
 
         let expected = "[0] OpConstant 1
 [5] OpSetVar 0
