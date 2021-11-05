@@ -152,8 +152,8 @@ pub fn slice(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResu
                 if let Object::Integer(end) = arguments[1] {
                     // 3, 0, 1
                     if start.value <= end.value
-                        && arr.values.len() - 1 >= start.value as usize
-                        && arr.values.len() - 1 >= end.value as usize
+                        && arr.values.len() > start.value as usize
+                        && arr.values.len() > end.value as usize
                     {
                         arr.values =
                             arr.values[start.value as usize..(end.value + 1) as usize].to_owned()
