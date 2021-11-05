@@ -36,18 +36,15 @@ pub fn lookup(name: &str) -> Option<u32> {
         return None;
     }
 
-    let mut i = 0;
-    for b in EXTENSION_METHODS {
+    for (i, b) in EXTENSION_METHODS.iter().enumerate() {
         if b.name == name {
-            return Some(i);
+            return Some(i as u32);
         }
-
-        i += 1;
     }
     None
 }
 
-fn to_string(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResult {
+fn to_string(extending: Rc<RefCell<Object>>, _arguments: Vec<Object>) -> EvalResult {
     return match &*extending.as_ref().borrow() {
         Object::Integer(integer) => Ok(Object::String(LoopString {
             value: integer.value.to_string(),
@@ -59,7 +56,7 @@ fn to_string(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResu
     };
 }
 
-fn to_int(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResult {
+fn to_int(extending: Rc<RefCell<Object>>, _arguments: Vec<Object>) -> EvalResult {
     return match &*extending.as_ref().borrow() {
         Object::String(string) => {
             let parsed = string.value.parse::<i64>();
@@ -108,26 +105,23 @@ pub fn remove(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalRes
                 ));
             }
 
-            let mut removed: Object = Object::Boolean(boolean::Boolean { value: false });
-            if let Object::Integer(integer) = arguments[0] {
+            return if let Object::Integer(integer) = arguments[0] {
                 if arr.values.len() > integer.value as usize {
-                    removed = arr
+                    Ok(arr
                         .values
                         .remove(integer.value as usize)
                         .as_ref()
                         .borrow()
-                        .clone();
+                        .clone())
                 } else {
-                    return Err(VMException::EmptyArray);
+                    Err(VMException::EmptyArray)
                 }
             } else {
-                return Err(VMException::IncorrectType(format!(
+                Err(VMException::IncorrectType(format!(
                     "wrong type. expected=\"Integer\". got=\"{:?}\"",
                     arguments[0]
-                )));
+                )))
             }
-
-            return Ok(removed);
         }
         _ => Err(VMException::IncorrectType(format!(
             "incorrect type. got=\"{:?}\"",
@@ -146,7 +140,6 @@ pub fn slice(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResu
                 ));
             }
 
-            let mut removed: Object = Object::Boolean(boolean::Boolean { value: true });
             if let Object::Integer(start) = arguments[0] {
                 if let Object::Integer(end) = arguments[1] {
                     // 3, 0, 1
@@ -172,7 +165,7 @@ pub fn slice(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResu
                 )));
             }
 
-            return Ok(removed);
+            Ok(Object::Boolean(boolean::Boolean { value: true }))
         }
         _ => Err(VMException::IncorrectType(format!(
             "incorrect type. got=\"{:?}\"",
@@ -181,7 +174,7 @@ pub fn slice(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResu
     }
 }
 
-fn length(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResult {
+fn length(extending: Rc<RefCell<Object>>, _arguments: Vec<Object>) -> EvalResult {
     return match &*extending.as_ref().borrow() {
         Object::Array(arr) => Ok(Object::Integer(Integer {
             value: arr.values.len() as i64,
