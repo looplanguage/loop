@@ -1,9 +1,6 @@
-use std::borrow::BorrowMut;
-use crate::lib::object::{boolean, integer, Object, ObjectTrait};
-use std::cell::{RefCell, RefMut};
+use crate::lib::object::{Object, ObjectTrait};
+use std::cell::RefCell;
 use std::rc::Rc;
-use crate::lib::exception::vm::VMException;
-use crate::lib::object::builtin::EvalResult;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Array{

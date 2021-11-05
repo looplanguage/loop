@@ -1,9 +1,5 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::lib::object::builtin::EvalResult;
 use crate::lib::object::float::Float;
-use crate::lib::object::string::LoopString;
-use crate::lib::object::{Object, ObjectTrait};
+use crate::lib::object::ObjectTrait;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Integer {

@@ -1,9 +1,4 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use crate::lib::exception::vm::VMException;
-use crate::lib::object::builtin::EvalResult;
-use crate::lib::object::integer::Integer;
-use crate::lib::object::{Object, ObjectTrait};
+use crate::lib::object::ObjectTrait;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoopString {
