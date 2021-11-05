@@ -19,7 +19,7 @@ pub fn compile_export_statement(
             _compiler.prev_location,
             _compiler.export_name.clone()
         ),
-        export.expression.clone()
+        export.expression.clone(),
     );
 
     _compiler.variable_count += 1;

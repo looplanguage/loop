@@ -210,19 +210,37 @@ mod tests {
 
     #[test]
     fn extension_method_array_remove() {
-        test_vm("var arr = [1, 2, 3]; arr.remove(2)", Integer(integer::Integer { value: 3 }));
-        test_vm("var arr = [1, 2, 3]; arr.remove(0); arr[0]", Integer(integer::Integer { value: 2 }));
+        test_vm(
+            "var arr = [1, 2, 3]; arr.remove(2)",
+            Integer(integer::Integer { value: 3 }),
+        );
+        test_vm(
+            "var arr = [1, 2, 3]; arr.remove(0); arr[0]",
+            Integer(integer::Integer { value: 2 }),
+        );
     }
 
     #[test]
     fn extension_method_array_add() {
-        test_vm("var arr = [1, 2, 3]; arr.add(4); arr.length()", Integer(integer::Integer { value: 4 }));
-        test_vm("var arr = [1, 2, 3]; arr.add(4); arr[3]", Integer(integer::Integer { value: 4 }));
+        test_vm(
+            "var arr = [1, 2, 3]; arr.add(4); arr.length()",
+            Integer(integer::Integer { value: 4 }),
+        );
+        test_vm(
+            "var arr = [1, 2, 3]; arr.add(4); arr[3]",
+            Integer(integer::Integer { value: 4 }),
+        );
     }
     #[test]
     fn extension_method_array_slice() {
-        test_vm("var arr = [1, 2, 3]; arr.slice(0, 1); arr.length()", Integer(integer::Integer { value: 2 }));
-        test_vm("var arr = [1, 2, 3]; arr.slice(1, 2); arr[0]", Integer(integer::Integer { value: 2 }));
+        test_vm(
+            "var arr = [1, 2, 3]; arr.slice(0, 1); arr.length()",
+            Integer(integer::Integer { value: 2 }),
+        );
+        test_vm(
+            "var arr = [1, 2, 3]; arr.slice(1, 2); arr[0]",
+            Integer(integer::Integer { value: 2 }),
+        );
     }
 
     #[test]
@@ -246,7 +264,6 @@ mod tests {
             Integer(integer::Integer { value: 123 }),
         );
     }
-
 
     #[test]
     fn extension_methods_variables() {
