@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn loop_iterator() {
-        let input = "for(var i from 0 to 100) { }";
+        let input = "for(var i = 0 to 100) { }";
 
         let mut expected: Vec<Statement> = Vec::new();
 

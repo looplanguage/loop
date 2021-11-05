@@ -42,7 +42,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
         let identifier = parse_identifier(p);
 
         if let Some(Node::Expression(Expression::Identifier(ident))) = identifier {
-            if !p.lexer.next_is(TokenType::From) {
+            if !p.lexer.next_is(TokenType::Assign) {
                 if p.lexer.next_is(TokenType::In) {
                     p.lexer.next_token();
 

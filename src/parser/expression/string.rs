@@ -1,4 +1,3 @@
-use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
@@ -6,15 +5,6 @@ use crate::parser::Parser;
 #[derive(Debug, PartialEq, Clone)]
 pub struct LoopString {
     pub value: std::string::String,
-}
-
-impl LoopString {
-    pub fn find_extension(&self, name: &str) -> Option<(i32, Expression)> {
-        match name {
-            "to_int" => Some((0, Expression::Integer(Integer { value: 0 }))),
-            &_ => None,
-        }
-    }
 }
 
 pub fn parse_string_literal(p: &mut Parser) -> Option<Node> {
