@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
-use crate::lib::object::Object;
+use crate::lib::object::{boolean, Object};
 use crate::lib::object::string::LoopString;
 
 pub type EvalResult = Result<Object, VMException>;
@@ -23,7 +23,7 @@ macro_rules! extension {
     };
 }
 
-pub const EXTENSION_METHODS: &[Builtin] = &[extension!(to_string), extension!(to_int)];
+pub const EXTENSION_METHODS: &[Builtin] = &[extension!(to_string), extension!(to_int), extension!(add)];
 
 pub fn lookup(name: &str) -> Option<u32> {
     if name == "null" {
@@ -72,4 +72,15 @@ fn to_int(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResult 
             Ok(Object::Null(Null {}))
         }
     }
+}
+
+// 0: add(obj: Object)
+pub fn add(extending: Rc<RefCell<Object>>, arguments: Vec<Object>) -> EvalResult {
+    if let Object::Array(ref mut arr) = &mut *extending.as_ref().borrow_mut() {
+        for arg in arguments {
+            arr.values.push(Rc::from(RefCell::from(arg)));
+        }
+    }
+
+    Ok(Object::Boolean(boolean::Boolean { value: true }))
 }
