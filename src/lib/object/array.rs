@@ -7,8 +7,6 @@ pub struct Array {
     pub(crate) values: Vec<Rc<RefCell<Object>>>,
 }
 
-impl Array {}
-
 impl ObjectTrait for Array {
     fn inspect(&self) -> String {
         let mut items: Vec<String> = Vec::new();
