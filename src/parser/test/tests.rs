@@ -7,6 +7,7 @@ mod tests {
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
     use crate::parser::expression::function::{Call, Function};
+    use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
     use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
@@ -22,6 +23,7 @@ mod tests {
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
     use crate::parser::test::test_helper::test_helper;
+    use std::collections::HashMap;
 
     #[test]
     fn functions_return() {
@@ -57,6 +59,40 @@ mod tests {
             expression: Box::new(parser::Expression::Loop(Loop {
                 condition: Box::new(parser::Expression::Boolean(Boolean { value: true })),
                 body: Block { statements: vec![] },
+            })),
+        })));
+
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn hashmap() {
+        let input = "{\"hello world\": 123, true: 123, 500: false}";
+
+        let mut expected: Vec<Statement> = Vec::new();
+        let mut hashmap_values: HashMap<HashableExpression, parser::expression::Expression> =
+            HashMap::new();
+
+        hashmap_values.insert(
+            HashableExpression::String(LoopString {
+                value: "hello world".to_string(),
+            }),
+            parser::Expression::Integer(Integer { value: 123 }),
+        );
+
+        hashmap_values.insert(
+            HashableExpression::Boolean(Boolean { value: true }),
+            parser::Expression::Integer(Integer { value: 123 }),
+        );
+
+        hashmap_values.insert(
+            HashableExpression::Integer(Integer { value: 500 }),
+            parser::Expression::Boolean(Boolean { value: false }),
+        );
+
+        expected.push(Statement::Expression(Box::new(Expression {
+            expression: Box::new(parser::Expression::Hashmap(Hashmap {
+                values: hashmap_values,
             })),
         })));
 
