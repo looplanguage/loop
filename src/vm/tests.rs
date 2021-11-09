@@ -388,9 +388,9 @@ mod tests {
 
         test_vm(
             " var y = 10 \
+            y = 2\
             /< hello \
-            multiline >/ \
-            y = 2",
+            multiline >/",
             Integer(integer::Integer { value: 2 }),
         );
     }

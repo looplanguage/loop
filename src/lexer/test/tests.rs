@@ -129,10 +129,11 @@ mod tests {
     }
 
     #[test]
-    fn single_line_comments() {
-        let input = "//This is a comment";
+    fn comments() {
+        let mut input = "/<hello2>/ //hello";
         let expected = vec![
-            test_helper::generate_token("This is a comment", TokenType::Comment),
+            test_helper::generate_token("hello2" , TokenType::Comment),
+            test_helper::generate_token("hello", TokenType::Comment),
         ];
 
         do_test(input, expected);
