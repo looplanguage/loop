@@ -13,8 +13,6 @@ use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::null::Null;
 use crate::parser::expression::string::LoopString;
 use crate::parser::expression::suffix::Suffix;
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
 
 pub mod array;
 pub mod assign_index;
@@ -91,7 +89,6 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
 
 impl Expression {
     fn get_hash(&self) -> Option<HashableExpression> {
-
         match self {
             Expression::Integer(integer) => Some(HashableExpression::Integer(integer.clone())),
             Expression::String(string) => Some(HashableExpression::String(string.clone())),
