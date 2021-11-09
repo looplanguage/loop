@@ -3,6 +3,7 @@ use crate::lib::object::boolean::Boolean;
 use crate::lib::object::builtin::BuiltinFunction;
 use crate::lib::object::float::Float;
 use crate::lib::object::function::{CompiledFunction, Function};
+use crate::lib::object::hashmap::Hashmap;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
@@ -16,6 +17,7 @@ pub mod function;
 pub mod integer;
 pub mod null;
 pub mod string;
+pub mod hashmap;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
@@ -28,9 +30,30 @@ pub enum Object {
     String(LoopString),
     Builtin(BuiltinFunction),
     Array(Array),
+    Hashmap(Hashmap)
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+pub enum Hashable {
+    Integer(Integer)
+}
+
+impl Hashable {
+    pub fn inspect(&self) -> String {
+        match self {
+            Hashable::Integer(integer) => integer.inspect()
+        }
+    }
 }
 
 impl Object {
+    pub fn get_hash(&self) -> Option<Hashable> {
+        match self {
+            Object::Integer(integer) => Some(Hashable::Integer(integer.clone())),
+            _ => None
+        }
+    }
+
     pub fn inspect(&self) -> String {
         match self {
             Object::Integer(int) => int.inspect(),
@@ -42,6 +65,7 @@ impl Object {
             Object::String(string) => string.inspect(),
             Object::Builtin(builtin) => format!("Builtin[{:p}]", builtin),
             Object::Array(array) => array.inspect(),
+            Object::Hashmap(hashmap) => hashmap.inspect(),
         }
     }
 

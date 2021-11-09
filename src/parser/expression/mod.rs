@@ -5,7 +5,7 @@ use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::float::Float;
 use crate::parser::expression::function::{Call, Function};
-use crate::parser::expression::hashmap::Hashmap;
+use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
@@ -90,24 +90,13 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
 }
 
 impl Expression {
-    fn get_hash(&self) -> Option<u64> {
-        let mut s = DefaultHasher::new();
+    fn get_hash(&self) -> Option<HashableExpression> {
 
         match self {
-            Expression::Integer(integer) => {
-                integer.value.hash(&mut s);
-            }
-            Expression::Boolean(boolean) => {
-                boolean.value.hash(&mut s);
-            }
-            Expression::String(string) => {
-                string.value.hash(&mut s)
-            }
+            Expression::Integer(integer) => Some(HashableExpression::Integer(integer.clone())),
             _ => {
                 return None;
             }
         }
-
-        Some(s.finish())
     }
 }
