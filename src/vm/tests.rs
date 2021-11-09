@@ -431,6 +431,26 @@ mod tests {
     }
 
     #[test]
+    fn comments() {
+        test_vm(
+            "var x = 10 // This is a comment",
+            Integer(integer::Integer { value: 10 }),
+        );
+
+        test_vm(
+            "// This is a comment \n \
+             var y = 10",
+            Integer(integer::Integer { value: 10 }),
+        );
+
+        test_vm(
+            " var y = 10 \
+            y = 2\
+            /< hello \
+            multiline >/",
+            Integer(integer::Integer { value: 2 }),
+        )
+    }
     fn loop_while() {
         test_vm(
             "var x = 0; for (x < 10) { x = x + 1 }; x",

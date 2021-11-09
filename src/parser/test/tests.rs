@@ -741,6 +741,16 @@ mod tests {
         test_parser(input, expected);
     }
 
+    #[test]
+    fn comments() {
+        let input = "// Hello \n \
+        /< hello \
+        multiline >/";
+
+        let expected: Vec<Statement> = vec![];
+        test_parser(input, expected);
+    }
+
     fn test_parser(input: &str, expected: Vec<Statement>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
