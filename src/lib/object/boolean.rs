@@ -1,6 +1,6 @@
 use crate::lib::object::ObjectTrait;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Boolean {
     pub(crate) value: bool,
 }

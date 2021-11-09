@@ -5,6 +5,7 @@ use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::expression::float::Float;
 use crate::parser::expression::function::{Call, Function};
+use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
@@ -19,6 +20,7 @@ pub mod boolean;
 pub mod conditional;
 pub mod float;
 pub mod function;
+pub mod hashmap;
 pub mod identifier;
 pub mod index;
 pub mod integer;
@@ -46,6 +48,7 @@ pub enum Expression {
     Loop(Loop),
     LoopIterator(LoopIterator),
     LoopArrayIterator(LoopArrayIterator),
+    Hashmap(Hashmap),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -81,5 +84,16 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::LeftBracket => Precedence::Index,
         TokenType::Assign => Precedence::Assign,
         _ => Precedence::Lowest,
+    }
+}
+
+impl Expression {
+    fn get_hash(&self) -> Option<HashableExpression> {
+        match self {
+            Expression::Integer(integer) => Some(HashableExpression::Integer(integer.clone())),
+            Expression::String(string) => Some(HashableExpression::String(string.clone())),
+            Expression::Boolean(boolean) => Some(HashableExpression::Boolean(boolean.clone())),
+            _ => None,
+        }
     }
 }

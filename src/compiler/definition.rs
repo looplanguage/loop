@@ -108,6 +108,10 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpAssignIndex".to_string(),
             operand_width: vec![],
         },
+        OpCode::Hashmap => Definition {
+            name: "OpHashmap".to_string(),
+            operand_width: vec![2],
+        },
     }
 }
 
@@ -138,6 +142,7 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         22 => Some(OpCode::Array),
         23 => Some(OpCode::Index),
         24 => Some(OpCode::AssignIndex),
+        25 => Some(OpCode::Hashmap),
         _ => None,
     }
 }
@@ -169,6 +174,7 @@ pub fn lookup(op: u8) -> Option<Definition> {
         22 => Some(get_definition(OpCode::Array)),
         23 => Some(get_definition(OpCode::Index)),
         24 => Some(get_definition(OpCode::AssignIndex)),
+        25 => Some(get_definition(OpCode::Hashmap)),
         _ => None,
     }
 }

@@ -197,6 +197,24 @@ mod tests {
     }
 
     #[test]
+    fn hashmaps() {
+        let input = "{20: 30, \"hello test\": { 100: 20 }, false: true }";
+        let expected = "[0] OpConstant 1
+[5] OpConstant 2
+[10] OpConstant 3
+[15] OpConstant 4
+[20] OpConstant 5
+[25] OpHashmap 1
+[28] OpConstant 6
+[33] OpConstant 7
+[38] OpHashmap 3
+[41] OpPop";
+
+        // TODO: Look at a way to test this, as hashmaps don't have an order we can't test in what order these opcodes are executed
+        //compiler_test(input, expected);
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("var test = 100; if(true) { test }", None);
     }
