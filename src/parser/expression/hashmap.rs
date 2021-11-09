@@ -32,7 +32,7 @@ pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
 
         if let Some(Node::Expression(key)) = key_exp {
             if !p.lexer.next_is(TokenType::Colon) {
-                p.add_error("incorrect. expected comma".to_string());
+                p.add_error(format!("wrong token. expected=\"Colon\". got=\"{:?}\"", p.lexer.peek_token.clone().unwrap().token));
                 return None;
             }
 
