@@ -72,6 +72,7 @@ impl Parser {
             TokenType::LeftBrace => parse_block_statement(self),
             TokenType::Import => parse_import_statement(self),
             TokenType::Export => parse_export_statement(self),
+            TokenType::Comment => parse_comment(self),
             _ => self.parse_expression_statement(token),
         };
 
@@ -219,6 +220,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::Null, parse_expression_null);
     p.add_prefix_parser(TokenType::String, parse_string_literal);
     p.add_prefix_parser(TokenType::LeftBracket, parse_expression_array);
+    p.add_prefix_parser(TokenType::Comment, parse_comment);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
