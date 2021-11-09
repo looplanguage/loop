@@ -9,6 +9,7 @@ use crate::parser::expression::conditional::parse_conditional;
 use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::index::parse_index_expression;
+use crate::parser::expression::loops::parse_loop;
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
@@ -177,6 +178,7 @@ impl Parser {
     }
 
     pub fn add_error(&mut self, error: String) {
+        /*
         sentry::with_scope(
             |scope| {
                 scope.set_tag("exception.type", "parser");
@@ -184,7 +186,7 @@ impl Parser {
             || {
                 sentry::capture_message(error.as_str(), sentry::Level::Info);
             },
-        );
+        );*/
 
         self.errors.push(Exception::Parser(error));
     }
@@ -221,6 +223,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::String, parse_string_literal);
     p.add_prefix_parser(TokenType::LeftBracket, parse_expression_array);
     p.add_prefix_parser(TokenType::Comment, parse_comment);
+    p.add_prefix_parser(TokenType::For, parse_loop);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);

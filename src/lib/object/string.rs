@@ -1,7 +1,4 @@
-use crate::lib::exception::vm::VMException;
-use crate::lib::object::builtin::EvalResult;
-use crate::lib::object::integer::Integer;
-use crate::lib::object::{Object, ObjectTrait};
+use crate::lib::object::ObjectTrait;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoopString {
@@ -11,32 +8,5 @@ pub struct LoopString {
 impl ObjectTrait for LoopString {
     fn inspect(&self) -> String {
         format!("\"{}\"", self.value.clone())
-    }
-}
-
-impl LoopString {
-    pub fn get_extension(&self, extension: i32) -> Option<Box<dyn Fn(Vec<Object>) -> EvalResult>> {
-        match extension {
-            // to_int
-            0 => Some(Box::from(to_int(self.value.clone()))),
-            _ => None,
-        }
-    }
-}
-
-// Extension methods
-
-// 0: to_int()
-pub fn to_int(value: String) -> impl Fn(Vec<Object>) -> EvalResult {
-    move |_args| -> EvalResult {
-        let new_value = value.parse::<i64>();
-
-        if new_value.is_err() {
-            return Err(VMException::CannotParseInt(value.clone()));
-        }
-
-        Ok(Object::Integer(Integer {
-            value: new_value.unwrap(),
-        }))
     }
 }

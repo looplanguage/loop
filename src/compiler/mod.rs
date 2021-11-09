@@ -17,6 +17,10 @@ use crate::compiler::compile::expression_index::{
     compile_expression_assign_index, compile_expression_index,
 };
 use crate::compiler::compile::expression_integer::compile_expression_integer;
+use crate::compiler::compile::expression_loop::{
+    compile_loop_array_iterator_expression, compile_loop_expression,
+    compile_loop_iterator_expression,
+};
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
@@ -227,11 +231,30 @@ impl Compiler {
             Expression::Index(index) => compile_expression_index(self, *index),
             Expression::Array(array) => compile_expression_array(self, *array),
             Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
+            Expression::Loop(lp) => compile_loop_expression(self, lp),
+            Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
+            Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
         };
 
         if err.is_some() {
             return err;
         }
+
+        None
+    }
+
+    fn compile_loop_block(&mut self, block: Block) -> Option<CompilerException> {
+        self.enter_variable_scope();
+
+        for statement in block.statements {
+            let err = self.compile_statement(statement);
+            if err.is_some() {
+                err.as_ref().unwrap().emit();
+                return err;
+            }
+        }
+
+        self.exit_variable_scope();
 
         None
     }

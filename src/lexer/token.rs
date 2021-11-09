@@ -37,7 +37,6 @@ pub enum TokenType {
     Function,
     If,
     Else,
-    While,
     Import,
     Export,
     And,
@@ -53,6 +52,10 @@ pub enum TokenType {
     String,
     As,
     Comment,
+    For,
+    From,
+    To,
+    In,
     Eof,
 }
 
