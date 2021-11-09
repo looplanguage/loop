@@ -65,13 +65,13 @@ impl Lexer {
                     self.next_character();
                     let comment = self.get_block_comment();
                     self.next_character();
-                    return create_token(TokenType::Comment, comment.parse().unwrap());
+                    create_token(TokenType::Comment, comment.parse().unwrap())
                 } else if self.peek_character() == '/' {
                     self.next_character();
                     let comment = self.get_line_comment();
-                    return create_token(TokenType::Comment, comment.parse().unwrap());
+                    create_token(TokenType::Comment, comment.parse().unwrap())
                 } else {
-                    return create_token(TokenType::Divide, ch.to_string());
+                    create_token(TokenType::Divide, ch.to_string())
                 }
             }
             '!' => {
@@ -212,25 +212,6 @@ impl Lexer {
             self.next_character();
         }
         text
-    }
-
-    fn remove_comment(&mut self) {
-        let comment_start_index = self.current;
-        let comment_end_index = self.end_comment_index();
-        for _ in 0..comment_end_index - comment_start_index {
-            self.next_token();
-        }
-    }
-
-    fn end_comment_index(&mut self) -> i32 {
-        while self.current_character() != '>' {
-            self.next_character();
-            if self.peek_character() == '/' {
-                self.next_character();
-                return self.current;
-            }
-        }
-        panic!("Lexer Error --> No end to comment");
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
