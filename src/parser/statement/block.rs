@@ -1,4 +1,5 @@
 use crate::lexer::token::TokenType;
+use crate::parser::expression::hashmap::parse_expression_hashmap;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use crate::parser::Parser;
@@ -10,6 +11,10 @@ pub struct Block {
 
 pub fn parse_block_statement(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
+
+    if p.lexer.peek_token.clone().unwrap().token == TokenType::Colon {
+        return parse_expression_hashmap(p);
+    }
 
     let block = parse_block(p);
 
