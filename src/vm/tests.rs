@@ -373,6 +373,28 @@ mod tests {
         );
     }
 
+    #[test]
+    fn comments() {
+        test_vm(
+            "var x = 10 // This is a comment",
+            Integer(integer::Integer { value: 10 }),
+        );
+
+        test_vm(
+            "// This is a comment \n \
+             var y = 10",
+            Integer(integer::Integer { value: 10 }),
+        );
+
+        test_vm(
+            " var y = 10 \
+            /< hello \
+            multiline >/ \
+            y = 2",
+            Integer(integer::Integer { value: 2 }),
+        );
+    }
+
     fn test_vm(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
