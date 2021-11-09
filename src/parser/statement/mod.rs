@@ -7,12 +7,12 @@ use crate::parser::statement::import::Import;
 use crate::parser::statement::return_statement::ReturnStatement;
 pub mod assign;
 pub mod block;
+pub(crate) mod comment;
 pub mod export;
 pub mod expression;
 pub mod import;
 pub mod return_statement;
 pub mod variable;
-pub(crate) mod comment;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {

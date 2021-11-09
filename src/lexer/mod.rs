@@ -1,11 +1,11 @@
 mod test;
 pub mod token;
 
-use std::borrow::Borrow;
 use crate::lexer::token::create_token;
+use crate::lexer::token::TokenType::Null;
+use std::borrow::Borrow;
 use token::Token;
 use token::TokenType;
-use crate::lexer::token::TokenType::Null;
 
 pub struct Lexer {
     current: i32,
@@ -73,7 +73,7 @@ impl Lexer {
                     let comment = self.get_line_comment();
                     return create_token(TokenType::Comment, comment.parse().unwrap());
                 } else {
-                    return create_token(TokenType::Divide,ch.to_string())
+                    return create_token(TokenType::Divide, ch.to_string());
                 }
             }
             '!' => {
@@ -216,7 +216,7 @@ impl Lexer {
         text
     }
 
-    fn remove_comment(&mut self){
+    fn remove_comment(&mut self) {
         let comment_start_index = self.current;
         let comment_end_index = self.end_comment_index();
         for _ in 0..comment_end_index - comment_start_index {
