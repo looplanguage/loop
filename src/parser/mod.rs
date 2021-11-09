@@ -14,6 +14,7 @@ use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
+use crate::parser::expression::hashmap::parse_expression_hashmap;
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::block::parse_block_statement;
@@ -69,7 +70,7 @@ impl Parser {
                 }
             }
             TokenType::Return => parse_return_statement(self),
-            TokenType::LeftBrace => parse_block_statement(self),
+            //TokenType::LeftBrace => parse_block_statement(self),
             TokenType::Import => parse_import_statement(self),
             TokenType::Export => parse_export_statement(self),
             _ => self.parse_expression_statement(token),
@@ -221,6 +222,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::String, parse_string_literal);
     p.add_prefix_parser(TokenType::LeftBracket, parse_expression_array);
     p.add_prefix_parser(TokenType::For, parse_loop);
+    p.add_prefix_parser(TokenType::LeftBrace, parse_expression_hashmap);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);

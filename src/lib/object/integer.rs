@@ -1,7 +1,7 @@
 use crate::lib::object::float::Float;
 use crate::lib::object::ObjectTrait;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Integer {
     pub(crate) value: i64,
 }
