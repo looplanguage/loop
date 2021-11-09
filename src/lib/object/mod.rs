@@ -35,13 +35,17 @@ pub enum Object {
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Hashable {
-    Integer(Integer)
+    Integer(Integer),
+    String(LoopString),
+    Boolean(Boolean)
 }
 
 impl Hashable {
     pub fn inspect(&self) -> String {
         match self {
-            Hashable::Integer(integer) => integer.inspect()
+            Hashable::Integer(integer) => integer.inspect(),
+            Hashable::String(string) => string.inspect(),
+            Hashable::Boolean(boolean) => boolean.inspect()
         }
     }
 }
@@ -50,6 +54,8 @@ impl Object {
     pub fn get_hash(&self) -> Option<Hashable> {
         match self {
             Object::Integer(integer) => Some(Hashable::Integer(integer.clone())),
+            Object::String(string) => Some(Hashable::String(string.clone())),
+            Object::Boolean(boolean) => Some(Hashable::Boolean(boolean.clone())),
             _ => None
         }
     }

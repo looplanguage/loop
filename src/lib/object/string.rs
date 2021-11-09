@@ -1,6 +1,6 @@
 use crate::lib::object::ObjectTrait;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Hash, Eq)]
 pub struct LoopString {
     pub(crate) value: String,
 }

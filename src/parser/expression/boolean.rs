@@ -2,7 +2,7 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::Parser;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub struct Boolean {
     pub(crate) value: bool,
 }
