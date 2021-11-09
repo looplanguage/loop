@@ -18,6 +18,7 @@ use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::block::parse_block_statement;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
+use crate::parser::statement::comment::parse_comment;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;

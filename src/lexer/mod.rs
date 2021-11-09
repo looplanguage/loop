@@ -1,6 +1,7 @@
 mod test;
 pub mod token;
 
+use std::borrow::Borrow;
 use crate::lexer::token::create_token;
 use token::Token;
 use token::TokenType;
@@ -62,11 +63,12 @@ impl Lexer {
             '.' => create_token(TokenType::Dot, ch.to_string()),
             '"' => self.find_string(),
             '/' => {
-                if self.peek_character() != '<' {
+                if self.peek_character() == '<' {
                     return create_token(TokenType::Divide, ch.to_string())
-                } else if self.peek_character() != '/' {
-                    println!("{}", self.get_line_comment());
-                    return create_token(TokenType::Divide,ch.to_string())
+                } else if self.peek_character() == '/' {
+                    self.next_character();
+                    let comment = self.get_line_comment();
+                    return create_token(TokenType::Comment, comment.parse().unwrap());
                 } else {
                     return create_token(TokenType::Divide,ch.to_string())
                 }
@@ -185,15 +187,21 @@ impl Lexer {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
     }
 
-    fn get_line_comment(&mut self) -> &str {
-        let mut text: String;
-        let mut current_char;
+    fn get_line_comment(&mut self) -> String {
         self.next_character();
-        current_char = self.current_character();
-        while current_char != "\n" && current_char != None {
+
+        let mut text: String = "".parse().unwrap();
+        let mut con = true;
+
+        while con {
+            let possible_char = self.input.chars().nth(self.current as usize);
+            if possible_char == None || self.current_character() == '\n' {
+                con = false
+            }
             text.push_str(self.current_character().to_string().as_str());
+            self.next_character();
         }
-        text.as_str()
+        text
     }
 
     /*fn get_block_comment() -> &str {
