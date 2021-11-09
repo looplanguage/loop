@@ -75,6 +75,9 @@ fn len(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
         Object::String(string) => Ok(Object::Integer(Integer {
             value: string.value.len() as i64,
         })),
+        Object::Array(array) => Ok(Object::Integer(Integer {
+            value: array.values.len() as i64,
+        })),
         _ => Err(VMException::IncorrectType(format!(
             "incorrect type for function 'len'. got=\"{:?}\"",
             &arguments[0]

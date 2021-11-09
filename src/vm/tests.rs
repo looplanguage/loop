@@ -203,6 +203,47 @@ mod tests {
     }*/
 
     #[test]
+    fn extension_method_array_length() {
+        test_vm("[].length()", Integer(integer::Integer { value: 0 }));
+        test_vm("[1, 2, 3].length()", Integer(integer::Integer { value: 3 }));
+    }
+
+    #[test]
+    fn extension_method_array_remove() {
+        test_vm(
+            "var arr = [1, 2, 3]; arr.remove(2)",
+            Integer(integer::Integer { value: 3 }),
+        );
+        test_vm(
+            "var arr = [1, 2, 3]; arr.remove(0); arr[0]",
+            Integer(integer::Integer { value: 2 }),
+        );
+    }
+
+    #[test]
+    fn extension_method_array_add() {
+        test_vm(
+            "var arr = [1, 2, 3]; arr.add(4); arr.length()",
+            Integer(integer::Integer { value: 4 }),
+        );
+        test_vm(
+            "var arr = [1, 2, 3]; arr.add(4); arr[3]",
+            Integer(integer::Integer { value: 4 }),
+        );
+    }
+    #[test]
+    fn extension_method_array_slice() {
+        test_vm(
+            "var arr = [1, 2, 3]; arr.slice(0, 1); arr.length()",
+            Integer(integer::Integer { value: 2 }),
+        );
+        test_vm(
+            "var arr = [1, 2, 3]; arr.slice(1, 2); arr[0]",
+            Integer(integer::Integer { value: 2 }),
+        );
+    }
+
+    #[test]
     fn modulo() {
         test_vm("10 % 10", Integer(integer::Integer { value: 0 }));
         test_vm("10 % 4", Integer(integer::Integer { value: 2 }));
@@ -220,6 +261,21 @@ mod tests {
 
         test_vm(
             "\"123\".to_int();",
+            Integer(integer::Integer { value: 123 }),
+        );
+    }
+
+    #[test]
+    fn extension_methods_variables() {
+        test_vm(
+            "var x = 123; x.to_string();",
+            String(string::LoopString {
+                value: "123".to_string(),
+            }),
+        );
+
+        test_vm(
+            "var x = \"123\"; x.to_int();",
             Integer(integer::Integer { value: 123 }),
         );
     }
@@ -392,6 +448,26 @@ mod tests {
             /< hello \
             multiline >/",
             Integer(integer::Integer { value: 2 }),
+    fn loop_while() {
+        test_vm(
+            "var x = 0; for (x < 10) { x = x + 1 }; x",
+            Integer(integer::Integer { value: 10 }),
+        );
+    }
+
+    #[test]
+    fn loop_iterator() {
+        test_vm(
+            "var x = 0; for (var i = 0 to 10) { x = x + 1 }; x",
+            Integer(integer::Integer { value: 10 }),
+        );
+    }
+
+    #[test]
+    fn loop_array_iterator() {
+        test_vm(
+            "var x = 0; var array = [3, 8, 12, 56] for (var i in array) { x = i }; x",
+            Integer(integer::Integer { value: 56 }),
         );
     }
 

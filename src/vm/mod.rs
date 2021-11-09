@@ -10,6 +10,7 @@ use crate::compiler::Bytecode;
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
+use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -199,6 +200,9 @@ impl VM {
                             VMException::CannotParseInt(string) => {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
                             }
+                            VMException::EmptyArray => {
+                                Err(String::from("array index does not exist."))
+                            }
                         };
                     }
 
@@ -255,11 +259,23 @@ impl VM {
 
                     let popped = self.pop();
 
-                    let perform_on = &*popped.borrow();
+                    let mut params: Vec<Object> = vec![];
 
-                    let method = perform_on.get_extension_method(method_id as i32);
+                    for _n in 0.._parameters {
+                        let item = self.pop();
 
-                    let push = method.unwrap()(vec![]);
+                        let item_dereffed = &*item.borrow();
+
+                        let obj = item_dereffed.clone();
+
+                        params.push(obj);
+                    }
+
+                    params.reverse();
+
+                    let method = &EXTENSION_METHODS[method_id];
+
+                    let push = (method.builtin)(popped, params);
 
                     if push.is_err() {
                         return match push.err().unwrap() {
@@ -270,6 +286,9 @@ impl VM {
                             VMException::IncorrectType(message) => Err(message),
                             VMException::CannotParseInt(string) => {
                                 Err(format!("unable to parse to int. got=\"{}\"", string))
+                            }
+                            VMException::EmptyArray => {
+                                Err(String::from("array index does not exist."))
                             }
                         };
                     }

@@ -263,13 +263,16 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "import" => TokenType::Import,
         "export" => TokenType::Export,
         "else" => TokenType::Else,
-        "while" => TokenType::While,
+        "for" => TokenType::For,
         "and" | "&&" => TokenType::And,
         "or" | "||" => TokenType::Or,
         "null" => TokenType::Null,
         "return" => TokenType::Return,
         "if" => TokenType::If,
         "as" => TokenType::As,
+        "from" => TokenType::From,
+        "in" => TokenType::In,
+        "to" => TokenType::To,
         _ => {
             if keyword.parse::<i64>().is_ok() {
                 return TokenType::Integer;

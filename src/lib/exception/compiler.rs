@@ -1,6 +1,3 @@
-use sentry::protocol::Value;
-use std::collections::BTreeMap;
-
 #[derive(Debug, PartialEq)]
 pub struct UnknownSymbol {
     pub name: String,
@@ -48,6 +45,7 @@ impl CompilerException {
     }
 
     pub fn emit(&self) {
+        /*
         match self {
             CompilerException::UnknownSymbol(symbol) => {
                 sentry::with_scope(
@@ -86,6 +84,6 @@ impl CompilerException {
                     },
                 );
             }
-        }
+        }*/
     }
 }
