@@ -132,7 +132,7 @@ mod tests {
     fn comments() {
         let mut input = "/<hello2>/ //hello";
         let expected = vec![
-            test_helper::generate_token("hello2" , TokenType::Comment),
+            test_helper::generate_token("hello2", TokenType::Comment),
             test_helper::generate_token("hello", TokenType::Comment),
         ];
 
