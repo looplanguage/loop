@@ -64,7 +64,9 @@ impl Lexer {
             '"' => self.find_string(),
             '/' => {
                 if self.peek_character() == '<' {
-                    return create_token(TokenType::Divide, ch.to_string())
+                    self.next_character();
+                    let comment = self.get_line_comment();
+                    return create_token(TokenType::Comment, comment.parse().unwrap());
                 } else if self.peek_character() == '/' {
                     self.next_character();
                     let comment = self.get_line_comment();
@@ -204,9 +206,21 @@ impl Lexer {
         text
     }
 
-    /*fn get_block_comment() -> &str {
+    fn get_block_comment(&mut self) -> String {
+        self.next_character();
 
-    }*/
+        let mut text: String = "".parse().unwrap();
+        let mut con = true;
+
+        while con {
+            if self.peek_character() == '>' && self.double_peek_character() == '/' {
+                con = false
+            }
+            text.push_str(self.current_character().to_string().as_str());
+            self.next_character();
+        }
+        text
+    }
 
     fn remove_comment(&mut self){
         let comment_start_index = self.current;
