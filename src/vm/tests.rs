@@ -27,7 +27,12 @@ mod tests {
         test_vm("100 * 2", Integer(integer::Integer { value: 200 }));
         test_vm("100 ^ 2", Integer(integer::Integer { value: 10000 }));
         test_vm("1.5 ^ 2", Float(float::Float { value: 2.25 }));
-        test_vm("2 ^ 1.5", Float(float::Float { value: 2.8284271247461903 }));
+        test_vm(
+            "2 ^ 1.5",
+            Float(float::Float {
+                value: 2.8284271247461903,
+            }),
+        );
     }
 
     #[test]

@@ -57,7 +57,7 @@ pub fn compile_expression_suffix(
         ">" | "<" => {
             _compiler.emit(OpCode::GreaterThan, vec![]);
         }
-        "^"=> {
+        "^" => {
             _compiler.emit(OpCode::Pow, vec![]);
         }
         _ => {
