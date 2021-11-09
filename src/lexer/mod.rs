@@ -65,7 +65,8 @@ impl Lexer {
             '/' => {
                 if self.peek_character() == '<' {
                     self.next_character();
-                    let comment = self.get_line_comment();
+                    let comment = self.get_block_comment();
+                    self.next_character();
                     return create_token(TokenType::Comment, comment.parse().unwrap());
                 } else if self.peek_character() == '/' {
                     self.next_character();
