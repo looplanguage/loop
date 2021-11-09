@@ -448,6 +448,8 @@ mod tests {
             /< hello \
             multiline >/",
             Integer(integer::Integer { value: 2 }),
+        )
+    }
     fn loop_while() {
         test_vm(
             "var x = 0; for (x < 10) { x = x + 1 }; x",
