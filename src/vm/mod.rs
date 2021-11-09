@@ -12,6 +12,7 @@ use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
+use crate::lib::object::hashmap::Hashmap;
 use crate::lib::object::null::Null;
 use crate::lib::object::{Hashable, Object};
 use crate::vm::frame::{build_frame, Frame};
@@ -20,7 +21,6 @@ use crate::vm::suffix::run_suffix_expression;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::lib::object::hashmap::Hashmap;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -396,7 +396,7 @@ impl VM {
                     }
 
                     self.push(Rc::from(RefCell::from(Object::Hashmap(Hashmap {
-                        values: elements
+                        values: elements,
                     }))));
 
                     None
