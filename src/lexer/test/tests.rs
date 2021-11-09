@@ -128,6 +128,17 @@ mod tests {
         do_test(input, expected);
     }
 
+    #[test]
+    fn comments() {
+        let mut input = "/<hello2>/ //hello";
+        let expected = vec![
+            test_helper::generate_token("hello2", TokenType::Comment),
+            test_helper::generate_token("hello", TokenType::Comment),
+        ];
+
+        do_test(input, expected);
+    }
+
     fn do_test(input: &str, expected: Vec<Token>) {
         let mut l = lexer::build_lexer(input);
         let mut current_token: Token = l.current_token.clone().unwrap();

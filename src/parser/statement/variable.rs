@@ -13,6 +13,7 @@ pub struct VariableDeclaration {
 }
 
 pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
+    println!("hello");
     if !p.lexer.next_is(TokenType::Identifier) {
         return None;
     }

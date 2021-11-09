@@ -53,7 +53,6 @@ impl Lexer {
             '(' => create_token(TokenType::LeftParenthesis, ch.to_string()),
             ')' => create_token(TokenType::RightParenthesis, ch.to_string()),
             '-' => create_token(TokenType::Minus, ch.to_string()),
-            '/' => create_token(TokenType::Divide, ch.to_string()),
             ',' => create_token(TokenType::Comma, ch.to_string()),
             '{' => create_token(TokenType::LeftBrace, ch.to_string()),
             '}' => create_token(TokenType::RightBrace, ch.to_string()),
@@ -62,6 +61,20 @@ impl Lexer {
             '.' => create_token(TokenType::Dot, ch.to_string()),
             ':' => create_token(TokenType::Colon, ch.to_string()),
             '"' => self.find_string(),
+            '/' => {
+                if self.peek_character() == '<' {
+                    self.next_character();
+                    let comment = self.get_block_comment();
+                    self.next_character();
+                    create_token(TokenType::Comment, comment.parse().unwrap())
+                } else if self.peek_character() == '/' {
+                    self.next_character();
+                    let comment = self.get_line_comment();
+                    create_token(TokenType::Comment, comment.parse().unwrap())
+                } else {
+                    create_token(TokenType::Divide, ch.to_string())
+                }
+            }
             '!' => {
                 if self.peek_character() == '=' {
                     self.next_character();
@@ -174,6 +187,32 @@ impl Lexer {
 
     fn current_character(&self) -> char {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
+    }
+
+    fn get_line_comment(&mut self) -> String {
+        self.next_character();
+
+        let mut text: String = "".parse().unwrap();
+        let mut possible_char = self.input.chars().nth(self.current as usize);
+
+        while possible_char != None && self.current_character() != '\n' {
+            text.push_str(self.current_character().to_string().as_str());
+            possible_char = self.input.chars().nth(self.current as usize);
+            self.next_character();
+        }
+        text
+    }
+
+    fn get_block_comment(&mut self) -> String {
+        self.next_character();
+
+        let mut text: String = "".parse().unwrap();
+
+        while self.current_character() != '>' && self.peek_character() != '/' {
+            text.push_str(self.current_character().to_string().as_str());
+            self.next_character();
+        }
+        text
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
