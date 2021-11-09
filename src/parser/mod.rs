@@ -228,7 +228,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
-    p.add_infix_parser(TokenType::Square, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Power, parse_suffix_expression);
     p.add_infix_parser(TokenType::Multiply, parse_suffix_expression);
     p.add_infix_parser(TokenType::Divide, parse_suffix_expression);
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);

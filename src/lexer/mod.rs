@@ -60,7 +60,7 @@ impl Lexer {
             ']' => create_token(TokenType::RightBracket, ch.to_string()),
             '.' => create_token(TokenType::Dot, ch.to_string()),
             ':' => create_token(TokenType::Colon, ch.to_string()),
-            '^' => create_token(TokenType::Square, ch.to_string()),
+            '^' => create_token(TokenType::Power, ch.to_string()),
             '"' => self.find_string(),
             '/' => {
                 if self.peek_character() == '<' {

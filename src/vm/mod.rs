@@ -401,7 +401,7 @@ impl VM {
 
                     None
                 },
-                OpCode::Sqr => { run_suffix_expression(self, "^") }
+                OpCode::Pow => { run_suffix_expression(self, "^") }
             };
 
             if let Some(err) = err {
