@@ -649,7 +649,7 @@ mod tests {
 
     #[test]
     fn comments() {
-        let input = "// Hello\
+        let input = "// Hello \n \
         /< hello \
         multiline >/";
 
