@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::HashMap;
 
 use crate::lexer::token::{Token, TokenType};
@@ -105,7 +106,6 @@ impl Parser {
         }
 
         let expression_node: Option<Node> = prefix_parser.unwrap()(self);
-
         expression_node.as_ref()?;
 
         if let Node::Expression(exp) = expression_node.unwrap() {
@@ -228,6 +228,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Square, parse_suffix_expression);
     p.add_infix_parser(TokenType::Multiply, parse_suffix_expression);
     p.add_infix_parser(TokenType::Divide, parse_suffix_expression);
     p.add_infix_parser(TokenType::Minus, parse_suffix_expression);
