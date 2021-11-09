@@ -14,10 +14,10 @@ pub mod builtin;
 pub mod extension_method;
 pub mod float;
 pub mod function;
+pub mod hashmap;
 pub mod integer;
 pub mod null;
 pub mod string;
-pub mod hashmap;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
@@ -30,14 +30,14 @@ pub enum Object {
     String(LoopString),
     Builtin(BuiltinFunction),
     Array(Array),
-    Hashmap(Hashmap)
+    Hashmap(Hashmap),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Hashable {
     Integer(Integer),
     String(LoopString),
-    Boolean(Boolean)
+    Boolean(Boolean),
 }
 
 impl Hashable {
@@ -45,7 +45,7 @@ impl Hashable {
         match self {
             Hashable::Integer(integer) => integer.inspect(),
             Hashable::String(string) => string.inspect(),
-            Hashable::Boolean(boolean) => boolean.inspect()
+            Hashable::Boolean(boolean) => boolean.inspect(),
         }
     }
 }
@@ -53,10 +53,10 @@ impl Hashable {
 impl Object {
     pub fn get_hash(&self) -> Option<Hashable> {
         match self {
-            Object::Integer(integer) => Some(Hashable::Integer(integer.clone())),
+            Object::Integer(integer) => Some(Hashable::Integer(*integer)),
             Object::String(string) => Some(Hashable::String(string.clone())),
-            Object::Boolean(boolean) => Some(Hashable::Boolean(boolean.clone())),
-            _ => None
+            Object::Boolean(boolean) => Some(Hashable::Boolean(*boolean)),
+            _ => None,
         }
     }
 
