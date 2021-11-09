@@ -335,6 +335,20 @@ impl VM {
                         }
                     }
 
+                    if let Object::Hashmap(hashmap) = &*indexed.borrow() {
+                        let hashable = index.borrow().get_hash();
+
+                        if let Some(hash) = hashable {
+                            let item = hashmap.values.get(&hash);
+
+                            if let Some(item) = item {
+                                self.push(item.clone());
+                            } else {
+                                self.push(Rc::from(RefCell::from(Object::Null(Null {}))));
+                            }
+                        }
+                    }
+
                     None
                 }
                 OpCode::AssignIndex => {
@@ -346,6 +360,13 @@ impl VM {
                         if let Object::Integer(index) = &*index.as_ref().borrow() {
                             *arr.values[index.value as usize].borrow_mut() =
                                 value.as_ref().borrow().clone();
+                        }
+                    }
+
+                    if let Object::Hashmap(hashmap) = &mut *array.as_ref().borrow_mut() {
+                        let hashable = index.borrow().get_hash();
+                        if let Some(index) = hashable {
+                            hashmap.values.insert(index, value.clone());
                         }
                     }
 
