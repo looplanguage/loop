@@ -12,6 +12,7 @@ use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_float::compile_expression_float;
 use crate::compiler::compile::expression_function::compile_expression_function;
+use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_index::{
     compile_expression_assign_index, compile_expression_index,
@@ -234,6 +235,7 @@ impl Compiler {
             Expression::Loop(lp) => compile_loop_expression(self, lp),
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
             Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
+            Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
         };
 
         if err.is_some() {

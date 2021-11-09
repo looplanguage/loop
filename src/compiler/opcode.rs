@@ -25,4 +25,5 @@ pub enum OpCode {
     Array,         // 22
     Index,         // 23
     AssignIndex,   // 24
+    Hashmap,       // 25
 }
