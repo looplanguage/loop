@@ -12,6 +12,7 @@ pub mod expression;
 pub mod import;
 pub mod return_statement;
 pub mod variable;
+pub(crate) mod comment;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
