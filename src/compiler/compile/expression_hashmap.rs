@@ -1,14 +1,14 @@
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_string::compile_expression_string;
-use crate::compiler::Compiler;
 use crate::compiler::opcode::OpCode;
+use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
 
 pub fn compile_expression_hashmap(
     _compiler: &mut Compiler,
-    hashmap: Hashmap
+    hashmap: Hashmap,
 ) -> Option<CompilerException> {
     let length = hashmap.values.len();
 

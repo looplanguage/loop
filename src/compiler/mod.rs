@@ -12,6 +12,7 @@ use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_float::compile_expression_float;
 use crate::compiler::compile::expression_function::compile_expression_function;
+use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_index::{
     compile_expression_assign_index, compile_expression_index,
@@ -46,7 +47,6 @@ use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 
 pub struct Bytecode {
     pub instructions: Instructions,
