@@ -94,6 +94,8 @@ impl Expression {
 
         match self {
             Expression::Integer(integer) => Some(HashableExpression::Integer(integer.clone())),
+            Expression::String(string) => Some(HashableExpression::String(string.clone())),
+            Expression::Boolean(boolean) => Some(HashableExpression::Boolean(boolean.clone())),
             _ => {
                 return None;
             }
