@@ -46,6 +46,7 @@ use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -234,6 +235,7 @@ impl Compiler {
             Expression::Loop(lp) => compile_loop_expression(self, lp),
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
             Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
+            Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
         };
 
         if err.is_some() {
