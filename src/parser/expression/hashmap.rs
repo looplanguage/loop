@@ -45,6 +45,7 @@ pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
                 if let Some(hash) = hashable {
                     values.insert(hash, val);
                 } else {
+                    p.add_error(format!("type is not hashable therefore can not be used as key. got=\"{:?}\"", key));
                     return None;
                 }
             }
