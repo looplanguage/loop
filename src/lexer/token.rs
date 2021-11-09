@@ -18,7 +18,7 @@ pub enum TokenType {
     Multiply,
     Divide,
     Modulo,
-    Square,
+    Power,
     Equals,
     NotEquals,
     AtSign,
