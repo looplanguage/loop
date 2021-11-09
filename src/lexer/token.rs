@@ -55,6 +55,7 @@ pub enum TokenType {
     From,
     To,
     In,
+    Colon,
     Eof,
 }
 

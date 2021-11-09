@@ -12,8 +12,9 @@ use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
+use crate::lib::object::hashmap::Hashmap;
 use crate::lib::object::null::Null;
-use crate::lib::object::Object;
+use crate::lib::object::{Hashable, Object};
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
@@ -334,6 +335,20 @@ impl VM {
                         }
                     }
 
+                    if let Object::Hashmap(hashmap) = &*indexed.borrow() {
+                        let hashable = index.borrow().get_hash();
+
+                        if let Some(hash) = hashable {
+                            let item = hashmap.values.get(&hash);
+
+                            if let Some(item) = item {
+                                self.push(item.clone());
+                            } else {
+                                self.push(Rc::from(RefCell::from(Object::Null(Null {}))));
+                            }
+                        }
+                    }
+
                     None
                 }
                 OpCode::AssignIndex => {
@@ -348,7 +363,41 @@ impl VM {
                         }
                     }
 
+                    if let Object::Hashmap(hashmap) = &mut *array.as_ref().borrow_mut() {
+                        let hashable = index.borrow().get_hash();
+                        if let Some(index) = hashable {
+                            hashmap.values.insert(index, value.clone());
+                        }
+                    }
+
                     self.push(value.clone());
+
+                    None
+                }
+                OpCode::Hashmap => {
+                    let ip = self.current_frame().ip;
+
+                    let element_amount =
+                        read_uint16(&self.current_frame().instructions()[ip as usize..]);
+
+                    self.increment_ip(2);
+
+                    let mut elements: HashMap<Hashable, Rc<RefCell<Object>>> = HashMap::new();
+
+                    for _i in 0..element_amount {
+                        let value = self.pop();
+                        let key = self.pop();
+
+                        let hashable = key.borrow().get_hash();
+
+                        if let Some(hash) = hashable {
+                            elements.insert(hash, value.clone());
+                        }
+                    }
+
+                    self.push(Rc::from(RefCell::from(Object::Hashmap(Hashmap {
+                        values: elements,
+                    }))));
 
                     None
                 }

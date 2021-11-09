@@ -4,6 +4,7 @@ pub mod expression_call;
 pub mod expression_conditional;
 pub mod expression_float;
 pub mod expression_function;
+pub mod expression_hashmap;
 pub mod expression_identifier;
 pub mod expression_index;
 pub mod expression_integer;
