@@ -2,14 +2,15 @@
 mod tests {
     use crate::lib::exception::Exception;
     use crate::lib::object::Object;
-    use crate::lib::object::Object::Null;
     use crate::lib::object::Object::String;
     use crate::lib::object::Object::{Array, Integer};
     use crate::lib::object::Object::{Boolean, Float};
+    use crate::lib::object::Object::{Hashmap, Null};
     use crate::lib::object::{array, null};
     use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use serde::de::Unexpected::Bool;
     use std::borrow::Borrow;
     use std::cell::RefCell;
     use std::ops::Deref;
@@ -470,6 +471,46 @@ mod tests {
         test_vm(
             "var x = 0; var array = [3, 8, 12, 56] for (var i in array) { x = i }; x",
             Integer(integer::Integer { value: 56 }),
+        );
+    }
+
+    #[test]
+    fn hashmap() {
+        test_vm(
+            "{20: 30, \"hello test\": { 100: 20 }, false: true }[20]",
+            Integer(integer::Integer { value: 30 }),
+        );
+        test_vm(
+            "{20: 30, \"hello test\": { 100: 20 }, false: true }[\"hello test\"][100]",
+            Integer(integer::Integer { value: 20 }),
+        );
+        test_vm(
+            "{20: 30, \"hello test\": { 100: 20 }, false: true }[false]",
+            Boolean(boolean::Boolean { value: true }),
+        );
+    }
+
+    #[test]
+    fn hashmap_assign() {
+        test_vm(
+            "var x = {0: 300, 2: 500, false: true}; x[0] = 500; x[0]",
+            Integer(integer::Integer { value: 500 }),
+        );
+        test_vm(
+            "var x = {0: 300, 2: 500, false: true}; x[2] = false; x[2]",
+            Boolean(boolean::Boolean { value: false }),
+        );
+        test_vm(
+            "var x = {0: 300, 2: 500, false: true}; x[false] = false; x[false]",
+            Boolean(boolean::Boolean { value: false }),
+        );
+    }
+
+    #[test]
+    fn hashmap_nested_assign() {
+        test_vm(
+            "var x = { true: { 0: { \"hello\": {30: 500 } } } }; x[true][0][\"hello\"][30] = true; x[true][0][\"hello\"][30]",
+            Boolean(boolean::Boolean { value: true }),
         );
     }
 
