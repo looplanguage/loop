@@ -2,8 +2,6 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use crate::lexer::token::TokenType::Null;
-use std::borrow::Borrow;
 use token::Token;
 use token::TokenType;
 
