@@ -194,14 +194,11 @@ impl Lexer {
         self.next_character();
 
         let mut text: String = "".parse().unwrap();
-        let mut con = true;
+        let mut possible_char = self.input.chars().nth(self.current as usize);
 
-        while con {
-            let possible_char = self.input.chars().nth(self.current as usize);
-            if possible_char == None || self.current_character() == '\n' {
-                con = false
-            }
+        while possible_char != None && self.current_character() != '\n' {
             text.push_str(self.current_character().to_string().as_str());
+            possible_char = self.input.chars().nth(self.current as usize);
             self.next_character();
         }
         text
@@ -211,12 +208,8 @@ impl Lexer {
         self.next_character();
 
         let mut text: String = "".parse().unwrap();
-        let mut con = true;
 
-        while con {
-            if self.peek_character() == '>' && self.double_peek_character() == '/' {
-                con = false
-            }
+        while self.current_character() != '>' && self.peek_character() != '/' {
             text.push_str(self.current_character().to_string().as_str());
             self.next_character();
         }
