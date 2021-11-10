@@ -62,6 +62,9 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
         "%" => Object::Float(Float {
             value: left_obj.value % right_obj.value,
         }),
+        "^" => Object::Float(Float {
+            value: left_obj.value.powf(right_obj.value),
+        }),
         _ => return Some(format!("unknown operator {}", operator)),
     };
 
