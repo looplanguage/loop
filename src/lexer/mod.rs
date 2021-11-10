@@ -66,7 +66,6 @@ impl Lexer {
                 if self.peek_character() == '<' {
                     self.next_character();
                     let comment = self.get_block_comment();
-                    self.next_character();
                     create_token(TokenType::Comment, comment.parse().unwrap())
                 } else if self.peek_character() == '/' {
                     self.next_character();
@@ -208,11 +207,25 @@ impl Lexer {
         self.next_character();
 
         let mut text: String = "".parse().unwrap();
+        let mut con = true;
 
+        // Todo: Make this while loop less scuffed, I do not know how to make an while loop or something. Example given below:
+        /*
         while self.current_character() != '>' && self.peek_character() != '/' {
             text.push_str(self.current_character().to_string().as_str());
             self.next_character();
         }
+        */
+
+        while con {
+            text.push_str(self.current_character().to_string().as_str());
+            self.next_character();
+            if self.current_character() == '>' && self.peek_character() == '/' {
+                con = false;
+            }
+        }
+        self.next_character();
+
         text
     }
 
