@@ -57,6 +57,9 @@ pub fn compile_expression_suffix(
         ">" | "<" => {
             _compiler.emit(OpCode::GreaterThan, vec![]);
         }
+        "^" => {
+            _compiler.emit(OpCode::Pow, vec![]);
+        }
         _ => {
             return Some(CompilerException::UnknownSuffixOperator(_suffix.operator));
         }

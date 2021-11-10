@@ -54,7 +54,7 @@ mod tests {
 
     #[test]
     fn arithmetic_operations() {
-        let input = "1 + 1; 1 - 5; 1 * 4; 20 / 3; 10 % 5;";
+        let input = "1 + 1; 1 - 5; 1 * 4; 20 / 3; 10 % 5; 2 ^ 3;";
         let expected = vec![
             test_helper::generate_token("1", TokenType::Integer),
             test_helper::generate_token("+", TokenType::Plus),
@@ -75,6 +75,10 @@ mod tests {
             test_helper::generate_token("10", TokenType::Integer),
             test_helper::generate_token("%", TokenType::Modulo),
             test_helper::generate_token("5", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            test_helper::generate_token("2", TokenType::Integer),
+            test_helper::generate_token("^", TokenType::Power),
+            test_helper::generate_token("3", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
         ];
 

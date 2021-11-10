@@ -225,6 +225,7 @@ mod tests {
         var test = 0;\
         var yeet = 500;\
         test = 1000;\
+        foo = 2 ^ 3;\
         yeet = test * 2;";
 
         let mut expected: Vec<Statement> = Vec::new();
@@ -256,6 +257,16 @@ mod tests {
             })),
         }));
 
+        expected.push(Statement::VariableAssign(VariableAssign {
+            ident: Identifier {
+                value: "foo".to_string(),
+            },
+            value: Box::new(parser::expression::Expression::Suffix(Box::from(Suffix {
+                left: parser::expression::Expression::Integer(Integer { value: 2 }),
+                operator: "^".to_string(),
+                right: parser::expression::Expression::Integer(Integer { value: 3 }),
+            }))),
+        }));
         expected.push(Statement::VariableAssign(VariableAssign {
             ident: Identifier {
                 value: "yeet".to_string(),
