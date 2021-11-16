@@ -22,14 +22,14 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Identifier> {
 
     p.lexer.next_token();
 
-    while p.lexer.current_token.clone().unwrap().token == TokenType::Identifier {
+    while p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
         arguments.push(Identifier {
-            value: p.lexer.current_token.clone().unwrap().literal.to_string(),
+            value: p.lexer.get_current_token().unwrap().literal.to_string(),
         });
 
         p.lexer.next_token();
 
-        if p.lexer.current_token.clone().unwrap().token == TokenType::Comma {
+        if p.lexer.get_current_token().unwrap().token == TokenType::Comma {
             p.lexer.next_token();
         }
     }
@@ -42,8 +42,8 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
 
     p.lexer.next_token();
 
-    while p.lexer.current_token.clone().unwrap().token != TokenType::RightParenthesis
-        && p.lexer.current_token.clone().unwrap().token != TokenType::Eof
+    while p.lexer.get_current_token().unwrap().token != TokenType::RightParenthesis
+        && p.lexer.get_current_token().unwrap().token != TokenType::Eof
     {
         let exp_node = p.parse_expression(Precedence::Lowest);
 
@@ -53,7 +53,7 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
 
         p.lexer.next_token();
 
-        if p.lexer.current_token.clone().unwrap().token == TokenType::Comma {
+        if p.lexer.get_current_token().unwrap().token == TokenType::Comma {
             p.lexer.next_token();
         }
     }
@@ -67,7 +67,7 @@ pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
     if !p.cur_token_is(TokenType::RightParenthesis) {
         p.add_error(format!(
             "wrong token. got=\"{:?}\". expected=\"RightParenthesis\"",
-            p.lexer.current_token.clone().unwrap().token
+            p.lexer.get_current_token().unwrap().token
         ));
         return None;
     };
@@ -82,7 +82,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
             "wrong token. expected=\"LeftParentheses\". got=\"{:?}\"",
-            p.lexer.current_token.clone().unwrap().token
+            p.lexer.get_current_token().unwrap().token
         ));
         return None;
     }
@@ -92,7 +92,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_current_is(TokenType::RightParenthesis) {
         p.add_error(format!(
             "wrong token. expected=\"RightParenthesis\". got=\"{:?}\".",
-            p.lexer.current_token.clone().unwrap().token
+            p.lexer.get_current_token().unwrap().token
         ));
         return None;
     }
@@ -100,7 +100,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_current_is(TokenType::LeftBrace) {
         p.add_error(format!(
             "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
-            p.lexer.current_token.clone().unwrap().token
+            p.lexer.get_current_token().unwrap().token
         ));
         return None;
     }
@@ -110,7 +110,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     if !p.cur_token_is(TokenType::RightBrace) {
         p.add_error(format!(
             "wrong token. expected=\"RightBrace\". got=\"{:?}\".",
-            p.lexer.current_token.clone().unwrap().token
+            p.lexer.get_current_token().unwrap().token
         ));
         return None;
     }

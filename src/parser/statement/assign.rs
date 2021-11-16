@@ -12,7 +12,7 @@ pub struct VariableAssign {
 }
 
 pub fn parse_variable_assignment(p: &mut Parser) -> Option<Node> {
-    let ident = p.lexer.current_token.clone().unwrap();
+    let ident = p.lexer.get_current_token().unwrap().clone();
 
     if !p.lexer.next_is(TokenType::Assign) {
         return None;

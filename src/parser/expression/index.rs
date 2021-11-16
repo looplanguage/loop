@@ -13,7 +13,7 @@ pub struct Index {
 }
 
 pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> {
-    let check_token = p.lexer.current_token.clone().unwrap().token;
+    let check_token = p.lexer.get_current_token().unwrap().token;
     p.lexer.next_token();
 
     if check_token == TokenType::LeftBracket {
