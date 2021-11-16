@@ -1,9 +1,9 @@
 <h1 align="center">Loop</h1>
     <p align="center">
        A Modern Type-Safe Programming Language<br>
-       <a href="https://looplang.org/">Website</a> | 
-       <a href="https://looplang.org/docs">Documentation</a> | 
-       <a href="https://discord.gg/CAGR36aD">Discord</a> | 
+       <a href="https://looplang.org/">Website</a> |
+       <a href="https://looplang.org/docs">Documentation</a> |
+       <a href="https://discord.gg/CAGR36aD">Discord</a> |
        <a href="https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues">Jira Board</a><br>
     </p>
 <br>
@@ -37,7 +37,6 @@ To read our contributor guidelines, go to the
 ## Code of Conduct
 
 To read our code of conduct, go to the [website](https://looplang.org/conduct)
-
 
 ##
 
