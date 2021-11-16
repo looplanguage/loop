@@ -26,6 +26,14 @@ impl Lexer {
         cloned.unwrap()
     }
 
+    pub fn get_current_token(&self) -> Option<&Token> {
+        self.current_token.as_ref()
+    }
+
+    pub fn get_peek_token(&self) -> Option<&Token> {
+        self.peek_token.as_ref()
+    }
+
     fn internal_next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
