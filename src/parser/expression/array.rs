@@ -14,8 +14,8 @@ pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {
 
     p.lexer.next_token();
 
-    while p.lexer.current_token.clone().unwrap().token != TokenType::RightBracket
-        && p.lexer.current_token.clone().unwrap().token != TokenType::Eof
+    while p.lexer.get_current_token().unwrap().token != TokenType::RightBracket
+        && p.lexer.get_current_token().unwrap().token != TokenType::Eof
     {
         let exp = p.parse_expression(Lowest);
 
@@ -27,7 +27,7 @@ pub fn parse_expression_array(p: &mut Parser) -> Option<Node> {
 
         p.lexer.next_token();
 
-        if p.lexer.current_token.clone().unwrap().token == TokenType::Comma {
+        if p.lexer.get_current_token().unwrap().token == TokenType::Comma {
             p.lexer.next_token();
         }
     }

@@ -9,6 +9,6 @@ pub struct Identifier {
 
 pub fn parse_identifier(p: &mut Parser) -> Option<Node> {
     Some(Node::Expression(Expression::Identifier(Identifier {
-        value: p.lexer.current_token.clone().unwrap().literal,
+        value: p.lexer.get_current_token().unwrap().literal.clone(),
     })))
 }

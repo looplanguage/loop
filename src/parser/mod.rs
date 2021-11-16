@@ -46,8 +46,9 @@ impl Parser {
     pub fn parse(&mut self) -> Program {
         let mut statements: Vec<Statement> = Vec::new();
 
-        while self.lexer.current_token.clone().unwrap().token != TokenType::Eof {
-            let new_statement = self.parse_statement(self.lexer.current_token.clone().unwrap());
+        while self.lexer.get_current_token().unwrap().token != TokenType::Eof {
+            let tok = self.lexer.get_current_token().unwrap().clone();
+            let new_statement = self.parse_statement(tok);
 
             if let Some(Node::Statement(i)) = new_statement {
                 statements.push(i);
@@ -74,7 +75,7 @@ impl Parser {
             TokenType::Import => parse_import_statement(self),
             TokenType::Export => parse_export_statement(self),
             TokenType::Comment => parse_comment(self),
-            _ => self.parse_expression_statement(token),
+            _ => self.parse_expression_statement(),
         };
 
         if self.lexer.peek_token.is_some()
@@ -86,7 +87,7 @@ impl Parser {
         r
     }
 
-    fn parse_expression_statement(&mut self, _token: Token) -> Option<Node> {
+    fn parse_expression_statement(&mut self) -> Option<Node> {
         parse_expression_statement(self)
     }
 
@@ -138,7 +139,7 @@ impl Parser {
 
         self.add_error(format!(
             "unable to parse: {}",
-            self.lexer.current_token.clone().unwrap().literal
+            self.lexer.get_current_token().unwrap().literal
         ));
 
         None
@@ -167,7 +168,7 @@ impl Parser {
     }
 
     fn cur_token_is(&self, tok: TokenType) -> bool {
-        let cur = self.lexer.current_token.clone();
+        let cur = self.lexer.get_current_token();
 
         if cur.is_none() {
             return false;
@@ -195,7 +196,7 @@ impl Parser {
     }
 
     pub fn cur_precedence(&mut self) -> Precedence {
-        get_precedence(self.lexer.current_token.clone().unwrap().token)
+        get_precedence(self.lexer.get_current_token().unwrap().token)
     }
 }
 

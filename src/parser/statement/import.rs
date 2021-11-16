@@ -19,7 +19,7 @@ pub fn parse_import_statement(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    let file = p.lexer.current_token.clone().unwrap().literal;
+    let file = p.lexer.get_current_token().unwrap().literal.clone();
 
     if !p.lexer.next_is(TokenType::As) {
         p.add_error(format!(
@@ -39,7 +39,7 @@ pub fn parse_import_statement(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    let identifier = p.lexer.current_token.clone().unwrap().literal;
+    let identifier = p.lexer.get_current_token().unwrap().literal.clone();
 
     Some(Node::Statement(Statement::Import(Import {
         file,

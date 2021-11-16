@@ -8,7 +8,7 @@ pub struct LoopString {
 }
 
 pub fn parse_string_literal(p: &mut Parser) -> Option<Node> {
-    let value = p.lexer.current_token.clone().unwrap().literal;
+    let value = p.lexer.get_current_token().unwrap().literal.clone();
 
     let exp = Expression::String(LoopString { value });
 

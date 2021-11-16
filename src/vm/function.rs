@@ -4,31 +4,14 @@ use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
 use crate::vm::VM;
 use std::cell::RefCell;
-use std::ops::Deref;
 use std::rc::Rc;
 
 pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
-    let func_obj = &(*vm.stack[(vm.sp - 1 - (num_args as u16)) as usize]).clone();
+    let stack_item = &vm.stack[(vm.sp - 1 - (num_args as u16)) as usize].clone();
+    let func_obj = &*(stack_item).borrow();
 
-    match &*func_obj.borrow().deref() {
+    match func_obj {
         Object::Function(func) => {
-            // Attempt to JIT the function, otherwise fall back to interpreted execution.
-            // TODO: Re-enable when more thoroughly tested and developed
-            /*
-            if attempt_jit {
-                let mut jit_func =
-                    build_jit_function(func.func.instructions.clone(), vm.constants.clone());
-
-                let compile_success = { jit_func.compile() };
-
-                if compile_success {
-                    vm.pop();
-                    vm.push(Rc::from(jit_func.run()));
-                    return None;
-                }
-            }
-             */
-
             let parameters = func.func.num_parameters;
 
             if parameters != num_args {
@@ -57,7 +40,8 @@ pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VME
 
             args.reverse();
 
-            let _function = vm.pop();
+            // Pop the function of the stack
+            vm.pop();
 
             match func(args) {
                 Ok(result) => {

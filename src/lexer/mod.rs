@@ -13,17 +13,23 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> &Token {
         self.current_token = self.peek_token.clone();
         self.peek_token = Some(self.internal_next_token());
 
-        let cloned = self.current_token.clone();
-
-        if cloned.is_none() {
-            return create_token(TokenType::Unknown, "".to_string());
+        if self.get_current_token().is_none() {
+            self.current_token = Some(create_token(TokenType::Unknown, "".to_string()));
         }
 
-        cloned.unwrap()
+        self.get_current_token().unwrap()
+    }
+
+    pub fn get_current_token(&self) -> Option<&Token> {
+        self.current_token.as_ref()
+    }
+
+    pub fn get_peek_token(&self) -> Option<&Token> {
+        self.peek_token.as_ref()
     }
 
     fn internal_next_token(&mut self) -> Token {
@@ -230,18 +236,22 @@ impl Lexer {
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
-        if self.peek_token.clone().unwrap().token == token {
-            self.next_token();
-            return true;
+        if let Some(peek_token) = self.get_peek_token() {
+            if peek_token.token == token {
+                self.next_token();
+                return true;
+            }
         }
 
         false
     }
 
     pub fn next_current_is(&mut self, token: TokenType) -> bool {
-        if self.current_token.clone().unwrap().token == token {
-            self.next_token();
-            return true;
+        if let Some(peek_token) = self.get_current_token() {
+            if peek_token.token == token {
+                self.next_token();
+                return true;
+            }
         }
 
         false

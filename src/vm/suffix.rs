@@ -37,7 +37,7 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
     let left_obj = match left {
         Object::Float(float) => *float,
         Object::Integer(integer) => integer.to_float(),
-        _ => return Some(format!("unexpected type. got=\"{:?}\"", right)),
+        _ => return Some(format!("unexpected type. got=\"{:?}\"", left)),
     };
 
     // + - / * %
