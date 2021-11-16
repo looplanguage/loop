@@ -38,7 +38,6 @@ To read our contributor guidelines, go to the
 
 To read our code of conduct, go to the [website](https://looplang.org/conduct)
 
-
 ##
 
 <p align="center">Go to the website for more information.</p>
