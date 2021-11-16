@@ -264,6 +264,7 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "true" => TokenType::True,
         "false" => TokenType::False,
         "fn" => TokenType::Function,
+        "enum" => TokenType::Enum,
         "import" => TokenType::Import,
         "export" => TokenType::Export,
         "else" => TokenType::Else,
