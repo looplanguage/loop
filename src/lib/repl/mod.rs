@@ -7,8 +7,11 @@ use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
 use chrono::Utc;
 use colored::Colorize;
+use inkwell::context::Context;
+use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use crate::lib::jit::CodeGen;
 
 pub struct Repl {
     line: i32,
@@ -33,7 +36,7 @@ pub fn build_repl(flags: Flags) -> Repl {
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 impl Repl {
-    pub fn start(&mut self) {
+    pub fn start(&mut self) -> Option<bool> {
         println!(
             "
   _
@@ -51,9 +54,26 @@ impl Repl {
                 "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/internal/jit",
                 "WARNING: ".red()
             );
+
+            let context = Context::create();
+            let module = context.create_module("program");
+            let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).ok()?;
+
+            let mut codegen = CodeGen {
+                context: &context,
+                module,
+                builder: context.create_builder(),
+                execution_engine,
+                compiled: None
+            };
+
+            codegen.compile();
+            codegen.run();
         }
 
-        self.run()
+        self.run();
+
+        None
     }
 
     fn run_code(&mut self, s: String) {

@@ -94,16 +94,6 @@ fn run_file(file: String, flags: Flags) {
     let duration = Utc::now().signed_duration_since(started);
 
     if ran.is_err() {
-        /*
-        sentry::with_scope(
-            |scope| {
-                scope.set_tag("exception.type", "vm");
-            },
-            || {
-                sentry::capture_message(ran.clone().err().unwrap().as_str(), sentry::Level::Info);
-            },
-        );*/
-
         panic!("{}", ran.err().unwrap());
     }
 
