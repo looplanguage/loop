@@ -4,7 +4,6 @@ use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
 use crate::vm::VM;
 use std::cell::RefCell;
-use std::ops::Deref;
 use std::rc::Rc;
 
 pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
