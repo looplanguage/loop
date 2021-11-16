@@ -145,7 +145,7 @@ mod tests {
 
     fn do_test(input: &str, expected: Vec<Token>) {
         let mut l = lexer::build_lexer(input);
-        let mut current_token: Token = l.current_token.clone().unwrap();
+        let mut current_token = l.get_current_token().unwrap();
 
         let mut i = 0;
         while current_token.token != TokenType::Eof {
@@ -170,7 +170,7 @@ mod tests {
 
             i = i + 1;
             l.next_token();
-            current_token = l.current_token.clone().unwrap();
+            current_token = l.get_current_token().unwrap();
         }
     }
 }

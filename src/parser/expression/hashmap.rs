@@ -26,10 +26,10 @@ pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
 
     let mut values: HashMap<HashableExpression, Expression> = HashMap::new();
 
-    while p.lexer.current_token.clone().unwrap().token != TokenType::RightBrace
-        && p.lexer.current_token.clone().unwrap().token != TokenType::Eof
+    while p.lexer.get_current_token().unwrap().token != TokenType::RightBrace
+        && p.lexer.get_current_token().unwrap().token != TokenType::Eof
     {
-        if p.lexer.current_token.clone().unwrap().token == TokenType::Comma {
+        if p.lexer.get_current_token().unwrap().token == TokenType::Comma {
             p.lexer.next_token();
         }
 
@@ -65,10 +65,10 @@ pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
         p.lexer.next_token();
     }
 
-    if p.lexer.current_token.clone().unwrap().token != TokenType::RightBrace {
+    if p.lexer.get_current_token().unwrap().token != TokenType::RightBrace {
         p.add_error(format!(
             "wrong token. expected=\"RightBrace\". got=\"{:?}\"",
-            p.lexer.current_token.clone().unwrap().token
+            p.lexer.get_current_token().unwrap().token
         ));
 
         return None;
