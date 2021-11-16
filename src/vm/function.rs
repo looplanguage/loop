@@ -41,6 +41,9 @@ pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VME
 
             args.reverse();
 
+            // Pop the function of the stack
+            vm.pop();
+
             match func(args) {
                 Ok(result) => {
                     vm.push(Rc::new(RefCell::from(result)));
