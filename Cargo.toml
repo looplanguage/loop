@@ -13,8 +13,8 @@ toml = "0.5.8"
 serde = { version = "1.0", features = ["derive"] }
 dirs = "4.0.0"
 chrono = "0.4.19"
-dynasm = "1.1.0"
-dynasmrt = "1.1.0"
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm12-0"] }
+
 
 [profile.release]
 debug = true
