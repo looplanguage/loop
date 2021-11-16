@@ -36,6 +36,7 @@ pub enum TokenType {
     True,
     False,
     Function,
+    Enum,
     If,
     Else,
     Import,
