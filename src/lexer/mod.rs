@@ -238,18 +238,22 @@ impl Lexer {
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
-        if self.peek_token.clone().unwrap().token == token {
-            self.next_token();
-            return true;
+        if let Some(peek_token) = self.get_peek_token() {
+            if peek_token.token == token {
+                self.next_token();
+                return true;
+            }
         }
 
         false
     }
 
     pub fn next_current_is(&mut self, token: TokenType) -> bool {
-        if self.current_token.clone().unwrap().token == token {
-            self.next_token();
-            return true;
+        if let Some(peek_token) = self.get_current_token() {
+            if peek_token.token == token {
+                self.next_token();
+                return true;
+            }
         }
 
         false
