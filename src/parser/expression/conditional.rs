@@ -29,7 +29,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
         if !p.lexer.next_current_is(TokenType::RightParenthesis) {
             p.add_error(format!(
                 "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
-                p.lexer.current_token.clone().unwrap().token
+                p.lexer.get_current_token().unwrap().token
             ));
             return None;
         }
@@ -37,7 +37,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
         if !p.lexer.next_current_is(TokenType::LeftBrace) {
             p.add_error(format!(
                 "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
-                p.lexer.current_token.clone().unwrap().token
+                p.lexer.get_current_token().unwrap().token
             ));
             return None;
         }
@@ -47,7 +47,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
         if !p.cur_token_is(TokenType::RightBrace) {
             p.add_error(format!(
                 "wrong token. expected=\"RightBrace\". got=\"{:?}\"",
-                p.lexer.current_token.clone().unwrap().token
+                p.lexer.get_current_token().unwrap().token
             ));
             return None;
         }
@@ -72,7 +72,7 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
             if !p.cur_token_is(TokenType::RightBrace) {
                 p.add_error(format!(
                     "wrong token. expected=\"RightBrace\". got=\"{:?}\"",
-                    p.lexer.current_token.clone().unwrap().token
+                    p.lexer.get_current_token().unwrap().token
                 ));
                 return None;
             }

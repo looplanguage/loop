@@ -5,7 +5,7 @@ use crate::parser::program::Node;
 use crate::parser::Parser;
 
 pub fn parse_number_literal(p: &mut Parser) -> Option<Node> {
-    let value = p.lexer.current_token.clone().unwrap().literal;
+    let value = p.lexer.get_current_token().unwrap().literal.clone();
 
     if value.parse::<i64>().is_ok() {
         Some(Node::Expression(Expression::Integer(Integer {
@@ -22,7 +22,7 @@ pub fn parse_number_literal(p: &mut Parser) -> Option<Node> {
 
 pub fn parse_negative_number(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
-    let value = p.lexer.current_token.clone().unwrap().literal;
+    let value = p.lexer.get_current_token().unwrap().literal.clone();
 
     if value.parse::<i64>().is_ok() {
         Some(Node::Expression(Expression::Integer(Integer {

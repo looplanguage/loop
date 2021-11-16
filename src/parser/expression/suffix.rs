@@ -12,7 +12,7 @@ pub struct Suffix {
 }
 
 pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node> {
-    let operator = p.lexer.current_token.clone().unwrap().literal;
+    let operator = p.lexer.get_current_token().unwrap().literal.clone();
 
     let pre = p.cur_precedence();
 
