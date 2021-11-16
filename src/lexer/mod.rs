@@ -13,17 +13,15 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> &Token {
         self.current_token = self.peek_token.clone();
         self.peek_token = Some(self.internal_next_token());
 
-        let cloned = self.current_token.clone();
-
-        if cloned.is_none() {
-            return create_token(TokenType::Unknown, "".to_string());
+        if self.get_current_token().is_none() {
+            self.current_token = Some(create_token(TokenType::Unknown, "".to_string()));
         }
 
-        cloned.unwrap()
+        self.get_current_token().unwrap()
     }
 
     pub fn get_current_token(&self) -> Option<&Token> {
