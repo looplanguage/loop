@@ -1,4 +1,5 @@
 use crate::lib::exception::vm::VMException;
+use crate::lib::jit::CodeGen;
 use crate::lib::object::function::Function;
 use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
@@ -6,7 +7,12 @@ use crate::vm::VM;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
+pub fn run_function(
+    vm: &mut VM,
+    num_args: u8,
+    _attempt_jit: bool,
+    codegen: &mut CodeGen,
+) -> Option<VMException> {
     let stack_item = &vm.stack[(vm.sp - 1 - (num_args as u16)) as usize].clone();
     let func_obj = &*(stack_item).borrow();
 
@@ -22,6 +28,21 @@ pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VME
             }
 
             let num_locals = func.func.num_locals as usize;
+
+            if _attempt_jit {
+                let mut args = Vec::with_capacity(num_args as usize);
+                for _ in 0..num_args {
+                    let arg = vm.pop();
+
+                    args.push(arg.clone())
+                }
+
+                args.reverse();
+
+                codegen.compile(func.func.parsed_function.clone().unwrap());
+                codegen.run(0, args);
+            }
+
             let base_pointer = vm.sp - (num_args as u16);
 
             let frame = build_frame(func.clone(), base_pointer as i32);

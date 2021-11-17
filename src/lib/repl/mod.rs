@@ -3,6 +3,7 @@ use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
 use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
+use crate::lib::jit::CodeGen;
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
 use chrono::Utc;
@@ -11,7 +12,6 @@ use inkwell::context::Context;
 use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use crate::lib::jit::CodeGen;
 
 pub struct Repl {
     line: i32,
@@ -55,23 +55,10 @@ impl Repl {
                 "WARNING: ".red()
             );
 
-            let context = Context::create();
-            let module = context.create_module("program");
-            let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None).ok()?;
-
-            let mut codegen = CodeGen {
-                context: &context,
-                module,
-                builder: context.create_builder(),
-                execution_engine,
-                compiled: None
-            };
-
-            codegen.compile();
-            codegen.run();
+            self.run();
+        } else {
+            self.run();
         }
-
-        self.run();
 
         None
     }
@@ -106,19 +93,6 @@ impl Repl {
             let duration = Utc::now().signed_duration_since(started);
 
             if ran.is_err() {
-                /*
-                sentry::with_scope(
-                    |scope| {
-                        scope.set_tag("exception.type", "vm");
-                    },
-                    || {
-                        sentry::capture_message(
-                            ran.clone().err().unwrap().as_str(),
-                            sentry::Level::Info,
-                        );
-                    },
-                );*/
-
                 println!(
                     "{}",
                     format!("VirtualMachineException: {}", ran.err().unwrap()).red()
