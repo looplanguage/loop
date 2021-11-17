@@ -20,7 +20,7 @@ pub fn compile_expression_function(
             .define(parameter.value.as_str(), 0);
     }
 
-    let err = compiler.compile_block(func.body);
+    let err = compiler.compile_block(func.body.clone());
     if err.is_some() {
         return err;
     }
@@ -47,6 +47,7 @@ pub fn compile_expression_function(
         instructions,
         num_locals: num_locals as u8,
         num_parameters: num_params as u8,
+        parsed_function: Some(func.clone()),
     });
 
     let const_index = compiler.add_constant(compiled_function);

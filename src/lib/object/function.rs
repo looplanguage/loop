@@ -7,6 +7,7 @@ pub struct CompiledFunction {
     pub instructions: Vec<u8>,
     pub num_locals: u8,
     pub num_parameters: u8,
+    pub parsed_function: Option<crate::parser::expression::function::Function>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
