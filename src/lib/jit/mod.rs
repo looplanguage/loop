@@ -36,17 +36,6 @@ impl<'ctx> CodeGen<'ctx> {
 
         self.compile_statement(func.body.statements);
 
-        /*
-        let x = function.get_nth_param(0)?.into_int_value();
-
-        let i64_double = i64_type.const_int(2, false);
-
-        let doubled = self.builder.build_int_mul(x, i64_double, "doubled");
-
-        self.builder.build_return(Some(&doubled));
-
-         */
-
         self.compiled_functions
             .push(unsafe { self.execution_engine.get_function("double").ok() });
 
