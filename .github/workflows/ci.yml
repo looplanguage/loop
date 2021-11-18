@@ -13,6 +13,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "12.0"
+
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -31,6 +36,11 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "12.0"
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -51,6 +61,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "12.0"
+
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -64,3 +79,10 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: fmt
+          args: --all -- --check
