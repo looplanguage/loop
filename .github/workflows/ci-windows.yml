@@ -26,7 +26,7 @@ jobs:
           git clone -b release/12.x https://github.com/llvm/llvm-project
           mkdir ~/llvm
           cd ~/llvm
-          cmake ~/llvm-project
+          cmake ~/llvm-project/llvm
           cmake --build .
 
       - name: Run cargo check
