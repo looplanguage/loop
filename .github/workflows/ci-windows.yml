@@ -22,7 +22,8 @@ jobs:
 
       - name: Install llvm
         run: |
-          git clone -b release/12.x https://github.com/llvm/llvm-project ~/llvm-project
+          cd ~
+          git clone -b release/12.x https://github.com/llvm/llvm-project
           mkdir ~/llvm
           cd ~/llvm
           cmake ~/llvm-project
