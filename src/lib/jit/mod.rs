@@ -46,7 +46,7 @@ impl<'ctx> CodeGen<'ctx> {
         for statement in statements {
             match statement {
                 Statement::VariableDeclaration(_) => {}
-                Statement::Expression(exp) => {
+                Statement::Expression(_exp) => {
                     //self.compile_expression(*exp.expression);
                 }
                 Statement::Block(_) => {}
@@ -100,9 +100,9 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     #[allow(dead_code)]
-    pub fn run(&self, id: i32, params: Vec<Rc<RefCell<Object>>>) -> u64 {
+    pub fn run(&self, id: i32, _params: Vec<Rc<RefCell<Object>>>) -> u64 {
         if let Some(compiled) = &self.compiled_functions[id as usize] {
-            let compiled_down_params: Vec<u64> = Vec::new();
+            let _compiled_down_params: Vec<u64> = Vec::new();
 
             let returned = unsafe { compiled.call() };
 
