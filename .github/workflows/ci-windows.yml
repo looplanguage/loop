@@ -22,10 +22,11 @@ jobs:
 
       - name: Install llvm
         run: |
-          cargo install llvmenv
-          llvmenv init
-          llvmenv entries
-          llvmenv build-entry 12.0.0
+          git clone -b release/12.x https://github.com/llvm/llvm-project ~/llvm-project
+          mkdir ~/llvm
+          cd ~llvm
+          cmake ~/llvm-project
+          cmake --build .
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
