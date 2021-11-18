@@ -10,7 +10,7 @@ use inkwell::values::FloatValue;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-type DoubleFunc = unsafe extern "C" fn() -> u64;
+type DoubleFunc = unsafe extern "C" fn() -> f64;
 
 #[allow(dead_code)]
 pub struct CodeGen<'ctx> {
@@ -25,8 +25,8 @@ pub struct CodeGen<'ctx> {
 impl<'ctx> CodeGen<'ctx> {
     #[allow(dead_code)]
     pub fn compile(&mut self, func: Function) -> Option<bool> {
-        let i64_type = self.context.i64_type();
-        let fn_type = i64_type.fn_type(&[i64_type.into()], false);
+        let f64_type = self.context.f64_type();
+        let fn_type = f64_type.fn_type(&[], false);
         let function = self.module.add_function("double", fn_type, None);
         let basic_block = self.context.append_basic_block(function, "entry");
 
@@ -103,7 +103,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     #[allow(dead_code)]
-    pub fn run(&self, id: i32, _params: Vec<Rc<RefCell<Object>>>) -> u64 {
+    pub fn run(&self, id: i32, _params: Vec<Rc<RefCell<Object>>>) -> f64 {
         if let Some(compiled) = &self.compiled_functions[id as usize] {
             let _compiled_down_params: Vec<u64> = Vec::new();
 
@@ -112,6 +112,6 @@ impl<'ctx> CodeGen<'ctx> {
             return returned;
         }
 
-        0
+        0 as f64
     }
 }
