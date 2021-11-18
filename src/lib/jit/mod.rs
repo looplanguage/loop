@@ -77,6 +77,9 @@ impl<'ctx> CodeGen<'ctx> {
                     "+" => {
                         return self.builder.build_float_add(lhs, rhs, "add");
                     }
+                    "/" => {
+                        return self.builder.build_float_div(lhs, rhs, "divide");
+                    }
                     _ => {}
                 }
             }

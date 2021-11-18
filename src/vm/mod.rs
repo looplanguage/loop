@@ -88,7 +88,7 @@ impl VM {
         let execution_engine = module
             .create_jit_execution_engine(OptimizationLevel::None)
             .ok()
-            .ok_or("cannot start jit!".to_string())?;
+            .ok_or_else(|| "cannot start jit!".to_string())?;
 
         let mut codegen = CodeGen {
             context: &context,

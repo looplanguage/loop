@@ -47,7 +47,7 @@ pub fn compile_expression_function(
         instructions,
         num_locals: num_locals as u8,
         num_parameters: num_params as u8,
-        parsed_function: Some(func.clone()),
+        parsed_function: Some(func),
     });
 
     let const_index = compiler.add_constant(compiled_function);

@@ -51,11 +51,9 @@ impl Repl {
                 "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/internal/jit",
                 "WARNING: ".red()
             );
-
-            self.run();
-        } else {
-            self.run();
         }
+
+        self.run();
 
         None
     }
