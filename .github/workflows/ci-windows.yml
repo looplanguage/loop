@@ -28,6 +28,7 @@ jobs:
           cd ~/llvm
           cmake ~/llvm-project/llvm
           cmake --build .
+          cmake --build . --target install
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
