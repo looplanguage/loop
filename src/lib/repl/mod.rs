@@ -3,13 +3,10 @@ use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
 use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
-use crate::lib::jit::CodeGen;
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
 use chrono::Utc;
 use colored::Colorize;
-use inkwell::context::Context;
-use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 

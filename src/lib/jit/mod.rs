@@ -1,4 +1,3 @@
-use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::Expression;
@@ -7,9 +6,8 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue};
+use inkwell::values::FloatValue;
 use std::cell::RefCell;
-use std::mem;
 use std::rc::Rc;
 
 type DoubleFunc = unsafe extern "C" fn() -> u64;
