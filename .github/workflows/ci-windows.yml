@@ -9,6 +9,8 @@ jobs:
   check:
     name: Check
     runs-on: windows-latest
+    env:
+      LLVM_SYS_120_PREFIX: C:/Program Files (x86)/LLVM/
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -37,6 +39,8 @@ jobs:
   test:
     name: Test
     runs-on: windows-latest
+    env:
+      LLVM_SYS_120_PREFIX: C:/Program Files (x86)/LLVM/
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -48,13 +52,26 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run cargo check
+
+      - name: Install llvm
+        run: |
+          cd ~
+          git clone -b release/12.x https://github.com/llvm/llvm-project
+          mkdir ~/llvm
+          cd ~/llvm
+          cmake ~/llvm-project/llvm
+          cmake --build .
+          cmake --build . --target install
+
+      - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
   lints:
     name: Lints
     runs-on: windows-latest
+    env:
+      LLVM_SYS_120_PREFIX: C:/Program Files (x86)/LLVM/
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -66,6 +83,16 @@ jobs:
           toolchain: stable
           override: true
           components: rustfmt, clippy
+
+      - name: Install llvm
+        run: |
+          cd ~
+          git clone -b release/12.x https://github.com/llvm/llvm-project
+          mkdir ~/llvm
+          cd ~/llvm
+          cmake ~/llvm-project/llvm
+          cmake --build .
+          cmake --build . --target install
 
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
