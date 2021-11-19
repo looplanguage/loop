@@ -1,8 +1,3 @@
-on:
-  pull_request:
-    branches:
-      - main
-
 name: CI Windows
 
 jobs:
