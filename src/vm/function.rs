@@ -39,8 +39,11 @@ pub fn run_function(
 
                 args.reverse();
 
+
+
                 codegen.compile(func.func.parsed_function.clone().unwrap());
                 codegen.run(0, args);
+                return None;
             }
 
             let base_pointer = vm.sp - (num_args as u16);
