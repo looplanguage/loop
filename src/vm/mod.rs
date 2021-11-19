@@ -96,6 +96,7 @@ impl VM {
             builder: context.create_builder(),
             execution_engine,
             compiled_functions: vec![],
+            parameters: vec![]
         };
 
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
