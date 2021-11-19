@@ -28,7 +28,7 @@ jobs:
           git clone -b release/12.x https://github.com/llvm/llvm-project
           mkdir ~/llvm
           cd ~/llvm
-          cmake ~/llvm-project/llvm
+          cmake ~/llvm-project/llvm -DCMAKE_BUILD_TYPE=Release
           cmake --build .
           cmake --build . --target install
 
@@ -59,7 +59,7 @@ jobs:
           git clone -b release/12.x https://github.com/llvm/llvm-project
           mkdir ~/llvm
           cd ~/llvm
-          cmake ~/llvm-project/llvm
+          cmake ~/llvm-project/llvm -DCMAKE_BUILD_TYPE=Release
           cmake --build .
           cmake --build . --target install
 
@@ -90,7 +90,7 @@ jobs:
           git clone -b release/12.x https://github.com/llvm/llvm-project
           mkdir ~/llvm
           cd ~/llvm
-          cmake ~/llvm-project/llvm
+          cmake ~/llvm-project/llvm -DCMAKE_BUILD_TYPE=Release
           cmake --build .
           cmake --build . --target install
 
