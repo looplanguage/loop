@@ -7,10 +7,12 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{FloatValue, FunctionValue};
+use inkwell::values::{FloatValue, FunctionValue, IntValue};
 use std::cell::RefCell;
 use std::rc::Rc;
+use inkwell::FloatPredicate;
 use crate::parser::expression::identifier::Identifier;
+use crate::parser::program::Node;
 
 type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
 
@@ -55,7 +57,7 @@ impl<'ctx> CodeGen<'ctx> {
                 Statement::Block(_) => {}
                 Statement::VariableAssign(_) => {}
                 Statement::Return(ret) => {
-                    let return_val = { self.compile_expression_int(*ret.expression, &arguments, function) };
+                    let return_val = { self.compile_expression_float(*ret.expression, &arguments, function) };
                     self.builder.build_return(Some(&return_val));
                 }
                 Statement::Import(_) => {}
@@ -63,8 +65,27 @@ impl<'ctx> CodeGen<'ctx> {
             };
         }
     }
+    fn compile_expression_int(&mut self, expression: Expression, arguments: &Vec<Identifier>, function: FunctionValue<'ctx>) -> IntValue<'ctx> {
+        let f64_type = self.context.f64_type();
+        let i64_type = self.context.i64_type();
 
-    fn compile_expression_int(&mut self, expression: Expression, arguments: &Vec<Identifier>, function: FunctionValue<'ctx>) -> FloatValue<'ctx> {
+        match expression {
+            Expression::Suffix(suffix) => {
+                let lhs = self.compile_expression_float(suffix.left, arguments, function);
+                let rhs = self.compile_expression_float(suffix.right, arguments, function);
+
+                match suffix.operator.as_str() {
+                    "<" => {
+                        return self.builder.build_float_compare(FloatPredicate::OLT, lhs, rhs, "");
+                    }
+                    _ => i64_type.const_int(0, false)
+                }
+            }
+            _ => i64_type.const_int(0, false)
+        }
+    }
+    
+    fn compile_expression_float(&mut self, expression: Expression, arguments: &Vec<Identifier>, function: FunctionValue<'ctx>) -> FloatValue<'ctx> {
         let f64_type = self.context.f64_type();
 
         match expression {
@@ -83,8 +104,8 @@ impl<'ctx> CodeGen<'ctx> {
                 return f64_type.const_float(int.value as f64);
             }
             Expression::Suffix(suffix) => {
-                let lhs = self.compile_expression_int(suffix.left, arguments, function);
-                let rhs = self.compile_expression_int(suffix.right, arguments, function);
+                let lhs = self.compile_expression_float(suffix.left, arguments, function);
+                let rhs = self.compile_expression_float(suffix.right, arguments, function);
 
                 match suffix.operator.as_str() {
                     "+" => {
@@ -93,14 +114,76 @@ impl<'ctx> CodeGen<'ctx> {
                     "/" => {
                         return self.builder.build_float_div(lhs, rhs, "divide");
                     }
+                    "-" => {
+                        return self.builder.build_float_sub(lhs, rhs, "minus");
+                    }
                     _ => {}
                 }
             }
             Expression::Boolean(_) => {}
             Expression::Function(_) => {}
-            Expression::Conditional(_) => {}
+            Expression::Conditional(conditional) => {
+                let zero_const = self.context.f64_type().const_float(0.0);
+
+                let cond = self.compile_expression_int(*conditional.condition, &vec![], function);
+
+                // branches
+                let then_b = self.context.append_basic_block(function, "then");
+                let else_b = self.context.append_basic_block(function, "else");
+                let cont_b = self.context.append_basic_block(function, "ifcont");
+
+                self.builder.build_conditional_branch(cond, then_b, else_b);
+
+                // then block
+                self.builder.position_at_end(then_b);
+
+                let then_exp = match conditional.body.statements[0].clone() {
+                    Statement::Expression(exp) => *exp.expression,
+                    _ => { return self.context.f64_type().const_float(0.0) }
+                };
+
+                let then_val = self.compile_expression_float(then_exp, &vec![], function);
+
+                self.builder.build_unconditional_branch(cont_b);
+
+                let then_b = self.builder.get_insert_block().unwrap();
+
+                // Else
+                self.builder.position_at_end(else_b);
+
+                let else_exp = match conditional.else_condition.unwrap() {
+                    Node::Expression(exp) => exp,
+                    Node::Statement(_) => { return f64_type.const_float(0.0) }
+                };
+
+                let else_val = self.compile_expression_float(else_exp, &vec![], function);
+
+                self.builder.build_unconditional_branch(cont_b);
+
+                let else_b = self.builder.get_insert_block().unwrap();
+
+                // merge
+                self.builder.position_at_end(cont_b);
+
+                let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
+
+                phi.add_incoming(&[
+                    (&then_val, then_b),
+                    (&else_val, else_b)
+                ]);
+
+                return phi.as_basic_value().into_float_value();
+            }
             Expression::Null(_) => {}
-            Expression::Call(_) => {}
+            Expression::Call(call) => {
+                let param = self.compile_expression_float(call.parameters[0].clone(), arguments, function);
+
+                let called = self.builder.build_call(function, &[param.into()], "called").try_as_basic_value().left();
+
+                if let Some(value) = called {
+                    return value.into_float_value();
+                }
+            }
             Expression::Float(_) => {}
             Expression::String(_) => {}
             Expression::Index(_) => {}
