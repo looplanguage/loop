@@ -29,14 +29,13 @@ machine.<br>
 
 Go to our [Jira](https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues) board to see all the issues and tasks to work on.
 
-## Contributor Guidelines
+## Guidelines
 
-To read our contributor guidelines, go to the
-[website](https://looplang.org/contributor_guidelines)
+If you want to contribute to one of the projects, it is recommenced to read two things: [development guidelines](https://github.com/looplanguage/.github/issues/1) and the [contributor guidelines](https://looplang.org/contributor_guidelines). 
 
 ## Code of Conduct
 
-To read our code of conduct, go to the [website](https://looplang.org/conduct)
+To read our code of conduct, go to the [website](https://looplang.org/conduct).
 
 ##
 
