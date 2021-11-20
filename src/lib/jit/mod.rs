@@ -1,18 +1,18 @@
-use std::borrow::Borrow;
 use crate::lib::object::Object;
 use crate::parser::expression::function::Function;
+use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::Expression;
+use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::values::{FloatValue, FunctionValue, IntValue};
+use inkwell::FloatPredicate;
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
-use inkwell::FloatPredicate;
-use crate::parser::expression::identifier::Identifier;
-use crate::parser::program::Node;
 
 type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
 
@@ -23,7 +23,7 @@ pub struct CodeGen<'ctx> {
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) compiled_functions: Vec<Option<JitFunction<'ctx, DoubleFunc>>>,
-    pub(crate) parameters: Vec<String>
+    pub(crate) parameters: Vec<String>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -47,17 +47,23 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
 
-    fn compile_statement(&mut self, statements: Vec<Statement>, arguments: Vec<Identifier>, function: FunctionValue<'ctx>) {
+    fn compile_statement(
+        &mut self,
+        statements: Vec<Statement>,
+        arguments: Vec<Identifier>,
+        function: FunctionValue<'ctx>,
+    ) {
         for statement in statements {
             match statement {
                 Statement::VariableDeclaration(_) => {}
                 Statement::Expression(_exp) => {
-                    //self.compile_expression(*exp.expression);
+                    self.compile_expression_float(*_exp.expression, &arguments, function);
                 }
                 Statement::Block(_) => {}
                 Statement::VariableAssign(_) => {}
                 Statement::Return(ret) => {
-                    let return_val = { self.compile_expression_float(*ret.expression, &arguments, function) };
+                    let return_val =
+                        { self.compile_expression_float(*ret.expression, &arguments, function) };
                     self.builder.build_return(Some(&return_val));
                 }
                 Statement::Import(_) => {}
@@ -65,7 +71,12 @@ impl<'ctx> CodeGen<'ctx> {
             };
         }
     }
-    fn compile_expression_int(&mut self, expression: Expression, arguments: &Vec<Identifier>, function: FunctionValue<'ctx>) -> IntValue<'ctx> {
+    fn compile_expression_int(
+        &mut self,
+        expression: Expression,
+        arguments: &Vec<Identifier>,
+        function: FunctionValue<'ctx>,
+    ) -> IntValue<'ctx> {
         let f64_type = self.context.f64_type();
         let i64_type = self.context.i64_type();
 
@@ -76,16 +87,23 @@ impl<'ctx> CodeGen<'ctx> {
 
                 match suffix.operator.as_str() {
                     "<" => {
-                        return self.builder.build_float_compare(FloatPredicate::OLT, lhs, rhs, "");
+                        return self
+                            .builder
+                            .build_float_compare(FloatPredicate::OLT, lhs, rhs, "");
                     }
-                    _ => i64_type.const_int(0, false)
+                    _ => i64_type.const_int(0, false),
                 }
             }
-            _ => i64_type.const_int(0, false)
+            _ => i64_type.const_int(0, false),
         }
     }
-    
-    fn compile_expression_float(&mut self, expression: Expression, arguments: &Vec<Identifier>, function: FunctionValue<'ctx>) -> FloatValue<'ctx> {
+
+    fn compile_expression_float(
+        &mut self,
+        expression: Expression,
+        arguments: &Vec<Identifier>,
+        function: FunctionValue<'ctx>,
+    ) -> FloatValue<'ctx> {
         let f64_type = self.context.f64_type();
 
         match expression {
@@ -96,7 +114,9 @@ impl<'ctx> CodeGen<'ctx> {
                     let param = function.get_nth_param(id as u32);
 
                     if let Some(param) = param {
-                        return param.into_float_value();
+                        let val = param.into_float_value();
+
+                        return val;
                     }
                 }
             }
@@ -125,7 +145,11 @@ impl<'ctx> CodeGen<'ctx> {
             Expression::Conditional(conditional) => {
                 let zero_const = self.context.f64_type().const_float(0.0);
 
-                let cond = self.compile_expression_int(*conditional.condition, &vec![], function);
+                let cond = self.compile_expression_int(
+                    *conditional.condition.clone(),
+                    arguments,
+                    function,
+                );
 
                 // branches
                 let then_b = self.context.append_basic_block(function, "then");
@@ -138,25 +162,35 @@ impl<'ctx> CodeGen<'ctx> {
                 self.builder.position_at_end(then_b);
 
                 let then_exp = match conditional.body.statements[0].clone() {
+                    Statement::Return(ret) => *ret.expression,
                     Statement::Expression(exp) => *exp.expression,
-                    _ => { return self.context.f64_type().const_float(0.0) }
+                    _ => {
+                        println!("Nothing :(");
+                        return self.context.f64_type().const_float(0.0);
+                    }
                 };
 
                 let then_val = self.compile_expression_float(then_exp, &vec![], function);
+                self.builder.build_return(Some(&then_val));
 
                 self.builder.build_unconditional_branch(cont_b);
 
                 let then_b = self.builder.get_insert_block().unwrap();
 
                 // Else
+
                 self.builder.position_at_end(else_b);
 
+                /*
                 let else_exp = match conditional.else_condition.unwrap() {
                     Node::Expression(exp) => exp,
-                    Node::Statement(_) => { return f64_type.const_float(0.0) }
+                    Node::Statement(_) => return f64_type.const_float(0.0),
                 };
 
-                let else_val = self.compile_expression_float(else_exp, &vec![], function);
+
+                 */
+
+                let else_val = f64_type.const_float(0.0);
 
                 self.builder.build_unconditional_branch(cont_b);
 
@@ -167,18 +201,25 @@ impl<'ctx> CodeGen<'ctx> {
 
                 let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
 
-                phi.add_incoming(&[
-                    (&then_val, then_b),
-                    (&else_val, else_b)
-                ]);
+                phi.add_incoming(&[(&then_val, then_b), (&else_val, else_b)]);
 
                 return phi.as_basic_value().into_float_value();
             }
             Expression::Null(_) => {}
             Expression::Call(call) => {
-                let param = self.compile_expression_float(call.parameters[0].clone(), arguments, function);
+                let param =
+                    self.compile_expression_float(call.parameters[0].clone(), arguments, function);
 
-                let called = self.builder.build_call(function, &[param.into()], "called").try_as_basic_value().left();
+                let arg = self.context.f64_type().const_float(0.0);
+
+                let fn_type = self.context.void_type().fn_type(&[], false);
+                let f = self.module.add_function("hey", fn_type, None);
+
+                let called = self
+                    .builder
+                    .build_call(f, &[arg.into()], "called")
+                    .try_as_basic_value()
+                    .left();
 
                 if let Some(value) = called {
                     return value.into_float_value();
@@ -204,9 +245,8 @@ impl<'ctx> CodeGen<'ctx> {
             let mut _compiled_down_params: Vec<f64> = Vec::new();
 
             for _param in _params {
-
                 match &*_param.as_ref().borrow() {
-                    Object::Integer(integer) => { _compiled_down_params.push(integer.value as f64) }
+                    Object::Integer(integer) => _compiled_down_params.push(integer.value as f64),
                     _ => {}
                 }
             }
