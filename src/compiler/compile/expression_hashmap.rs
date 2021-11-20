@@ -4,7 +4,7 @@ use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
 use crate::lib::exception::compiler::CompilerException;
-use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
+use crate::parser::expression::hashmap::{HashableExpressionHashmap, Hashmap};
 
 pub fn compile_expression_hashmap(
     _compiler: &mut Compiler,
@@ -14,9 +14,15 @@ pub fn compile_expression_hashmap(
 
     for value in hashmap.values {
         match value.0 {
-            HashableExpression::Integer(integer) => compile_expression_integer(_compiler, integer),
-            HashableExpression::String(string) => compile_expression_string(_compiler, string),
-            HashableExpression::Boolean(boolean) => compile_expression_boolean(_compiler, boolean),
+            HashableExpressionHashmap::Integer(integer) => {
+                compile_expression_integer(_compiler, integer)
+            }
+            HashableExpressionHashmap::String(string) => {
+                compile_expression_string(_compiler, string)
+            }
+            HashableExpressionHashmap::Boolean(boolean) => {
+                compile_expression_boolean(_compiler, boolean)
+            }
         };
 
         _compiler.compile_expression(value.1);

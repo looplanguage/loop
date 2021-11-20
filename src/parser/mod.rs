@@ -6,6 +6,7 @@ use crate::lib::exception::Exception;
 use crate::parser::expression::array::parse_expression_array;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
+use crate::parser::expression::enum_expression::parse_expression_enum;
 use crate::parser::expression::function::{parse_call, parse_function};
 use crate::parser::expression::hashmap::parse_expression_hashmap;
 use crate::parser::expression::identifier::parse_identifier;
@@ -18,7 +19,6 @@ use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
 use crate::parser::statement::comment::parse_comment;
-use crate::parser::statement::enum_statement::parse_enum_statement;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
@@ -226,7 +226,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_prefix_parser(TokenType::Comment, parse_comment);
     p.add_prefix_parser(TokenType::For, parse_loop);
     p.add_prefix_parser(TokenType::LeftBrace, parse_expression_hashmap);
-    p.add_prefix_parser(TokenType::Enum, parse_enum_statement);
+    p.add_prefix_parser(TokenType::Enum, parse_expression_enum);
 
     // Infix parsers
     p.add_infix_parser(TokenType::Plus, parse_suffix_expression);

@@ -3,9 +3,10 @@ use crate::parser::expression::array::Array;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::conditional::Conditional;
+use crate::parser::expression::enum_expression::{enum_expression, HashableExpressionEnum};
 use crate::parser::expression::float::Float;
 use crate::parser::expression::function::{Call, Function};
-use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
+use crate::parser::expression::hashmap::{HashableExpressionHashmap, Hashmap};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
@@ -29,6 +30,7 @@ pub mod null;
 pub mod number;
 pub mod string;
 pub mod suffix;
+pub mod enum_expression;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
@@ -49,6 +51,7 @@ pub enum Expression {
     LoopIterator(LoopIterator),
     LoopArrayIterator(LoopArrayIterator),
     Hashmap(Hashmap),
+    Enum(enum_expression),
 }
 
 #[derive(PartialOrd, PartialEq, Debug)]
@@ -90,11 +93,24 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
 }
 
 impl Expression {
-    fn get_hash(&self) -> Option<HashableExpression> {
+    fn get_hash_hashmap(&self) -> Option<HashableExpressionHashmap> {
         match self {
-            Expression::Integer(integer) => Some(HashableExpression::Integer(integer.clone())),
-            Expression::String(string) => Some(HashableExpression::String(string.clone())),
-            Expression::Boolean(boolean) => Some(HashableExpression::Boolean(boolean.clone())),
+            Expression::Integer(integer) => {
+                Some(HashableExpressionHashmap::Integer(integer.clone()))
+            }
+            Expression::String(string) => Some(HashableExpressionHashmap::String(string.clone())),
+            Expression::Boolean(boolean) => {
+                Some(HashableExpressionHashmap::Boolean(boolean.clone()))
+            }
+            _ => None,
+        }
+    }
+
+    fn get_hash_enum(&self) -> Option<HashableExpressionEnum> {
+        match self {
+            Expression::Identifier(identifier) => {
+                Some(HashableExpressionEnum::Identifier(identifier.clone()))
+            }
             _ => None,
         }
     }

@@ -7,7 +7,7 @@ mod tests {
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
     use crate::parser::expression::function::{Call, Function};
-    use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
+    use crate::parser::expression::hashmap::{HashableExpressionHashmap, Hashmap};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
     use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
@@ -70,23 +70,23 @@ mod tests {
         let input = "{\"hello world\": 123, true: 123, 500: false}";
 
         let mut expected: Vec<Statement> = Vec::new();
-        let mut hashmap_values: HashMap<HashableExpression, parser::expression::Expression> =
+        let mut hashmap_values: HashMap<HashableExpressionHashmap, parser::expression::Expression> =
             HashMap::new();
 
         hashmap_values.insert(
-            HashableExpression::String(LoopString {
+            HashableExpressionHashmap::String(LoopString {
                 value: "hello world".to_string(),
             }),
             parser::Expression::Integer(Integer { value: 123 }),
         );
 
         hashmap_values.insert(
-            HashableExpression::Boolean(Boolean { value: true }),
+            HashableExpressionHashmap::Boolean(Boolean { value: true }),
             parser::Expression::Integer(Integer { value: 123 }),
         );
 
         hashmap_values.insert(
-            HashableExpression::Integer(Integer { value: 500 }),
+            HashableExpressionHashmap::Integer(Integer { value: 500 }),
             parser::Expression::Boolean(Boolean { value: false }),
         );
 

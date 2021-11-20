@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
-pub enum HashableExpression {
+pub enum HashableExpressionHashmap {
     Integer(Integer),
     String(LoopString),
     Boolean(Boolean),
@@ -18,13 +18,13 @@ pub enum HashableExpression {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Hashmap {
-    pub(crate) values: HashMap<HashableExpression, Expression>,
+    pub(crate) values: HashMap<HashableExpressionHashmap, Expression>,
 }
 
 pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
 
-    let mut values: HashMap<HashableExpression, Expression> = HashMap::new();
+    let mut values: HashMap<HashableExpressionHashmap, Expression> = HashMap::new();
 
     while p.lexer.get_current_token().unwrap().token != TokenType::RightBrace
         && p.lexer.get_current_token().unwrap().token != TokenType::Eof
@@ -48,7 +48,7 @@ pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
             let val_exp = p.parse_expression(Lowest);
 
             if let Some(Node::Expression(val)) = val_exp {
-                let hashable = key.get_hash();
+                let hashable = key.get_hash_hashmap();
 
                 if let Some(hash) = hashable {
                     values.insert(hash, val);
