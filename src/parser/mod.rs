@@ -72,9 +72,9 @@ impl Parser {
                 }
             }
             TokenType::Return => parse_return_statement(self),
-            //TokenType::LeftBrace => parse_block_statement(self),
             TokenType::Import => parse_import_statement(self),
             TokenType::Export => parse_export_statement(self),
+            TokenType::Enum => parse_enum_statement(self),
             TokenType::Comment => parse_comment(self),
             _ => self.parse_expression_statement(),
         };

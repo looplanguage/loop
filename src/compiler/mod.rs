@@ -297,6 +297,10 @@ impl Compiler {
             Statement::VariableAssign(variable) => {
                 compile_statement_variable_assign(self, variable)
             }
+            Statement::EnumStatement(_) => {
+                println!("HHEAwda");
+                None
+            },
             Statement::Return(_return) => compile_return_statement(self, _return),
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
