@@ -27,4 +27,5 @@ pub enum OpCode {
     AssignIndex,   // 24
     Hashmap,       // 25
     Pow,           // 26
+    Enum,          // 27
 }
