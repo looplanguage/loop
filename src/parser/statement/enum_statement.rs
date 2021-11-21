@@ -7,11 +7,13 @@ use crate::parser::statement::Statement;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct EnumStatement {
+    pub ident: Identifier,
     pub(crate) identifiers: Vec<Identifier>,
 }
 
 pub fn parse_enum_statement(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
+    let indent = p.lexer.current_token.clone().unwrap().literal;
     p.lexer.next_token();
 
     let mut elements: Vec<Identifier> = Vec::new();
@@ -20,7 +22,7 @@ pub fn parse_enum_statement(p: &mut Parser) -> Option<Node> {
         println!("Hello");
         p.add_error(format!(
             "wrong token. expected=\"LeftBrace\". got=\"{:?}\"",
-            p.lexer.peek_token.clone().unwrap().token
+            p.lexer.current_token.clone().unwrap().token
         ));
         return None;
     }
@@ -50,6 +52,8 @@ pub fn parse_enum_statement(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
 
     Some(Node::Statement(Statement::EnumStatement(
-        EnumStatement { identifiers: elements }),
+        EnumStatement { ident: Identifier {
+            value: indent.parse().unwrap(),
+        }, identifiers: elements }),
     ))
 }

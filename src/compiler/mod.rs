@@ -27,6 +27,7 @@ use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
+use crate::compiler::compile::statement_enum::compile_enum_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
@@ -297,10 +298,7 @@ impl Compiler {
             Statement::VariableAssign(variable) => {
                 compile_statement_variable_assign(self, variable)
             }
-            Statement::EnumStatement(_) => {
-                println!("HHEAwda");
-                None
-            },
+            Statement::EnumStatement(_enum) => /*compile_enum_statement(self, _enum)*/ None,
             Statement::Return(_return) => compile_return_statement(self, _return),
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),

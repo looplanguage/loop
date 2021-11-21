@@ -15,5 +15,6 @@ pub mod expression_suffix;
 pub mod statement_export;
 pub mod statement_import;
 pub mod statement_return;
+pub mod statement_enum;
 pub mod statement_variable_assign;
 pub mod statement_variable_declaration;
