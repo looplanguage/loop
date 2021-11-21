@@ -8,7 +8,7 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{FloatValue, FunctionValue, IntValue};
+use inkwell::values::{AnyValue, FloatValue, FunctionValue, IntValue};
 use inkwell::FloatPredicate;
 use std::borrow::Borrow;
 use std::cell::RefCell;
@@ -44,6 +44,10 @@ impl<'ctx> CodeGen<'ctx> {
 
         println!("COMPILED!");
 
+        println!("Verifying...");
+
+        function.verify(true);
+
         None
     }
 
@@ -58,6 +62,7 @@ impl<'ctx> CodeGen<'ctx> {
                 Statement::VariableDeclaration(_) => {}
                 Statement::Expression(_exp) => {
                     self.compile_expression_float(*_exp.expression, &arguments, function);
+                    //self.builder.build_return(Some(&val));
                 }
                 Statement::Block(_) => {}
                 Statement::VariableAssign(_) => {}
@@ -178,19 +183,22 @@ impl<'ctx> CodeGen<'ctx> {
                 let then_b = self.builder.get_insert_block().unwrap();
 
                 // Else
+                /*
+                let else_exp = match *conditional.else_condition {
+                    None => {
+                        return self.context.f64_type().const_float(0.0);
+                    }
+                    Some(node) => match node {
+                        Node::Expression(exp) => exp,
+                        Node::Statement(_) => {
+                            return self.context.f64_type().const_float(0.0);
+                        }
+                    },
+                };*/
 
                 self.builder.position_at_end(else_b);
 
-                /*
-                let else_exp = match conditional.else_condition.unwrap() {
-                    Node::Expression(exp) => exp,
-                    Node::Statement(_) => return f64_type.const_float(0.0),
-                };
-
-
-                 */
-
-                let else_val = f64_type.const_float(0.0);
+                let else_val = self.context.f64_type().const_float(0.0);
 
                 self.builder.build_unconditional_branch(cont_b);
 
@@ -212,18 +220,10 @@ impl<'ctx> CodeGen<'ctx> {
 
                 let arg = self.context.f64_type().const_float(0.0);
 
-                let fn_type = self.context.void_type().fn_type(&[], false);
-                let f = self.module.add_function("hey", fn_type, None);
+                let fn_type = self.module.get_function("double");
 
-                let called = self
-                    .builder
-                    .build_call(f, &[arg.into()], "called")
-                    .try_as_basic_value()
-                    .left();
-
-                if let Some(value) = called {
-                    return value.into_float_value();
-                }
+                self.builder
+                    .build_call(fn_type.unwrap(), &[arg.into()], "call");
             }
             Expression::Float(_) => {}
             Expression::String(_) => {}
