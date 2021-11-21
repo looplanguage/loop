@@ -116,6 +116,10 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpPow".to_string(),
             operand_width: vec![],
         },
+        OpCode::Enum => Definition {
+            name: "OpEnum".to_string(),
+            operand_width: vec![],
+        },
     }
 }
 

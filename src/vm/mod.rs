@@ -106,6 +106,7 @@ impl VM {
                 OpCode::Minus => run_suffix_expression(self, "-"),
                 OpCode::Divide => run_suffix_expression(self, "/"),
                 OpCode::Multiply => run_suffix_expression(self, "*"),
+                OpCode::Pow => run_suffix_expression(self, "^"),
                 OpCode::Pop => {
                     self.pop();
                     None
@@ -401,7 +402,7 @@ impl VM {
 
                     None
                 }
-                OpCode::Pow => run_suffix_expression(self, "^"),
+                OpCode::Enum =>  None,
             };
 
             if let Some(err) = err {

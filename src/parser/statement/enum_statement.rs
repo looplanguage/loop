@@ -19,7 +19,6 @@ pub fn parse_enum_statement(p: &mut Parser) -> Option<Node> {
     let mut elements: Vec<Identifier> = Vec::new();
 
     if !p.lexer.next_current_is(TokenType::LeftBrace) {
-        println!("Hello");
         p.add_error(format!(
             "wrong token. expected=\"LeftBrace\". got=\"{:?}\"",
             p.lexer.current_token.clone().unwrap().token
@@ -35,7 +34,6 @@ pub fn parse_enum_statement(p: &mut Parser) -> Option<Node> {
         }
 
         if p.lexer.get_current_token().unwrap().token != TokenType::Identifier {
-            println!("Hello1");
             p.add_error(format!(
                 "wrong token. expected=\"Identifier\". got=\"{:?}\"",
                 p.lexer.get_current_token().unwrap().token
