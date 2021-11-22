@@ -118,7 +118,11 @@ pub fn get_definition(op: OpCode) -> Definition {
         },
         OpCode::Enum => Definition {
             name: "OpEnum".to_string(),
-            operand_width: vec![],
+            operand_width: vec![2],
+        },
+        OpCode::Ident => Definition {
+            name: "OpIdent".to_string(),
+            operand_width: vec![4]
         },
     }
 }
@@ -152,6 +156,8 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         24 => Some(OpCode::AssignIndex),
         25 => Some(OpCode::Hashmap),
         26 => Some(OpCode::Pow),
+        27 => Some(OpCode::Enum),
+        28 => Some(OpCode::Ident),
         _ => None,
     }
 }
@@ -185,6 +191,8 @@ pub fn lookup(op: u8) -> Option<Definition> {
         24 => Some(get_definition(OpCode::AssignIndex)),
         25 => Some(get_definition(OpCode::Hashmap)),
         26 => Some(get_definition(OpCode::Pow)),
+        27 => Some(get_definition(OpCode::Enum)),
+        28 => Some(get_definition(OpCode::Ident)),
         _ => None,
     }
 }

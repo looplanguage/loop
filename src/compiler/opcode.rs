@@ -28,4 +28,5 @@ pub enum OpCode {
     Hashmap,       // 25
     Pow,           // 26
     Enum,          // 27
+    Ident,         // 28
 }

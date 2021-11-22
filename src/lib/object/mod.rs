@@ -7,6 +7,8 @@ use crate::lib::object::hashmap::Hashmap;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
+use crate::lib::object::enums::Enums;
+use crate::lib::object::ident::Ident;
 
 pub mod array;
 pub mod boolean;
@@ -18,6 +20,8 @@ pub mod hashmap;
 pub mod integer;
 pub mod null;
 pub mod string;
+pub mod enums;
+pub mod ident;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Object {
@@ -31,6 +35,8 @@ pub enum Object {
     Builtin(BuiltinFunction),
     Array(Array),
     Hashmap(Hashmap),
+    Enums(Enums),
+    Identifier(Ident),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
@@ -72,6 +78,8 @@ impl Object {
             Object::Builtin(builtin) => format!("Builtin[{:p}]", builtin),
             Object::Array(array) => array.inspect(),
             Object::Hashmap(hashmap) => hashmap.inspect(),
+            Object::Enums(enums) => enums.inspect(),
+            Object::Identifier(identifier) => identifier.inspect(),
         }
     }
 

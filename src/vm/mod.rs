@@ -9,6 +9,7 @@ use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::array::Array;
+use crate::lib::object::enums::Enums;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
@@ -402,7 +403,36 @@ impl VM {
 
                     None
                 }
-                OpCode::Enum =>  None,
+                OpCode::Enum =>  {
+                    let ip = self.current_frame().ip;
+
+                    let element_amount =
+                        read_uint16(&self.current_frame().instructions()[ip as usize..]);
+
+                    self.increment_ip(2);
+
+                    let mut elements: Vec<Rc<RefCell<Object>>> = Vec::new();
+
+                    for _i in 0..element_amount {
+                        let element = self.pop();
+                        elements.insert(0, element.clone());
+                    }
+
+                    let array = Object::Enums(Enums { identifiers: elements });
+
+                    self.push(Rc::from(RefCell::from(array)));
+                    
+                    None
+                },
+                OpCode::Ident => {
+                    let ip = self.current_frame().ip;
+                    let idx = read_uint32(&self.current_frame().instructions()[ip as usize..]);
+                    self.increment_ip(4);
+
+                    self.push(Rc::clone(&self.constants[idx as usize]));
+
+                    None
+                },
             };
 
             if let Some(err) = err {
@@ -454,6 +484,7 @@ impl VM {
     }
 
     pub fn pop(&mut self) -> Rc<RefCell<Object>> {
+
         let popped = self.stack[self.sp as usize - 1].to_owned();
         self.sp -= 1;
 

@@ -49,6 +49,8 @@ pub fn parse_enum_statement(p: &mut Parser) -> Option<Node> {
 
     p.lexer.next_token();
 
+    println!("{}", elements.len());
+
     Some(Node::Statement(Statement::EnumStatement(
         EnumStatement { ident: Identifier {
             value: indent.parse().unwrap(),

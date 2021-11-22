@@ -3,9 +3,9 @@ use crate::lib::object::function::Function;
 use std::borrow::Borrow;
 
 pub struct Frame {
-    pub func: Function,
-    pub(crate) ip: u32,
-    pub base_pointer: i32,
+    pub func: Function,     // The function the frame is for
+    pub(crate) ip: u32,     // Instruction Pointer
+    pub base_pointer: i32, 
 }
 
 pub fn build_frame(func: Function, base: i32) -> Frame {
