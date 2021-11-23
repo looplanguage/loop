@@ -2,15 +2,13 @@ use crate::lib::object::Object;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::Expression;
-use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{AnyValue, FloatValue, FunctionValue, IntValue};
+use inkwell::values::{FloatValue, FunctionValue, IntValue};
 use inkwell::FloatPredicate;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -79,10 +77,9 @@ impl<'ctx> CodeGen<'ctx> {
     fn compile_expression_int(
         &mut self,
         expression: Expression,
-        arguments: &Vec<Identifier>,
+        arguments: &[Identifier],
         function: FunctionValue<'ctx>,
     ) -> IntValue<'ctx> {
-        let f64_type = self.context.f64_type();
         let i64_type = self.context.i64_type();
 
         match expression {
@@ -92,9 +89,9 @@ impl<'ctx> CodeGen<'ctx> {
 
                 match suffix.operator.as_str() {
                     "<" => {
-                        return self
+                        self
                             .builder
-                            .build_float_compare(FloatPredicate::OLT, lhs, rhs, "");
+                            .build_float_compare(FloatPredicate::OLT, lhs, rhs, "")
                     }
                     _ => i64_type.const_int(0, false),
                 }
@@ -106,7 +103,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn compile_expression_float(
         &mut self,
         expression: Expression,
-        arguments: &Vec<Identifier>,
+        arguments: &[Identifier],
         function: FunctionValue<'ctx>,
     ) -> FloatValue<'ctx> {
         let f64_type = self.context.f64_type();
@@ -148,8 +145,6 @@ impl<'ctx> CodeGen<'ctx> {
             Expression::Boolean(_) => {}
             Expression::Function(_) => {}
             Expression::Conditional(conditional) => {
-                let zero_const = self.context.f64_type().const_float(0.0);
-
                 let cond = self.compile_expression_int(
                     *conditional.condition.clone(),
                     arguments,
@@ -175,7 +170,7 @@ impl<'ctx> CodeGen<'ctx> {
                     }
                 };
 
-                let then_val = self.compile_expression_float(then_exp, &vec![], function);
+                let then_val = self.compile_expression_float(then_exp, &[], function);
                 self.builder.build_return(Some(&then_val));
 
                 self.builder.build_unconditional_branch(cont_b);
@@ -214,9 +209,9 @@ impl<'ctx> CodeGen<'ctx> {
                 return phi.as_basic_value().into_float_value();
             }
             Expression::Null(_) => {}
-            Expression::Call(call) => {
-                let param =
-                    self.compile_expression_float(call.parameters[0].clone(), arguments, function);
+            Expression::Call(_call) => {
+                //let param =
+                    //self.compile_expression_float(call.parameters[0].clone(), arguments, function);
 
                 let arg = self.context.f64_type().const_float(0.0);
 
@@ -245,9 +240,8 @@ impl<'ctx> CodeGen<'ctx> {
             let mut _compiled_down_params: Vec<f64> = Vec::new();
 
             for _param in _params {
-                match &*_param.as_ref().borrow() {
-                    Object::Integer(integer) => _compiled_down_params.push(integer.value as f64),
-                    _ => {}
+                if let Object::Integer(integer) = &*_param.as_ref().borrow() {
+                    _compiled_down_params.push(integer.value as f64);
                 }
             }
 
