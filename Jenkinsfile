@@ -25,6 +25,7 @@ pipeline {
             post {
                 success {
                     archiveArtifacts 'target/release/*.exe'
+                    s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, pluginFailureResultConstraint: 'FAILURE', userMetadata: []
                 }
             }
         }
