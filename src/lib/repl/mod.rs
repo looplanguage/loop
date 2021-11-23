@@ -33,7 +33,7 @@ pub fn build_repl(flags: Flags) -> Repl {
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 impl Repl {
-    pub fn start(&mut self) {
+    pub fn start(&mut self) -> Option<bool> {
         println!(
             "
   _
@@ -53,7 +53,9 @@ impl Repl {
             );
         }
 
-        self.run()
+        self.run();
+
+        None
     }
 
     fn run_code(&mut self, s: String) {
@@ -86,19 +88,6 @@ impl Repl {
             let duration = Utc::now().signed_duration_since(started);
 
             if ran.is_err() {
-                /*
-                sentry::with_scope(
-                    |scope| {
-                        scope.set_tag("exception.type", "vm");
-                    },
-                    || {
-                        sentry::capture_message(
-                            ran.clone().err().unwrap().as_str(),
-                            sentry::Level::Info,
-                        );
-                    },
-                );*/
-
                 println!(
                     "{}",
                     format!("VirtualMachineException: {}", ran.err().unwrap()).red()
