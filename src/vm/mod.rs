@@ -8,6 +8,7 @@ use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
 use crate::lib::exception::vm::VMException;
+use crate::lib::jit::CodeGen;
 use crate::lib::object::array::Array;
 use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::extension_method::EXTENSION_METHODS;
@@ -18,6 +19,8 @@ use crate::lib::object::{Hashable, Object};
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
+use inkwell::context::Context;
+use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -50,6 +53,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
                 instructions: bt.instructions.clone(),
                 num_locals: 0,
                 num_parameters: 0,
+                parsed_function: None,
             },
             free: vec![],
         },
@@ -79,6 +83,22 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
 
 impl VM {
     pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<RefCell<Object>>, String> {
+        let context = Context::create();
+        let module = context.create_module("program");
+        let execution_engine = module
+            .create_jit_execution_engine(OptimizationLevel::None)
+            .ok()
+            .ok_or_else(|| "cannot start jit!".to_string())?;
+
+        let mut codegen = CodeGen {
+            context: &context,
+            module,
+            builder: context.create_builder(),
+            execution_engine,
+            compiled_functions: vec![],
+            parameters: vec![],
+        };
+
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;
             let _op = lookup_op(self.current_frame().instructions()[ip as usize]);
@@ -189,7 +209,7 @@ impl VM {
                     self.increment_ip(1);
 
                     // TODO: Properly implement VM exceptions
-                    let vm_exception = run_function(self, args, attempt_jit);
+                    let vm_exception = run_function(self, args, attempt_jit, &mut codegen);
 
                     if let Some(exception) = vm_exception {
                         return match exception {

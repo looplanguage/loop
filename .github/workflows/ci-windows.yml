@@ -1,0 +1,103 @@
+name: CI Windows
+
+jobs:
+  check:
+    name: Check
+    runs-on: windows-latest
+    env:
+      LLVM_SYS_120_PREFIX: C:/Program Files (x86)/LLVM/
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install llvm
+        run: |
+          cd ~
+          git clone -b release/12.x https://github.com/llvm/llvm-project
+          mkdir ~/llvm
+          cd ~/llvm
+          cmake ~/llvm-project/llvm -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+          cmake --build . --target install
+
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+  test:
+    name: Test
+    runs-on: windows-latest
+    env:
+      LLVM_SYS_120_PREFIX: C:/Program Files (x86)/LLVM/
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+
+      - name: Install llvm
+        run: |
+          cd ~
+          git clone -b release/12.x https://github.com/llvm/llvm-project
+          mkdir ~/llvm
+          cd ~/llvm
+          cmake ~/llvm-project/llvm -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+          cmake --build . --target install
+
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+  lints:
+    name: Lints
+    runs-on: windows-latest
+    env:
+      LLVM_SYS_120_PREFIX: C:/Program Files (x86)/LLVM/
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Install llvm
+        run: |
+          cd ~
+          git clone -b release/12.x https://github.com/llvm/llvm-project
+          mkdir ~/llvm
+          cd ~/llvm
+          cmake ~/llvm-project/llvm -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+          cmake --build . --target install
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: fmt
+          args: --all -- --check

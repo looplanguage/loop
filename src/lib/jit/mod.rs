@@ -1,139 +1,255 @@
-use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
-use dynasmrt::{dynasm, AssemblyOffset, DynasmApi, ExecutableBuffer};
-use std::mem;
+use crate::parser::expression::function::Function;
+use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::Expression;
+use crate::parser::statement::Statement;
+use inkwell::builder::Builder;
+use inkwell::context::Context;
+use inkwell::execution_engine::{ExecutionEngine, JitFunction};
+use inkwell::module::Module;
+use inkwell::values::{FloatValue, FunctionValue, IntValue};
+use inkwell::FloatPredicate;
+use std::cell::RefCell;
 use std::rc::Rc;
 
-#[allow(dead_code)]
-pub struct JitFunction {
-    pub(crate) ip: i32,
-    pub(crate) instructions: Vec<u8>,
-    pub(crate) pointer: Option<AssemblyOffset>,
-    pub(crate) buffer: Option<ExecutableBuffer>,
-    pub(crate) constants: Vec<Rc<Object>>,
-    last_used_adr: String,
-}
+type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
 
 #[allow(dead_code)]
-pub fn build_jit_function(instructions: Vec<u8>, constants: Vec<Rc<Object>>) -> JitFunction {
-    JitFunction {
-        ip: 0,
-        constants,
-        instructions,
-        pointer: None,
-        buffer: None,
-        last_used_adr: String::new(),
-    }
+pub struct CodeGen<'ctx> {
+    pub(crate) context: &'ctx Context,
+    pub(crate) module: Module<'ctx>,
+    pub(crate) builder: Builder<'ctx>,
+    pub(crate) execution_engine: ExecutionEngine<'ctx>,
+    pub(crate) compiled_functions: Vec<Option<JitFunction<'ctx, DoubleFunc>>>,
+    pub(crate) parameters: Vec<String>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
-impl JitFunction {
+impl<'ctx> CodeGen<'ctx> {
     #[allow(dead_code)]
-    pub fn compile(&mut self) -> bool {
-        let mut ops = dynasmrt::x64::Assembler::new().unwrap();
+    pub fn compile(&mut self, func: Function) -> Option<bool> {
+        let f64_type = self.context.f64_type();
+        let fn_type = f64_type.fn_type(&[f64_type.into()], false);
+        let function = self.module.add_function("double", fn_type, None);
+        let basic_block = self.context.append_basic_block(function, "entry");
 
-        dynasm!(ops
-            ; .arch x64
-        );
+        self.builder.position_at_end(basic_block);
 
-        let offset = ops.offset();
+        self.compile_statement(func.body.statements, func.parameters, function);
 
-        //let mut available_addresses = vec!["rcx".to_string(), "rbx".to_string(), "rax".to_string()];
-        /*
-        while self.ip < (self.instructions.len()) as i32 {
-            let ip = self.ip;
-            let _op = lookup_op(self.instructions[ip as usize]);
+        self.compiled_functions
+            .push(unsafe { self.execution_engine.get_function("double").ok() });
 
-            let op = _op.unwrap();
+        println!("COMPILED!");
 
-            self.ip += 1;
+        println!("Verifying...");
 
+        function.verify(true);
 
-            let err = match op {
-                OpCode::Constant => {
-                    let ip = self.ip;
-                    let idx = read_uint32(self.instructions[ip as usize..].to_owned());
-                    self.ip += 4;
+        None
+    }
 
-                    let number = &self.constants[idx as usize];
-
-                    if let Object::Integer(number) = number.clone().deref() {
-                        let adr = available_addresses.pop().unwrap();
-
-                        self.last_used_adr = adr.to_string();
-
-                        match adr.as_str() {
-                            "rax" => {
-                                dynasm!(ops
-                                    ; mov rax, number.value as _
-                                );
-                            }
-                            "rbx" => {
-                                dynasm!(ops
-                                    ; mov rbx, number.value as _
-                                );
-                            }
-                            "rcx" => {
-                                dynasm!(ops
-                                    ; mov rcx, number.value as _
-                                );
-                            }
-                            _ => {}
-                        }
-                    }
+    fn compile_statement(
+        &mut self,
+        statements: Vec<Statement>,
+        arguments: Vec<Identifier>,
+        function: FunctionValue<'ctx>,
+    ) {
+        for statement in statements {
+            match statement {
+                Statement::VariableDeclaration(_) => {}
+                Statement::Expression(_exp) => {
+                    self.compile_expression_float(*_exp.expression, &arguments, function);
+                    //self.builder.build_return(Some(&val));
                 }
-                OpCode::Add => {
-                    dynasm!(ops
-                        ; add rax, rbx
-                    );
-
-                    available_addresses.push(self.last_used_adr.clone());
+                Statement::Block(_) => {}
+                Statement::VariableAssign(_) => {}
+                Statement::Return(ret) => {
+                    let return_val =
+                        { self.compile_expression_float(*ret.expression, &arguments, function) };
+                    self.builder.build_return(Some(&return_val));
                 }
-                OpCode::Multiply => {
-                    dynasm!(ops
-                        ; mul rbx
-                    );
-
-                    available_addresses.push(self.last_used_adr.clone());
-                }
-                OpCode::Return => {
-                    dynasm!(ops
-                        ; ret
-                    );
-
-                    available_addresses.push(self.last_used_adr.clone());
-                }
-                OpCode::Pop => {
-                    available_addresses.push(self.last_used_adr.clone());
-                }
-                _ => {
-                    return false;
-                }
+                Statement::Import(_) => {}
+                Statement::Export(_) => {}
             };
         }
-        */
+    }
+    fn compile_expression_int(
+        &mut self,
+        expression: Expression,
+        arguments: &[Identifier],
+        function: FunctionValue<'ctx>,
+    ) -> IntValue<'ctx> {
+        let i64_type = self.context.i64_type();
 
-        dynasm!(ops
-            ; ret
-        );
+        match expression {
+            Expression::Suffix(suffix) => {
+                let lhs = self.compile_expression_float(suffix.left, arguments, function);
+                let rhs = self.compile_expression_float(suffix.right, arguments, function);
 
-        let buf = ops.finalize().unwrap();
+                match suffix.operator.as_str() {
+                    "<" => self
+                        .builder
+                        .build_float_compare(FloatPredicate::OLT, lhs, rhs, ""),
+                    _ => i64_type.const_int(0, false),
+                }
+            }
+            _ => i64_type.const_int(0, false),
+        }
+    }
 
-        let pointer = offset;
+    fn compile_expression_float(
+        &mut self,
+        expression: Expression,
+        arguments: &[Identifier],
+        function: FunctionValue<'ctx>,
+    ) -> FloatValue<'ctx> {
+        let f64_type = self.context.f64_type();
 
-        self.pointer = Option::from(pointer);
-        self.buffer = Option::from(buf);
+        match expression {
+            Expression::Identifier(identifier) => {
+                let parameter_id = arguments.iter().position(|x| x.value == identifier.value);
 
-        true
+                if let Some(id) = parameter_id {
+                    let param = function.get_nth_param(id as u32);
+
+                    if let Some(param) = param {
+                        let val = param.into_float_value();
+
+                        return val;
+                    }
+                }
+            }
+            Expression::Integer(int) => {
+                return f64_type.const_float(int.value as f64);
+            }
+            Expression::Suffix(suffix) => {
+                let lhs = self.compile_expression_float(suffix.left, arguments, function);
+                let rhs = self.compile_expression_float(suffix.right, arguments, function);
+
+                match suffix.operator.as_str() {
+                    "+" => {
+                        return self.builder.build_float_add(lhs, rhs, "add");
+                    }
+                    "/" => {
+                        return self.builder.build_float_div(lhs, rhs, "divide");
+                    }
+                    "-" => {
+                        return self.builder.build_float_sub(lhs, rhs, "minus");
+                    }
+                    _ => {}
+                }
+            }
+            Expression::Boolean(_) => {}
+            Expression::Function(_) => {}
+            Expression::Conditional(conditional) => {
+                let cond = self.compile_expression_int(
+                    *conditional.condition.clone(),
+                    arguments,
+                    function,
+                );
+
+                // branches
+                let then_b = self.context.append_basic_block(function, "then");
+                let else_b = self.context.append_basic_block(function, "else");
+                let cont_b = self.context.append_basic_block(function, "ifcont");
+
+                self.builder.build_conditional_branch(cond, then_b, else_b);
+
+                // then block
+                self.builder.position_at_end(then_b);
+
+                let then_exp = match conditional.body.statements[0].clone() {
+                    Statement::Return(ret) => *ret.expression,
+                    Statement::Expression(exp) => *exp.expression,
+                    _ => {
+                        println!("Nothing :(");
+                        return self.context.f64_type().const_float(0.0);
+                    }
+                };
+
+                let then_val = self.compile_expression_float(then_exp, &[], function);
+                self.builder.build_return(Some(&then_val));
+
+                self.builder.build_unconditional_branch(cont_b);
+
+                let then_b = self.builder.get_insert_block().unwrap();
+
+                // Else
+                /*
+                let else_exp = match *conditional.else_condition {
+                    None => {
+                        return self.context.f64_type().const_float(0.0);
+                    }
+                    Some(node) => match node {
+                        Node::Expression(exp) => exp,
+                        Node::Statement(_) => {
+                            return self.context.f64_type().const_float(0.0);
+                        }
+                    },
+                };*/
+
+                self.builder.position_at_end(else_b);
+
+                let else_val = self.context.f64_type().const_float(0.0);
+
+                self.builder.build_unconditional_branch(cont_b);
+
+                let else_b = self.builder.get_insert_block().unwrap();
+
+                // merge
+                self.builder.position_at_end(cont_b);
+
+                let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
+
+                phi.add_incoming(&[(&then_val, then_b), (&else_val, else_b)]);
+
+                return phi.as_basic_value().into_float_value();
+            }
+            Expression::Null(_) => {}
+            Expression::Call(_call) => {
+                //let param =
+                //self.compile_expression_float(call.parameters[0].clone(), arguments, function);
+
+                let arg = self.context.f64_type().const_float(0.0);
+
+                let fn_type = self.module.get_function("double");
+
+                self.builder
+                    .build_call(fn_type.unwrap(), &[arg.into()], "call");
+            }
+            Expression::Float(_) => {}
+            Expression::String(_) => {}
+            Expression::Index(_) => {}
+            Expression::Array(_) => {}
+            Expression::AssignIndex(_) => {}
+            Expression::Loop(_) => {}
+            Expression::LoopIterator(_) => {}
+            Expression::LoopArrayIterator(_) => {}
+            Expression::Hashmap(_) => {}
+        };
+
+        f64_type.const_float(0 as f64)
     }
 
     #[allow(dead_code)]
-    pub fn run(&self) -> Object {
-        let buf = self.buffer.as_ref().unwrap();
+    pub fn run(&mut self, id: i32, _params: Vec<Rc<RefCell<Object>>>) -> f64 {
+        if let Some(compiled) = &self.compiled_functions[id as usize] {
+            let mut _compiled_down_params: Vec<f64> = Vec::new();
 
-        let hello_fn: extern "win64" fn() -> i64 =
-            unsafe { mem::transmute(buf.ptr(self.pointer.unwrap())) };
+            for _param in _params {
+                if let Object::Integer(integer) = &*_param.as_ref().borrow() {
+                    _compiled_down_params.push(integer.value as f64);
+                }
+            }
 
-        Object::Integer(Integer { value: hello_fn() })
+            let returned = unsafe { compiled.call(_compiled_down_params[0]) };
+
+            println!("JIT RETURNED: {}", returned);
+
+            return returned;
+        }
+
+        0 as f64
     }
 }
