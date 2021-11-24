@@ -21,6 +21,12 @@ pipeline {
                 // Do actual build
                 powershell 'cargo build --release'
             }
+
+            post {
+                success {
+                    powershell 'python3 ./jenkins/prerelease.py'
+                }
+            }
         }
     }
 }
