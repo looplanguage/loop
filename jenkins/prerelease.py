@@ -18,7 +18,7 @@ def upload():
     if build is None:
         build = "0"
 
-    filename_to_upload = platform.system() + "_" + platform.machine() + "_loop_" + file["package"]["version"] + "-" + build
+    filename_to_upload = build + "_" + platform.system() + "_" + platform.machine() + "_loop_" + file["package"]["version"]
     file_to_upload = distutils.spawn.find_executable("./target/release/loop")
 
     filename, file_extension = os.path.splitext(file_to_upload)
