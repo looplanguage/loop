@@ -41,6 +41,14 @@ fn main() {
 
     let flags = get_flags();
 
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() == 2 && args[1] == "version" {
+        println!("{}", env!("CARGO_PKG_VERSION"));
+
+        return;
+    }
+
     if let Some(file) = flags.file.clone() {
         run_file(file, flags);
     } else {
