@@ -24,7 +24,7 @@ pipeline {
 
             post {
                 success {
-                    powershell 'python3 ./jenkins/prerelease.py'
+                    powershell 'python ./jenkins/prerelease.py'
                 }
             }
         }
