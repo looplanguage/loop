@@ -35,7 +35,7 @@ pipeline {
                                 )
                                 }
 
-                                powershell 'Invoke-RestMethod -Uri https://api.looplang.org/add?key=$LOOP_API_KEY&r=0&l=${ava.net.URLEncoder.encode(env.BUILD_URL)}&b=$BUILD_NUMBER&v=$VERSION&pr=1&pl=windows&a=x64&i='
+                                powershell 'Invoke-RestMethod -Uri https://api.looplang.org/add?key=%LOOP_API_KEY%&r=0&l=${ava.net.URLEncoder.encode(env.BUILD_URL)}&b=%BUILD_NUMBER%&v=%VERSION%&pr=1&pl=windows&a=x64&i='
                             }
                 }
             }
