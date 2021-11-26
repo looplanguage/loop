@@ -2,7 +2,6 @@ pipeline {
     agent { label 'windows' }
 
     triggers {
-        pollSCM('')
         githubPush()
     }
 
