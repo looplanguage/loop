@@ -29,7 +29,7 @@ def upload():
 
     s3_client = boto3.client('s3')
     try:
-        response = s3_client.upload_file(file_to_upload, "loopartifacts", "Prerelease/" + filename_to_upload)
+        response = s3_client.upload_file(file_to_upload, "cdn.looplang.org", "prerelease/" + filename_to_upload)
     except ClientError as e:
         logging.error(e)
         return False
