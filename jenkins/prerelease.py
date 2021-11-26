@@ -1,4 +1,5 @@
 import distutils.spawn
+import requests
 
 import logging
 import boto3
@@ -30,6 +31,7 @@ def upload():
     s3_client = boto3.client('s3')
     try:
         response = s3_client.upload_file(file_to_upload, "cdn.looplang.org", "prerelease/" + filename_to_upload)
+        requests.post(os.getenv("NETLIFY_BUILD_LINK"), data = {})
     except ClientError as e:
         logging.error(e)
         return False
