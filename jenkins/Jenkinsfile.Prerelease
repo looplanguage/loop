@@ -1,6 +1,10 @@
 pipeline {
     agent { label 'windows' }
 
+    triggers {
+        pollSCM('')
+    }
+
     stages {
         stage('Check') {
             steps {
