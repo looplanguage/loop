@@ -40,12 +40,6 @@ impl<'ctx> CodeGen<'ctx> {
         self.compiled_functions
             .push(unsafe { self.execution_engine.get_function("double").ok() });
 
-        println!("COMPILED!");
-
-        println!("Verifying...");
-
-        function.verify(true);
-
         None
     }
 
@@ -91,6 +85,9 @@ impl<'ctx> CodeGen<'ctx> {
                     "<" => self
                         .builder
                         .build_float_compare(FloatPredicate::OLT, lhs, rhs, ""),
+                    "==" => self
+                        .builder
+                        .build_float_compare(FloatPredicate::OEQ, lhs, rhs, ""),
                     _ => i64_type.const_int(0, false),
                 }
             }
@@ -136,6 +133,9 @@ impl<'ctx> CodeGen<'ctx> {
                     }
                     "-" => {
                         return self.builder.build_float_sub(lhs, rhs, "minus");
+                    }
+                    "*" => {
+                        return self.builder.build_float_mul(lhs, rhs, "multiply");
                     }
                     _ => {}
                 }
