@@ -42,7 +42,10 @@ pub fn run_function(
                 let ptr = format!("{:p}", stack_item);
 
                 if codegen.get_function(ptr.clone()).is_none() {
-                    let success = codegen.compile(func.func.parsed_function.clone().unwrap(), format!("{:p}", stack_item));
+                    let success = codegen.compile(
+                        func.func.parsed_function.clone().unwrap(),
+                        format!("{:p}", stack_item),
+                    );
 
                     if success {
                         codegen.run(ptr, args);
