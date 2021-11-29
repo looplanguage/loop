@@ -224,9 +224,9 @@ impl VM {
                             VMException::EmptyArray => {
                                 Err(String::from("array index does not exist."))
                             }
-                            VMException::UnableToJIT => {
-                                Err(String::from("Unable to JIT function! (You're running JIT-mode)"))
-                            }
+                            VMException::UnableToJIT => Err(String::from(
+                                "Unable to JIT function! (You're running JIT-mode)",
+                            )),
                         };
                     }
 
@@ -314,9 +314,9 @@ impl VM {
                             VMException::EmptyArray => {
                                 Err(String::from("array index does not exist."))
                             }
-                            VMException::UnableToJIT => {
-                                Err(String::from("Unable to JIT function! (You're running JIT-mode)"))
-                            }
+                            VMException::UnableToJIT => Err(String::from(
+                                "Unable to JIT function! (You're running JIT-mode)",
+                            )),
                         };
                     }
 
