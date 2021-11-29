@@ -1,5 +1,7 @@
 mod tests;
 
+use crate::lib::object::integer;
+use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::identifier::Identifier;
@@ -16,8 +18,6 @@ use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::lib::object::integer;
-use crate::lib::object::null::Null;
 
 type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
 
@@ -268,9 +268,11 @@ impl<'ctx> CodeGen<'ctx> {
 
             let returned = unsafe { compiled.call(_compiled_down_params[0]) };
 
-            return Object::Integer(integer::Integer { value: returned as i64 });
+            return Object::Integer(integer::Integer {
+                value: returned as i64,
+            });
         }
 
-        Object::Null(Null{})
+        Object::Null(Null {})
     }
 }
