@@ -1,0 +1,35 @@
+.linux:
+  image: ubuntu:20.04
+  before_script:
+    - apt-get update && apt-get install -y curl
+    - apt-get install build-essential -y
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+    - apt-get install libllvm-12-ocaml-dev libllvm12 llvm-12 llvm-12-dev llvm-12-doc llvm-12-examples llvm-12-runtime
+
+stages:
+  - check
+  - lint
+  - test
+
+check linux x86_64:
+  stage: check
+  extends:
+    - .linux
+  script:
+    - cargo check
+
+lint linux x86_64:
+  stage: lint
+  extends:
+    - .linux
+  script:
+    - cargo clippy -- -D warnings
+    - cargo fmt --all -- --check
+
+test linux x86_64:
+  stage: test
+  extends:
+    - .linux
+  script:
+    - cargo test
