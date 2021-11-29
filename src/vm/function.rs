@@ -48,7 +48,12 @@ pub fn run_function(
                     );
 
                     if success {
-                        codegen.run(ptr, args);
+                        // Pop function of the stack
+                        vm.pop();
+
+                        let obj = codegen.run(ptr, args);
+
+                        vm.push(Rc::from(RefCell::from(obj)));
                     } else {
                         println!("Unable to JIT-compile function")
                     }
