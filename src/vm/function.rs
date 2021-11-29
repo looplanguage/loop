@@ -42,10 +42,16 @@ pub fn run_function(
                 let ptr = format!("{:p}", stack_item);
 
                 if codegen.get_function(ptr.clone()).is_none() {
-                    codegen.compile(func.func.parsed_function.clone().unwrap(), format!("{:p}", stack_item));
-                }
+                    let success = codegen.compile(func.func.parsed_function.clone().unwrap(), format!("{:p}", stack_item));
 
-                codegen.run(ptr.clone(), args);
+                    if success {
+                        codegen.run(ptr.clone(), args);
+                    } else {
+                        println!("Unable to JIT-compile function")
+                    }
+                } else {
+                    codegen.run(ptr.clone(), args);
+                }
                 return None;
             }
 
