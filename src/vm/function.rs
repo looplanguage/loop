@@ -45,7 +45,7 @@ pub fn run_function(
                     let success = codegen.compile(func.func.parsed_function.clone().unwrap(), format!("{:p}", stack_item));
 
                     if success {
-                        codegen.run(ptr.clone(), args);
+                        codegen.run(ptr, args);
                     } else {
                         println!("Unable to JIT-compile function")
                     }
