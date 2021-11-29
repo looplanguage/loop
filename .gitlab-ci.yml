@@ -4,9 +4,19 @@
     - apt-get update && apt-get install -y curl
     - apt-get install build-essential wget -y
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| apt-key add -
-    - apt-get install libllvm-12-ocaml-dev libllvm12 llvm-12 llvm-12-dev llvm-12-doc llvm-12-examples llvm-12-runtime -y
+    - bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+    - chmod +x llvm.sh
+    - ./llvm.sh 12
     - source $HOME/.cargo/env
+
+.windows:
+  tags:
+    - shared-windows
+    - windows
+    - windows-1809
+  before_script:
+    - Remove-Item Alias:wget
+    -
 
 stages:
   - check
