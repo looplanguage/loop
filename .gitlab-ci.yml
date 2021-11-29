@@ -2,7 +2,7 @@
   image: ubuntu:20.04
   before_script:
     - apt-get update && apt-get install -y curl
-    - apt-get install build-essential wget -y
+    - apt-get install build-essential wget lsb-release software-properties-common -y
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
     - chmod +x llvm.sh
