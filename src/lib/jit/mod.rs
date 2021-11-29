@@ -212,7 +212,7 @@ impl<'ctx> CodeGen<'ctx> {
                     (&else_val, else_b),
                 ]);
 
-                let return_val = phi.as_basic_value().into_float_value();;
+                let return_val = phi.as_basic_value().into_float_value();
 
                 self.builder.build_return(Some(&return_val));
 
