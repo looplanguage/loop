@@ -247,8 +247,6 @@ impl<'ctx> CodeGen<'ctx> {
             Expression::LoopArrayIterator(_) => None,
             Expression::Hashmap(_) => None,
         };
-
-        None
     }
 
     #[allow(dead_code)]
