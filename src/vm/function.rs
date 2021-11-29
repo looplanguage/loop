@@ -55,7 +55,7 @@ pub fn run_function(
 
                         vm.push(Rc::from(RefCell::from(obj)));
                     } else {
-                        println!("Unable to JIT-compile function")
+                        return Some(VMException::UnableToJIT);
                     }
                 } else {
                     codegen.run(ptr, args);
