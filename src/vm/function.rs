@@ -50,7 +50,7 @@ pub fn run_function(
                         println!("Unable to JIT-compile function")
                     }
                 } else {
-                    codegen.run(ptr.clone(), args);
+                    codegen.run(ptr, args);
                 }
                 return None;
             }
