@@ -182,7 +182,6 @@ impl<'ctx> CodeGen<'ctx> {
 
                 let else_exp = match *conditional.else_condition {
                     None => {
-                        println!("NONE");
                         Expression::Integer(Integer { value: 0 })
                     }
                     Some(stmt) => {
@@ -193,7 +192,6 @@ impl<'ctx> CodeGen<'ctx> {
                                 Expression::Integer(Integer { value: 0 })
                             }
                         } else {
-                            println!("NOT EXP: {:?}", stmt);
                             Expression::Integer(Integer { value: 0 })
                         }
                     }
