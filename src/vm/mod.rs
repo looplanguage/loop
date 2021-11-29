@@ -95,7 +95,7 @@ impl VM {
             module,
             builder: context.create_builder(),
             execution_engine,
-            compiled_functions: vec![],
+            compiled_functions: HashMap::new(),
             parameters: vec![],
         };
 
@@ -224,6 +224,9 @@ impl VM {
                             VMException::EmptyArray => {
                                 Err(String::from("array index does not exist."))
                             }
+                            VMException::UnableToJIT => Err(String::from(
+                                "Unable to JIT function! (You're running JIT-mode)",
+                            )),
                         };
                     }
 
@@ -311,6 +314,9 @@ impl VM {
                             VMException::EmptyArray => {
                                 Err(String::from("array index does not exist."))
                             }
+                            VMException::UnableToJIT => Err(String::from(
+                                "Unable to JIT function! (You're running JIT-mode)",
+                            )),
                         };
                     }
 

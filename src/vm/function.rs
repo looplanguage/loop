@@ -39,8 +39,27 @@ pub fn run_function(
 
                 args.reverse();
 
-                codegen.compile(func.func.parsed_function.clone().unwrap());
-                codegen.run(0, args);
+                let ptr = format!("{:p}", stack_item);
+
+                if codegen.get_function(ptr.clone()).is_none() {
+                    let success = codegen.compile(
+                        func.func.parsed_function.clone().unwrap(),
+                        format!("{:p}", stack_item),
+                    );
+
+                    if success {
+                        // Pop function of the stack
+                        vm.pop();
+
+                        let obj = codegen.run(ptr, args);
+
+                        vm.push(Rc::from(RefCell::from(obj)));
+                    } else {
+                        return Some(VMException::UnableToJIT);
+                    }
+                } else {
+                    codegen.run(ptr, args);
+                }
                 return None;
             }
 
