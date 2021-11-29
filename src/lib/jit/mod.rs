@@ -47,7 +47,7 @@ impl<'ctx> CodeGen<'ctx> {
             return false;
         }
 
-        self.compiled_functions.insert(pointer.clone(), unsafe {
+        self.compiled_functions.insert(pointer, unsafe {
             self.execution_engine.get_function("double").ok().unwrap()
         });
 
