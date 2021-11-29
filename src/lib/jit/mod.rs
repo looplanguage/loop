@@ -93,8 +93,6 @@ impl<'ctx> CodeGen<'ctx> {
         arguments: &[Identifier],
         function: FunctionValue<'ctx>,
     ) -> Option<IntValue<'ctx>> {
-        let i64_type = self.context.i64_type();
-
         match expression {
             Expression::Suffix(suffix) => {
                 let lhs = self.compile_expression_float(suffix.left, arguments, function)?;
