@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use crate::lib::object::Object;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::identifier::Identifier;
@@ -11,6 +12,9 @@ use inkwell::values::{FloatValue, FunctionValue, IntValue};
 use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::rc::Rc;
+use crate::parser::expression::integer::Integer;
+use crate::parser::expression::null::Null;
+use crate::parser::program::Node;
 
 type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
 
@@ -39,6 +43,8 @@ impl<'ctx> CodeGen<'ctx> {
 
         self.compiled_functions
             .push(unsafe { self.execution_engine.get_function("double").ok() });
+
+        function.verify(true);
 
         None
     }
@@ -160,39 +166,40 @@ impl<'ctx> CodeGen<'ctx> {
                 self.builder.position_at_end(then_b);
 
                 let then_exp = match conditional.body.statements[0].clone() {
-                    Statement::Return(ret) => *ret.expression,
-                    Statement::Expression(exp) => *exp.expression,
+                    Statement::Expression(exp) => {*exp.expression }
                     _ => {
-                        println!("Nothing :(");
                         return self.context.f64_type().const_float(0.0);
                     }
                 };
 
-                let then_val = self.compile_expression_float(then_exp, &[], function);
-                self.builder.build_return(Some(&then_val));
-
+                let then_val = self.compile_expression_float(then_exp, arguments, function);
                 self.builder.build_unconditional_branch(cont_b);
 
                 let then_b = self.builder.get_insert_block().unwrap();
 
-                // Else
-                /*
-                let else_exp = match *conditional.else_condition {
-                    None => {
-                        return self.context.f64_type().const_float(0.0);
-                    }
-                    Some(node) => match node {
-                        Node::Expression(exp) => exp,
-                        Node::Statement(_) => {
-                            return self.context.f64_type().const_float(0.0);
-                        }
-                    },
-                };*/
-
+                // else block
                 self.builder.position_at_end(else_b);
 
-                let else_val = self.context.f64_type().const_float(0.0);
+                let else_exp = match *conditional.else_condition {
+                    None => {
+                        println!("NONE");
+                        Expression::Integer(Integer { value: 0 })
+                    }
+                    Some(stmt) => {
+                        if let Node::Statement(Statement::Block(block)) = stmt {
+                            if let Statement::Expression(exp) = block.statements[0].clone() {
+                                *exp.expression
+                            } else {
+                                Expression::Integer(Integer { value: 0 })
+                            }
+                        } else {
+                            println!("NOT EXP: {:?}", stmt);
+                            Expression::Integer(Integer { value: 0 })
+                        }
+                    }
+                };
 
+                let else_val = self.compile_expression_float(else_exp, arguments, function);
                 self.builder.build_unconditional_branch(cont_b);
 
                 let else_b = self.builder.get_insert_block().unwrap();
@@ -202,9 +209,16 @@ impl<'ctx> CodeGen<'ctx> {
 
                 let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
 
-                phi.add_incoming(&[(&then_val, then_b), (&else_val, else_b)]);
+                phi.add_incoming(&[
+                    (&then_val, then_b),
+                    (&else_val, else_b),
+                ]);
 
-                return phi.as_basic_value().into_float_value();
+                let return_val = phi.as_basic_value().into_float_value();;
+
+                self.builder.build_return(Some(&return_val));
+
+                return return_val;
             }
             Expression::Null(_) => {}
             Expression::Call(_call) => {
