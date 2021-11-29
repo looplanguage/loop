@@ -16,6 +16,8 @@ use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::lib::object::integer;
+use crate::lib::object::null::Null;
 
 type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
 
@@ -254,7 +256,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     #[allow(dead_code)]
-    pub fn run(&mut self, ptr: String, _params: Vec<Rc<RefCell<Object>>>) -> f64 {
+    pub fn run(&mut self, ptr: String, _params: Vec<Rc<RefCell<Object>>>) -> Object {
         if let Some(compiled) = self.get_function(ptr) {
             let mut _compiled_down_params: Vec<f64> = Vec::new();
 
@@ -266,11 +268,9 @@ impl<'ctx> CodeGen<'ctx> {
 
             let returned = unsafe { compiled.call(_compiled_down_params[0]) };
 
-            println!("JIT RETURNED: {}", returned);
-
-            return returned;
+            return Object::Integer(integer::Integer { value: returned as i64 });
         }
 
-        0 as f64
+        Object::Null(Null{})
     }
 }
