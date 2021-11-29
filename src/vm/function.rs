@@ -39,8 +39,13 @@ pub fn run_function(
 
                 args.reverse();
 
-                codegen.compile(func.func.parsed_function.clone().unwrap());
-                codegen.run(0, args);
+                let ptr = format!("{:p}", stack_item);
+
+                if codegen.get_function(ptr.clone()).is_none() {
+                    codegen.compile(func.func.parsed_function.clone().unwrap(), format!("{:p}", stack_item));
+                }
+
+                codegen.run(ptr.clone(), args);
                 return None;
             }
 

@@ -11,6 +11,7 @@ use inkwell::module::Module;
 use inkwell::values::{FloatValue, FunctionValue, IntValue};
 use inkwell::FloatPredicate;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::null::Null;
@@ -24,14 +25,17 @@ pub struct CodeGen<'ctx> {
     pub(crate) module: Module<'ctx>,
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
-    pub(crate) compiled_functions: Vec<Option<JitFunction<'ctx, DoubleFunc>>>,
+    pub(crate) compiled_functions: HashMap<String, JitFunction<'ctx, DoubleFunc>>,
     pub(crate) parameters: Vec<String>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
 impl<'ctx> CodeGen<'ctx> {
-    #[allow(dead_code)]
-    pub fn compile(&mut self, func: Function) -> Option<bool> {
+    pub fn get_function(&self, pointer: String) -> Option<&JitFunction<'ctx, DoubleFunc>> {
+        self.compiled_functions.get(&*pointer)
+    }
+
+    pub fn compile(&mut self, func: Function, pointer: String) -> Option<bool> {
         let f64_type = self.context.f64_type();
         let fn_type = f64_type.fn_type(&[f64_type.into()], false);
         let function = self.module.add_function("double", fn_type, None);
@@ -41,8 +45,7 @@ impl<'ctx> CodeGen<'ctx> {
 
         self.compile_statement(func.body.statements, func.parameters, function);
 
-        self.compiled_functions
-            .push(unsafe { self.execution_engine.get_function("double").ok() });
+        self.compiled_functions.insert(pointer.clone(), unsafe { self.execution_engine.get_function("double").ok().unwrap() });
 
         function.verify(true);
 
@@ -245,8 +248,8 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     #[allow(dead_code)]
-    pub fn run(&mut self, id: i32, _params: Vec<Rc<RefCell<Object>>>) -> f64 {
-        if let Some(compiled) = &self.compiled_functions[id as usize] {
+    pub fn run(&mut self, ptr: String, _params: Vec<Rc<RefCell<Object>>>) -> f64 {
+        if let Some(compiled) = self.get_function(ptr) {
             let mut _compiled_down_params: Vec<f64> = Vec::new();
 
             for _param in _params {
