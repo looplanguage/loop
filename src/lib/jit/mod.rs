@@ -1,3 +1,5 @@
+mod tests;
+
 use crate::lib::object::Object;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::identifier::Identifier;
