@@ -15,17 +15,19 @@ machine.<br>
 
 ## Get started (usage)
 
-1. Download a pre-built binary from the releases section for your platform
+1. Download a pre-built binary from [downloads.looplang.org](https://downloads.looplang.org)
 2. Run `./loop` to start the REPL environment or
 3. Run `./loop FILENAME.lp` to run a specific file.
 
 ## Get Started (development)
 
 1. Make sure you have [Rust](https://www.rust-lang.org/) installed
-2. Clone the repository `git clone https://github.com/looplanguage/loop`
-3. Enter the repository `cd loop`
-4. Run the command `cargo run`
-5. The Loop shell should now popup
+1. You also need a working version of LLVM12, with an environment variable "LLVM_SYS_120_PREFIX" pointing towards the build directory
+   1. Note: on Windows you can't use the installer provided by LLVM due to needing llvm-config.exe, instead you need to compile it yourself
+1. Clone the repository `git clone https://github.com/looplanguage/loop`
+1. Enter the repository `cd loop`
+1. Run the command `cargo run`
+1. The Loop shell should now popup
 
 Go to our [Jira](https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues) board to see all the issues and tasks to work on.
 
