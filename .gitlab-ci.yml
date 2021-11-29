@@ -6,6 +6,7 @@
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| apt-key add -
     - apt-get install libllvm-12-ocaml-dev libllvm12 llvm-12 llvm-12-dev llvm-12-doc llvm-12-examples llvm-12-runtime -y
+    - source $HOME/.cargo/env
 
 stages:
   - check
