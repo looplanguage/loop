@@ -99,12 +99,18 @@ impl<'ctx> CodeGen<'ctx> {
                 let rhs = self.compile_expression_float(suffix.right, arguments, function)?;
 
                 match suffix.operator.as_str() {
-                    "<" => Some(self
-                        .builder
-                        .build_float_compare(FloatPredicate::OLT, lhs, rhs, "")),
-                    "==" => Some(self
-                        .builder
-                        .build_float_compare(FloatPredicate::OEQ, lhs, rhs, "")),
+                    "<" => {
+                        Some(
+                            self.builder
+                                .build_float_compare(FloatPredicate::OLT, lhs, rhs, ""),
+                        )
+                    }
+                    "==" => {
+                        Some(
+                            self.builder
+                                .build_float_compare(FloatPredicate::OEQ, lhs, rhs, ""),
+                        )
+                    }
                     _ => None,
                 }
             }
@@ -136,9 +142,7 @@ impl<'ctx> CodeGen<'ctx> {
 
                 None
             }
-            Expression::Integer(int) => {
-                Some(f64_type.const_float(int.value as f64))
-            }
+            Expression::Integer(int) => Some(f64_type.const_float(int.value as f64)),
             Expression::Suffix(suffix) => {
                 let lhs = self.compile_expression_float(suffix.left, arguments, function)?;
                 let rhs = self.compile_expression_float(suffix.right, arguments, function)?;
