@@ -95,7 +95,7 @@ impl VM {
             module,
             builder: context.create_builder(),
             execution_engine,
-            compiled_functions: vec![],
+            compiled_functions: HashMap::new(),
             parameters: vec![],
         };
 
