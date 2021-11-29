@@ -1,15 +1,41 @@
 #[cfg(test)]
 mod tests {
-    use crate::{compiler, lexer, parser};
     use crate::lib::exception::Exception;
     use crate::lib::object::integer::Integer;
     use crate::lib::object::Object;
     use crate::vm::build_vm;
-
+    use crate::{compiler, lexer, parser};
 
     #[test]
-    fn multiply_function() {
-        test_jit("var t = fn(x) { return x * 2 }; t(10)", Object::Integer(Integer { value: 20 }))
+    fn function_single_parameter() {
+        test_jit(
+            "var t = fn(x) { return x * 2 }; t(10)",
+            Object::Integer(Integer { value: 20 }),
+        )
+    }
+
+    #[test]
+    fn conditionals_less_than() {
+        test_jit(
+            "var t = fn(x) { if(x < 10) { 500 } else { 200 } }; t(9)",
+            Object::Integer(Integer { value: 500 }),
+        );
+        test_jit(
+            "var t = fn(x) { if(x < 10) { 500 } else { 200 } }; t(10)",
+            Object::Integer(Integer { value: 200 }),
+        );
+    }
+
+    #[test]
+    fn conditionals_equals() {
+        test_jit(
+            "var t = fn(x) { if(x == 10) { 500 } else { 200 } }; t(9)",
+            Object::Integer(Integer { value: 200 }),
+        );
+        test_jit(
+            "var t = fn(x) { if(x == 10) { 500 } else { 200 } }; t(10)",
+            Object::Integer(Integer { value: 500 }),
+        );
     }
 
     fn test_jit(input: &str, expected: Object) {
