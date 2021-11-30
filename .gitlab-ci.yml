@@ -16,7 +16,7 @@
     - windows
     - windows-1809
   before_script:
-    - choco install rustup.install
+    - choco install rustup.install -y
     - refreshenv
     - rustup toolchain install stable-x86_64-pc-windows-msvc
     - rustup install 1.56.1
