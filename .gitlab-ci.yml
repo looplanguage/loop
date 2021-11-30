@@ -16,14 +16,39 @@
     - windows
     - windows-1809
   before_script:
-    - Remove-Item Alias:wget
-    -
+    - choco install rust-ms --version=1.56.1
+    - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
+    - refreshenv
 
 stages:
   - check
   - lint
   - test
 
+# Windows
+check windows x86_64:
+  stage: check
+  extends:
+    - .windows
+  script:
+    - cargo check
+
+lint windows x86_64:
+  stage: check
+  extends:
+    - .windows
+  script:
+    - cargo clippy -- -D warnings
+    - cargo fmt --all -- --check
+
+test windows x86_64:
+  stage: check
+  extends:
+    - .windows
+  script:
+    - cargo test
+
+# Linux
 check linux x86_64:
   stage: check
   extends:
