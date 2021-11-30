@@ -3,7 +3,7 @@
   before_script:
     - ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
     - DEBIAN_FRONTEND=noninteractive apt-get update
-    - python -m ensurepip --upgrade
+    - python3 -m ensurepip --upgrade
     - apt-get install curl build-essential python3-distutils wget lsb-release software-properties-common libz-dev -y
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - wget https://apt.llvm.org/llvm.sh
