@@ -16,7 +16,7 @@
     - windows
     - windows-1809
   before_script:
-    - choco install rust-ms --version=1.56.1
+    - choco install rust-ms --version=1.56.1 -y
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
     - refreshenv
 
