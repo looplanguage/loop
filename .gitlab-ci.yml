@@ -71,9 +71,11 @@ deploy windows x86_64:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
     NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+    CI_PIPELINE_ID: $CI_PIPELINE_ID
   extends:
     - .windows
   script:
+    - cargo build --release
     - python scripts/prerelease.py
 
 # Linux
@@ -108,7 +110,9 @@ deploy linux x86_64:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
     NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+    CI_PIPELINE_ID: $CI_PIPELINE_ID
   extends:
     - .linux
   script:
+    - cargo build --release
     - python3 scripts/prerelease.py
