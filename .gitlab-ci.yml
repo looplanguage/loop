@@ -18,12 +18,14 @@
   before_script:
     - choco install rust-ms --version=1.56.1 -y
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
+    - cd $CI_PROJECT_DIR
     - refreshenv
 
 stages:
   - check
   - lint
   - test
+  - deploy
 
 # Windows
 check windows x86_64:
@@ -48,6 +50,17 @@ test windows x86_64:
   script:
     - cargo test
 
+deploy windows x86_64:
+  stage: deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+  extends:
+    - .windows
+  script:
+    - python scripts/prerelease.py
+
 # Linux
 check linux x86_64:
   stage: check
@@ -70,3 +83,14 @@ test linux x86_64:
     - .linux
   script:
     - cargo test
+
+deploy linux x86_64:
+  stage: deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+  extends:
+    - .linux
+  script:
+    - python scripts/prerelease.py
