@@ -16,6 +16,8 @@
     - windows
     - windows-1809
   before_script:
+    - choco install -y python3
+    - refreshenv
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
@@ -96,4 +98,4 @@ deploy linux x86_64:
   extends:
     - .linux
   script:
-    - python scripts/prerelease.py
+    - python3 scripts/prerelease.py
