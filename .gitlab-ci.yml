@@ -21,7 +21,7 @@
   before_script:
     - choco install -y python3
     - refreshenv
-    - choco install pip
+    - choco install -y pip
     - refreshenv
     - pip install distutils
     - pip install boto3
