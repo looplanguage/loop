@@ -16,8 +16,10 @@
     - windows
     - windows-1809
   before_script:
-    - choco install rustup.install -y
+    - choco install rust-ms --version=1.56.1 -y
     - refreshenv
+    - rustup install 1.56.1
+    - rustup override set 1.56.1
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
     - cd $CI_PROJECT_DIR
     - refreshenv
