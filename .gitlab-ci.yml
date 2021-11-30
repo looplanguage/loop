@@ -21,6 +21,8 @@
   before_script:
     - choco install -y python3
     - refreshenv
+    - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    - python get-pip.py
     - pip install distutils
     - pip install boto3
     - pip install requests
