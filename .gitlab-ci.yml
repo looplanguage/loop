@@ -21,9 +21,7 @@
   before_script:
     - choco install -y python3
     - refreshenv
-    - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
-    - python get-pip.py
     - pip install distutils
     - pip install boto3
     - pip install requests
@@ -83,7 +81,7 @@ deploy windows x86_64:
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .windows
-    #- .deploy
+    - .deploy
   script:
     - cargo build --release
     - python scripts/prerelease.py
@@ -123,7 +121,17 @@ deploy linux x86_64:
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .linux
-    #- .deploy
+    - .deploy
   script:
     - cargo build --release
     - python scripts/prerelease.py
+
+
+refresh downloads website:
+  only:
+    refs:
+      - main
+  image: ubuntu:20.04
+  stage: dl site refresh
+  script:
+    - curl -X POST -d {} $NETLIFY_BUILD_LINK
