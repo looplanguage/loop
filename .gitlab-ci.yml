@@ -9,10 +9,10 @@
     - chmod +x llvm.sh
     - ./llvm.sh 12
     - source $HOME/.cargo/env
-    - python3 -m pip install distutils
-    - python3 -m pip install boto3
-    - python3 -m pip install requests
-    - python3 -m pip install toml
+    - pip install distutils
+    - pip install boto3
+    - pip install requests
+    - pip install toml
 
 .windows:
   tags:
@@ -22,10 +22,10 @@
   before_script:
     - choco install -y python3
     - refreshenv
-    - python -m pip install distutils
-    - python -m pip install boto3
-    - python -m pip install requests
-    - python -m pip install toml
+    - pip install distutils
+    - pip install boto3
+    - pip install requests
+    - pip install toml
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
