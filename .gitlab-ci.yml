@@ -32,6 +32,10 @@
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
     - cd $CI_PROJECT_DIR
 
+.ci:
+  only:
+    - merge_requests
+
 .deploy:
   only:
     refs:
@@ -46,27 +50,27 @@ stages:
 
 # Windows
 check windows x86_64:
-  when: manual
   stage: check
   extends:
     - .windows
+    - .ci
   script:
     - cargo check
 
 lint windows x86_64:
-  when: manual
   stage: lint
   extends:
     - .windows
+    - .ci
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
 
 test windows x86_64:
-  when: manual
   stage: test
   extends:
     - .windows
+    - .ci
   script:
     - cargo test
 
@@ -79,34 +83,34 @@ deploy windows x86_64:
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .windows
-    #- .deploy
+    - .deploy
   script:
     - cargo build --release
     - py scripts/prerelease.py
 
 # Linux
 check linux x86_64:
-  when: manual
   stage: check
   extends:
     - .linux
+    - .ci
   script:
     - cargo check
 
 lint linux x86_64:
-  when: manual
   stage: lint
   extends:
     - .linux
+    - .ci
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
 
 test linux x86_64:
-  when: manual
   stage: test
   extends:
     - .linux
+    - .ci
   script:
     - cargo test
 
