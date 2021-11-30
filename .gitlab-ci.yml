@@ -20,7 +20,7 @@
     - windows-1809
   before_script:
     - curl -o python-3.10.0-amd64.exe https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe
-    - python-3.10.0-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
+    - ./python-3.10.0-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
     - refreshenv
     - pip install distutils
     - pip install boto3
