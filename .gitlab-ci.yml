@@ -3,8 +3,8 @@
   before_script:
     - ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
     - DEBIAN_FRONTEND=noninteractive apt-get update
+    - apt-get install curl build-essential python3 python3-pip python3-distutils wget lsb-release software-properties-common libz-dev -y
     - python3 -m ensurepip --upgrade
-    - apt-get install curl build-essential python3-distutils wget lsb-release software-properties-common libz-dev -y
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - wget https://apt.llvm.org/llvm.sh
     - chmod +x llvm.sh
@@ -22,7 +22,6 @@
   before_script:
     - choco install -y python3
     - refreshenv
-    - python3 -m ensurepip --upgrade
     - pip install distutils
     - pip install boto3
     - pip install requests
