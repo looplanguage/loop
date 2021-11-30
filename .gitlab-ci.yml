@@ -27,10 +27,14 @@
     - cd $CI_PROJECT_DIR
 
 stages:
+  - check
+  - lint
+  - test
   - deploy
 
 # Windows
 check windows x86_64:
+  when: manual
   stage: check
   extends:
     - .windows
@@ -38,6 +42,7 @@ check windows x86_64:
     - cargo check
 
 lint windows x86_64:
+  when: manual
   stage: lint
   extends:
     - .windows
@@ -46,6 +51,7 @@ lint windows x86_64:
     - cargo fmt --all -- --check
 
 test windows x86_64:
+  when: manual
   stage: test
   extends:
     - .windows
@@ -65,6 +71,7 @@ deploy windows x86_64:
 
 # Linux
 check linux x86_64:
+  when: manual
   stage: check
   extends:
     - .linux
@@ -72,6 +79,7 @@ check linux x86_64:
     - cargo check
 
 lint linux x86_64:
+  when: manual
   stage: lint
   extends:
     - .linux
@@ -80,6 +88,7 @@ lint linux x86_64:
     - cargo fmt --all -- --check
 
 test linux x86_64:
+  when: manual
   stage: test
   extends:
     - .linux
