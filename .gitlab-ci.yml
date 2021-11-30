@@ -21,12 +21,11 @@
   before_script:
     - curl -o python-3.10.0-amd64.exe https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe
     - ./python-3.10.0-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
-    - refreshenv
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - pip install distutils
-    - pip install boto3
-    - pip install requests
-    - pip install toml
+    - py -m pip install distutils
+    - py -m pip install boto3
+    - py -m pip install requests
+    - py -m pip install toml
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
@@ -85,7 +84,7 @@ deploy windows x86_64:
     #- .deploy
   script:
     - cargo build --release
-    - python scripts/prerelease.py
+    - py scripts/prerelease.py
 
 # Linux
 check linux x86_64:
