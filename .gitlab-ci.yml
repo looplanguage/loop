@@ -17,7 +17,7 @@
     - windows-1809
   before_script:
     - curl -o rustup-install.exe https://win.rustup.rs/
-    - cmd /c /start /wait rustup-install.exe -y
+    - cmd /c start /wait rustup-install.exe -y
     - refreshenv
     - rustup install 1.56.1
     - rustup override set 1.56.1
