@@ -22,10 +22,9 @@
     - curl -o python-3.10.0-amd64.exe https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe
     - ./python-3.10.0-amd64.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - py -m pip install distutils
-    - py -m pip install boto3
-    - py -m pip install requests
-    - py -m pip install toml
+    - python -m pip install boto3
+    - python -m pip install requests
+    - python -m pip install toml
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
