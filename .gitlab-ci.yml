@@ -27,9 +27,6 @@
     - cd $CI_PROJECT_DIR
 
 stages:
-  - check
-  - lint
-  - test
   - deploy
 
 # Windows
