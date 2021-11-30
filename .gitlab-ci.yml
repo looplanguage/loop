@@ -34,7 +34,7 @@ check windows x86_64:
     - cargo check
 
 lint windows x86_64:
-  stage: check
+  stage: lint
   extends:
     - .windows
   script:
@@ -42,7 +42,7 @@ lint windows x86_64:
     - cargo fmt --all -- --check
 
 test windows x86_64:
-  stage: check
+  stage: test
   extends:
     - .windows
   script:
