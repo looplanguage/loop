@@ -22,7 +22,7 @@
     - choco install -y python3
     - refreshenv
     - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    - python get-pip.py
+    - python3 get-pip.py
     - pip install distutils
     - pip install boto3
     - pip install requests
@@ -34,6 +34,11 @@
     - rustup override set 1.56.1
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
     - cd $CI_PROJECT_DIR
+
+.deploy:
+  only:
+    refs:
+      - main
 
 stages:
   - check
@@ -76,6 +81,7 @@ deploy windows x86_64:
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .windows
+    - .deploy
   script:
     - cargo build --release
     - python scripts/prerelease.py
@@ -115,6 +121,7 @@ deploy linux x86_64:
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .linux
+    - .deploy
   script:
     - cargo build --release
     - python3 scripts/prerelease.py
