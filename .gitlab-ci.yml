@@ -23,7 +23,7 @@
     - refreshenv
     - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")`
-    - python3 get-pip.py
+    - python get-pip.py
     - pip install distutils
     - pip install boto3
     - pip install requests
@@ -46,6 +46,7 @@ stages:
   - lint
   - test
   - deploy
+  - dl site refresh
 
 # Windows
 check windows x86_64:
@@ -125,4 +126,4 @@ deploy linux x86_64:
     #- .deploy
   script:
     - cargo build --release
-    - python3 scripts/prerelease.py
+    - python scripts/prerelease.py
