@@ -81,7 +81,7 @@ deploy windows x86_64:
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .windows
-    - .deploy
+    #- .deploy
   script:
     - cargo build --release
     - python scripts/prerelease.py
