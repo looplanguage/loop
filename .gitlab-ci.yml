@@ -31,8 +31,6 @@
     - rustup override set 1.56.1
     - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
     - cd ${CI_PROJECT_DIR}
-  variables:
-    CI_PROJECT_DIR: $CI_PROJECT_DIR
   cache:
     - key: "llvm12.0.1"
       paths:
