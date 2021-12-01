@@ -57,6 +57,7 @@ stages:
 # Windows
 setup windows x86_64:
   stage: setup
+  when: always
   extends:
     - .windows
   script:
