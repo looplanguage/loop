@@ -162,6 +162,7 @@ deploy linux x86_64:
     - .linux
     - .deploy
   before_script:
+    - DEBIAN_FRONTEND=noninteractive apt-get update
     - apt-get install python3 python3-pip python3-distutils -y
     - pip install boto3
     - pip install requests
