@@ -57,7 +57,9 @@ stages:
 # Windows
 setup windows x86_64:
   stage: setup
-  when: always
+  only:
+    - branches
+    - merge_requests
   extends:
     - .windows
   script:
