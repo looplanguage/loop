@@ -116,6 +116,15 @@ deploy windows x86_64:
     - .deploy
     - .windows-build-tooling
   before_script:
+    - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
+    - |
+      [Environment]::SetEnvironmentVariable("LLVM_SYS_120_PREFIX", $env:LLVM_SYS_120_PREFIX, [System.EnvironmentVariableTarget]::Machine)
+    - cd ${CI_PROJECT_DIR}
+    - curl -o rustup-init.exe https://win.rustup.rs/
+    - ./rustup-init.exe -y
+    - $env:Path += ";$Env:Userprofile\.cargo\bin"
+    - rustup install 1.56.1
+    - rustup override set 1.56.1
     - choco install -y python --version=3.8.3
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
     - python -m pip install boto3
