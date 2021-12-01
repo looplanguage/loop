@@ -33,7 +33,7 @@
     - ls $Env:LLVM_SYS_120_PREFIX
     - cd ${CI_PROJECT_DIR}
   variables:
-    LLVM_SYS_120_PREFIX: "${CI_PROJECT_DIR}\llvm-12.0.1"
+    LLVM_SYS_120_PREFIX: "${CI_PROJECT_DIR}\\llvm-12.0.1"
   cache:
     - key: "llvm12.0.1"
       paths:
