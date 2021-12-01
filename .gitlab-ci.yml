@@ -57,7 +57,7 @@ stages:
 setup windows x86_64:
   stage: setup
   only:
-    - branches
+    - main
     - merge_requests
   extends:
     - .windows
