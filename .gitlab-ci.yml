@@ -29,8 +29,8 @@
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
     - rustup install 1.56.1
     - rustup override set 1.56.1
-    - $Env:LLVM_SYS_120_PREFIX="$Env:CI_PROJECT_DIR\llvm-12.0.1"
-    - cd $Env:CI_PROJECT_DIR
+    - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
+    - cd ${CI_PROJECT_DIR}
   variables:
     CI_PROJECT_DIR: $CI_PROJECT_DIR
   cache:
@@ -67,9 +67,9 @@ setup windows x86_64:
   extends:
     - .windows
   script:
-    - if(Test-Path -Path $Env:CI_PROJECT_DIR/llvm-12.0.1) { exit 10 }
+    - if(Test-Path -Path ${CI_PROJECT_DIR}/llvm-12.0.1) { exit 10 }
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
-    - Move-Item -Path C:\llvm\llvm-12.0.1-windows-x64 -Destination $Env:CI_PROJECT_DIR/llvm-12.0.1
+    - Move-Item -Path C:\llvm\llvm-12.0.1-windows-x64 -Destination ${CI_PROJECT_DIR}/llvm-12.0.1
   allow_failure:
     exit_codes: 10
 
