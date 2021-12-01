@@ -31,11 +31,11 @@
     - rustup override set 1.56.1
     - cd $CI_PROJECT_DIR
   variables:
-    LLVM_SYS_120_PREFIX: C:\llvm\llvm-12.0.1-windows-x64
+    LLVM_SYS_120_PREFIX: C:\\llvm\\llvm-12.0.1-windows-x64
   cache:
     key: "$CI_COMMIT_REF_SLUG"
     paths:
-      - C:\llvm\llvm-12.0.1-windows-x64
+      - C:\\llvm\\llvm-12.0.1-windows-x64
 
 
 .ci:
