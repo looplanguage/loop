@@ -74,7 +74,7 @@ setup windows x86_64:
     - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
     - ls $Env:LLVM_SYS_120_PREFIX
   allow_failure:
-    exit_codes: 10
+    exit_codes: 1
 
 check windows x86_64:
   stage: check
