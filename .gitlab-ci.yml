@@ -29,13 +29,12 @@
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
     - rustup install 1.56.1
     - rustup override set 1.56.1
+    - $Env:LLVM_SYS_120_PREFIX="C:\llvm\llvm-12.0.1-windows-x64"
     - cd $CI_PROJECT_DIR
-  variables:
-    LLVM_SYS_120_PREFIX: C:\\llvm\\llvm-12.0.1-windows-x64
   cache:
-    key: "$CI_COMMIT_REF_SLUG"
+    key: "llvm12.0.1"
     paths:
-      - C:\\llvm\\llvm-12.0.1-windows-x64
+      - C:\llvm\llvm-12.0.1-windows-x64
 
 
 .ci:
