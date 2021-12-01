@@ -59,8 +59,6 @@ setup windows x86_64:
   stage: setup
   extends:
     - .windows
-    - .ci
-    - .deploy
   script:
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
 
