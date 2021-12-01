@@ -34,7 +34,7 @@
   cache:
     key: "llvm12.0.1"
     paths:
-      - C:\llvm\llvm-12.0.1-windows-x64
+      - C:/llvm/llvm-12.0.1-windows-x64/
 
 
 .ci:
