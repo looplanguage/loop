@@ -1,0 +1,139 @@
+.linux:
+  image: ubuntu:20.04
+  before_script:
+    - ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
+    - DEBIAN_FRONTEND=noninteractive apt-get update
+    - apt-get install curl build-essential python3 python3-pip python3-distutils wget lsb-release software-properties-common libz-dev -y
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    - wget https://apt.llvm.org/llvm.sh
+    - chmod +x llvm.sh
+    - ./llvm.sh 12
+    - source $HOME/.cargo/env
+    - pip install boto3
+    - pip install requests
+    - pip install toml
+
+.windows:
+  tags:
+    - shared-windows
+    - windows
+    - windows-1809
+  before_script:
+    - choco install -y python --version=3.8.3
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    - python -m pip install boto3
+    - python -m pip install requests
+    - python -m pip install toml
+    - curl -o rustup-init.exe https://win.rustup.rs/
+    - ./rustup-init.exe -y
+    - $env:Path += ";$Env:Userprofile\.cargo\bin"
+    - rustup install 1.56.1
+    - rustup override set 1.56.1
+    - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
+    - cd $CI_PROJECT_DIR
+
+.ci:
+  only:
+    - merge_requests
+
+.deploy:
+  only:
+    refs:
+      - main
+
+stages:
+  - check
+  - lint
+  - test
+  - deploy
+  - dl site refresh
+
+# Windows
+check windows x86_64:
+  stage: check
+  extends:
+    - .windows
+    - .ci
+  script:
+    - cargo check
+
+lint windows x86_64:
+  stage: lint
+  extends:
+    - .windows
+    - .ci
+  script:
+    - cargo clippy -- -D warnings
+    - cargo fmt --all -- --check
+
+test windows x86_64:
+  stage: test
+  extends:
+    - .windows
+    - .ci
+  script:
+    - cargo test
+
+deploy windows x86_64:
+  stage: deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+    CI_PIPELINE_ID: $CI_PIPELINE_IID
+  extends:
+    - .windows
+    - .deploy
+  script:
+    - cargo build --release
+    - py scripts/prerelease.py
+
+# Linux
+check linux x86_64:
+  stage: check
+  extends:
+    - .linux
+    - .ci
+  script:
+    - cargo check
+
+lint linux x86_64:
+  stage: lint
+  extends:
+    - .linux
+    - .ci
+  script:
+    - cargo clippy -- -D warnings
+    - cargo fmt --all -- --check
+
+test linux x86_64:
+  stage: test
+  extends:
+    - .linux
+    - .ci
+  script:
+    - cargo test
+
+deploy linux x86_64:
+  stage: deploy
+  variables:
+    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+    CI_PIPELINE_ID: $CI_PIPELINE_IID
+  extends:
+    - .linux
+    - .deploy
+  script:
+    - cargo build --release
+    - python scripts/prerelease.py
+
+
+refresh downloads website:
+  only:
+    refs:
+      - main
+  image: ubuntu:20.04
+  stage: dl site refresh
+  script:
+    - curl -X POST -d {} $NETLIFY_BUILD_LINK

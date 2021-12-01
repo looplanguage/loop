@@ -14,7 +14,7 @@ def upload():
 
     file = toml.load("./Cargo.toml")
 
-    build = os.getenv("BUILD_NUMBER")
+    build = os.getenv("CI_PIPELINE_ID")
 
     if build is None:
         build = "0"
