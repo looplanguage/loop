@@ -19,16 +19,6 @@
     - windows
     - windows-1809
   before_script:
-    - choco install -y python --version=3.8.3
-    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - python -m pip install boto3
-    - python -m pip install requests
-    - python -m pip install toml
-    - curl -o rustup-init.exe https://win.rustup.rs/
-    - ./rustup-init.exe -y
-    - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.56.1
-    - rustup override set 1.56.1
     - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
     - [Environment]::SetEnvironmentVariable("LLVM_SYS_120_PREFIX", $env:LLVM_SYS_120_PREFIX, [System.EnvironmentVariableTarget]::Machine)
     - cd ${CI_PROJECT_DIR}
@@ -42,6 +32,18 @@
       paths:
         - target
 
+.windows-build-tooling:
+  before_script:
+    - choco install -y python --version=3.8.3
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    - python -m pip install boto3
+    - python -m pip install requests
+    - python -m pip install toml
+    - curl -o rustup-init.exe https://win.rustup.rs/
+    - ./rustup-init.exe -y
+    - $env:Path += ";$Env:Userprofile\.cargo\bin"
+    - rustup install 1.56.1
+    - rustup override set 1.56.1
 
 .ci:
   only:
@@ -82,6 +84,7 @@ check windows x86_64:
   extends:
     - .windows
     - .ci
+    - .windows-build-tooling
   script:
     - cargo check
 
@@ -90,6 +93,7 @@ lint windows x86_64:
   extends:
     - .windows
     - .ci
+    - .windows-build-tooling
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
@@ -99,6 +103,7 @@ test windows x86_64:
   extends:
     - .windows
     - .ci
+    - .windows-build-tooling
   script:
     - cargo test
 
@@ -112,6 +117,7 @@ deploy windows x86_64:
   extends:
     - .windows
     - .deploy
+    - .windows-build-tooling
   script:
     - cargo build --release
     - py scripts/prerelease.py
