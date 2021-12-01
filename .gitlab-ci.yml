@@ -177,7 +177,7 @@ deploy linux x86_64:
     - pip install toml
   script:
     - cargo build --release
-    - python scripts/prerelease.py
+    - python3 scripts/prerelease.py
 
 
 refresh downloads website:
