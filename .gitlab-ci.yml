@@ -21,7 +21,8 @@
     - windows-1809
   before_script:
     - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
-    - [Environment]::SetEnvironmentVariable("LLVM_SYS_120_PREFIX", $env:LLVM_SYS_120_PREFIX, [System.EnvironmentVariableTarget]::Machine)
+    - |
+      [Environment]::SetEnvironmentVariable("LLVM_SYS_120_PREFIX", $env:LLVM_SYS_120_PREFIX, [System.EnvironmentVariableTarget]::Machine)
     - cd ${CI_PROJECT_DIR}
   variables:
     LLVM_SYS_120_PREFIX: "${CI_PROJECT_DIR}\\llvm-12.0.1"
