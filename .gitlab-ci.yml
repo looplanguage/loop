@@ -12,6 +12,10 @@
     - pip install boto3
     - pip install requests
     - pip install toml
+  cache:
+    - key: "rust-linux"
+      paths:
+        - target
 
 .windows:
   tags:
