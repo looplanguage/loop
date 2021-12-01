@@ -30,17 +30,16 @@
     - rustup install 1.56.1
     - rustup override set 1.56.1
     - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
-    - ls $Env:LLVM_SYS_120_PREFIX
     - cd ${CI_PROJECT_DIR}
   variables:
     LLVM_SYS_120_PREFIX: "${CI_PROJECT_DIR}\\llvm-12.0.1"
   cache:
     - key: "llvm12.0.1"
       paths:
-        - llvm-12.0.1/
+        - llvm-12.0.1
     - key: "rust"
       paths:
-        - target/
+        - target
 
 
 .ci:
@@ -71,6 +70,7 @@ setup windows x86_64:
     - if(Test-Path -Path ${CI_PROJECT_DIR}/llvm-12.0.1) { exit 10 }
     - iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
     - Move-Item -Path C:\llvm\llvm-12.0.1-windows-x64 -Destination ${CI_PROJECT_DIR}/llvm-12.0.1
+    - ls $Env:LLVM_SYS_120_PREFIX
   allow_failure:
     exit_codes: 10
 
