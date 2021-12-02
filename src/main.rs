@@ -80,7 +80,7 @@ fn run_file(file: String, flags: Flags) {
         panic!("Parser exceptions occurred!")
     }
 
-    let mut comp = compiler::build_compiler(None);
+    let mut comp = compiler::build_compiler(None, flags.contains(FlagTypes::Jit));
     let error = comp.compile(program);
 
     if error.is_err() {

@@ -43,11 +43,17 @@ pub fn compile_expression_function(
         compiler.load_symbol(free_symbol);
     }
 
+    let mut parsed_function = None;
+
+    if compiler.jit_enabled {
+        parsed_function = Some(func);
+    }
+
     let compiled_function = CompiledFunction(function::CompiledFunction {
         instructions,
         num_locals: num_locals as u8,
         num_parameters: num_params as u8,
-        parsed_function: Some(func),
+        parsed_function
     });
 
     let const_index = compiler.add_constant(compiled_function);

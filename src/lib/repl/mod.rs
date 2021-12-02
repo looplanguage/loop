@@ -66,7 +66,7 @@ impl Repl {
         let program = p.parse();
 
         if p.errors.is_empty() {
-            let mut compiler = build_compiler(self.compiler_state.as_ref());
+            let mut compiler = build_compiler(self.compiler_state.as_ref(), self.jit);
             let error = compiler.compile(program);
 
             if error.is_err() {

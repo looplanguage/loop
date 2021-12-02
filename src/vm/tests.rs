@@ -538,7 +538,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None);
+        let mut comp = compiler::build_compiler(None, false);
         let err = comp.compile(program);
 
         if err.is_err() {
