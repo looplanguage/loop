@@ -229,19 +229,15 @@ impl<'ctx> CodeGen<'ctx> {
             }
             Expression::Null(_) => None,
             Expression::Call(_call) => {
-                None
-                /*
-                //let param =
-                //self.compile_expression_float(call.parameters[0].clone(), arguments, function);
+                let param =
+                self.compile_expression_float(_call.parameters[0].clone(), arguments, function).unwrap();
 
                 let arg = self.context.f64_type().const_float(0.0);
 
-                let fn_type = self.module.get_function("double");
+                let returns = self.builder
+                    .build_call(function, &[param.into()], "call");
 
-                self.builder
-                    .build_call(fn_type.unwrap(), &[arg.into()], "call");
-
-                 */
+                Some(returns.try_as_basic_value().left().unwrap().into_float_value())
             }
             Expression::Float(_) => None,
             Expression::String(_) => None,
