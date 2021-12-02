@@ -1,5 +1,6 @@
 mod tests;
 
+use std::borrow::Borrow;
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -19,7 +20,13 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
+// Stubs
+
+pub enum Stub<'ctx> {
+    F64RF64(JitFunction<'ctx, StubF64RF64>)
+}
+
+type StubF64RF64 = unsafe extern "C" fn(f64) -> f64;
 
 #[allow(dead_code)]
 pub struct CodeGen<'ctx> {
@@ -27,13 +34,13 @@ pub struct CodeGen<'ctx> {
     pub(crate) module: Module<'ctx>,
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
-    pub(crate) compiled_functions: HashMap<String, JitFunction<'ctx, DoubleFunc>>,
+    pub(crate) compiled_functions: HashMap<String, Stub<'ctx>>,
     pub(crate) parameters: Vec<String>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
 impl<'ctx> CodeGen<'ctx> {
-    pub fn get_function(&self, pointer: String) -> Option<&JitFunction<'ctx, DoubleFunc>> {
+    pub fn get_function(&self, pointer: String) -> Option<&Stub<'ctx>> {
         self.compiled_functions.get(&*pointer)
     }
 
@@ -52,7 +59,7 @@ impl<'ctx> CodeGen<'ctx> {
         }
 
         self.compiled_functions.insert(pointer, unsafe {
-            self.execution_engine.get_function("double").ok().unwrap()
+            Stub::F64RF64(self.execution_engine.get_function("double").ok().unwrap())
         });
 
         function.verify(true);
@@ -262,7 +269,11 @@ impl<'ctx> CodeGen<'ctx> {
                 }
             }
 
-            let returned = unsafe { compiled.call(_compiled_down_params[0]) };
+            let returned = match compiled {
+                Stub::F64RF64(func) => {
+                    unsafe { func.call(_compiled_down_params[0]) }
+                }
+            };
 
             return Object::Integer(integer::Integer {
                 value: returned as i64,
