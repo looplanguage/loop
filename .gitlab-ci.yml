@@ -195,5 +195,7 @@ refresh downloads website:
       - main
   image: ubuntu:20.04
   stage: dl site refresh
+  before_script:
+    - - apt-get install curl -y
   script:
     - curl -X POST -d {} $NETLIFY_BUILD_LINK
