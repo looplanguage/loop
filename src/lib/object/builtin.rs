@@ -92,47 +92,45 @@ fn len(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
 }
 
 fn format(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
-    if arguments.len() < 2 {
-        return Err(VMException::IncorrectArgumentCount(
-            2 as i32,
+    return if arguments.len() < 2 {
+        Err(VMException::IncorrectArgumentCount(
+            2,
             arguments.len() as i32,
-        ));
-    } else {
-        return if let Object::String(string) = &*arguments[0].as_ref().borrow() {
-            let mut copy = string.value.clone();
+        ))
+    } else if let Object::String(string) = &*arguments[0].as_ref().borrow() {
+        let mut copy = string.value.clone();
 
-            for i in 1..arguments.len() {
-                match &*arguments[i].as_ref().borrow() {
-                    Object::Integer(int) => {
-                        copy = copy.replacen("%a", int.value.to_string().as_str(), 1)
-                    }
-                    Object::Boolean(boolean) => {
-                        copy = copy.replacen("%a", boolean.value.to_string().as_str(), 1)
-                    }
-                    Object::Null(_) => copy = copy.replacen("%a", "null", 1),
-                    Object::Float(float) => {
-                        copy = copy.replacen("%a", float.value.to_string().as_str(), 1)
-                    }
-                    Object::String(str) => {
-                        copy = copy.replacen("%a", str.value.to_string().as_str(), 1)
-                    }
-                    _ => {
-                        return Err(VMException::IncorrectType(format!(
-                            "incorrect type for function 'format'. got=\"{:?}\"",
-                            &arguments[i]
-                        )));
-                    }
+        for argument in arguments.iter().skip(1) {
+            match &*argument.as_ref().borrow() {
+                Object::Integer(int) => {
+                    copy = copy.replacen("%a", int.value.to_string().as_str(), 1)
+                }
+                Object::Boolean(boolean) => {
+                    copy = copy.replacen("%a", boolean.value.to_string().as_str(), 1)
+                }
+                Object::Null(_) => copy = copy.replacen("%a", "null", 1),
+                Object::Float(float) => {
+                    copy = copy.replacen("%a", float.value.to_string().as_str(), 1)
+                }
+                Object::String(str) => {
+                    copy = copy.replacen("%a", str.value.to_string().as_str(), 1)
+                }
+                _ => {
+                    return Err(VMException::IncorrectType(format!(
+                        "incorrect type for function 'format'. got=\"{:?}\"",
+                        argument
+                    )));
                 }
             }
+        }
 
-            Ok(Object::String(LoopString { value: copy }))
-        } else {
-            Err(VMException::IncorrectType(format!(
-                "incorrect type for function 'format'. got=\"{:?}\"",
-                &arguments[0]
-            )))
-        };
-    }
+        Ok(Object::String(LoopString { value: copy }))
+    } else {
+        Err(VMException::IncorrectType(format!(
+            "incorrect type for function 'format'. got=\"{:?}\"",
+            &arguments[0]
+        )))
+    };
 }
 
 fn check_length(args: Vec<Rc<RefCell<Object>>>, required_length: usize) -> EvalResult {
