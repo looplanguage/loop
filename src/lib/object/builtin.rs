@@ -1,11 +1,11 @@
-use std::borrow::Borrow;
 use crate::lib::exception::vm::VMException;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
+use crate::lib::object::string::LoopString;
 use crate::lib::object::Object;
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::lib::object::string::LoopString;
 
 pub type EvalResult = Result<Object, VMException>;
 pub type BuiltinFunction = fn(Vec<Rc<RefCell<Object>>>) -> EvalResult;
@@ -24,7 +24,12 @@ macro_rules! builtin {
     };
 }
 
-pub const BUILTINS: &[Builtin] = &[builtin!(len), builtin!(print), builtin!(println), builtin!(format)];
+pub const BUILTINS: &[Builtin] = &[
+    builtin!(len),
+    builtin!(print),
+    builtin!(println),
+    builtin!(format),
+];
 
 /*
 pub fn lookup(name: &str) -> Option<Object> {
@@ -99,11 +104,19 @@ fn format(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
 
             for i in 1..arguments.len() {
                 match &*arguments[i].as_ref().borrow() {
-                    Object::Integer(int) => copy = copy.replacen("%a", int.value.to_string().as_str(), 1),
-                    Object::Boolean(boolean) => copy = copy.replacen("%a", boolean.value.to_string().as_str(), 1),
+                    Object::Integer(int) => {
+                        copy = copy.replacen("%a", int.value.to_string().as_str(), 1)
+                    }
+                    Object::Boolean(boolean) => {
+                        copy = copy.replacen("%a", boolean.value.to_string().as_str(), 1)
+                    }
                     Object::Null(_) => copy = copy.replacen("%a", "null", 1),
-                    Object::Float(float) => copy = copy.replacen("%a", float.value.to_string().as_str(), 1),
-                    Object::String(str) => copy = copy.replacen("%a", str.value.to_string().as_str(), 1),
+                    Object::Float(float) => {
+                        copy = copy.replacen("%a", float.value.to_string().as_str(), 1)
+                    }
+                    Object::String(str) => {
+                        copy = copy.replacen("%a", str.value.to_string().as_str(), 1)
+                    }
                     _ => {
                         return Err(VMException::IncorrectType(format!(
                             "incorrect type for function 'format'. got=\"{:?}\"",
@@ -113,9 +126,7 @@ fn format(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
                 }
             }
 
-            return Ok(Object::String(LoopString {
-                value: copy
-            }))
+            return Ok(Object::String(LoopString { value: copy }));
         } else {
             return Err(VMException::IncorrectType(format!(
                 "incorrect type for function 'format'. got=\"{:?}\"",

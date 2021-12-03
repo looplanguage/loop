@@ -76,7 +76,7 @@ pub struct Compiler {
     pub location: String,
     pub export_name: String,
     pub prev_location: String,
-    pub jit_enabled: bool
+    pub jit_enabled: bool,
 }
 
 pub struct CompilerState {
@@ -108,7 +108,7 @@ fn build_compiler_internal(state: &CompilerState, jit_enabled: bool) -> Compiler
         location: String::new(),
         export_name: String::new(),
         prev_location: String::new(),
-        jit_enabled
+        jit_enabled,
     }
 }
 

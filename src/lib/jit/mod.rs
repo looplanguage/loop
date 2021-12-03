@@ -1,6 +1,9 @@
 mod tests;
 
-use std::borrow::Borrow;
+use crate::compiler::definition::lookup_op;
+use crate::compiler::instructions::{print_instructions, read_uint32, read_uint8};
+use crate::compiler::opcode::OpCode;
+use crate::lib::object::function::CompiledFunction;
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -10,25 +13,25 @@ use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
+use crate::vm::VM;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, BasicValueEnum, CallableValue, FloatValue, FunctionValue, IntValue};
+use inkwell::values::{
+    AnyValue, AnyValueEnum, BasicValue, BasicValueEnum, CallableValue, FloatValue, FunctionValue,
+    IntValue,
+};
 use inkwell::FloatPredicate;
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{print_instructions, read_uint32, read_uint8};
-use crate::compiler::opcode::OpCode;
-use crate::lib::object::function::CompiledFunction;
-use crate::vm::VM;
 
 // Stubs
 
 pub enum Stub<'ctx> {
-    F64RF64(JitFunction<'ctx, StubF64RF64>)
+    F64RF64(JitFunction<'ctx, StubF64RF64>),
 }
 
 type StubF64RF64 = unsafe extern "C" fn(f64) -> f64;
@@ -52,19 +55,32 @@ impl<'ctx> CodeGen<'ctx> {
     pub fn compile(&mut self, func: CompiledFunction, pointer: String, vm: &mut VM) -> bool {
         let f64_type = self.context.f64_type();
         let fn_type = f64_type.fn_type(&[f64_type.into()], false);
-        let function = self.module.add_function(pointer.clone().as_str(), fn_type, None);
+        let function = self
+            .module
+            .add_function(pointer.clone().as_str(), fn_type, None);
         let basic_block = self.context.append_basic_block(function, "entry");
 
         self.builder.position_at_end(basic_block);
 
-        let ok = self.compile_bytecode(func.instructions.clone(), function, vm, 0, func.instructions.len() as u32);
+        let ok = self.compile_bytecode(
+            func.instructions.clone(),
+            function,
+            vm,
+            0,
+            func.instructions.len() as u32,
+        );
 
         if !ok {
             return false;
         }
 
         self.compiled_functions.insert(pointer.clone(), unsafe {
-            Stub::F64RF64(self.execution_engine.get_function(pointer.as_str()).ok().unwrap())
+            Stub::F64RF64(
+                self.execution_engine
+                    .get_function(pointer.as_str())
+                    .ok()
+                    .unwrap(),
+            )
         });
 
         function.verify(true);
@@ -80,7 +96,7 @@ impl<'ctx> CodeGen<'ctx> {
         function: FunctionValue<'ctx>,
         vm: &mut VM,
         from: u32,
-        to: u32
+        to: u32,
     ) -> bool {
         //print_instructions(code.clone());
         let mut ip = from;
@@ -110,17 +126,32 @@ impl<'ctx> CodeGen<'ctx> {
 
                     match &*cst.as_ref().borrow() {
                         Object::Integer(int) => {
-                            temp_stack.push(self.context.f64_type().const_float(int.value as f64).as_any_value_enum());
+                            temp_stack.push(
+                                self.context
+                                    .f64_type()
+                                    .const_float(int.value as f64)
+                                    .as_any_value_enum(),
+                            );
                         }
                         Object::Null(null) => {
-                            temp_stack.push(AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
+                            temp_stack
+                                .push(AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
                         }
                         Object::Boolean(bool) => {
                             if bool.value {
-                                temp_stack.push(self.context.bool_type().const_int(1, false).as_any_value_enum());
+                                temp_stack.push(
+                                    self.context
+                                        .bool_type()
+                                        .const_int(1, false)
+                                        .as_any_value_enum(),
+                                );
                             } else {
-
-                                temp_stack.push(self.context.bool_type().const_int(0, false).as_any_value_enum());
+                                temp_stack.push(
+                                    self.context
+                                        .bool_type()
+                                        .const_int(0, false)
+                                        .as_any_value_enum(),
+                                );
                             }
                         }
                         _ => {
@@ -157,7 +188,11 @@ impl<'ctx> CodeGen<'ctx> {
                     let right = temp_stack.pop().unwrap();
                     let left = temp_stack.pop().unwrap();
 
-                    let added = self.builder.build_float_add(left.into_float_value(), right.into_float_value(), "add");
+                    let added = self.builder.build_float_add(
+                        left.into_float_value(),
+                        right.into_float_value(),
+                        "add",
+                    );
 
                     temp_stack.push(added.as_any_value_enum());
                 }
@@ -165,7 +200,11 @@ impl<'ctx> CodeGen<'ctx> {
                     let right = temp_stack.pop().unwrap();
                     let left = temp_stack.pop().unwrap();
 
-                    let multiplied = self.builder.build_float_mul(left.into_float_value(), right.into_float_value(), "add");
+                    let multiplied = self.builder.build_float_mul(
+                        left.into_float_value(),
+                        right.into_float_value(),
+                        "add",
+                    );
 
                     temp_stack.push(multiplied.as_any_value_enum());
                 }
@@ -173,7 +212,11 @@ impl<'ctx> CodeGen<'ctx> {
                     let right = temp_stack.pop().unwrap();
                     let left = temp_stack.pop().unwrap();
 
-                    let subtracted = self.builder.build_float_sub(left.into_float_value(), right.into_float_value(), "add");
+                    let subtracted = self.builder.build_float_sub(
+                        left.into_float_value(),
+                        right.into_float_value(),
+                        "add",
+                    );
 
                     temp_stack.push(subtracted.as_any_value_enum());
                 }
@@ -181,7 +224,12 @@ impl<'ctx> CodeGen<'ctx> {
                     let right = temp_stack.pop().unwrap().into_float_value();
                     let left = temp_stack.pop().unwrap().into_float_value();
 
-                    let compared = self.builder.build_float_compare(FloatPredicate::OEQ, left, right, "compare");
+                    let compared = self.builder.build_float_compare(
+                        FloatPredicate::OEQ,
+                        left,
+                        right,
+                        "compare",
+                    );
 
                     temp_stack.push(compared.as_any_value_enum());
                 }
@@ -189,7 +237,12 @@ impl<'ctx> CodeGen<'ctx> {
                     let right = temp_stack.pop().unwrap().into_float_value();
                     let left = temp_stack.pop().unwrap().into_float_value();
 
-                    let compared = self.builder.build_float_compare(FloatPredicate::OGT, left, right, "compare");
+                    let compared = self.builder.build_float_compare(
+                        FloatPredicate::OGT,
+                        left,
+                        right,
+                        "compare",
+                    );
 
                     temp_stack.push(compared.as_any_value_enum());
                 }
@@ -201,7 +254,9 @@ impl<'ctx> CodeGen<'ctx> {
 
                     match &*variable.as_ref().borrow() {
                         Object::Function(func) => {
-                            let f = self.module.get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
+                            let f = self
+                                .module
+                                .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
 
                             if f.is_some() {
                                 temp_stack.push(f.unwrap().as_any_value_enum());
@@ -219,13 +274,16 @@ impl<'ctx> CodeGen<'ctx> {
 
                     ip += 1;
 
-                    let func = CallableValue::try_from(temp_stack[((temp_stack.len()as u8) - 1 - args) as usize].into_pointer_value()).unwrap();
+                    let func = CallableValue::try_from(
+                        temp_stack[((temp_stack.len() as u8) - 1 - args) as usize]
+                            .into_pointer_value(),
+                    )
+                    .unwrap();
 
                     let param = temp_stack.pop().unwrap().into_float_value();
                     let arg = self.context.f64_type().const_float(10.0);
 
-                    let returns = self.builder
-                    .build_call(func, &[param.into()], "call");
+                    let returns = self.builder.build_call(func, &[param.into()], "call");
 
                     // Final pop func of stack too
                     temp_stack.pop();
@@ -263,9 +321,7 @@ impl<'ctx> CodeGen<'ctx> {
 
                     self.builder.position_at_end(cont_b);
                 }
-                OpCode::Jump => {
-                    ip += 4
-                }
+                OpCode::Jump => ip += 4,
                 OpCode::Pop => {
                     temp_stack.pop();
                 }
@@ -290,9 +346,7 @@ impl<'ctx> CodeGen<'ctx> {
             }
 
             let returned = match compiled {
-                Stub::F64RF64(func) => {
-                    unsafe { func.call(_compiled_down_params[0]) }
-                }
+                Stub::F64RF64(func) => unsafe { func.call(_compiled_down_params[0]) },
             };
 
             return Object::Integer(integer::Integer {
