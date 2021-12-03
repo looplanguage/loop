@@ -98,7 +98,7 @@ fn format(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
             arguments.len() as i32,
         ));
     } else {
-        if let Object::String(string) = &*arguments[0].as_ref().borrow() {
+        return if let Object::String(string) = &*arguments[0].as_ref().borrow() {
             let mut copy = string.value.clone();
 
             for i in 1..arguments.len() {
@@ -125,19 +125,14 @@ fn format(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
                 }
             }
 
-            return Ok(Object::String(LoopString { value: copy }));
+            Ok(Object::String(LoopString { value: copy }))
         } else {
-            return Err(VMException::IncorrectType(format!(
+            Err(VMException::IncorrectType(format!(
                 "incorrect type for function 'format'. got=\"{:?}\"",
                 &arguments[0]
-            )));
-        }
+            )))
+        };
     }
-
-    return Err(VMException::IncorrectArgumentCount(
-        2 as i32,
-        arguments.len() as i32,
-    ));
 }
 
 fn check_length(args: Vec<Rc<RefCell<Object>>>, required_length: usize) -> EvalResult {
