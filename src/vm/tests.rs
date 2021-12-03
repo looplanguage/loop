@@ -275,6 +275,16 @@ mod tests {
     }
 
     #[test]
+    fn builtin_methods() {
+        test_vm(
+            "format(\"%a %a!\", \"Hello\", \"world\")",
+            String(string::LoopString {
+                value: "Hello world!".to_string(),
+            }),
+        )
+    }
+
+    #[test]
     fn extension_methods_variables() {
         test_vm(
             "var x = 123; x.to_string();",
