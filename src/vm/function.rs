@@ -39,13 +39,10 @@ pub fn run_function(
 
                 args.reverse();
 
-                let ptr = format!("{:p}", stack_item);
+                let ptr = format!("{:p}", &*stack_item.as_ref().borrow());
 
                 if codegen.get_function(ptr.clone()).is_none() {
-                    let success = codegen.compile(
-                        func.func.parsed_function.clone().unwrap(),
-                        format!("{:p}", stack_item),
-                    );
+                    let success = codegen.compile(func.func.clone(), ptr.clone(), vm);
 
                     if success {
                         // Pop function of the stack

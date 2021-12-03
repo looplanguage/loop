@@ -1,25 +1,30 @@
 mod tests;
 
+use crate::compiler::definition::lookup_op;
+use crate::compiler::instructions::{read_uint32, read_uint8};
+use crate::compiler::opcode::OpCode;
+use crate::lib::object::function::CompiledFunction;
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
-use crate::parser::expression::function::Function;
-use crate::parser::expression::identifier::Identifier;
-use crate::parser::expression::integer::Integer;
-use crate::parser::expression::Expression;
-use crate::parser::program::Node;
-use crate::parser::statement::Statement;
+use crate::vm::VM;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{FloatValue, FunctionValue, IntValue};
+use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue};
 use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-type DoubleFunc = unsafe extern "C" fn(f64) -> f64;
+// Stubs
+
+pub enum Stub<'ctx> {
+    F64RF64(JitFunction<'ctx, StubF64RF64>),
+}
+
+type StubF64RF64 = unsafe extern "C" fn(f64) -> f64;
 
 #[allow(dead_code)]
 pub struct CodeGen<'ctx> {
@@ -27,232 +32,295 @@ pub struct CodeGen<'ctx> {
     pub(crate) module: Module<'ctx>,
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
-    pub(crate) compiled_functions: HashMap<String, JitFunction<'ctx, DoubleFunc>>,
+    pub(crate) compiled_functions: HashMap<String, Stub<'ctx>>,
     pub(crate) parameters: Vec<String>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
 impl<'ctx> CodeGen<'ctx> {
-    pub fn get_function(&self, pointer: String) -> Option<&JitFunction<'ctx, DoubleFunc>> {
+    pub fn get_function(&self, pointer: String) -> Option<&Stub<'ctx>> {
         self.compiled_functions.get(&*pointer)
     }
 
-    pub fn compile(&mut self, func: Function, pointer: String) -> bool {
+    pub fn compile(&mut self, func: CompiledFunction, pointer: String, vm: &mut VM) -> bool {
         let f64_type = self.context.f64_type();
         let fn_type = f64_type.fn_type(&[f64_type.into()], false);
-        let function = self.module.add_function("double", fn_type, None);
+        let function = self
+            .module
+            .add_function(pointer.clone().as_str(), fn_type, None);
         let basic_block = self.context.append_basic_block(function, "entry");
 
         self.builder.position_at_end(basic_block);
 
-        let ok = self.compile_statement(func.body.statements, func.parameters, function);
+        let ok = self.compile_bytecode(
+            func.instructions.clone(),
+            function,
+            vm,
+            0,
+            func.instructions.len() as u32,
+        );
 
         if !ok {
             return false;
         }
 
-        self.compiled_functions.insert(pointer, unsafe {
-            self.execution_engine.get_function("double").ok().unwrap()
+        self.compiled_functions.insert(pointer.clone(), unsafe {
+            Stub::F64RF64(
+                self.execution_engine
+                    .get_function(pointer.as_str())
+                    .ok()
+                    .unwrap(),
+            )
         });
 
         function.verify(true);
 
+        //println!("{}", self.module.print_to_string().to_string());
+
         true
     }
 
-    fn compile_statement(
+    fn compile_bytecode(
         &mut self,
-        statements: Vec<Statement>,
-        arguments: Vec<Identifier>,
+        code: Vec<u8>,
         function: FunctionValue<'ctx>,
+        vm: &mut VM,
+        from: u32,
+        to: u32,
     ) -> bool {
-        for statement in statements {
-            match statement {
-                Statement::VariableDeclaration(_) => return false,
-                Statement::Expression(_exp) => {
-                    self.compile_expression_float(*_exp.expression, &arguments, function);
-                }
-                Statement::Block(_) => return false,
-                Statement::VariableAssign(_) => return false,
-                Statement::Return(ret) => {
-                    let return_val =
-                        { self.compile_expression_float(*ret.expression, &arguments, function) };
+        //print_instructions(code.clone());
+        let mut ip = from;
+        let mut temp_stack: Vec<AnyValueEnum> = Vec::new();
 
-                    if return_val.is_none() {
-                        return false;
-                    }
+        while ip < (code.len() as u32) {
+            let _op = lookup_op(code[ip as usize]);
 
-                    self.builder.build_return(Some(&return_val.unwrap()));
-                }
-                Statement::Import(_) => return false,
-                Statement::Export(_) => return false,
-            };
-        }
-
-        true
-    }
-    fn compile_expression_int(
-        &mut self,
-        expression: Expression,
-        arguments: &[Identifier],
-        function: FunctionValue<'ctx>,
-    ) -> Option<IntValue<'ctx>> {
-        match expression {
-            Expression::Suffix(suffix) => {
-                let lhs = self.compile_expression_float(suffix.left, arguments, function)?;
-                let rhs = self.compile_expression_float(suffix.right, arguments, function)?;
-
-                match suffix.operator.as_str() {
-                    "<" => {
-                        Some(
-                            self.builder
-                                .build_float_compare(FloatPredicate::OLT, lhs, rhs, ""),
-                        )
-                    }
-                    "==" => {
-                        Some(
-                            self.builder
-                                .build_float_compare(FloatPredicate::OEQ, lhs, rhs, ""),
-                        )
-                    }
-                    _ => None,
-                }
+            if _op.is_none() {
+                return false;
             }
-            _ => None,
-        }
-    }
 
-    fn compile_expression_float(
-        &mut self,
-        expression: Expression,
-        arguments: &[Identifier],
-        function: FunctionValue<'ctx>,
-    ) -> Option<FloatValue<'ctx>> {
-        let f64_type = self.context.f64_type();
+            let op = _op.unwrap();
 
-        return match expression {
-            Expression::Identifier(identifier) => {
-                let parameter_id = arguments.iter().position(|x| x.value == identifier.value);
-
-                if let Some(id) = parameter_id {
-                    let param = function.get_nth_param(id as u32);
-
-                    if let Some(param) = param {
-                        let val = param.into_float_value();
-
-                        return Some(val);
-                    }
-                }
-
-                None
+            if ip == to && to != code.len() as u32 {
+                return true;
             }
-            Expression::Integer(int) => Some(f64_type.const_float(int.value as f64)),
-            Expression::Suffix(suffix) => {
-                let lhs = self.compile_expression_float(suffix.left, arguments, function)?;
-                let rhs = self.compile_expression_float(suffix.right, arguments, function)?;
 
-                match suffix.operator.as_str() {
-                    "+" => Some(self.builder.build_float_add(lhs, rhs, "add")),
-                    "/" => Some(self.builder.build_float_div(lhs, rhs, "divide")),
-                    "-" => Some(self.builder.build_float_sub(lhs, rhs, "minus")),
-                    "*" => Some(self.builder.build_float_mul(lhs, rhs, "multiply")),
-                    _ => None,
-                }
-            }
-            Expression::Boolean(_) => None,
-            Expression::Function(_) => None,
-            Expression::Conditional(conditional) => {
-                let cond = self.compile_expression_int(
-                    *conditional.condition.clone(),
-                    arguments,
-                    function,
-                )?;
+            ip += 1;
 
-                // branches
-                let then_b = self.context.append_basic_block(function, "then");
-                let else_b = self.context.append_basic_block(function, "else");
-                let cont_b = self.context.append_basic_block(function, "ifcont");
+            match op {
+                OpCode::Constant => {
+                    let idx = read_uint32(&code[ip as usize..]);
+                    ip += 4;
 
-                self.builder.build_conditional_branch(cond, then_b, else_b);
+                    let cst = vm.constants[idx as usize].clone();
 
-                // then block
-                self.builder.position_at_end(then_b);
-
-                let then_exp = match conditional.body.statements[0].clone() {
-                    Statement::Expression(exp) => *exp.expression,
-                    _ => {
-                        return None;
-                    }
-                };
-
-                let then_val = self.compile_expression_float(then_exp, arguments, function)?;
-
-                self.builder.build_unconditional_branch(cont_b);
-
-                let then_b = self.builder.get_insert_block().unwrap();
-
-                // else block
-                self.builder.position_at_end(else_b);
-
-                let else_exp = match *conditional.else_condition {
-                    None => Expression::Integer(Integer { value: 0 }),
-                    Some(stmt) => {
-                        if let Node::Statement(Statement::Block(block)) = stmt {
-                            if let Statement::Expression(exp) = block.statements[0].clone() {
-                                *exp.expression
-                            } else {
-                                Expression::Integer(Integer { value: 0 })
-                            }
-                        } else {
-                            Expression::Integer(Integer { value: 0 })
+                    match &*cst.as_ref().borrow() {
+                        Object::Integer(int) => {
+                            temp_stack.push(
+                                self.context
+                                    .f64_type()
+                                    .const_float(int.value as f64)
+                                    .as_any_value_enum(),
+                            );
                         }
-                    }
-                };
+                        Object::Null(_) => {
+                            temp_stack
+                                .push(AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
+                        }
+                        Object::Boolean(bool) => {
+                            if bool.value {
+                                temp_stack.push(
+                                    self.context
+                                        .bool_type()
+                                        .const_int(1, false)
+                                        .as_any_value_enum(),
+                                );
+                            } else {
+                                temp_stack.push(
+                                    self.context
+                                        .bool_type()
+                                        .const_int(0, false)
+                                        .as_any_value_enum(),
+                                );
+                            }
+                        }
+                        _ => {
+                            println!("UNKNOWN: {:?}", cst);
+                            return false;
+                        }
+                    };
+                }
+                OpCode::Return => {
+                    let return_val = temp_stack.pop().unwrap();
 
-                let else_val = self.compile_expression_float(else_exp, arguments, function)?;
-                self.builder.build_unconditional_branch(cont_b);
+                    let return_val = match return_val {
+                        AnyValueEnum::IntValue(int) => int.as_basic_value_enum(),
+                        AnyValueEnum::FloatValue(float) => float.as_basic_value_enum(),
+                        AnyValueEnum::PhiValue(phi) => phi.as_basic_value(),
+                        _ => {
+                            return false;
+                        }
+                    };
 
-                let else_b = self.builder.get_insert_block().unwrap();
+                    // Causes STATUS_ACCESS_VIOLATION when inside an "if-block"
+                    self.builder.build_return(Some(&return_val));
+                }
+                OpCode::GetLocal => {
+                    let idx = read_uint8(&code[ip as usize..]);
 
-                // merge
-                self.builder.position_at_end(cont_b);
+                    ip += 1;
 
-                let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
+                    let param = function.get_nth_param(idx as u32);
 
-                phi.add_incoming(&[(&then_val, then_b), (&else_val, else_b)]);
+                    temp_stack.push(param.unwrap().as_any_value_enum());
+                }
+                OpCode::Add => {
+                    let right = temp_stack.pop().unwrap();
+                    let left = temp_stack.pop().unwrap();
 
-                let return_val = phi.as_basic_value().into_float_value();
+                    let added = self.builder.build_float_add(
+                        left.into_float_value(),
+                        right.into_float_value(),
+                        "add",
+                    );
 
-                self.builder.build_return(Some(&return_val));
+                    temp_stack.push(added.as_any_value_enum());
+                }
+                OpCode::Multiply => {
+                    let right = temp_stack.pop().unwrap();
+                    let left = temp_stack.pop().unwrap();
 
-                Some(return_val)
+                    let multiplied = self.builder.build_float_mul(
+                        left.into_float_value(),
+                        right.into_float_value(),
+                        "add",
+                    );
+
+                    temp_stack.push(multiplied.as_any_value_enum());
+                }
+                OpCode::Minus => {
+                    let right = temp_stack.pop().unwrap();
+                    let left = temp_stack.pop().unwrap();
+
+                    let subtracted = self.builder.build_float_sub(
+                        left.into_float_value(),
+                        right.into_float_value(),
+                        "add",
+                    );
+
+                    temp_stack.push(subtracted.as_any_value_enum());
+                }
+                OpCode::Equals => {
+                    let right = temp_stack.pop().unwrap().into_float_value();
+                    let left = temp_stack.pop().unwrap().into_float_value();
+
+                    let compared = self.builder.build_float_compare(
+                        FloatPredicate::OEQ,
+                        left,
+                        right,
+                        "compare",
+                    );
+
+                    temp_stack.push(compared.as_any_value_enum());
+                }
+                OpCode::GreaterThan => {
+                    let right = temp_stack.pop().unwrap().into_float_value();
+                    let left = temp_stack.pop().unwrap().into_float_value();
+
+                    let compared = self.builder.build_float_compare(
+                        FloatPredicate::OGT,
+                        left,
+                        right,
+                        "compare",
+                    );
+
+                    temp_stack.push(compared.as_any_value_enum());
+                }
+                OpCode::GetVar => {
+                    let idx = read_uint32(&code[ip as usize..]);
+                    ip += 4;
+
+                    let variable = vm.variables.get(&idx).unwrap().clone();
+
+                    match &*variable.as_ref().borrow() {
+                        Object::Function(_) => {
+                            let f = self
+                                .module
+                                .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
+
+                            if let Some(f) = f {
+                                temp_stack.push(f.as_any_value_enum());
+                            } else {
+                                println!("Compile new function!");
+                            }
+                        }
+                        _ => {
+                            return false;
+                        }
+                    };
+                }
+                OpCode::Call => {
+                    let args = read_uint8(&code[ip as usize..]);
+
+                    ip += 1;
+
+                    let func = CallableValue::try_from(
+                        temp_stack[((temp_stack.len() as u8) - 1 - args) as usize]
+                            .into_pointer_value(),
+                    )
+                    .unwrap();
+
+                    let param = temp_stack.pop().unwrap().into_float_value();
+
+                    let returns = self.builder.build_call(func, &[param.into()], "call");
+
+                    // Final pop func of stack too
+                    temp_stack.pop();
+
+                    temp_stack.push(returns.as_any_value_enum());
+                }
+                OpCode::JumpIfFalse => {
+                    let jump_to = read_uint32(&code[ip as usize..]);
+
+                    ip += 4;
+
+                    let cond = temp_stack.pop().unwrap().into_int_value();
+
+                    // branches
+                    let then_b = self.context.append_basic_block(function, "then");
+                    let else_b = self.context.append_basic_block(function, "else");
+                    let cont_b = self.context.append_basic_block(function, "ifcont");
+
+                    self.builder.build_conditional_branch(cond, then_b, else_b);
+
+                    // then block
+                    self.builder.position_at_end(then_b);
+
+                    // do then block
+                    let _done = self.compile_bytecode(code.clone(), function, vm, ip, jump_to);
+
+                    //self.builder.build_unconditional_branch(cont_b);
+
+                    // else
+                    self.builder.position_at_end(else_b);
+                    self.builder.build_unconditional_branch(cont_b);
+
+                    ip = jump_to;
+                    //println!("Done: {}", done);
+
+                    self.builder.position_at_end(cont_b);
+                }
+                OpCode::Jump => ip += 4,
+                OpCode::Pop => {
+                    temp_stack.pop();
+                }
+                _ => {
+                    println!("Unknown instruction: {:?}", op);
+                    return false;
+                }
             }
-            Expression::Null(_) => None,
-            Expression::Call(_call) => {
-                None
-                /*
-                //let param =
-                //self.compile_expression_float(call.parameters[0].clone(), arguments, function);
-
-                let arg = self.context.f64_type().const_float(0.0);
-
-                let fn_type = self.module.get_function("double");
-
-                self.builder
-                    .build_call(fn_type.unwrap(), &[arg.into()], "call");
-
-                 */
-            }
-            Expression::Float(_) => None,
-            Expression::String(_) => None,
-            Expression::Index(_) => None,
-            Expression::Array(_) => None,
-            Expression::AssignIndex(_) => None,
-            Expression::Loop(_) => None,
-            Expression::LoopIterator(_) => None,
-            Expression::LoopArrayIterator(_) => None,
-            Expression::Hashmap(_) => None,
-        };
+        }
+        true
     }
 
     #[allow(dead_code)]
@@ -266,7 +334,9 @@ impl<'ctx> CodeGen<'ctx> {
                 }
             }
 
-            let returned = unsafe { compiled.call(_compiled_down_params[0]) };
+            let returned = match compiled {
+                Stub::F64RF64(func) => unsafe { func.call(_compiled_down_params[0]) },
+            };
 
             return Object::Integer(integer::Integer {
                 value: returned as i64,

@@ -275,6 +275,16 @@ mod tests {
     }
 
     #[test]
+    fn builtin_methods() {
+        test_vm(
+            "format(\"%a %a!\", \"Hello\", \"world\")",
+            String(string::LoopString {
+                value: "Hello world!".to_string(),
+            }),
+        )
+    }
+
+    #[test]
     fn extension_methods_variables() {
         test_vm(
             "var x = 123; x.to_string();",
@@ -538,7 +548,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None);
+        let mut comp = compiler::build_compiler(None, false);
         let err = comp.compile(program);
 
         if err.is_err() {
