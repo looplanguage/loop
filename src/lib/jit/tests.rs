@@ -17,11 +17,11 @@ mod tests {
     #[test]
     fn conditionals_less_than() {
         test_jit(
-            "var t = fn(x) { if(x < 10) { 500 } else { 200 } }; t(9)",
+            "var t = fn(x) { if(x < 10) { return 500 } else { return 200 } }; t(9)",
             Object::Integer(Integer { value: 500 }),
         );
         test_jit(
-            "var t = fn(x) { if(x < 10) { 500 } else { 200 } }; t(10)",
+            "var t = fn(x) { if(x < 10) { return 500 } else { return 200 } }; t(10)",
             Object::Integer(Integer { value: 200 }),
         );
     }
@@ -29,11 +29,11 @@ mod tests {
     #[test]
     fn conditionals_equals() {
         test_jit(
-            "var t = fn(x) { if(x == 10) { 500 } else { 200 } }; t(9)",
+            "var t = fn(x) { if(x == 10) { return 500 } else { return 200 } }; t(9)",
             Object::Integer(Integer { value: 200 }),
         );
         test_jit(
-            "var t = fn(x) { if(x == 10) { 500 } else { 200 } }; t(10)",
+            "var t = fn(x) { if(x == 10) { return 500 } else { return 200 } }; t(10)",
             Object::Integer(Integer { value: 500 }),
         );
     }
