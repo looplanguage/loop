@@ -38,6 +38,23 @@ mod tests {
         );
     }
 
+    #[test]
+    fn recursive_fibonacci() {
+        test_jit(
+            "
+            var fib = fn(x) {
+                if(x < 2) {
+                    return 1
+                } else {
+                    return fib(x - 1) + fib(x - 2)
+                }
+            }
+            fib(10)
+        ",
+            Object::Integer(Integer { value: 89 }),
+        );
+    }
+
     fn test_jit(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
