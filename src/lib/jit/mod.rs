@@ -1,29 +1,19 @@
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{print_instructions, read_uint32, read_uint8};
+use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::lib::object::function::CompiledFunction;
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
-use crate::parser::expression::function::Function;
-use crate::parser::expression::identifier::Identifier;
-use crate::parser::expression::integer::Integer;
-use crate::parser::expression::Expression;
-use crate::parser::program::Node;
-use crate::parser::statement::Statement;
 use crate::vm::VM;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{
-    AnyValue, AnyValueEnum, BasicValue, BasicValueEnum, CallableValue, FloatValue, FunctionValue,
-    IntValue,
-};
+use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue};
 use inkwell::FloatPredicate;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
