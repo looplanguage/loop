@@ -30,8 +30,8 @@ pub struct VM {
     sp: u16,
     frames: Vec<Frame>,
     pub frame_index: usize,
-    constants: Vec<Rc<RefCell<Object>>>,
-    variables: HashMap<u32, Rc<RefCell<Object>>>,
+    pub constants: Vec<Rc<RefCell<Object>>>,
+    pub variables: HashMap<u32, Rc<RefCell<Object>>>,
 }
 
 const STACK_SIZE: usize = 2048;
