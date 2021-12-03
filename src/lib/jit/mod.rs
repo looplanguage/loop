@@ -248,8 +248,8 @@ impl<'ctx> CodeGen<'ctx> {
                                 .module
                                 .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
 
-                            if f.is_some() {
-                                temp_stack.push(f.unwrap().as_any_value_enum());
+                            if let Some(f) = f {
+                                temp_stack.push(f.as_any_value_enum());
                             } else {
                                 println!("Compile new function!");
                             }
