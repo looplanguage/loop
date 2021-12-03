@@ -123,7 +123,7 @@ impl<'ctx> CodeGen<'ctx> {
                                     .as_any_value_enum(),
                             );
                         }
-                        Object::Null(null) => {
+                        Object::Null(_) => {
                             temp_stack
                                 .push(AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
                         }
@@ -243,7 +243,7 @@ impl<'ctx> CodeGen<'ctx> {
                     let variable = vm.variables.get(&idx).unwrap().clone();
 
                     match &*variable.as_ref().borrow() {
-                        Object::Function(func) => {
+                        Object::Function(_) => {
                             let f = self
                                 .module
                                 .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
@@ -271,7 +271,6 @@ impl<'ctx> CodeGen<'ctx> {
                     .unwrap();
 
                     let param = temp_stack.pop().unwrap().into_float_value();
-                    let arg = self.context.f64_type().const_float(10.0);
 
                     let returns = self.builder.build_call(func, &[param.into()], "call");
 
@@ -298,7 +297,7 @@ impl<'ctx> CodeGen<'ctx> {
                     self.builder.position_at_end(then_b);
 
                     // do then block
-                    let done = self.compile_bytecode(code.clone(), function, vm, ip, jump_to);
+                    let _done = self.compile_bytecode(code.clone(), function, vm, ip, jump_to);
 
                     //self.builder.build_unconditional_branch(cont_b);
 
