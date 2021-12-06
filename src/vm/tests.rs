@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::lib::exception::Exception;
+    use crate::lib::jit::CodeGen;
     use crate::lib::object::Object;
     use crate::lib::object::Object::String;
     use crate::lib::object::Object::{Array, Integer};
@@ -10,16 +11,15 @@ mod tests {
     use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use inkwell::context::Context;
+    use inkwell::passes::PassManager;
+    use inkwell::OptimizationLevel;
     use serde::de::Unexpected::Bool;
     use std::borrow::Borrow;
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::ops::Deref;
     use std::rc::Rc;
-    use inkwell::context::Context;
-    use inkwell::OptimizationLevel;
-    use inkwell::passes::PassManager;
-    use crate::lib::jit::CodeGen;
 
     #[test]
     fn recursive_functions() {}
@@ -565,7 +565,8 @@ mod tests {
         let execution_engine = module
             .create_jit_execution_engine(OptimizationLevel::None)
             .ok()
-            .ok_or_else(|| "cannot start jit!".to_string()).unwrap();
+            .ok_or_else(|| "cannot start jit!".to_string())
+            .unwrap();
 
         let fpm = PassManager::create(&module);
 
@@ -586,10 +587,10 @@ mod tests {
             builder: context.create_builder(),
             execution_engine,
             fpm: &fpm,
-            compiled_functions: HashMap::new(),
+            compiled_function: None,
             parameters: vec![],
             jit_variables: HashMap::new(),
-            last_popped: None
+            last_popped: None,
         };
 
         let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());

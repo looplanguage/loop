@@ -60,6 +60,27 @@ mod tests {
         );
     }
 
+    #[test]
+    fn many_functions() {
+        test_jit(
+            "
+            var fib = fn(x) {
+                if(x < 2) {
+                    return 1
+                } else {
+                    return fib(x - 1) + fib(x - 2)
+                }
+            }
+
+            var a = fn(x, y) { return x * y }
+            var b = fn(a, b, c) { return a + b + c }
+            
+            fib(10) + b(a(2, 2), 4, 2) + a(10, 2)
+        ",
+            Object::Integer(Integer { value: 119 }),
+        )
+    }
+
     fn test_jit(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
