@@ -26,6 +26,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use inkwell::passes::PassManager;
 use inkwell::values::PointerValue;
+use crate::lib::object::integer::Integer;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -113,8 +114,23 @@ impl VM {
             fpm: &fpm,
             compiled_functions: HashMap::new(),
             parameters: vec![],
-            jit_variables: HashMap::new()
+            jit_variables: HashMap::new(),
+            last_popped: None
         };
+
+        if attempt_jit {
+            let f = self.current_frame();
+
+            let ptr = String::from("MAIN");
+            let success = codegen.compile(f.func.func.clone(), ptr.clone(), self);
+
+            if success {
+                let returned = codegen.run(ptr.clone(), vec![Rc::from(RefCell::from(Object::Integer(Integer { value: 0 })))]);
+                self.push(Rc::from(RefCell::from(returned)));
+            } else {
+                return Err(String::from("Unable to JIT main"))
+            }
+        }
 
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;

@@ -37,7 +37,8 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) compiled_functions: HashMap<String, Stub<'ctx>>,
     pub(crate) parameters: Vec<String>,
-    pub(crate) jit_variables: HashMap<String, PointerValue<'ctx>>
+    pub(crate) jit_variables: HashMap<String, PointerValue<'ctx>>,
+    pub(crate) last_popped: Option<AnyValueEnum<'ctx>>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -60,6 +61,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
+                false
             );
 
             if !ok {
@@ -94,27 +96,39 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
+                (pointer == "MAIN")
             );
 
             if !ok {
                 return false;
             }
 
-            self.compiled_functions.insert(pointer.clone(), unsafe {
-                Stub::F64RF64(
-                    self.execution_engine
-                        .get_function(pointer.as_str())
-                        .ok()
-                        .unwrap(),
-                )
-            });
-
             function.verify(true);
 
             self.fpm.run_on(&function);
+
+            if pointer == "MAIN" {
+                self.compiled_functions.insert(pointer.clone(), unsafe {
+                    Stub::F64RF64(
+                        self.execution_engine
+                            .get_function(pointer.as_str())
+                            .ok()
+                            .unwrap(),
+                    )
+                });
+            }
         }
 
         true
+    }
+
+    fn pop(&mut self, stack: &mut Vec<AnyValueEnum<'ctx>>) -> Option<AnyValueEnum<'ctx>> {
+        self.last_popped = stack.pop();
+        self.last_popped
+    }
+
+    fn push(&self, stack: &mut Vec<AnyValueEnum<'ctx>>, item: AnyValueEnum<'ctx>) {
+        stack.push(item);
     }
 
     fn compile_bytecode(
@@ -124,8 +138,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         vm: &mut VM,
         from: u32,
         to: u32,
+        is_main: bool
     ) -> bool {
-        //print_instructions(code.clone());
         let mut ip = from;
         let mut temp_stack: Vec<AnyValueEnum> = Vec::new();
         let mut compile_at_end: HashMap<String, CompiledFunction> = HashMap::new();
@@ -154,32 +168,25 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     match &*cst.as_ref().borrow() {
                         Object::Integer(int) => {
-                            temp_stack.push(
-                                self.context
-                                    .f64_type()
-                                    .const_float(int.value as f64)
-                                    .as_any_value_enum(),
-                            );
+                            self.push(temp_stack.as_mut(), self.context
+                                .f64_type()
+                                .const_float(int.value as f64)
+                                .as_any_value_enum());
                         }
                         Object::Null(_) => {
-                            temp_stack
-                                .push(AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
+                            self.push(temp_stack.as_mut(), AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
                         }
                         Object::Boolean(bool) => {
                             if bool.value {
-                                temp_stack.push(
-                                    self.context
-                                        .bool_type()
-                                        .const_int(1, false)
-                                        .as_any_value_enum(),
-                                );
+                                self.push(temp_stack.as_mut(), self.context
+                                    .bool_type()
+                                    .const_int(1, false)
+                                    .as_any_value_enum());
                             } else {
-                                temp_stack.push(
-                                    self.context
-                                        .bool_type()
-                                        .const_int(0, false)
-                                        .as_any_value_enum(),
-                                );
+                                self.push(temp_stack.as_mut(), self.context
+                                    .bool_type()
+                                    .const_int(0, false)
+                                    .as_any_value_enum());
                             }
                         }
                         _ => {
@@ -189,7 +196,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     };
                 }
                 OpCode::Return => {
-                    let return_val = temp_stack.pop().unwrap();
+                    let return_val = self.pop(temp_stack.as_mut()).unwrap();
 
                     let return_val = match return_val {
                         AnyValueEnum::IntValue(int) => int.as_basic_value_enum(),
@@ -210,11 +217,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     let param = function.get_nth_param(idx as u32);
 
-                    temp_stack.push(param.unwrap().as_any_value_enum());
+                    self.push(temp_stack.as_mut(), param.unwrap().as_any_value_enum());
                 }
                 OpCode::Add => {
-                    let right = temp_stack.pop().unwrap();
-                    let left = temp_stack.pop().unwrap();
+                    let right = self.pop(temp_stack.as_mut()).unwrap();
+                    let left = self.pop(temp_stack.as_mut()).unwrap();
 
                     let added = self.builder.build_float_add(
                         left.into_float_value(),
@@ -222,11 +229,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "add",
                     );
 
-                    temp_stack.push(added.as_any_value_enum());
+                    self.push(temp_stack.as_mut(), added.as_any_value_enum());
                 }
                 OpCode::Multiply => {
-                    let right = temp_stack.pop().unwrap();
-                    let left = temp_stack.pop().unwrap();
+                    let right = self.pop(temp_stack.as_mut()).unwrap();
+                    let left = self.pop(temp_stack.as_mut()).unwrap();
 
                     let multiplied = self.builder.build_float_mul(
                         left.into_float_value(),
@@ -234,11 +241,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "add",
                     );
 
-                    temp_stack.push(multiplied.as_any_value_enum());
+                    self.push(temp_stack.as_mut(), multiplied.as_any_value_enum());
                 }
                 OpCode::Minus => {
-                    let right = temp_stack.pop().unwrap();
-                    let left = temp_stack.pop().unwrap();
+                    let right = self.pop(temp_stack.as_mut()).unwrap();
+                    let left = self.pop(temp_stack.as_mut()).unwrap();
 
                     let subtracted = self.builder.build_float_sub(
                         left.into_float_value(),
@@ -246,11 +253,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "add",
                     );
 
-                    temp_stack.push(subtracted.as_any_value_enum());
+                    self.push(temp_stack.as_mut(), subtracted.as_any_value_enum());
                 }
                 OpCode::Equals => {
-                    let right = temp_stack.pop().unwrap().into_float_value();
-                    let left = temp_stack.pop().unwrap().into_float_value();
+                    let right = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
+                    let left = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
 
                     let compared = self.builder.build_float_compare(
                         FloatPredicate::OEQ,
@@ -259,11 +266,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "compare",
                     );
 
-                    temp_stack.push(compared.as_any_value_enum());
+                    self.push(temp_stack.as_mut(), compared.as_any_value_enum());
                 }
                 OpCode::GreaterThan => {
-                    let right = temp_stack.pop().unwrap().into_float_value();
-                    let left = temp_stack.pop().unwrap().into_float_value();
+                    let right = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
+                    let left = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
 
                     let compared = self.builder.build_float_compare(
                         FloatPredicate::OGT,
@@ -272,7 +279,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "compare",
                     );
 
-                    temp_stack.push(compared.as_any_value_enum());
+                    self.push(temp_stack.as_mut(), compared.as_any_value_enum());
                 }
                 OpCode::Function => {
                     let ct = read_uint32(&code[ip as usize..]);
@@ -334,7 +341,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     ip += 4;
 
                     if let Some(variable) = self.jit_variables.get(idx.to_string().as_str()) {
-                        temp_stack.push(self.builder.build_load(*variable, "load_var").as_any_value_enum());
+                        self.push(temp_stack.as_mut(), self.builder.build_load(*variable, "load_var").as_any_value_enum());
                     } else {
                         let variable = vm.variables.get(&idx).unwrap().clone();
 
@@ -345,7 +352,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                                     .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
 
                                 if let Some(f) = f {
-                                    temp_stack.push(f.as_any_value_enum());
+                                    self.push(temp_stack.as_mut(), f.as_any_value_enum());
                                 } else {
                                     let ptr = format!("{:p}", &*variable.as_ref().borrow());
 
@@ -357,7 +364,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                                     compile_at_end.insert(ptr.clone(), vf.func.clone());
 
-                                    temp_stack.push(function.as_any_value_enum());
+                                    self.push(temp_stack.as_mut(), function.as_any_value_enum());
 
                                 }
                             }
@@ -374,7 +381,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     self.jit_variables.remove(idx.to_string().as_str());
 
-                    let value = temp_stack.pop();
+                    let value = self.pop(temp_stack.as_mut());
 
                     if value.is_none() {
                         return false;
@@ -402,21 +409,21 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     )
                     .unwrap();
 
-                    let param = temp_stack.pop().unwrap().into_float_value();
+                    let param = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
 
                     let returns = self.builder.build_call(func, &[param.into()], "call");
 
                     // Final pop func of stack too
-                    temp_stack.pop();
+                    self.pop(temp_stack.as_mut());
 
-                    temp_stack.push(returns.as_any_value_enum());
+                    self.push(temp_stack.as_mut(), returns.as_any_value_enum());
                 }
                 OpCode::JumpIfFalse => {
                     let jump_to = read_uint32(&code[ip as usize..]);
 
                     ip += 4;
 
-                    let cond = temp_stack.pop().unwrap().into_int_value();
+                    let cond = self.pop(temp_stack.as_mut()).unwrap().into_int_value();
 
                     // branches
                     let then_b = self.context.append_basic_block(function, "then");
@@ -429,7 +436,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     self.builder.position_at_end(then_b);
 
                     // do then block
-                    let _done = self.compile_bytecode(code.clone(), function, vm, ip, jump_to);
+                    let _done = self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
 
                     //self.builder.build_unconditional_branch(cont_b);
 
@@ -444,7 +451,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 }
                 OpCode::Jump => ip += 4,
                 OpCode::Pop => {
-                    temp_stack.pop();
+                    self.pop(temp_stack.as_mut());
                 }
                 _ => {
                     println!("Unknown instruction: {:?}", op);
@@ -452,6 +459,14 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 }
             }
         };
+
+        if is_main {
+            if let Some(p) = self.last_popped {
+                self.builder.build_return(Some(&self.last_popped.unwrap().into_float_value()));
+            } else {
+                self.builder.build_return(Some(&self.context.f64_type().const_float(0.0)));
+            }
+        }
 
         for (key, value) in &compile_at_end {
             self.compile(value.clone(), key.clone(), vm);
