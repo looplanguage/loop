@@ -14,19 +14,19 @@ use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::hashmap::Hashmap;
+use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::{Hashable, Object};
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
 use inkwell::context::Context;
+use inkwell::passes::PassManager;
+use inkwell::values::PointerValue;
 use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use inkwell::passes::PassManager;
-use inkwell::values::PointerValue;
-use crate::lib::object::integer::Integer;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -72,7 +72,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
             sp: 0,
             constants: bt.constants,
             variables: st.variables.clone(),
-            main_name
+            main_name,
         };
     }
 
@@ -83,23 +83,32 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
         sp: 0,
         constants: bt.constants,
         variables: HashMap::new(),
-        main_name
+        main_name,
     }
 }
 
 impl VM {
-    pub fn run(&mut self, attempt_jit: bool, mut codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
-
+    pub fn run(
+        &mut self,
+        attempt_jit: bool,
+        mut codegen: &mut CodeGen,
+    ) -> Result<Rc<RefCell<Object>>, String> {
         if attempt_jit {
             let ptr = self.main_name.clone();
             let f = self.current_frame();
-            let success = codegen.compile(f.func.func.clone(), ptr.clone(), self);
+            let success = codegen.compile(f.func.func.clone(), ptr.clone(), self, Vec::new());
 
             if success {
-                let returned = codegen.run(ptr.clone(), vec![Rc::from(RefCell::from(Object::Integer(Integer { value: 0 })))]);
-                self.push(Rc::from(RefCell::from(returned)));
+                let returned = codegen.run(
+                    ptr.clone(),
+                    vec![Rc::from(RefCell::from(Object::Integer(Integer {
+                        value: 0,
+                    })))],
+                );
+
+                return Ok(Rc::from(RefCell::from(returned)));
             } else {
-                return Err(String::from("Unable to JIT main"))
+                return Err(String::from("Unable to JIT main"));
             }
         }
 

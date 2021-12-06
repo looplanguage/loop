@@ -1,6 +1,7 @@
 mod tests;
 
 use crate::compiler::definition::lookup_op;
+use crate::compiler::instructions::print_instructions;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::lib::object::function::{CompiledFunction, Function};
@@ -14,15 +15,28 @@ use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, FunctionLookupError, JitFunction};
 use inkwell::module::Module;
 use inkwell::passes::PassManager;
+use inkwell::types::BasicMetadataTypeEnum;
 use inkwell::values::{
-    AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue, PointerValue,
+    AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, CallableValue, FloatValue,
+    FunctionValue, PointerValue,
 };
 use inkwell::{FloatPredicate, OptimizationLevel};
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
 type MainFunction = unsafe extern "C" fn() -> f64;
+
+pub enum JitType {
+    Number,
+}
+
+#[derive(Clone, Debug)]
+pub enum StackItem<'ctx> {
+    AnyValueEnum(AnyValueEnum<'ctx>),
+    FunctionName(String),
+}
 
 pub struct CodeGen<'a, 'ctx> {
     pub(crate) context: &'ctx Context,
@@ -33,12 +47,18 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) compiled_function: Option<JitFunction<'ctx, MainFunction>>,
     pub(crate) parameters: Vec<String>,
     pub(crate) jit_variables: HashMap<String, PointerValue<'ctx>>,
-    pub(crate) last_popped: Option<AnyValueEnum<'ctx>>,
+    pub(crate) last_popped: Option<StackItem<'ctx>>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
 impl<'a, 'ctx> CodeGen<'a, 'ctx> {
-    pub fn compile(&mut self, func: CompiledFunction, pointer: String, vm: &mut VM) -> bool {
+    pub fn compile(
+        &mut self,
+        func: CompiledFunction,
+        pointer: String,
+        vm: &mut VM,
+        arguments: Vec<JitType>,
+    ) -> bool {
         let exists = self.module.get_function(pointer.clone().as_str());
 
         if let Some(function) = exists {
@@ -61,21 +81,21 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
             function.verify(true);
 
-            // TODO: Research why this works for some reason
-            self.execution_engine.remove_module(self.module);
-            self.execution_engine.add_module(self.module);
-
             self.fpm.run_on(&function);
-
-            self.compiled_function = Some(unsafe {
-                self.execution_engine
-                    .get_function(pointer.as_str())
-                    .ok()
-                    .unwrap()
-            });
         } else {
             let f64_type = self.context.f64_type();
-            let fn_type = f64_type.fn_type(&[f64_type.into()], false);
+
+            let fn_type = {
+                let mut args: Vec<BasicMetadataTypeEnum> = Vec::new();
+
+                for _ in arguments {
+                    args.push(BasicMetadataTypeEnum::FloatType(f64_type));
+                    println!("Argument :)");
+                }
+
+                f64_type.fn_type(&args, false)
+            };
+
             let function = self
                 .module
                 .add_function(pointer.clone().as_str(), fn_type, None);
@@ -101,30 +121,19 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             self.fpm.run_on(&function);
 
             if pointer.starts_with("MAIN") {
-                // TODO: Research why this works for some reason
-                self.execution_engine.remove_module(self.module);
-                self.execution_engine.add_module(self.module);
-
                 self.fpm.run_on(&function);
-
-                self.compiled_function = Some(unsafe {
-                    self.execution_engine
-                        .get_function(pointer.as_str())
-                        .ok()
-                        .unwrap()
-                });
             }
         }
 
         true
     }
 
-    fn pop(&mut self, stack: &mut Vec<AnyValueEnum<'ctx>>) -> Option<AnyValueEnum<'ctx>> {
+    fn pop(&mut self, stack: &mut Vec<StackItem<'ctx>>) -> Option<StackItem<'ctx>> {
         self.last_popped = stack.pop();
-        self.last_popped
+        self.last_popped.clone()
     }
 
-    fn push(&self, stack: &mut Vec<AnyValueEnum<'ctx>>, item: AnyValueEnum<'ctx>) {
+    fn push(&self, stack: &mut Vec<StackItem<'ctx>>, item: StackItem<'ctx>) {
         stack.push(item);
     }
 
@@ -138,7 +147,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         is_main: bool,
     ) -> bool {
         let mut ip = from;
-        let mut temp_stack: Vec<AnyValueEnum> = Vec::new();
+        let mut temp_stack: Vec<StackItem> = Vec::new();
         let mut compile_at_end: HashMap<String, CompiledFunction> = HashMap::new();
 
         while ip < (code.len() as u32) {
@@ -167,34 +176,42 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         Object::Integer(int) => {
                             self.push(
                                 temp_stack.as_mut(),
-                                self.context
-                                    .f64_type()
-                                    .const_float(int.value as f64)
-                                    .as_any_value_enum(),
+                                StackItem::AnyValueEnum(
+                                    self.context
+                                        .f64_type()
+                                        .const_float(int.value as f64)
+                                        .as_any_value_enum(),
+                                ),
                             );
                         }
                         Object::Null(_) => {
                             self.push(
                                 temp_stack.as_mut(),
-                                AnyValueEnum::from(self.context.f64_type().const_float(0.0)),
+                                StackItem::AnyValueEnum(AnyValueEnum::from(
+                                    self.context.f64_type().const_float(0.0),
+                                )),
                             );
                         }
                         Object::Boolean(bool) => {
                             if bool.value {
                                 self.push(
                                     temp_stack.as_mut(),
-                                    self.context
-                                        .bool_type()
-                                        .const_int(1, false)
-                                        .as_any_value_enum(),
+                                    StackItem::AnyValueEnum(
+                                        self.context
+                                            .bool_type()
+                                            .const_int(1, false)
+                                            .as_any_value_enum(),
+                                    ),
                                 );
                             } else {
                                 self.push(
                                     temp_stack.as_mut(),
-                                    self.context
-                                        .bool_type()
-                                        .const_int(0, false)
-                                        .as_any_value_enum(),
+                                    StackItem::AnyValueEnum(
+                                        self.context
+                                            .bool_type()
+                                            .const_int(0, false)
+                                            .as_any_value_enum(),
+                                    ),
                                 );
                             }
                         }
@@ -206,6 +223,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 }
                 OpCode::Return => {
                     let return_val = self.pop(temp_stack.as_mut()).unwrap();
+
+                    let return_val = if let StackItem::AnyValueEnum(a) = return_val {
+                        a
+                    } else {
+                        return false;
+                    };
 
                     let return_val = match return_val {
                         AnyValueEnum::IntValue(int) => int.as_basic_value_enum(),
@@ -225,11 +248,27 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     let param = function.get_nth_param(idx as u32);
 
-                    self.push(temp_stack.as_mut(), param.unwrap().as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(param.unwrap().as_any_value_enum()),
+                    );
                 }
                 OpCode::Add => {
-                    let right = self.pop(temp_stack.as_mut()).unwrap();
-                    let left = self.pop(temp_stack.as_mut()).unwrap();
+                    let right = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    };
+
+                    let left = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    };
 
                     let added = self.builder.build_float_add(
                         left.into_float_value(),
@@ -237,11 +276,27 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "add",
                     );
 
-                    self.push(temp_stack.as_mut(), added.as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(added.as_any_value_enum()),
+                    );
                 }
                 OpCode::Multiply => {
-                    let right = self.pop(temp_stack.as_mut()).unwrap();
-                    let left = self.pop(temp_stack.as_mut()).unwrap();
+                    let right = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    };
+
+                    let left = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    };
 
                     let multiplied = self.builder.build_float_mul(
                         left.into_float_value(),
@@ -249,11 +304,27 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "add",
                     );
 
-                    self.push(temp_stack.as_mut(), multiplied.as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(multiplied.as_any_value_enum()),
+                    );
                 }
                 OpCode::Minus => {
-                    let right = self.pop(temp_stack.as_mut()).unwrap();
-                    let left = self.pop(temp_stack.as_mut()).unwrap();
+                    let right = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    };
+
+                    let left = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    };
 
                     let subtracted = self.builder.build_float_sub(
                         left.into_float_value(),
@@ -261,11 +332,29 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "add",
                     );
 
-                    self.push(temp_stack.as_mut(), subtracted.as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(subtracted.as_any_value_enum()),
+                    );
                 }
                 OpCode::Equals => {
-                    let right = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
-                    let left = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
+                    let right = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    }
+                    .into_float_value();
+
+                    let left = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    }
+                    .into_float_value();
 
                     let compared = self.builder.build_float_compare(
                         FloatPredicate::OEQ,
@@ -274,11 +363,29 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "compare",
                     );
 
-                    self.push(temp_stack.as_mut(), compared.as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(compared.as_any_value_enum()),
+                    );
                 }
                 OpCode::GreaterThan => {
-                    let right = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
-                    let left = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
+                    let right = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    }
+                    .into_float_value();
+
+                    let left = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a
+                        } else {
+                            return false;
+                        }
+                    }
+                    .into_float_value();
 
                     let compared = self.builder.build_float_compare(
                         FloatPredicate::OGT,
@@ -287,7 +394,10 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         "compare",
                     );
 
-                    self.push(temp_stack.as_mut(), compared.as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(compared.as_any_value_enum()),
+                    );
                 }
                 OpCode::Function => {
                     let ct = read_uint32(&code[ip as usize..]);
@@ -347,26 +457,41 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     if let Some(variable) = self.jit_variables.get(idx.to_string().as_str()) {
                         self.push(
                             temp_stack.as_mut(),
-                            self.builder
-                                .build_load(*variable, "load_var")
-                                .as_any_value_enum(),
+                            StackItem::AnyValueEnum(
+                                self.builder
+                                    .build_load(*variable, "load_var")
+                                    .as_any_value_enum(),
+                            ),
                         );
                     } else {
                         let variable = vm.variables.get(&idx).unwrap().clone();
 
                         match &*variable.as_ref().borrow() {
                             Object::Function(vf) => {
-                                let f = self
-                                    .module
-                                    .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
+                                let f_name = format!("{:p}", &*variable.as_ref().borrow());
+
+                                let f = self.module.get_function(&*f_name.clone());
 
                                 if let Some(f) = f {
-                                    self.push(temp_stack.as_mut(), f.as_any_value_enum());
+                                    self.push(
+                                        temp_stack.as_mut(),
+                                        StackItem::FunctionName(f_name.clone()),
+                                    )
                                 } else {
                                     let ptr = format!("{:p}", &*variable.as_ref().borrow());
 
                                     let f64_type = self.context.f64_type();
-                                    let fn_type = f64_type.fn_type(&[f64_type.into()], false);
+
+                                    let fn_type = {
+                                        let mut args: Vec<BasicMetadataTypeEnum> = Vec::new();
+
+                                        for _ in 0..vf.func.num_parameters {
+                                            args.push(BasicMetadataTypeEnum::from(f64_type));
+                                        }
+
+                                        f64_type.fn_type(&args, false)
+                                    };
+
                                     let function = self.module.add_function(
                                         ptr.clone().as_str(),
                                         fn_type,
@@ -375,7 +500,10 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                                     compile_at_end.insert(ptr.clone(), vf.func.clone());
 
-                                    self.push(temp_stack.as_mut(), function.as_any_value_enum());
+                                    self.push(
+                                        temp_stack.as_mut(),
+                                        StackItem::FunctionName(ptr.clone()),
+                                    );
                                 }
                             }
                             _ => {
@@ -397,7 +525,13 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         return false;
                     }
 
-                    let value = match value.unwrap() {
+                    let value = if let Some(StackItem::AnyValueEnum(a)) = value {
+                        a
+                    } else {
+                        return false;
+                    };
+
+                    let value = match value {
                         AnyValueEnum::IntValue(int) => int.as_basic_value_enum(),
                         AnyValueEnum::FloatValue(float) => float.as_basic_value_enum(),
                         _ => {
@@ -411,31 +545,63 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     self.jit_variables.insert(idx.to_string(), alloca);
                 }
                 OpCode::Call => {
-                    let args = read_uint8(&code[ip as usize..]);
+                    let args_amount = read_uint8(&code[ip as usize..]);
 
                     ip += 1;
 
-                    let func = CallableValue::try_from(
-                        temp_stack[((temp_stack.len() as u8) - 1 - args) as usize]
-                            .into_pointer_value(),
-                    )
-                    .unwrap();
+                    let stack_item =
+                        temp_stack[((temp_stack.len() as u8) - 1 - args_amount) as usize].clone();
 
-                    let param = self.pop(temp_stack.as_mut()).unwrap().into_float_value();
+                    let func = {
+                        if let StackItem::FunctionName(name) = stack_item {
+                            self.module.get_function(&*name).unwrap()
+                        } else {
+                            println!("No function: {:?}", stack_item);
+                            return false;
+                        }
+                    };
 
-                    let returns = self.builder.build_call(func, &[param.into()], "call");
+                    let mut args: Vec<BasicMetadataValueEnum> = Vec::new();
+
+                    for _ in 0..args_amount {
+                        let arg = {
+                            if let StackItem::AnyValueEnum(a) =
+                                self.pop(temp_stack.as_mut()).unwrap()
+                            {
+                                a.into_float_value().as_basic_value_enum()
+                            } else {
+                                self.context
+                                    .f64_type()
+                                    .const_float(0.0)
+                                    .as_basic_value_enum()
+                            }
+                        };
+
+                        args.push(BasicMetadataValueEnum::from(arg));
+                    }
+
+                    let returns = self.builder.build_call(func, &args, "call");
 
                     // Final pop func of stack too
                     self.pop(temp_stack.as_mut());
 
-                    self.push(temp_stack.as_mut(), returns.as_any_value_enum());
+                    self.push(
+                        temp_stack.as_mut(),
+                        StackItem::AnyValueEnum(returns.as_any_value_enum()),
+                    );
                 }
                 OpCode::JumpIfFalse => {
                     let jump_to = read_uint32(&code[ip as usize..]);
 
                     ip += 4;
 
-                    let cond = self.pop(temp_stack.as_mut()).unwrap().into_int_value();
+                    let cond = {
+                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
+                            a.into_int_value()
+                        } else {
+                            self.context.i64_type().const_int(0, false)
+                        }
+                    };
 
                     // branches
                     let then_b = self.context.append_basic_block(function, "then");
@@ -474,9 +640,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         }
 
         if is_main {
-            if let Some(p) = self.last_popped {
-                self.builder
-                    .build_return(Some(&self.last_popped.unwrap().into_float_value()));
+            if let Some(StackItem::AnyValueEnum(p)) = self.last_popped {
+                self.builder.build_return(Some(&p.into_float_value()));
             } else {
                 self.builder
                     .build_return(Some(&self.context.f64_type().const_float(0.0)));
@@ -484,7 +649,13 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         }
 
         for (key, value) in &compile_at_end {
-            self.compile(value.clone(), key.clone(), vm);
+            let mut args = Vec::new();
+
+            for _ in 0..value.num_parameters {
+                args.push(JitType::Number);
+            }
+
+            self.compile(value.clone(), key.clone(), vm, args);
         }
 
         true

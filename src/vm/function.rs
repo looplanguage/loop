@@ -42,7 +42,7 @@ pub fn run_function(
                 let ptr = format!("{:p}", &*stack_item.as_ref().borrow());
 
                 if codegen.module.get_function(&*ptr.clone()).is_none() {
-                    let success = codegen.compile(func.func.clone(), ptr.clone(), vm);
+                    let success = codegen.compile(func.func.clone(), ptr.clone(), vm, Vec::new());
 
                     if success {
                         // Pop function of the stack
