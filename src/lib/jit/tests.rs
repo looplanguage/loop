@@ -90,7 +90,7 @@ mod tests {
         let execution_engine = module
             .create_jit_execution_engine(OptimizationLevel::None)
             .ok()
-            .ok_or_else(|| "cannot start jit!".to_string())?;
+            .ok_or_else(|| "cannot start jit!".to_string()).unwrap();
 
         let fpm = PassManager::create(&module);
 
