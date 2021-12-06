@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-    use inkwell::context::Context;
-    use inkwell::OptimizationLevel;
-    use inkwell::passes::PassManager;
     use crate::lib::exception::Exception;
+    use crate::lib::jit::CodeGen;
     use crate::lib::object::integer::Integer;
     use crate::lib::object::Object;
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
-    use crate::lib::jit::CodeGen;
+    use inkwell::context::Context;
+    use inkwell::passes::PassManager;
+    use inkwell::OptimizationLevel;
+    use std::collections::HashMap;
 
     #[test]
     fn function_single_parameter() {
@@ -90,7 +90,8 @@ mod tests {
         let execution_engine = module
             .create_jit_execution_engine(OptimizationLevel::None)
             .ok()
-            .ok_or_else(|| "cannot start jit!".to_string()).unwrap();
+            .ok_or_else(|| "cannot start jit!".to_string())
+            .unwrap();
 
         let fpm = PassManager::create(&module);
 
@@ -111,10 +112,10 @@ mod tests {
             builder: context.create_builder(),
             execution_engine,
             fpm: &fpm,
-            compiled_functions: HashMap::new(),
+            compiled_function: None,
             parameters: vec![],
             jit_variables: HashMap::new(),
-            last_popped: None
+            last_popped: None,
         };
 
         let err = vm.run(true, &mut codegen);

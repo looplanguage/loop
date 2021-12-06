@@ -7,35 +7,30 @@ use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
+use crate::vm::function::run_function_stack;
 use crate::vm::VM;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, FunctionLookupError, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue, PointerValue};
-use crate::vm::function::run_function_stack;
+use inkwell::passes::PassManager;
+use inkwell::values::{
+    AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue, PointerValue,
+};
 use inkwell::{FloatPredicate, OptimizationLevel};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use inkwell::passes::PassManager;
 
-// Stubs
+type MainFunction = unsafe extern "C" fn() -> f64;
 
-pub enum Stub<'ctx> {
-    F64RF64(JitFunction<'ctx, StubF64RF64>),
-}
-
-type StubF64RF64 = unsafe extern "C" fn(f64) -> f64;
-
-#[allow(dead_code)]
 pub struct CodeGen<'a, 'ctx> {
     pub(crate) context: &'ctx Context,
     pub(crate) fpm: &'a PassManager<FunctionValue<'ctx>>,
     pub(crate) module: &'a Module<'ctx>,
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
-    pub(crate) compiled_functions: HashMap<String, Stub<'ctx>>,
+    pub(crate) compiled_function: Option<JitFunction<'ctx, MainFunction>>,
     pub(crate) parameters: Vec<String>,
     pub(crate) jit_variables: HashMap<String, PointerValue<'ctx>>,
     pub(crate) last_popped: Option<AnyValueEnum<'ctx>>,
@@ -43,10 +38,6 @@ pub struct CodeGen<'a, 'ctx> {
 
 // TODO: Document this quite a bit more, as this is a little complicated
 impl<'a, 'ctx> CodeGen<'a, 'ctx> {
-    pub fn get_function(&self, pointer: String) -> Option<&Stub<'ctx>> {
-        self.compiled_functions.get(&*pointer)
-    }
-
     pub fn compile(&mut self, func: CompiledFunction, pointer: String, vm: &mut VM) -> bool {
         let exists = self.module.get_function(pointer.clone().as_str());
 
@@ -61,7 +52,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
-                (pointer.starts_with("MAIN"))
+                (pointer.starts_with("MAIN")),
             );
 
             if !ok {
@@ -70,22 +61,18 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
             function.verify(true);
 
-            self.compiled_functions.remove(&*pointer.clone());
-
             // TODO: Research why this works for some reason
             self.execution_engine.remove_module(self.module);
             self.execution_engine.add_module(self.module);
 
-            self.compiled_functions.insert(pointer.clone(), unsafe {
-                Stub::F64RF64(
-                    self.execution_engine
-                        .get_function(pointer.as_str())
-                        .ok()
-                        .unwrap(),
-                )
-            });
-
             self.fpm.run_on(&function);
+
+            self.compiled_function = Some(unsafe {
+                self.execution_engine
+                    .get_function(pointer.as_str())
+                    .ok()
+                    .unwrap()
+            });
         } else {
             let f64_type = self.context.f64_type();
             let fn_type = f64_type.fn_type(&[f64_type.into()], false);
@@ -102,7 +89,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
-                (pointer.starts_with("MAIN"))
+                (pointer.starts_with("MAIN")),
             );
 
             if !ok {
@@ -118,21 +105,13 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 self.execution_engine.remove_module(self.module);
                 self.execution_engine.add_module(self.module);
 
-                unsafe {
-                    let f: Result<JitFunction<StubF64RF64>, FunctionLookupError> = self.execution_engine.get_function(pointer.as_str());
+                self.fpm.run_on(&function);
 
-                    if let Err(e) = f {
-                        println!("{:?}", e)
-                    }
-                }
-
-                self.compiled_functions.insert(pointer.clone(), unsafe {
-                    Stub::F64RF64(
-                        self.execution_engine
-                            .get_function(pointer.as_str())
-                            .ok()
-                            .unwrap(),
-                    )
+                self.compiled_function = Some(unsafe {
+                    self.execution_engine
+                        .get_function(pointer.as_str())
+                        .ok()
+                        .unwrap()
                 });
             }
         }
@@ -156,7 +135,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         vm: &mut VM,
         from: u32,
         to: u32,
-        is_main: bool
+        is_main: bool,
     ) -> bool {
         let mut ip = from;
         let mut temp_stack: Vec<AnyValueEnum> = Vec::new();
@@ -186,25 +165,37 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     match &*cst.as_ref().borrow() {
                         Object::Integer(int) => {
-                            self.push(temp_stack.as_mut(), self.context
-                                .f64_type()
-                                .const_float(int.value as f64)
-                                .as_any_value_enum());
+                            self.push(
+                                temp_stack.as_mut(),
+                                self.context
+                                    .f64_type()
+                                    .const_float(int.value as f64)
+                                    .as_any_value_enum(),
+                            );
                         }
                         Object::Null(_) => {
-                            self.push(temp_stack.as_mut(), AnyValueEnum::from(self.context.f64_type().const_float(0.0)));
+                            self.push(
+                                temp_stack.as_mut(),
+                                AnyValueEnum::from(self.context.f64_type().const_float(0.0)),
+                            );
                         }
                         Object::Boolean(bool) => {
                             if bool.value {
-                                self.push(temp_stack.as_mut(), self.context
-                                    .bool_type()
-                                    .const_int(1, false)
-                                    .as_any_value_enum());
+                                self.push(
+                                    temp_stack.as_mut(),
+                                    self.context
+                                        .bool_type()
+                                        .const_int(1, false)
+                                        .as_any_value_enum(),
+                                );
                             } else {
-                                self.push(temp_stack.as_mut(), self.context
-                                    .bool_type()
-                                    .const_int(0, false)
-                                    .as_any_value_enum());
+                                self.push(
+                                    temp_stack.as_mut(),
+                                    self.context
+                                        .bool_type()
+                                        .const_int(0, false)
+                                        .as_any_value_enum(),
+                                );
                             }
                         }
                         _ => {
@@ -302,8 +293,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let ct = read_uint32(&code[ip as usize..]);
                     ip += 4;
 
-                    let free_count =
-                        read_uint8(&code[ip as usize..]);
+                    let free_count = read_uint8(&code[ip as usize..]);
 
                     ip += 1;
 
@@ -322,9 +312,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         let idx = read_uint32(&code[ip as usize..]);
                         ip += 4;
 
-
                         let func = match &*vm.constants[ct as usize].clone().as_ref().borrow() {
-                            Object::CompiledFunction(cf) => { cf.clone() }
+                            Object::CompiledFunction(cf) => cf.clone(),
                             _ => {
                                 return false;
                             }
@@ -340,12 +329,10 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                         //free.reverse();
 
-                        let func = Object::Function(Function {
-                            func,
-                            free,
-                        });
+                        let func = Object::Function(Function { func, free });
 
-                        vm.variables.insert(idx, Rc::from(RefCell::from(func.clone())));
+                        vm.variables
+                            .insert(idx, Rc::from(RefCell::from(func.clone())));
                     } else {
                         println!("WRONG OP TYPE!;");
                         return false;
@@ -358,7 +345,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     ip += 4;
 
                     if let Some(variable) = self.jit_variables.get(idx.to_string().as_str()) {
-                        self.push(temp_stack.as_mut(), self.builder.build_load(*variable, "load_var").as_any_value_enum());
+                        self.push(
+                            temp_stack.as_mut(),
+                            self.builder
+                                .build_load(*variable, "load_var")
+                                .as_any_value_enum(),
+                        );
                     } else {
                         let variable = vm.variables.get(&idx).unwrap().clone();
 
@@ -375,14 +367,15 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                                     let f64_type = self.context.f64_type();
                                     let fn_type = f64_type.fn_type(&[f64_type.into()], false);
-                                    let function = self
-                                        .module
-                                        .add_function(ptr.clone().as_str(), fn_type, None);
+                                    let function = self.module.add_function(
+                                        ptr.clone().as_str(),
+                                        fn_type,
+                                        None,
+                                    );
 
                                     compile_at_end.insert(ptr.clone(), vf.func.clone());
 
                                     self.push(temp_stack.as_mut(), function.as_any_value_enum());
-
                                 }
                             }
                             _ => {
@@ -404,10 +397,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         return false;
                     }
 
-                   let value = match value.unwrap() {
+                    let value = match value.unwrap() {
                         AnyValueEnum::IntValue(int) => int.as_basic_value_enum(),
                         AnyValueEnum::FloatValue(float) => float.as_basic_value_enum(),
-                        _ => { return false; }
+                        _ => {
+                            return false;
+                        }
                     };
 
                     let alloca = self.create_entry_block_alloca(idx.to_string().as_str(), function);
@@ -453,7 +448,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     self.builder.position_at_end(then_b);
 
                     // do then block
-                    let _done = self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
+                    let _done =
+                        self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
 
                     //self.builder.build_unconditional_branch(cont_b);
 
@@ -475,13 +471,15 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     return false;
                 }
             }
-        };
+        }
 
         if is_main {
             if let Some(p) = self.last_popped {
-                self.builder.build_return(Some(&self.last_popped.unwrap().into_float_value()));
+                self.builder
+                    .build_return(Some(&self.last_popped.unwrap().into_float_value()));
             } else {
-                self.builder.build_return(Some(&self.context.f64_type().const_float(0.0)));
+                self.builder
+                    .build_return(Some(&self.context.f64_type().const_float(0.0)));
             }
         }
 
@@ -492,14 +490,18 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         true
     }
 
-    fn create_entry_block_alloca(&self, name: &str, function: FunctionValue<'ctx>) -> PointerValue<'ctx> {
+    fn create_entry_block_alloca(
+        &self,
+        name: &str,
+        function: FunctionValue<'ctx>,
+    ) -> PointerValue<'ctx> {
         let builder = self.context.create_builder();
 
         let entry = function.get_first_basic_block().unwrap();
 
         match entry.get_first_instruction() {
             Some(first_instr) => builder.position_before(&first_instr),
-            None => builder.position_at_end(entry)
+            None => builder.position_at_end(entry),
         }
 
         builder.build_alloca(self.context.f64_type(), name)
@@ -507,18 +509,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
     #[allow(dead_code)]
     pub fn run(&mut self, ptr: String, _params: Vec<Rc<RefCell<Object>>>) -> Object {
-        if let Some(compiled) = self.get_function(ptr) {
-            let mut _compiled_down_params: Vec<f64> = Vec::new();
+        if let Some(_) = self.module.get_function(&*ptr) {
+            let main_function: JitFunction<MainFunction> =
+                unsafe { self.execution_engine.get_function(&*ptr).unwrap() };
 
-            for _param in _params {
-                if let Object::Integer(integer) = &*_param.as_ref().borrow() {
-                    _compiled_down_params.push(integer.value as f64);
-                }
-            }
-
-            let returned = match compiled {
-                Stub::F64RF64(func) => unsafe { func.call(_compiled_down_params[0]) },
-            };
+            let returned = unsafe { main_function.call() };
 
             return Object::Integer(integer::Integer {
                 value: returned as i64,

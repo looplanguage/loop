@@ -158,7 +158,7 @@ impl Repl {
                 builder: context.create_builder(),
                 execution_engine,
                 fpm: &fpm,
-                compiled_functions: HashMap::new(),
+                compiled_function: None,
                 parameters: vec![],
                 jit_variables: HashMap::new(),
                 last_popped: None,

@@ -2,24 +2,24 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-use std::borrow::BorrowMut;
-use std::collections::HashMap;
 use chrono::Utc;
 use colored::Colorize;
 use dirs::home_dir;
+use inkwell::context::Context;
+use inkwell::passes::PassManager;
+use inkwell::OptimizationLevel;
+use std::borrow::BorrowMut;
+use std::collections::HashMap;
 use std::env;
 use std::fs::read_to_string;
-use inkwell::context::Context;
-use inkwell::OptimizationLevel;
-use inkwell::passes::PassManager;
 
 use crate::compiler::instructions::print_instructions;
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
+use crate::lib::jit::CodeGen;
 use lib::flags;
 use lib::repl::build_repl;
-use crate::lib::jit::CodeGen;
 
 use crate::vm::build_vm;
 
@@ -99,7 +99,7 @@ fn run_file(file: String, flags: Flags) {
         print_instructions(comp.scope().instructions.clone());
     }
 
-    let mut vm = build_vm(comp.get_bytecode(), None,"MAIN".to_string());
+    let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
 
     let started = Utc::now();
 
@@ -108,7 +108,8 @@ fn run_file(file: String, flags: Flags) {
     let execution_engine = module
         .create_jit_execution_engine(OptimizationLevel::None)
         .ok()
-        .ok_or_else(|| "cannot start jit!".to_string()).unwrap();
+        .ok_or_else(|| "cannot start jit!".to_string())
+        .unwrap();
 
     let fpm = PassManager::create(&module);
 
@@ -129,10 +130,10 @@ fn run_file(file: String, flags: Flags) {
         builder: context.create_builder(),
         execution_engine,
         fpm: &fpm,
-        compiled_functions: HashMap::new(),
+        compiled_function: None,
         parameters: vec![],
         jit_variables: HashMap::new(),
-        last_popped: None
+        last_popped: None,
     };
 
     let ran = vm.run(flags.contains(FlagTypes::Jit), codegen.borrow_mut());
