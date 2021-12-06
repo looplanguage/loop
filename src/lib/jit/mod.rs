@@ -3,7 +3,7 @@ mod tests;
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
-use crate::lib::object::function::CompiledFunction;
+use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
@@ -13,6 +13,7 @@ use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue, PointerValue};
+use crate::vm::function::run_function_stack;
 use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -46,39 +47,72 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
     }
 
     pub fn compile(&mut self, func: CompiledFunction, pointer: String, vm: &mut VM) -> bool {
-        let f64_type = self.context.f64_type();
-        let fn_type = f64_type.fn_type(&[f64_type.into()], false);
-        let function = self
-            .module
-            .add_function(pointer.clone().as_str(), fn_type, None);
-        let basic_block = self.context.append_basic_block(function, "entry");
+        let exists = self.module.get_function(pointer.clone().as_str());
 
-        self.builder.position_at_end(basic_block);
+        if let Some(function) = exists {
+            let basic_block = self.context.append_basic_block(function, "entry");
 
-        let ok = self.compile_bytecode(
-            func.instructions.clone(),
-            function,
-            vm,
-            0,
-            func.instructions.len() as u32,
-        );
+            self.builder.position_at_end(basic_block);
 
-        if !ok {
-            return false;
+            let ok = self.compile_bytecode(
+                func.instructions.clone(),
+                function,
+                vm,
+                0,
+                func.instructions.len() as u32,
+            );
+
+            if !ok {
+                return false;
+            }
+
+            self.compiled_functions.insert(pointer.clone(), unsafe {
+                Stub::F64RF64(
+                    self.execution_engine
+                        .get_function(pointer.as_str())
+                        .ok()
+                        .unwrap(),
+                )
+            });
+
+            function.verify(true);
+
+            self.fpm.run_on(&function);
+        } else {
+            let f64_type = self.context.f64_type();
+            let fn_type = f64_type.fn_type(&[f64_type.into()], false);
+            let function = self
+                .module
+                .add_function(pointer.clone().as_str(), fn_type, None);
+            let basic_block = self.context.append_basic_block(function, "entry");
+
+            self.builder.position_at_end(basic_block);
+
+            let ok = self.compile_bytecode(
+                func.instructions.clone(),
+                function,
+                vm,
+                0,
+                func.instructions.len() as u32,
+            );
+
+            if !ok {
+                return false;
+            }
+
+            self.compiled_functions.insert(pointer.clone(), unsafe {
+                Stub::F64RF64(
+                    self.execution_engine
+                        .get_function(pointer.as_str())
+                        .ok()
+                        .unwrap(),
+                )
+            });
+
+            function.verify(true);
+
+            self.fpm.run_on(&function);
         }
-
-        self.compiled_functions.insert(pointer.clone(), unsafe {
-            Stub::F64RF64(
-                self.execution_engine
-                    .get_function(pointer.as_str())
-                    .ok()
-                    .unwrap(),
-            )
-        });
-
-        function.verify(true);
-
-        self.fpm.run_on(&function);
 
         true
     }
@@ -94,6 +128,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         //print_instructions(code.clone());
         let mut ip = from;
         let mut temp_stack: Vec<AnyValueEnum> = Vec::new();
+        let mut compile_at_end: HashMap<String, CompiledFunction> = HashMap::new();
 
         while ip < (code.len() as u32) {
             let _op = lookup_op(code[ip as usize]);
@@ -239,6 +274,61 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     temp_stack.push(compared.as_any_value_enum());
                 }
+                OpCode::Function => {
+                    let ct = read_uint32(&code[ip as usize..]);
+                    ip += 4;
+
+                    let free_count =
+                        read_uint8(&code[ip as usize..]);
+
+                    ip += 1;
+
+                    // For now we are only handling named functions (not lambda/anonymous functions)
+                    let _op = lookup_op(code[ip as usize]);
+
+                    if _op.is_none() {
+                        println!("NO OP TYPE!;");
+                        return false;
+                    }
+
+                    let op = _op.unwrap();
+                    ip += 1;
+
+                    if let OpCode::SetVar = op {
+                        let idx = read_uint32(&code[ip as usize..]);
+                        ip += 4;
+
+
+                        let func = match &*vm.constants[ct as usize].clone().as_ref().borrow() {
+                            Object::CompiledFunction(cf) => { cf.clone() }
+                            _ => {
+                                return false;
+                            }
+                        };
+
+                        // This needs to be modified to support closures in JIT
+                        let mut free = Vec::new();
+
+                        /*
+                        for _ in 0..free_count {
+                            free.push(Rc::clone(&vm.pop()));
+                        }*/
+
+                        //free.reverse();
+
+                        let func = Object::Function(Function {
+                            func,
+                            free,
+                        });
+
+                        vm.variables.insert(idx, Rc::from(RefCell::from(func.clone())));
+                    } else {
+                        println!("WRONG OP TYPE!;");
+                        return false;
+                    }
+
+                    //run_function_stack(vm, ct, parameters)
+                }
                 OpCode::GetVar => {
                     let idx = read_uint32(&code[ip as usize..]);
                     ip += 4;
@@ -249,7 +339,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         let variable = vm.variables.get(&idx).unwrap().clone();
 
                         match &*variable.as_ref().borrow() {
-                            Object::Function(_) => {
+                            Object::Function(vf) => {
                                 let f = self
                                     .module
                                     .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
@@ -257,10 +347,22 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                                 if let Some(f) = f {
                                     temp_stack.push(f.as_any_value_enum());
                                 } else {
-                                    println!("Compile new function!");
+                                    let ptr = format!("{:p}", &*variable.as_ref().borrow());
+
+                                    let f64_type = self.context.f64_type();
+                                    let fn_type = f64_type.fn_type(&[f64_type.into()], false);
+                                    let function = self
+                                        .module
+                                        .add_function(ptr.clone().as_str(), fn_type, None);
+
+                                    compile_at_end.insert(ptr.clone(), vf.func.clone());
+
+                                    temp_stack.push(function.as_any_value_enum());
+
                                 }
                             }
                             _ => {
+                                println!(":( {:?}", variable);
                                 return false;
                             }
                         };
@@ -349,7 +451,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     return false;
                 }
             }
+        };
+
+        for (key, value) in &compile_at_end {
+            self.compile(value.clone(), key.clone(), vm);
         }
+
         true
     }
 

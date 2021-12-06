@@ -1,5 +1,5 @@
 mod frame;
-mod function;
+pub(crate) mod function;
 mod suffix;
 mod tests;
 
