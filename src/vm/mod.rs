@@ -25,6 +25,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use inkwell::passes::PassManager;
+use inkwell::values::PointerValue;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -112,6 +113,7 @@ impl VM {
             fpm: &fpm,
             compiled_functions: HashMap::new(),
             parameters: vec![],
+            jit_variables: HashMap::new()
         };
 
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {

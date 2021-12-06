@@ -12,7 +12,7 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
-use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue};
+use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue, PointerValue};
 use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -36,6 +36,7 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) compiled_functions: HashMap<String, Stub<'ctx>>,
     pub(crate) parameters: Vec<String>,
+    pub(crate) jit_variables: HashMap<String, PointerValue<'ctx>>
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -242,24 +243,51 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let idx = read_uint32(&code[ip as usize..]);
                     ip += 4;
 
-                    let variable = vm.variables.get(&idx).unwrap().clone();
+                    if let Some(variable) = self.jit_variables.get(idx.to_string().as_str()) {
+                        temp_stack.push(self.builder.build_load(*variable, "load_var").as_any_value_enum());
+                    } else {
+                        let variable = vm.variables.get(&idx).unwrap().clone();
 
-                    match &*variable.as_ref().borrow() {
-                        Object::Function(_) => {
-                            let f = self
-                                .module
-                                .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
+                        match &*variable.as_ref().borrow() {
+                            Object::Function(_) => {
+                                let f = self
+                                    .module
+                                    .get_function(&*format!("{:p}", &*variable.as_ref().borrow()));
 
-                            if let Some(f) = f {
-                                temp_stack.push(f.as_any_value_enum());
-                            } else {
-                                println!("Compile new function!");
+                                if let Some(f) = f {
+                                    temp_stack.push(f.as_any_value_enum());
+                                } else {
+                                    println!("Compile new function!");
+                                }
                             }
-                        }
-                        _ => {
-                            return false;
-                        }
+                            _ => {
+                                return false;
+                            }
+                        };
                     };
+                }
+                OpCode::SetVar => {
+                    let idx = read_uint32(&code[ip as usize..]);
+                    ip += 4;
+
+                    self.jit_variables.remove(idx.to_string().as_str());
+
+                    let value = temp_stack.pop();
+
+                    if value.is_none() {
+                        return false;
+                    }
+
+                   let value = match value.unwrap() {
+                        AnyValueEnum::IntValue(int) => int.as_basic_value_enum(),
+                        AnyValueEnum::FloatValue(float) => float.as_basic_value_enum(),
+                        _ => { return false; }
+                    };
+
+                    let alloca = self.create_entry_block_alloca(idx.to_string().as_str(), function);
+                    self.builder.build_store(alloca, value);
+
+                    self.jit_variables.insert(idx.to_string(), alloca);
                 }
                 OpCode::Call => {
                     let args = read_uint8(&code[ip as usize..]);
@@ -323,6 +351,19 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             }
         }
         true
+    }
+
+    fn create_entry_block_alloca(&self, name: &str, function: FunctionValue<'ctx>) -> PointerValue<'ctx> {
+        let builder = self.context.create_builder();
+
+        let entry = function.get_first_basic_block().unwrap();
+
+        match entry.get_first_instruction() {
+            Some(first_instr) => builder.position_before(&first_instr),
+            None => builder.position_at_end(entry)
+        }
+
+        builder.build_alloca(self.context.f64_type(), name)
     }
 
     #[allow(dead_code)]
