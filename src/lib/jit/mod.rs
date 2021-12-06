@@ -71,6 +71,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             function.verify(true);
 
             self.compiled_functions.remove(&*pointer.clone());
+
+            // TODO: Research why this works for some reason
+            self.execution_engine.remove_module(self.module);
+            self.execution_engine.add_module(self.module);
+
             self.compiled_functions.insert(pointer.clone(), unsafe {
                 Stub::F64RF64(
                     self.execution_engine
