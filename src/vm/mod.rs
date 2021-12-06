@@ -24,6 +24,7 @@ use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use inkwell::passes::PassManager;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -90,11 +91,25 @@ impl VM {
             .ok()
             .ok_or_else(|| "cannot start jit!".to_string())?;
 
+        let fpm = PassManager::create(&module);
+
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+        fpm.add_gvn_pass();
+        fpm.add_cfg_simplification_pass();
+        fpm.add_basic_alias_analysis_pass();
+        fpm.add_promote_memory_to_register_pass();
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+
+        fpm.initialize();
+
         let mut codegen = CodeGen {
             context: &context,
-            module,
+            module: &module,
             builder: context.create_builder(),
             execution_engine,
+            fpm: &fpm,
             compiled_functions: HashMap::new(),
             parameters: vec![],
         };

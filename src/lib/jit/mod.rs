@@ -17,6 +17,7 @@ use inkwell::FloatPredicate;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use inkwell::passes::PassManager;
 
 // Stubs
 
@@ -27,9 +28,10 @@ pub enum Stub<'ctx> {
 type StubF64RF64 = unsafe extern "C" fn(f64) -> f64;
 
 #[allow(dead_code)]
-pub struct CodeGen<'ctx> {
+pub struct CodeGen<'a, 'ctx> {
     pub(crate) context: &'ctx Context,
-    pub(crate) module: Module<'ctx>,
+    pub(crate) fpm: &'a PassManager<FunctionValue<'ctx>>,
+    pub(crate) module: &'a Module<'ctx>,
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) compiled_functions: HashMap<String, Stub<'ctx>>,
@@ -37,7 +39,7 @@ pub struct CodeGen<'ctx> {
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
-impl<'ctx> CodeGen<'ctx> {
+impl<'a, 'ctx> CodeGen<'a, 'ctx> {
     pub fn get_function(&self, pointer: String) -> Option<&Stub<'ctx>> {
         self.compiled_functions.get(&*pointer)
     }
@@ -75,7 +77,7 @@ impl<'ctx> CodeGen<'ctx> {
 
         function.verify(true);
 
-        //println!("{}", self.module.print_to_string().to_string());
+        self.fpm.run_on(&function);
 
         true
     }
