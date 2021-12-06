@@ -2,11 +2,16 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use std::borrow::BorrowMut;
+use std::collections::HashMap;
 use chrono::Utc;
 use colored::Colorize;
 use dirs::home_dir;
 use std::env;
 use std::fs::read_to_string;
+use inkwell::context::Context;
+use inkwell::OptimizationLevel;
+use inkwell::passes::PassManager;
 
 use crate::compiler::instructions::print_instructions;
 use crate::lib::config::{load_config, LoadType};
@@ -14,6 +19,7 @@ use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
 use lib::flags;
 use lib::repl::build_repl;
+use crate::lib::jit::CodeGen;
 
 use crate::vm::build_vm;
 
@@ -93,11 +99,43 @@ fn run_file(file: String, flags: Flags) {
         print_instructions(comp.scope().instructions.clone());
     }
 
-    let mut vm = build_vm(comp.get_bytecode(), None);
+    let mut vm = build_vm(comp.get_bytecode(), None,"MAIN".to_string());
 
     let started = Utc::now();
 
-    let ran = vm.run(flags.contains(FlagTypes::Jit));
+    let context = Context::create();
+    let module = context.create_module("program");
+    let execution_engine = module
+        .create_jit_execution_engine(OptimizationLevel::None)
+        .ok()
+        .ok_or_else(|| "cannot start jit!".to_string()).unwrap();
+
+    let fpm = PassManager::create(&module);
+
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+    fpm.add_gvn_pass();
+    fpm.add_cfg_simplification_pass();
+    fpm.add_basic_alias_analysis_pass();
+    fpm.add_promote_memory_to_register_pass();
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+
+    fpm.initialize();
+
+    let mut codegen = CodeGen {
+        context: &context,
+        module: &module,
+        builder: context.create_builder(),
+        execution_engine,
+        fpm: &fpm,
+        compiled_functions: HashMap::new(),
+        parameters: vec![],
+        jit_variables: HashMap::new(),
+        last_popped: None
+    };
+
+    let ran = vm.run(flags.contains(FlagTypes::Jit), codegen.borrow_mut());
 
     let duration = Utc::now().signed_duration_since(started);
 

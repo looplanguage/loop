@@ -10,11 +10,11 @@ use crate::lib::object::Object;
 use crate::vm::VM;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
-use inkwell::execution_engine::{ExecutionEngine, JitFunction};
+use inkwell::execution_engine::{ExecutionEngine, FunctionLookupError, JitFunction};
 use inkwell::module::Module;
 use inkwell::values::{AnyValue, AnyValueEnum, BasicValue, CallableValue, FunctionValue, PointerValue};
 use crate::vm::function::run_function_stack;
-use inkwell::FloatPredicate;
+use inkwell::{FloatPredicate, OptimizationLevel};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -61,13 +61,16 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
-                false
+                (pointer.starts_with("MAIN"))
             );
 
             if !ok {
                 return false;
             }
 
+            function.verify(true);
+
+            self.compiled_functions.remove(&*pointer.clone());
             self.compiled_functions.insert(pointer.clone(), unsafe {
                 Stub::F64RF64(
                     self.execution_engine
@@ -76,8 +79,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         .unwrap(),
                 )
             });
-
-            function.verify(true);
 
             self.fpm.run_on(&function);
         } else {
@@ -96,7 +97,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
-                (pointer == "MAIN")
+                (pointer.starts_with("MAIN"))
             );
 
             if !ok {
@@ -107,7 +108,19 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
             self.fpm.run_on(&function);
 
-            if pointer == "MAIN" {
+            if pointer.starts_with("MAIN") {
+                // TODO: Research why this works for some reason
+                self.execution_engine.remove_module(self.module);
+                self.execution_engine.add_module(self.module);
+
+                unsafe {
+                    let f: Result<JitFunction<StubF64RF64>, FunctionLookupError> = self.execution_engine.get_function(pointer.as_str());
+
+                    if let Err(e) = f {
+                        println!("{:?}", e)
+                    }
+                }
+
                 self.compiled_functions.insert(pointer.clone(), unsafe {
                     Stub::F64RF64(
                         self.execution_engine

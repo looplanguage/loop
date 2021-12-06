@@ -1,10 +1,15 @@
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+    use inkwell::context::Context;
+    use inkwell::OptimizationLevel;
+    use inkwell::passes::PassManager;
     use crate::lib::exception::Exception;
     use crate::lib::object::integer::Integer;
     use crate::lib::object::Object;
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use crate::lib::jit::CodeGen;
 
     #[test]
     fn function_single_parameter() {
@@ -78,8 +83,41 @@ mod tests {
             panic!("{:?}", err.err().unwrap());
         }
 
-        let mut vm = build_vm(comp.get_bytecode(), None);
-        let err = vm.run(true);
+        let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
+
+        let context = Context::create();
+        let module = context.create_module("program");
+        let execution_engine = module
+            .create_jit_execution_engine(OptimizationLevel::None)
+            .ok()
+            .ok_or_else(|| "cannot start jit!".to_string())?;
+
+        let fpm = PassManager::create(&module);
+
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+        fpm.add_gvn_pass();
+        fpm.add_cfg_simplification_pass();
+        fpm.add_basic_alias_analysis_pass();
+        fpm.add_promote_memory_to_register_pass();
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+
+        fpm.initialize();
+
+        let mut codegen = CodeGen {
+            context: &context,
+            module: &module,
+            builder: context.create_builder(),
+            execution_engine,
+            fpm: &fpm,
+            compiled_functions: HashMap::new(),
+            parameters: vec![],
+            jit_variables: HashMap::new(),
+            last_popped: None
+        };
+
+        let err = vm.run(true, &mut codegen);
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

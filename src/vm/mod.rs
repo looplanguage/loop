@@ -35,6 +35,7 @@ pub struct VM {
     pub frame_index: usize,
     pub constants: Vec<Rc<RefCell<Object>>>,
     pub variables: HashMap<u32, Rc<RefCell<Object>>>,
+    main_name: String,
 }
 
 const STACK_SIZE: usize = 2048;
@@ -43,7 +44,7 @@ pub struct VMState {
     variables: HashMap<u32, Rc<RefCell<Object>>>,
 }
 
-pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
+pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM {
     let mut stack = Vec::with_capacity(STACK_SIZE);
 
     for _ in 0..STACK_SIZE {
@@ -71,6 +72,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
             sp: 0,
             constants: bt.constants,
             variables: st.variables.clone(),
+            main_name
         };
     }
 
@@ -81,47 +83,16 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
         sp: 0,
         constants: bt.constants,
         variables: HashMap::new(),
+        main_name
     }
 }
 
 impl VM {
-    pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<RefCell<Object>>, String> {
-        let context = Context::create();
-        let module = context.create_module("program");
-        let execution_engine = module
-            .create_jit_execution_engine(OptimizationLevel::None)
-            .ok()
-            .ok_or_else(|| "cannot start jit!".to_string())?;
-
-        let fpm = PassManager::create(&module);
-
-        fpm.add_instruction_combining_pass();
-        fpm.add_reassociate_pass();
-        fpm.add_gvn_pass();
-        fpm.add_cfg_simplification_pass();
-        fpm.add_basic_alias_analysis_pass();
-        fpm.add_promote_memory_to_register_pass();
-        fpm.add_instruction_combining_pass();
-        fpm.add_reassociate_pass();
-
-        fpm.initialize();
-
-        let mut codegen = CodeGen {
-            context: &context,
-            module: &module,
-            builder: context.create_builder(),
-            execution_engine,
-            fpm: &fpm,
-            compiled_functions: HashMap::new(),
-            parameters: vec![],
-            jit_variables: HashMap::new(),
-            last_popped: None
-        };
+    pub fn run(&mut self, attempt_jit: bool, mut codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
 
         if attempt_jit {
+            let ptr = self.main_name.clone();
             let f = self.current_frame();
-
-            let ptr = String::from("MAIN");
             let success = codegen.compile(f.func.func.clone(), ptr.clone(), self);
 
             if success {
@@ -242,7 +213,7 @@ impl VM {
                     self.increment_ip(1);
 
                     // TODO: Properly implement VM exceptions
-                    let vm_exception = run_function(self, args, attempt_jit, &mut codegen);
+                    let vm_exception = run_function(self, args, attempt_jit, codegen);
 
                     if let Some(exception) = vm_exception {
                         return match exception {

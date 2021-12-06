@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
@@ -7,8 +8,12 @@ use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
 use chrono::Utc;
 use colored::Colorize;
+use inkwell::context::Context;
+use inkwell::OptimizationLevel;
+use inkwell::passes::PassManager;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use crate::lib::jit::CodeGen;
 
 pub struct Repl {
     line: i32,
@@ -58,7 +63,7 @@ impl Repl {
         None
     }
 
-    fn run_code(&mut self, s: String) {
+    fn run_code(&mut self, s: String, codegen: &mut CodeGen, line: String) {
         let l = build_lexer(s.as_str());
 
         let mut p = build_parser(l);
@@ -81,10 +86,12 @@ impl Repl {
                 print_instructions(compiler.scope().instructions.clone());
             }
 
-            let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref());
+            let mut vm = build_vm(compiler.get_bytecode(), self.vm_state.as_ref(), format!("MAIN{}", line));
 
             let started = Utc::now();
-            let ran = vm.run(self.jit);
+
+            let ran = vm.run(self.jit, codegen);
+
             let duration = Utc::now().signed_duration_since(started);
 
             if ran.is_err() {
@@ -114,6 +121,38 @@ impl Repl {
     fn run(&mut self) {
         let mut rl = Editor::<()>::new();
 
+        let context = Context::create();
+        let module = context.create_module("program");
+        let execution_engine = module
+            .create_jit_execution_engine(OptimizationLevel::None)
+            .ok()
+            .ok_or_else(|| "cannot start jit!".to_string()).unwrap();
+
+        let fpm = PassManager::create(&module);
+
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+        fpm.add_gvn_pass();
+        fpm.add_cfg_simplification_pass();
+        fpm.add_basic_alias_analysis_pass();
+        fpm.add_promote_memory_to_register_pass();
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+
+        fpm.initialize();
+
+        let mut codegen = CodeGen {
+            context: &context,
+            module: &module,
+            builder: context.create_builder(),
+            execution_engine,
+            fpm: &fpm,
+            compiled_functions: HashMap::new(),
+            parameters: vec![],
+            jit_variables: HashMap::new(),
+            last_popped: None
+        };
+
         loop {
             self.line += 1;
 
@@ -122,7 +161,7 @@ impl Repl {
             match readline {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str());
-                    self.run_code(line);
+                    self.run_code(line, &mut codegen, self.line.to_string().clone());
                 }
                 Err(ReadlineError::Interrupted) => {
                     break;
@@ -136,6 +175,6 @@ impl Repl {
                     break;
                 }
             }
-        }
+        };
     }
 }
