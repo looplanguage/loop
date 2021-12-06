@@ -225,7 +225,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         }
                     };
 
-                    // Causes STATUS_ACCESS_VIOLATION when inside an "if-block"
                     self.builder.build_return(Some(&return_val));
                 }
                 OpCode::GetLocal => {
