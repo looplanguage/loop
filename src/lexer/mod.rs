@@ -138,8 +138,7 @@ impl Lexer {
             if res != None {
                 string.push_str(res.unwrap().as_str());
                 self.next_character();
-            }
-            else {
+            } else {
                 string.push_str(self.current_character().to_string().as_str());
             }
             self.next_character();
