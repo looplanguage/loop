@@ -81,6 +81,18 @@ mod tests {
         )
     }
 
+    #[test]
+    fn mutable_variables() {
+        test_jit(
+            "var x = 300; x = x + 10; x",
+            Object::Integer(Integer { value: 310 }),
+        );
+        test_jit(
+            "var x = 300; var add = fn(y) { x = x + y; return 1 }; add(10); add(10); x",
+            Object::Integer(Integer { value: 320 }),
+        );
+    }
+
     fn test_jit(input: &str, expected: Object) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
