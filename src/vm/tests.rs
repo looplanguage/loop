@@ -28,6 +28,17 @@ mod tests {
     }
 
     #[test]
+    fn escape_sequences() {
+        test_vm("\"x\\ny\"", String(string::LoopString { value: "x\ny".parse().unwrap() }));
+        test_vm("\"x\\ry\"", String(string::LoopString { value: "x\ry".parse().unwrap() }));
+        test_vm("\"x\\ty\"", String(string::LoopString { value: "x\ty".parse().unwrap() }));
+        test_vm("\"x\\\\y\"", String(string::LoopString { value: "x\\\\y".parse().unwrap() }));
+        test_vm("\"x\\\"y\"", String(string::LoopString { value: "x\"y".parse().unwrap() }));
+        test_vm("\"x\\\'y\"", String(string::LoopString { value: "x\'y".parse().unwrap() }));
+        test_vm("\"x\\y\"", String(string::LoopString { value: "x\\y".parse().unwrap() }));
+    }
+
+    #[test]
     fn expressions() {
         test_vm("100", Integer(integer::Integer { value: 100 }));
         test_vm("100 + 100", Integer(integer::Integer { value: 200 }));
