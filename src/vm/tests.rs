@@ -20,6 +20,14 @@ mod tests {
     fn recursive_functions() {}
 
     #[test]
+    fn strings() {
+        test_vm("\"hello\"", String(string::LoopString { value: "hello".parse().unwrap() }));
+        test_vm("\"Hello\"", String(string::LoopString { value: "Hello".parse().unwrap() }));
+        test_vm("\"123\"", String(string::LoopString { value: "123".parse().unwrap() }));
+        test_vm("\"I123\"", String(string::LoopString { value: "I123".parse().unwrap() }));
+    }
+
+    #[test]
     fn expressions() {
         test_vm("100", Integer(integer::Integer { value: 100 }));
         test_vm("100 + 100", Integer(integer::Integer { value: 200 }));
