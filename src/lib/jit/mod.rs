@@ -20,7 +20,7 @@ use inkwell::values::{
     AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, CallableValue, FloatValue,
     FunctionValue, PointerValue,
 };
-use inkwell::{FloatPredicate, OptimizationLevel};
+use inkwell::{AddressSpace, FloatPredicate, OptimizationLevel};
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -79,6 +79,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 return false;
             }
 
+            println!("{}", self.module.print_to_string().to_string());
+
             function.verify(true);
 
             self.fpm.run_on(&function);
@@ -90,7 +92,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                 for _ in arguments {
                     args.push(BasicMetadataTypeEnum::FloatType(f64_type));
-                    println!("Argument :)");
                 }
 
                 f64_type.fn_type(&args, false)
@@ -117,6 +118,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             }
 
             function.verify(true);
+            println!("{}", self.module.print_to_string().to_string());
 
             self.fpm.run_on(&function);
 
@@ -454,12 +456,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let idx = read_uint32(&code[ip as usize..]);
                     ip += 4;
 
-                    if let Some(variable) = self.jit_variables.get(idx.to_string().as_str()) {
+                    if let Some(variable) = self.module.get_global(idx.to_string().as_str()) {
                         self.push(
                             temp_stack.as_mut(),
                             StackItem::AnyValueEnum(
                                 self.builder
-                                    .build_load(*variable, "load_var")
+                                    .build_load(variable.as_pointer_value(), "load_var")
                                     .as_any_value_enum(),
                             ),
                         );
@@ -517,8 +519,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let idx = read_uint32(&code[ip as usize..]);
                     ip += 4;
 
-                    self.jit_variables.remove(idx.to_string().as_str());
-
                     let value = self.pop(temp_stack.as_mut());
 
                     if value.is_none() {
@@ -539,10 +539,18 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         }
                     };
 
-                    let alloca = self.create_entry_block_alloca(idx.to_string().as_str(), function);
-                    self.builder.build_store(alloca, value);
+                    if let Some(global) = self.module.get_global(idx.to_string().as_str()) {
+                        let ptr = global.as_pointer_value();
+                        self.builder.build_store(ptr, value);
+                    } else {
+                        let ptr = self.module.add_global(
+                            self.context.f64_type(),
+                            Some(AddressSpace::Generic),
+                            idx.to_string().as_str(),
+                        );
 
-                    self.jit_variables.insert(idx.to_string(), alloca);
+                        ptr.set_initializer(&value.into_float_value());
+                    }
                 }
                 OpCode::Call => {
                     let args_amount = read_uint8(&code[ip as usize..]);
@@ -668,7 +676,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
     ) -> PointerValue<'ctx> {
         let builder = self.context.create_builder();
 
-        let entry = function.get_first_basic_block().unwrap();
+        let entry = self
+            .module
+            .get_first_function()
+            .unwrap()
+            .get_first_basic_block()
+            .unwrap();
 
         match entry.get_first_instruction() {
             Some(first_instr) => builder.position_before(&first_instr),
