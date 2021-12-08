@@ -1,5 +1,6 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Compiler;
+use crate::lib::config::CONFIG;
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::function;
 use crate::lib::object::Object::CompiledFunction;
@@ -45,7 +46,7 @@ pub fn compile_expression_function(
 
     let mut parsed_function = None;
 
-    if compiler.jit_enabled {
+    if CONFIG.jit_enabled {
         parsed_function = Some(func);
     }
 

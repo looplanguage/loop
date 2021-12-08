@@ -374,7 +374,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None, false);
+        let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
         if expected.is_some() && err.is_ok() {
@@ -402,7 +402,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None, false);
+        let mut comp = compiler::build_compiler(None);
         comp.compile(program);
 
         let mut i = 0;
@@ -435,7 +435,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None, false);
+        let mut comp = compiler::build_compiler(None);
         comp.compile(program);
 
         let scope = comp.scope();
