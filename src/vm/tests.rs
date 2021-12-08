@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::lib::config::{CONFIG, JIT_ENABLED};
     use crate::lib::exception::Exception;
     use crate::lib::jit::CodeGen;
     use crate::lib::object::Object;
@@ -21,7 +22,6 @@ mod tests {
     use std::env;
     use std::ops::Deref;
     use std::rc::Rc;
-    use crate::lib::config::{CONFIG, JIT_ENABLED};
 
     #[test]
     fn recursive_functions() {}

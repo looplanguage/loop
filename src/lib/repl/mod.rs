@@ -1,6 +1,7 @@
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
+use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
 use crate::lib::jit::CodeGen;
@@ -14,7 +15,6 @@ use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use std::collections::HashMap;
-use crate::lib::config::CONFIG;
 
 pub struct Repl {
     line: i32,

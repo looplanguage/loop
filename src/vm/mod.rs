@@ -7,6 +7,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
+use crate::lib::config::CONFIG;
 use crate::lib::exception::vm::VMException;
 use crate::lib::jit::CodeGen;
 use crate::lib::object::array::Array;
@@ -27,7 +28,6 @@ use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::lib::config::CONFIG;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -89,10 +89,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
 }
 
 impl VM {
-    pub fn run(
-        &mut self,
-        mut codegen: &mut CodeGen,
-    ) -> Result<Rc<RefCell<Object>>, String> {
+    pub fn run(&mut self, mut codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
         if CONFIG.jit_enabled {
             let ptr = self.main_name.clone();
             let f = self.current_frame();

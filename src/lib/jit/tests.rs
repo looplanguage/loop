@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::lib::config::{CONFIG, JIT_ENABLED};
     use crate::lib::exception::Exception;
     use crate::lib::jit::CodeGen;
     use crate::lib::object::integer::Integer;
@@ -11,7 +12,6 @@ mod tests {
     use inkwell::OptimizationLevel;
     use std::collections::HashMap;
     use std::env;
-    use crate::lib::config::{CONFIG, JIT_ENABLED};
 
     #[test]
     fn function_single_parameter() {

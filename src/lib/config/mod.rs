@@ -1,23 +1,23 @@
+use crate::get_flags;
 use crate::lib::config::LoadType::{FirstRun, Normal};
 use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::Exception;
+use crate::lib::flags::FlagTypes;
 use dirs::home_dir;
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
+use std::env;
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
-use once_cell::sync::Lazy;
 use std::path::Path;
-use crate::get_flags;
-use crate::lib::flags::FlagTypes;
-use std::env;
 
 pub static mut JIT_ENABLED: Option<bool> = None;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     let mut cfg = match load_config() {
         FirstRun(cfg) => cfg,
-        Normal(cfg) => cfg
+        Normal(cfg) => cfg,
     };
 
     let flags = get_flags();
@@ -26,7 +26,9 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
         jit_enabled: cfg.jit_enabled.unwrap_or(flags.contains(FlagTypes::Jit)),
         debug_mode: cfg.debug_mode.unwrap_or(flags.contains(FlagTypes::Debug)),
-        enable_benchmark: cfg.enable_benchmark.unwrap_or(flags.contains(FlagTypes::Benchmark))
+        enable_benchmark: cfg
+            .enable_benchmark
+            .unwrap_or(flags.contains(FlagTypes::Benchmark)),
     };
 
     if cfg.jit_enabled.is_some() {
@@ -42,13 +44,13 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     }
 
     #[cfg(test)]
-        {
-            if let Ok(e) = env::var("TEST_JIT") {
-                config.jit_enabled = e == "1";
-            } else {
-                config.jit_enabled = false;
-            }
+    {
+        if let Ok(e) = env::var("TEST_JIT") {
+            config.jit_enabled = e == "1";
+        } else {
+            config.jit_enabled = false;
         }
+    }
 
     config
 });
@@ -57,7 +59,7 @@ pub struct Config {
     pub enable_telemetry: bool,
     pub jit_enabled: bool,
     pub debug_mode: bool,
-    pub enable_benchmark: bool
+    pub enable_benchmark: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -65,9 +67,8 @@ pub struct ConfigInternal {
     pub enable_telemetry: Option<bool>,
     pub jit_enabled: Option<bool>,
     pub debug_mode: Option<bool>,
-    pub enable_benchmark: Option<bool>
+    pub enable_benchmark: Option<bool>,
 }
-
 
 impl Default for ConfigInternal {
     fn default() -> Self {
@@ -75,7 +76,7 @@ impl Default for ConfigInternal {
             enable_telemetry: Some(false),
             jit_enabled: Some(false),
             debug_mode: Some(false),
-            enable_benchmark: Some(false)
+            enable_benchmark: Some(false),
         }
     }
 }
