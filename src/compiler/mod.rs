@@ -76,7 +76,6 @@ pub struct Compiler {
     pub location: String,
     pub export_name: String,
     pub prev_location: String,
-    pub jit_enabled: bool,
 }
 
 pub struct CompilerState {
@@ -86,7 +85,7 @@ pub struct CompilerState {
     variable_count: u32,
 }
 
-fn build_compiler_internal(state: &CompilerState, jit_enabled: bool) -> Compiler {
+fn build_compiler_internal(state: &CompilerState) -> Compiler {
     Compiler {
         scopes: vec![CompilationScope {
             instructions: vec![],
@@ -108,16 +107,15 @@ fn build_compiler_internal(state: &CompilerState, jit_enabled: bool) -> Compiler
         location: String::new(),
         export_name: String::new(),
         prev_location: String::new(),
-        jit_enabled,
     }
 }
 
-pub fn build_compiler(state: Option<&CompilerState>, jit_enabled: bool) -> Compiler {
+pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
     if let Some(cmp) = state {
-        return build_compiler_internal(cmp, jit_enabled);
+        return build_compiler_internal(cmp);
     }
 
-    build_compiler_internal(&empty_state(), jit_enabled)
+    build_compiler_internal(&empty_state())
 }
 
 fn empty_state() -> CompilerState {

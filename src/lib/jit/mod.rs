@@ -4,6 +4,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::print_instructions;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
+use crate::lib::config::CONFIG;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
@@ -79,7 +80,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 return false;
             }
 
-            println!("{}", self.module.print_to_string().to_string());
+            if CONFIG.debug_mode {
+                println!("{}", self.module.print_to_string().to_string());
+            }
 
             function.verify(true);
 
@@ -118,7 +121,10 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             }
 
             function.verify(true);
-            println!("{}", self.module.print_to_string().to_string());
+
+            if CONFIG.debug_mode {
+                println!("{}", self.module.print_to_string().to_string());
+            }
 
             self.fpm.run_on(&function);
 

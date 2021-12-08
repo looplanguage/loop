@@ -14,14 +14,12 @@ use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use std::collections::HashMap;
+use crate::lib::config::CONFIG;
 
 pub struct Repl {
     line: i32,
-    debug: bool,
     compiler_state: Option<CompilerState>,
     vm_state: Option<VMState>,
-    benchmark: bool,
-    jit: bool,
 }
 
 pub fn build_repl(flags: Flags) -> Repl {
@@ -29,9 +27,6 @@ pub fn build_repl(flags: Flags) -> Repl {
         line: 0,
         compiler_state: None,
         vm_state: None,
-        debug: flags.contains(FlagTypes::Debug),
-        benchmark: flags.contains(FlagTypes::Benchmark),
-        jit: flags.contains(FlagTypes::Jit),
     }
 }
 
@@ -51,7 +46,7 @@ impl Repl {
         );
         println!("Welcome to Loop v{}", VERSION);
 
-        if self.jit {
+        if CONFIG.jit_enabled {
             println!(
                 "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/internal/jit",
                 "WARNING: ".red()
@@ -71,7 +66,7 @@ impl Repl {
         let program = p.parse();
 
         if p.errors.is_empty() {
-            let mut compiler = build_compiler(self.compiler_state.as_ref(), self.jit);
+            let mut compiler = build_compiler(self.compiler_state.as_ref());
             let error = compiler.compile(program);
 
             if error.is_err() {
@@ -80,11 +75,11 @@ impl Repl {
                 return;
             }
 
-            if !self.jit {
+            if !CONFIG.jit_enabled {
                 self.compiler_state = Some(compiler.get_state());
             }
 
-            if self.debug {
+            if CONFIG.debug_mode {
                 print_instructions(compiler.scope().instructions.clone());
             }
 
@@ -96,7 +91,7 @@ impl Repl {
 
             let started = Utc::now();
 
-            let ran = vm.run(self.jit, codegen);
+            let ran = vm.run(codegen);
 
             let duration = Utc::now().signed_duration_since(started);
 
@@ -106,11 +101,11 @@ impl Repl {
                     format!("VirtualMachineException: {}", ran.err().unwrap()).red()
                 );
             } else {
-                if !self.jit {
+                if CONFIG.jit_enabled {
                     self.vm_state = Some(vm.get_state());
                 }
 
-                if self.benchmark {
+                if CONFIG.enable_benchmark {
                     let formatted = duration.to_string().replace("PT", "");
                     println!("Execution Took: {}", formatted);
                 }
@@ -171,7 +166,7 @@ impl Repl {
             match readline {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str());
-                    if self.jit {
+                    if CONFIG.jit_enabled {
                         code.push_str(&*line);
                         code.push_str("\n");
 

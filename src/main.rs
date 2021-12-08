@@ -86,7 +86,7 @@ fn run_file(file: String, flags: Flags) {
         panic!("Parser exceptions occurred!")
     }
 
-    let mut comp = compiler::build_compiler(None, flags.contains(FlagTypes::Jit));
+    let mut comp = compiler::build_compiler(None);
     let error = comp.compile(program);
 
     if error.is_err() {
@@ -136,7 +136,7 @@ fn run_file(file: String, flags: Flags) {
         last_popped: None,
     };
 
-    let ran = vm.run(flags.contains(FlagTypes::Jit), codegen.borrow_mut());
+    let ran = vm.run(codegen.borrow_mut());
 
     let duration = Utc::now().signed_duration_since(started);
 

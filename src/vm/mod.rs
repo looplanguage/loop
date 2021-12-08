@@ -27,6 +27,7 @@ use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::lib::config::CONFIG;
 
 pub struct VM {
     stack: Vec<Rc<RefCell<Object>>>,
@@ -90,10 +91,9 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
 impl VM {
     pub fn run(
         &mut self,
-        attempt_jit: bool,
         mut codegen: &mut CodeGen,
     ) -> Result<Rc<RefCell<Object>>, String> {
-        if attempt_jit {
+        if CONFIG.jit_enabled {
             let ptr = self.main_name.clone();
             let f = self.current_frame();
             let success = codegen.compile(f.func.func.clone(), ptr.clone(), self, Vec::new());
@@ -222,7 +222,7 @@ impl VM {
                     self.increment_ip(1);
 
                     // TODO: Properly implement VM exceptions
-                    let vm_exception = run_function(self, args, attempt_jit, codegen);
+                    let vm_exception = run_function(self, args, CONFIG.jit_enabled, codegen);
 
                     if let Some(exception) = vm_exception {
                         return match exception {
