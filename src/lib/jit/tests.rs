@@ -44,6 +44,13 @@ mod tests {
     }
 
     #[test]
+    fn conditionals_nested() {
+        test_jit(
+            "var t = fn() { if(false) { return 10 } else if(true) { if(false) { return 20 } else { return 30 } } else { return 40 } return 50 }; t()", Object::Integer(Integer { value: 30 })
+        )
+    }
+
+    #[test]
     fn recursive_fibonacci() {
         test_jit(
             "
