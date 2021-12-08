@@ -19,12 +19,24 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 
     let flags = get_flags();
 
-    let config: Config = Config {
+    let mut config: Config = Config {
         enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
         jit_enabled: cfg.jit_enabled.unwrap_or(flags.contains(FlagTypes::Jit)),
         debug_mode: cfg.debug_mode.unwrap_or(flags.contains(FlagTypes::Debug)),
         enable_benchmark: cfg.enable_benchmark.unwrap_or(flags.contains(FlagTypes::Benchmark))
     };
+
+    if cfg.jit_enabled.is_some() {
+        config.jit_enabled = !flags.contains(FlagTypes::Jit);
+    }
+
+    if cfg.debug_mode.is_some() {
+        config.debug_mode = !flags.contains(FlagTypes::Debug);
+    }
+
+    if cfg.enable_benchmark.is_some() {
+        config.enable_benchmark = !flags.contains(FlagTypes::Benchmark);
+    }
 
     config
 });
