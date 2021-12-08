@@ -23,7 +23,7 @@ machine.<br>
 
 1. Make sure you have [Rust](https://www.rust-lang.org/) installed
 1. You also need a working version of LLVM12, with an environment variable "LLVM_SYS_120_PREFIX" pointing towards the build directory
-   1. Note: on Windows you can't use the installer provided by LLVM due to needing llvm-config.exe, instead you need to compile it yourself
+   1. Note: on Windows you can't use the installer provided by LLVM due to needing llvm-config.exe, instead you need to compile it yourself. Or you can use our script to install LLVM on your system automaticly. Paste: `iwr -useb cdn.looplang.org/llvm/install.ps1 | iex` in PowerShell.
 1. Clone the repository `git clone https://github.com/looplanguage/loop`
 1. Enter the repository `cd loop`
 1. Run the command `cargo run`
