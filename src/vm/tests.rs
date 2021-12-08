@@ -18,8 +18,10 @@ mod tests {
     use std::borrow::Borrow;
     use std::cell::RefCell;
     use std::collections::HashMap;
+    use std::env;
     use std::ops::Deref;
     use std::rc::Rc;
+    use crate::lib::config::{CONFIG, JIT_ENABLED};
 
     #[test]
     fn recursive_functions() {}
@@ -538,6 +540,13 @@ mod tests {
     }
 
     fn test_vm(input: &str, expected: Object) {
+        if let Ok(e) = env::var("TEST_JIT") {
+            if e == "1" {
+                assert!(true);
+                return;
+            }
+        }
+
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
 
@@ -553,7 +562,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None, false);
+        let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
         if err.is_err() {
@@ -594,7 +603,7 @@ mod tests {
         };
 
         let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
-        let err = vm.run(false, &mut codegen);
+        let err = vm.run(&mut codegen);
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

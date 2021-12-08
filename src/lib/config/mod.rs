@@ -10,6 +10,9 @@ use once_cell::sync::Lazy;
 use std::path::Path;
 use crate::get_flags;
 use crate::lib::flags::FlagTypes;
+use std::env;
+
+pub static mut JIT_ENABLED: Option<bool> = None;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     let mut cfg = match load_config() {
@@ -37,6 +40,15 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     if cfg.enable_benchmark.is_some() {
         config.enable_benchmark = !flags.contains(FlagTypes::Benchmark);
     }
+
+    #[cfg(test)]
+        {
+            if let Ok(e) = env::var("TEST_JIT") {
+                config.jit_enabled = e == "1";
+            } else {
+                config.jit_enabled = false;
+            }
+        }
 
     config
 });
