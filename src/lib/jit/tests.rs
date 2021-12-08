@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::lib::config::{CONFIG, JIT_ENABLED};
+    use crate::lib::config::CONFIG;
     use crate::lib::exception::Exception;
     use crate::lib::jit::CodeGen;
     use crate::lib::object::integer::Integer;
