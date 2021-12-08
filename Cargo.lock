@@ -275,6 +275,7 @@ dependencies = [
  "colored",
  "dirs",
  "inkwell",
+ "once_cell",
  "rustyline",
  "serde",
  "strum",

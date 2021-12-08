@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
+    use crate::lib::config::CONFIG;
     use crate::lib::exception::Exception;
+    use crate::lib::jit::CodeGen;
     use crate::lib::object::Object;
     use crate::lib::object::Object::String;
     use crate::lib::object::Object::{Array, Integer};
@@ -10,14 +12,93 @@ mod tests {
     use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use inkwell::context::Context;
+    use inkwell::passes::PassManager;
+    use inkwell::OptimizationLevel;
     use serde::de::Unexpected::Bool;
     use std::borrow::Borrow;
     use std::cell::RefCell;
+    use std::collections::HashMap;
+    use std::env;
     use std::ops::Deref;
     use std::rc::Rc;
 
     #[test]
     fn recursive_functions() {}
+
+    #[test]
+    fn strings() {
+        test_vm(
+            "\"hello\"",
+            String(string::LoopString {
+                value: "hello".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"Hello\"",
+            String(string::LoopString {
+                value: "Hello".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"123\"",
+            String(string::LoopString {
+                value: "123".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"I123\"",
+            String(string::LoopString {
+                value: "I123".parse().unwrap(),
+            }),
+        );
+    }
+
+    #[test]
+    fn escape_sequences() {
+        test_vm(
+            "\"x\\ny\"",
+            String(string::LoopString {
+                value: "x\ny".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\ry\"",
+            String(string::LoopString {
+                value: "x\ry".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\ty\"",
+            String(string::LoopString {
+                value: "x\ty".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\\\y\"",
+            String(string::LoopString {
+                value: "x\\\\y".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\\"y\"",
+            String(string::LoopString {
+                value: "x\"y".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\\'y\"",
+            String(string::LoopString {
+                value: "x\'y".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\y\"",
+            String(string::LoopString {
+                value: "x\\y".parse().unwrap(),
+            }),
+        );
+    }
 
     #[test]
     fn expressions() {
@@ -537,6 +618,13 @@ mod tests {
     }
 
     fn test_vm(input: &str, expected: Object) {
+        if let Ok(e) = env::var("TEST_JIT") {
+            if e == "1" {
+                assert!(true);
+                return;
+            }
+        }
+
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
 
@@ -552,15 +640,45 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None, false);
+        let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
         if err.is_err() {
             panic!("{:?}", err.err().unwrap());
         }
 
-        let mut vm = build_vm(comp.get_bytecode(), None);
-        let err = vm.run(false);
+        let context = Context::create();
+        let module = context.create_module("program");
+        let execution_engine = module
+            .create_jit_execution_engine(OptimizationLevel::None)
+            .ok()
+            .ok_or_else(|| "cannot start jit!".to_string())
+            .unwrap();
+
+        let fpm = PassManager::create(&module);
+
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+        fpm.add_gvn_pass();
+        fpm.add_cfg_simplification_pass();
+        fpm.add_basic_alias_analysis_pass();
+        fpm.add_promote_memory_to_register_pass();
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+
+        fpm.initialize();
+
+        let mut codegen = CodeGen {
+            context: &context,
+            module: &module,
+            builder: context.create_builder(),
+            execution_engine,
+            fpm: &fpm,
+            last_popped: None,
+        };
+
+        let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
+        let err = vm.run(&mut codegen);
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

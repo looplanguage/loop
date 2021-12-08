@@ -102,6 +102,9 @@ test windows x86_64:
     - .ci
     - .windows-build-tooling
   script:
+    - $Env:TEST_JIT="0"
+    - cargo test
+    - $Env:TEST_JIT="1"
     - cargo test
 
 deploy windows x86_64:
@@ -158,7 +161,8 @@ test linux x86_64:
     - .linux
     - .ci
   script:
-    - cargo test
+    - TEST_JIT=0 cargo test
+    - TEST_JIT=1 cargo test
 
 deploy linux x86_64:
   stage: deploy

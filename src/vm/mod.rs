@@ -1,5 +1,5 @@
 mod frame;
-mod function;
+pub(crate) mod function;
 mod suffix;
 mod tests;
 
@@ -7,6 +7,7 @@ use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::compiler::Bytecode;
+use crate::lib::config::CONFIG;
 use crate::lib::exception::vm::VMException;
 use crate::lib::jit::CodeGen;
 use crate::lib::object::array::Array;
@@ -14,13 +15,12 @@ use crate::lib::object::builtin::BUILTINS;
 use crate::lib::object::extension_method::EXTENSION_METHODS;
 use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::hashmap::Hashmap;
+use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::{Hashable, Object};
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
-use inkwell::context::Context;
-use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -32,6 +32,7 @@ pub struct VM {
     pub frame_index: usize,
     pub constants: Vec<Rc<RefCell<Object>>>,
     pub variables: HashMap<u32, Rc<RefCell<Object>>>,
+    main_name: String,
 }
 
 const STACK_SIZE: usize = 2048;
@@ -40,7 +41,7 @@ pub struct VMState {
     variables: HashMap<u32, Rc<RefCell<Object>>>,
 }
 
-pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
+pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM {
     let mut stack = Vec::with_capacity(STACK_SIZE);
 
     for _ in 0..STACK_SIZE {
@@ -68,6 +69,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
             sp: 0,
             constants: bt.constants,
             variables: st.variables.clone(),
+            main_name,
         };
     }
 
@@ -78,26 +80,30 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>) -> VM {
         sp: 0,
         constants: bt.constants,
         variables: HashMap::new(),
+        main_name,
     }
 }
 
 impl VM {
-    pub fn run(&mut self, attempt_jit: bool) -> Result<Rc<RefCell<Object>>, String> {
-        let context = Context::create();
-        let module = context.create_module("program");
-        let execution_engine = module
-            .create_jit_execution_engine(OptimizationLevel::None)
-            .ok()
-            .ok_or_else(|| "cannot start jit!".to_string())?;
+    pub fn run(&mut self, codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
+        if CONFIG.jit_enabled {
+            let ptr = self.main_name.clone();
+            let f = self.current_frame();
+            let success = codegen.compile(f.func.func.clone(), ptr.clone(), self, Vec::new());
 
-        let mut codegen = CodeGen {
-            context: &context,
-            module,
-            builder: context.create_builder(),
-            execution_engine,
-            compiled_functions: HashMap::new(),
-            parameters: vec![],
-        };
+            if success {
+                let returned = codegen.run(
+                    ptr,
+                    vec![Rc::from(RefCell::from(Object::Integer(Integer {
+                        value: 0,
+                    })))],
+                );
+
+                return Ok(Rc::from(RefCell::from(returned)));
+            } else {
+                return Err(String::from("Unable to JIT main"));
+            }
+        }
 
         while self.current_frame().ip < (self.current_frame().instructions().len()) as u32 {
             let ip = self.current_frame().ip;
@@ -209,7 +215,7 @@ impl VM {
                     self.increment_ip(1);
 
                     // TODO: Properly implement VM exceptions
-                    let vm_exception = run_function(self, args, attempt_jit, &mut codegen);
+                    let vm_exception = run_function(self, args, CONFIG.jit_enabled, codegen);
 
                     if let Some(exception) = vm_exception {
                         return match exception {

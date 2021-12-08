@@ -1,10 +1,17 @@
 #[cfg(test)]
 mod tests {
+    use crate::lib::config::CONFIG;
     use crate::lib::exception::Exception;
+    use crate::lib::jit::CodeGen;
     use crate::lib::object::integer::Integer;
     use crate::lib::object::Object;
     use crate::vm::build_vm;
     use crate::{compiler, lexer, parser};
+    use inkwell::context::Context;
+    use inkwell::passes::PassManager;
+    use inkwell::OptimizationLevel;
+    use std::collections::HashMap;
+    use std::env;
 
     #[test]
     fn function_single_parameter() {
@@ -39,6 +46,13 @@ mod tests {
     }
 
     #[test]
+    fn conditionals_nested() {
+        test_jit(
+            "var t = fn() { if(false) { return 10 } else if(true) { if(false) { return 20 } else { return 30 } } else { return 40 } return 50 }; t()", Object::Integer(Integer { value: 30 })
+        )
+    }
+
+    #[test]
     fn recursive_fibonacci() {
         test_jit(
             "
@@ -55,7 +69,47 @@ mod tests {
         );
     }
 
+    #[test]
+    fn many_functions() {
+        test_jit(
+            "
+            var fib = fn(x) {
+                if(x < 2) {
+                    return 1
+                } else {
+                    return fib(x - 1) + fib(x - 2)
+                }
+            }
+
+            var a = fn(x, y) { return x * y }
+            var b = fn(a, b, c) { return a + b + c }
+            
+            fib(10) + b(a(2, 2), 4, 2) + a(10, 2)
+        ",
+            Object::Integer(Integer { value: 119 }),
+        )
+    }
+
+    #[test]
+    fn mutable_variables() {
+        test_jit(
+            "var x = 300; x = x + 10; x",
+            Object::Integer(Integer { value: 310 }),
+        );
+        test_jit(
+            "var x = 300; var add = fn(y) { x = x + y; return 1 }; add(10); add(10); x",
+            Object::Integer(Integer { value: 320 }),
+        );
+    }
+
     fn test_jit(input: &str, expected: Object) {
+        if let Ok(e) = env::var("TEST_JIT") {
+            if e == "0" {
+                assert!(true);
+                return;
+            }
+        }
+
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
 
@@ -71,15 +125,46 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None, true);
+        let mut comp = compiler::build_compiler(None);
         let err = comp.compile(program);
 
         if err.is_err() {
             panic!("{:?}", err.err().unwrap());
         }
 
-        let mut vm = build_vm(comp.get_bytecode(), None);
-        let err = vm.run(true);
+        let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
+
+        let context = Context::create();
+        let module = context.create_module("program");
+        let execution_engine = module
+            .create_jit_execution_engine(OptimizationLevel::None)
+            .ok()
+            .ok_or_else(|| "cannot start jit!".to_string())
+            .unwrap();
+
+        let fpm = PassManager::create(&module);
+
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+        fpm.add_gvn_pass();
+        fpm.add_cfg_simplification_pass();
+        fpm.add_basic_alias_analysis_pass();
+        fpm.add_promote_memory_to_register_pass();
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+
+        fpm.initialize();
+
+        let mut codegen = CodeGen {
+            context: &context,
+            module: &module,
+            builder: context.create_builder(),
+            execution_engine,
+            fpm: &fpm,
+            last_popped: None,
+        };
+
+        let err = vm.run(&mut codegen);
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

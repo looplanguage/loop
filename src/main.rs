@@ -5,6 +5,10 @@ extern crate strum_macros;
 use chrono::Utc;
 use colored::Colorize;
 use dirs::home_dir;
+use inkwell::context::Context;
+use inkwell::passes::PassManager;
+use inkwell::OptimizationLevel;
+use std::borrow::BorrowMut;
 use std::env;
 use std::fs::read_to_string;
 
@@ -12,6 +16,7 @@ use crate::compiler::instructions::print_instructions;
 use crate::lib::config::{load_config, LoadType};
 use crate::lib::exception::Exception;
 use crate::lib::flags::{FlagTypes, Flags};
+use crate::lib::jit::CodeGen;
 use lib::flags;
 use lib::repl::build_repl;
 
@@ -52,7 +57,7 @@ fn main() {
     if let Some(file) = flags.file.clone() {
         run_file(file, flags);
     } else {
-        build_repl(flags).start();
+        build_repl().start();
     }
 }
 
@@ -80,7 +85,7 @@ fn run_file(file: String, flags: Flags) {
         panic!("Parser exceptions occurred!")
     }
 
-    let mut comp = compiler::build_compiler(None, flags.contains(FlagTypes::Jit));
+    let mut comp = compiler::build_compiler(None);
     let error = comp.compile(program);
 
     if error.is_err() {
@@ -93,11 +98,41 @@ fn run_file(file: String, flags: Flags) {
         print_instructions(comp.scope().instructions.clone());
     }
 
-    let mut vm = build_vm(comp.get_bytecode(), None);
+    let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
 
     let started = Utc::now();
 
-    let ran = vm.run(flags.contains(FlagTypes::Jit));
+    let context = Context::create();
+    let module = context.create_module("program");
+    let execution_engine = module
+        .create_jit_execution_engine(OptimizationLevel::None)
+        .ok()
+        .ok_or_else(|| "cannot start jit!".to_string())
+        .unwrap();
+
+    let fpm = PassManager::create(&module);
+
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+    fpm.add_gvn_pass();
+    fpm.add_cfg_simplification_pass();
+    fpm.add_basic_alias_analysis_pass();
+    fpm.add_promote_memory_to_register_pass();
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+
+    fpm.initialize();
+
+    let mut codegen = CodeGen {
+        context: &context,
+        module: &module,
+        builder: context.create_builder(),
+        execution_engine,
+        fpm: &fpm,
+        last_popped: None,
+    };
+
+    let ran = vm.run(codegen.borrow_mut());
 
     let duration = Utc::now().signed_duration_since(started);
 

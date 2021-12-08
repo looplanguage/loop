@@ -1,29 +1,92 @@
+use crate::get_flags;
 use crate::lib::config::LoadType::{FirstRun, Normal};
 use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::Exception;
+use crate::lib::flags::FlagTypes;
 use dirs::home_dir;
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
+#[cfg(test)]
+use std::env;
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
 
-#[derive(Deserialize, Serialize)]
+pub static CONFIG: Lazy<Config> = Lazy::new(|| {
+    let cfg = match load_config() {
+        FirstRun(cfg) => cfg,
+        Normal(cfg) => cfg,
+    };
+
+    let flags = get_flags();
+
+    let mut config: Config = Config {
+        enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
+        jit_enabled: cfg
+            .jit_enabled
+            .unwrap_or_else(|| flags.contains(FlagTypes::Jit)),
+        debug_mode: cfg
+            .debug_mode
+            .unwrap_or_else(|| flags.contains(FlagTypes::Debug)),
+        enable_benchmark: cfg
+            .enable_benchmark
+            .unwrap_or_else(|| flags.contains(FlagTypes::Benchmark)),
+    };
+
+    if cfg.jit_enabled.is_some() {
+        config.jit_enabled = !flags.contains(FlagTypes::Jit);
+    }
+
+    if cfg.debug_mode.is_some() {
+        config.debug_mode = !flags.contains(FlagTypes::Debug);
+    }
+
+    if cfg.enable_benchmark.is_some() {
+        config.enable_benchmark = !flags.contains(FlagTypes::Benchmark);
+    }
+
+    #[cfg(test)]
+    {
+        if let Ok(e) = env::var("TEST_JIT") {
+            config.jit_enabled = e == "1";
+        } else {
+            config.jit_enabled = false;
+        }
+    }
+
+    config
+});
+
 pub struct Config {
     pub enable_telemetry: bool,
+    pub jit_enabled: bool,
+    pub debug_mode: bool,
+    pub enable_benchmark: bool,
 }
 
-impl Default for Config {
+#[derive(Deserialize, Serialize)]
+pub struct ConfigInternal {
+    pub enable_telemetry: Option<bool>,
+    pub jit_enabled: Option<bool>,
+    pub debug_mode: Option<bool>,
+    pub enable_benchmark: Option<bool>,
+}
+
+impl Default for ConfigInternal {
     fn default() -> Self {
-        Config {
-            enable_telemetry: true,
+        ConfigInternal {
+            enable_telemetry: Some(false),
+            jit_enabled: Some(false),
+            debug_mode: Some(false),
+            enable_benchmark: Some(false),
         }
     }
 }
 
 pub enum LoadType {
-    FirstRun(Config),
-    Normal(Config),
+    FirstRun(ConfigInternal),
+    Normal(ConfigInternal),
 }
 
 pub fn load_config() -> LoadType {
@@ -36,7 +99,7 @@ pub fn load_config() -> LoadType {
             "Unable to load config from (after 3 attempts): {}/.loop/config.toml",
             home_dir().unwrap().to_str().unwrap()
         );
-        return Normal(Config::default());
+        return Normal(ConfigInternal::default());
     }
 
     config.ok().unwrap()
@@ -84,7 +147,7 @@ impl TryLoadConfig {
                 )));
             }
 
-            let config_content = toml::to_string(&Config::default()).unwrap();
+            let config_content = toml::to_string(&ConfigInternal::default()).unwrap();
             let err = file.unwrap().write_all(config_content.as_bytes());
             if err.is_err() {
                 return Result::Err(Exception::Runtime(RuntimeException::UnableToWriteFile(
@@ -97,7 +160,7 @@ impl TryLoadConfig {
             return self.load_config_internal();
         }
 
-        let config: Config = toml::from_str(content.ok().unwrap().as_str()).unwrap();
+        let config: ConfigInternal = toml::from_str(content.ok().unwrap().as_str()).unwrap();
 
         if self.attempts > 0 {
             return Result::Ok(FirstRun(config));
