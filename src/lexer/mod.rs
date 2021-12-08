@@ -134,11 +134,33 @@ impl Lexer {
         self.next_character();
 
         while self.current_character() != '"' && self.current_character() != char::from(0) {
-            string.push_str(self.current_character().to_string().as_str());
+            let res: Option<String> = self.find_escape_sequence();
+            if res != None {
+                string.push_str(res.unwrap().as_str());
+                self.next_character();
+            } else {
+                string.push_str(self.current_character().to_string().as_str());
+            }
             self.next_character();
         }
 
         create_token(TokenType::String, string)
+    }
+
+    fn find_escape_sequence(&mut self) -> Option<String> {
+        if self.current_character() != '\\' {
+            return None;
+        }
+
+        match self.peek_character() {
+            'n' => Some("\n".to_string()),
+            't' => Some("\t".to_string()),
+            'r' => Some("\r".to_string()),
+            '\'' => Some("\'".to_string()),
+            '\"' => Some("\"".to_string()),
+            '\\' => Some("\\\\".to_string()),
+            _ => None,
+        }
     }
 
     fn find_keyword(&mut self, ch: char) -> Token {

@@ -34,12 +34,12 @@ impl Repl {
     pub fn start(&mut self) -> Option<bool> {
         println!(
             "
-  _
- | |       ___     ___    _ __
- | |      / _ \\   / _ \\  | '_ \\
- | |___  | (_) | | (_) | | |_) |
- |_____|  \\___/   \\___/  | .__/
-                         |_|
+██╗░░░░░░█████╗░░█████╗░██████╗░
+██║░░░░░██╔══██╗██╔══██╗██╔══██╗
+██║░░░░░██║░░██║██║░░██║██████╔╝
+██║░░░░░██║░░██║██║░░██║██╔═══╝░
+███████╗╚█████╔╝╚█████╔╝██║░░░░░
+╚══════╝░╚════╝░░╚════╝░╚═╝░░░░░
         "
         );
         println!("Welcome to Loop v{}", VERSION);
@@ -160,6 +160,10 @@ impl Repl {
 
             match readline {
                 Ok(line) => {
+                    if line.as_str() == "exit" {
+                        println!("{}", "Exiting the REPL...\n".yellow());
+                        break;
+                    }
                     rl.add_history_entry(line.as_str());
                     if CONFIG.jit_enabled {
                         code.push_str(&*line);
