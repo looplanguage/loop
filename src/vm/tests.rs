@@ -273,15 +273,9 @@ mod tests {
             Integer(integer::Integer { value: 123 }),
         );
 
-        test_vm(
-            "false.to_int();",
-            Integer(integer::Integer { value: 0 }),
-        );
+        test_vm("false.to_int();", Integer(integer::Integer { value: 0 }));
 
-        test_vm(
-            "true.to_int();",
-            Integer(integer::Integer { value: 1 }),
-        );
+        test_vm("true.to_int();", Integer(integer::Integer { value: 1 }));
     }
 
     #[test]
