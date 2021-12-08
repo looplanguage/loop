@@ -5,7 +5,7 @@ mod tests {
     use crate::lexer::token::{Token, TokenType};
 
     #[test]
-    fn variable_declaration() {
+    fn variable_declaration_numbers() {
         let input =
             "var test = 1; var _foo = 1; var bar = -1; var yeet = 1; var yeet2 = 0; var hello_world_2 = 3;";
         let expected = vec![
@@ -50,6 +50,22 @@ mod tests {
         ];
 
         do_test(input, expected);
+    }
+
+    #[test]
+    fn escape_sequences() {
+        let input = "\"x\\yx\" \"x\\ny\" \"x\\ty\" \"x\\ry\" \"x\\'y\" \"x\\\"y\" \"x\\\\y\"";
+        let expected = vec![
+            test_helper::generate_token("x\\yx", TokenType::String),
+            test_helper::generate_token("x\ny", TokenType::String),
+            test_helper::generate_token("x\ty", TokenType::String),
+            test_helper::generate_token("x\ry", TokenType::String),
+            test_helper::generate_token("x'y", TokenType::String),
+            test_helper::generate_token("x\"y", TokenType::String),
+            test_helper::generate_token("x\\\\y", TokenType::String),
+        ];
+
+        do_test(input, expected)
     }
 
     #[test]
