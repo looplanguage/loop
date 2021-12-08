@@ -9,7 +9,6 @@ use inkwell::context::Context;
 use inkwell::passes::PassManager;
 use inkwell::OptimizationLevel;
 use std::borrow::BorrowMut;
-use std::collections::HashMap;
 use std::env;
 use std::fs::read_to_string;
 
@@ -58,7 +57,7 @@ fn main() {
     if let Some(file) = flags.file.clone() {
         run_file(file, flags);
     } else {
-        build_repl(flags).start();
+        build_repl().start();
     }
 }
 
@@ -130,9 +129,6 @@ fn run_file(file: String, flags: Flags) {
         builder: context.create_builder(),
         execution_engine,
         fpm: &fpm,
-        compiled_function: None,
-        parameters: vec![],
-        jit_variables: HashMap::new(),
         last_popped: None,
     };
 

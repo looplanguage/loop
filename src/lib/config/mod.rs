@@ -7,15 +7,14 @@ use dirs::home_dir;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
+#[cfg(test)]
 use std::env;
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
 
-pub static mut JIT_ENABLED: Option<bool> = None;
-
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
-    let mut cfg = match load_config() {
+    let cfg = match load_config() {
         FirstRun(cfg) => cfg,
         Normal(cfg) => cfg,
     };
@@ -24,11 +23,15 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 
     let mut config: Config = Config {
         enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
-        jit_enabled: cfg.jit_enabled.unwrap_or(flags.contains(FlagTypes::Jit)),
-        debug_mode: cfg.debug_mode.unwrap_or(flags.contains(FlagTypes::Debug)),
+        jit_enabled: cfg
+            .jit_enabled
+            .unwrap_or_else(|| flags.contains(FlagTypes::Jit)),
+        debug_mode: cfg
+            .debug_mode
+            .unwrap_or_else(|| flags.contains(FlagTypes::Debug)),
         enable_benchmark: cfg
             .enable_benchmark
-            .unwrap_or(flags.contains(FlagTypes::Benchmark)),
+            .unwrap_or_else(|| flags.contains(FlagTypes::Benchmark)),
     };
 
     if cfg.jit_enabled.is_some() {

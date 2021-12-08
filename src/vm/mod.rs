@@ -21,10 +21,6 @@ use crate::lib::object::{Hashable, Object};
 use crate::vm::frame::{build_frame, Frame};
 use crate::vm::function::{run_function, run_function_stack};
 use crate::vm::suffix::run_suffix_expression;
-use inkwell::context::Context;
-use inkwell::passes::PassManager;
-use inkwell::values::PointerValue;
-use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -89,7 +85,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
 }
 
 impl VM {
-    pub fn run(&mut self, mut codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
+    pub fn run(&mut self, codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
         if CONFIG.jit_enabled {
             let ptr = self.main_name.clone();
             let f = self.current_frame();
@@ -97,7 +93,7 @@ impl VM {
 
             if success {
                 let returned = codegen.run(
-                    ptr.clone(),
+                    ptr,
                     vec![Rc::from(RefCell::from(Object::Integer(Integer {
                         value: 0,
                     })))],

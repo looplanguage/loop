@@ -3,7 +3,6 @@ use crate::compiler::{build_compiler, CompilerState};
 use crate::lexer::build_lexer;
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
-use crate::lib::flags::{FlagTypes, Flags};
 use crate::lib::jit::CodeGen;
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
@@ -14,7 +13,6 @@ use inkwell::passes::PassManager;
 use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use std::collections::HashMap;
 
 pub struct Repl {
     line: i32,
@@ -22,7 +20,7 @@ pub struct Repl {
     vm_state: Option<VMState>,
 }
 
-pub fn build_repl(flags: Flags) -> Repl {
+pub fn build_repl() -> Repl {
     Repl {
         line: 0,
         compiler_state: None,
@@ -153,9 +151,6 @@ impl Repl {
                 builder: context.create_builder(),
                 execution_engine,
                 fpm: &fpm,
-                compiled_function: None,
-                parameters: vec![],
-                jit_variables: HashMap::new(),
                 last_popped: None,
             };
 
@@ -168,7 +163,7 @@ impl Repl {
                     rl.add_history_entry(line.as_str());
                     if CONFIG.jit_enabled {
                         code.push_str(&*line);
-                        code.push_str("\n");
+                        code.push('\n');
 
                         self.run_code(code.clone(), &mut codegen, self.line.to_string());
                     } else {

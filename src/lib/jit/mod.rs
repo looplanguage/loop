@@ -1,7 +1,6 @@
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::print_instructions;
 use crate::compiler::instructions::{read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::lib::config::CONFIG;
@@ -9,20 +8,15 @@ use crate::lib::object::function::{CompiledFunction, Function};
 use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
-use crate::vm::function::run_function_stack;
 use crate::vm::VM;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
-use inkwell::execution_engine::{ExecutionEngine, FunctionLookupError, JitFunction};
+use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::passes::PassManager;
 use inkwell::types::BasicMetadataTypeEnum;
-use inkwell::values::{
-    AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, CallableValue, FloatValue,
-    FunctionValue, PointerValue,
-};
-use inkwell::{AddressSpace, FloatPredicate, OptimizationLevel};
-use std::borrow::Borrow;
+use inkwell::values::{AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue};
+use inkwell::{AddressSpace, FloatPredicate};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -45,9 +39,6 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) module: &'a Module<'ctx>,
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
-    pub(crate) compiled_function: Option<JitFunction<'ctx, MainFunction>>,
-    pub(crate) parameters: Vec<String>,
-    pub(crate) jit_variables: HashMap<String, PointerValue<'ctx>>,
     pub(crate) last_popped: Option<StackItem<'ctx>>,
 }
 
@@ -73,7 +64,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
-                (pointer.starts_with("MAIN")),
+                pointer.starts_with("MAIN"),
             );
 
             if !ok {
@@ -100,9 +91,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 f64_type.fn_type(&args, false)
             };
 
-            let function = self
-                .module
-                .add_function(pointer.clone().as_str(), fn_type, None);
+            let function = self.module.add_function(pointer.as_str(), fn_type, None);
             let basic_block = self.context.append_basic_block(function, "entry");
 
             self.builder.position_at_end(basic_block);
@@ -113,7 +102,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 vm,
                 0,
                 func.instructions.len() as u32,
-                (pointer.starts_with("MAIN")),
+                pointer.starts_with("MAIN"),
             );
 
             if !ok {
@@ -411,7 +400,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let ct = read_uint32(&code[ip as usize..]);
                     ip += 4;
 
-                    let free_count = read_uint8(&code[ip as usize..]);
+                    //let free_count = read_uint8(&code[ip as usize..]);
 
                     ip += 1;
 
@@ -438,7 +427,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         };
 
                         // This needs to be modified to support closures in JIT
-                        let mut free = Vec::new();
+                        let free = Vec::new();
 
                         /*
                         for _ in 0..free_count {
@@ -480,7 +469,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                                 let f = self.module.get_function(&*f_name.clone());
 
-                                if let Some(f) = f {
+                                if f.is_some() {
                                     self.push(
                                         temp_stack.as_mut(),
                                         StackItem::FunctionName(f_name.clone()),
@@ -500,11 +489,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                                         f64_type.fn_type(&args, false)
                                     };
 
-                                    let function = self.module.add_function(
-                                        ptr.clone().as_str(),
-                                        fn_type,
-                                        None,
-                                    );
+                                    self.module
+                                        .add_function(ptr.clone().as_str(), fn_type, None);
 
                                     compile_at_end.insert(ptr.clone(), vf.func.clone());
 
@@ -675,31 +661,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         true
     }
 
-    fn create_entry_block_alloca(
-        &self,
-        name: &str,
-        function: FunctionValue<'ctx>,
-    ) -> PointerValue<'ctx> {
-        let builder = self.context.create_builder();
-
-        let entry = self
-            .module
-            .get_first_function()
-            .unwrap()
-            .get_first_basic_block()
-            .unwrap();
-
-        match entry.get_first_instruction() {
-            Some(first_instr) => builder.position_before(&first_instr),
-            None => builder.position_at_end(entry),
-        }
-
-        builder.build_alloca(self.context.f64_type(), name)
-    }
-
     #[allow(dead_code)]
     pub fn run(&mut self, ptr: String, _params: Vec<Rc<RefCell<Object>>>) -> Object {
-        if let Some(_) = self.module.get_function(&*ptr) {
+        if self.module.get_function(&*ptr).is_some() {
             let main_function: JitFunction<MainFunction> =
                 unsafe { self.execution_engine.get_function(&*ptr).unwrap() };
 
