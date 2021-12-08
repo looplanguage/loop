@@ -6,7 +6,7 @@ use crate::lib::flags::{FlagTypes, Flags};
 use crate::parser::build_parser;
 use crate::vm::{build_vm, VMState};
 use chrono::Utc;
-use colored::Colorize;
+use colored::*;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
@@ -36,12 +36,12 @@ impl Repl {
     pub fn start(&mut self) -> Option<bool> {
         println!(
             "
-  _
- | |       ___     ___    _ __
- | |      / _ \\   / _ \\  | '_ \\
- | |___  | (_) | | (_) | | |_) |
- |_____|  \\___/   \\___/  | .__/
-                         |_|
+██╗░░░░░░█████╗░░█████╗░██████╗░
+██║░░░░░██╔══██╗██╔══██╗██╔══██╗
+██║░░░░░██║░░██║██║░░██║██████╔╝
+██║░░░░░██║░░██║██║░░██║██╔═══╝░
+███████╗╚█████╔╝╚█████╔╝██║░░░░░
+╚══════╝░╚════╝░░╚════╝░╚═╝░░░░░
         "
         );
         println!("Welcome to Loop v{}", VERSION);
@@ -121,6 +121,10 @@ impl Repl {
 
             match readline {
                 Ok(line) => {
+                    if line.as_str() == "exit" {
+                        println!("{}", "Exiting the REPL...\n".yellow());
+                        break;
+                    }
                     rl.add_history_entry(line.as_str());
                     self.run_code(line);
                 }

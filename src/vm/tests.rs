@@ -20,6 +20,80 @@ mod tests {
     fn recursive_functions() {}
 
     #[test]
+    fn strings() {
+        test_vm(
+            "\"hello\"",
+            String(string::LoopString {
+                value: "hello".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"Hello\"",
+            String(string::LoopString {
+                value: "Hello".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"123\"",
+            String(string::LoopString {
+                value: "123".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"I123\"",
+            String(string::LoopString {
+                value: "I123".parse().unwrap(),
+            }),
+        );
+    }
+
+    #[test]
+    fn escape_sequences() {
+        test_vm(
+            "\"x\\ny\"",
+            String(string::LoopString {
+                value: "x\ny".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\ry\"",
+            String(string::LoopString {
+                value: "x\ry".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\ty\"",
+            String(string::LoopString {
+                value: "x\ty".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\\\y\"",
+            String(string::LoopString {
+                value: "x\\\\y".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\\"y\"",
+            String(string::LoopString {
+                value: "x\"y".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\\'y\"",
+            String(string::LoopString {
+                value: "x\'y".parse().unwrap(),
+            }),
+        );
+        test_vm(
+            "\"x\\y\"",
+            String(string::LoopString {
+                value: "x\\y".parse().unwrap(),
+            }),
+        );
+    }
+
+    #[test]
     fn expressions() {
         test_vm("100", Integer(integer::Integer { value: 100 }));
         test_vm("100 + 100", Integer(integer::Integer { value: 200 }));
