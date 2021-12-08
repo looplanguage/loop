@@ -73,7 +73,7 @@ fn to_int(extending: Rc<RefCell<Object>>, _arguments: Vec<Object>) -> EvalResult
             }))
         }
         Object::Boolean(boolean) => {
-            if boolean.value == true {
+            if boolean.value {
                 Ok(Object::Integer(Integer { value: 1 }))
             } else {
                 Ok(Object::Integer(Integer { value: 0 }))
