@@ -102,6 +102,45 @@ mod tests {
         );
     }
 
+    #[test]
+    fn logical_operators_and() {
+        test_jit("true and false", Object::Integer(Integer { value: 0 }));
+        test_jit(
+            "true and true and true and true",
+            Object::Integer(Integer { value: 1 }),
+        );
+        test_jit(
+            "(true and false) and true and true and (true and true)",
+            Object::Integer(Integer { value: 0 }),
+        );
+        test_jit(
+            "(true and true) and true and true and (true and true)",
+            Object::Integer(Integer { value: 1 }),
+        );
+    }
+
+    #[test]
+    fn logical_operators_or() {
+        test_jit("true or false", Object::Integer(Integer { value: 1 }));
+        test_jit("true or true", Object::Integer(Integer { value: 1 }));
+        test_jit(
+            "(true or false) or (false or true or false or false)",
+            Object::Integer(Integer { value: 1 }),
+        );
+    }
+
+    #[test]
+    fn logical_operators_combined() {
+        test_jit(
+            "((true or false) and (true and false)) or true",
+            Object::Integer(Integer { value: 1 }),
+        );
+        test_jit(
+            "((true or false) and (true and false)) and true",
+            Object::Integer(Integer { value: 0 }),
+        );
+    }
+
     fn test_jit(input: &str, expected: Object) {
         if let Ok(e) = env::var("TEST_JIT") {
             if e == "0" {
@@ -164,7 +203,7 @@ mod tests {
             last_popped: None,
         };
 
-        let err = vm.run(&mut codegen);
+        let err = vm.run(Some(codegen));
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

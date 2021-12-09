@@ -1,5 +1,4 @@
 use crate::lib::exception::vm::VMException;
-use crate::lib::jit::CodeGen;
 use crate::lib::object::function::Function;
 use crate::lib::object::Object;
 use crate::vm::frame::build_frame;
@@ -7,12 +6,7 @@ use crate::vm::VM;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-pub fn run_function(
-    vm: &mut VM,
-    num_args: u8,
-    _attempt_jit: bool,
-    codegen: &mut CodeGen,
-) -> Option<VMException> {
+pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
     let stack_item = &vm.stack[(vm.sp - 1 - (num_args as u16)) as usize].clone();
     let func_obj = &*(stack_item).borrow();
 
@@ -28,37 +22,6 @@ pub fn run_function(
             }
 
             let num_locals = func.func.num_locals as usize;
-
-            if _attempt_jit {
-                let mut args = Vec::with_capacity(num_args as usize);
-                for _ in 0..num_args {
-                    let arg = vm.pop();
-
-                    args.push(arg.clone())
-                }
-
-                args.reverse();
-
-                let ptr = format!("{:p}", &*stack_item.as_ref().borrow());
-
-                if codegen.module.get_function(&*ptr).is_none() {
-                    let success = codegen.compile(func.func.clone(), ptr.clone(), vm, Vec::new());
-
-                    if success {
-                        // Pop function of the stack
-                        vm.pop();
-
-                        let obj = codegen.run(ptr, args);
-
-                        vm.push(Rc::from(RefCell::from(obj)));
-                    } else {
-                        return Some(VMException::UnableToJIT);
-                    }
-                } else {
-                    codegen.run(ptr, args);
-                }
-                return None;
-            }
 
             let base_pointer = vm.sp - (num_args as u16);
 

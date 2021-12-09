@@ -64,6 +64,7 @@ pub enum Precedence {
     Prefix,
     Call,
     Index,
+    Logical,
     Assign,
 }
 
@@ -85,6 +86,8 @@ pub fn get_precedence(tok: TokenType) -> Precedence {
         TokenType::Dot => Precedence::Index,
         TokenType::LeftBracket => Precedence::Index,
         TokenType::Assign => Precedence::Assign,
+        TokenType::And => Precedence::Logical,
+        TokenType::Or => Precedence::Logical,
         _ => Precedence::Lowest,
     }
 }

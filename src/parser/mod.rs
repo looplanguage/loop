@@ -236,6 +236,8 @@ pub fn build_parser(lexer: Lexer) -> Parser {
     p.add_infix_parser(TokenType::LeftParenthesis, parse_call);
     p.add_infix_parser(TokenType::Dot, parse_index_expression);
     p.add_infix_parser(TokenType::LeftBracket, parse_index_expression);
+    p.add_infix_parser(TokenType::And, parse_suffix_expression);
+    p.add_infix_parser(TokenType::Or, parse_suffix_expression);
 
     // Infix Parsers Comparisons
     p.add_infix_parser(TokenType::Equals, parse_suffix_expression);
