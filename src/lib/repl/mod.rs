@@ -2,7 +2,7 @@ use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::util::execute_code;
 use crate::vm::VMState;
-use colored::Colorize;
+use colored::*;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
@@ -13,6 +13,7 @@ pub struct Repl {
 }
 
 pub fn build_repl() -> Repl {
+    control::set_virtual_terminal(true).unwrap();
     Repl {
         line: 0,
         compiler_state: None,
