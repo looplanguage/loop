@@ -678,7 +678,7 @@ mod tests {
         };
 
         let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());
-        let err = vm.run(&mut codegen);
+        let err = vm.run(Some(codegen));
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

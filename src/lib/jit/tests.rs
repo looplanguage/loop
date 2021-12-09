@@ -164,7 +164,7 @@ mod tests {
             last_popped: None,
         };
 
-        let err = vm.run(&mut codegen);
+        let err = vm.run(Some(codegen));
 
         if err.is_err() {
             panic!("{}", err.err().unwrap());

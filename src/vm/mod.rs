@@ -85,8 +85,10 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
 }
 
 impl VM {
-    pub fn run(&mut self, codegen: &mut CodeGen) -> Result<Rc<RefCell<Object>>, String> {
+    pub fn run(&mut self, mut codegen: Option<CodeGen>) -> Result<Rc<RefCell<Object>>, String> {
+
         if CONFIG.jit_enabled {
+            let mut codegen = codegen.unwrap();
             let ptr = self.main_name.clone();
             let f = self.current_frame();
             let success = codegen.compile(f.func.func.clone(), ptr.clone(), self, Vec::new());
@@ -215,7 +217,7 @@ impl VM {
                     self.increment_ip(1);
 
                     // TODO: Properly implement VM exceptions
-                    let vm_exception = run_function(self, args, CONFIG.jit_enabled, codegen);
+                    let vm_exception = run_function(self, args, CONFIG.jit_enabled);
 
                     if let Some(exception) = vm_exception {
                         return match exception {
