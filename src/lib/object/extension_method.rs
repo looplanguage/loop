@@ -72,6 +72,13 @@ fn to_int(extending: Rc<RefCell<Object>>, _arguments: Vec<Object>) -> EvalResult
                 value: parsed.unwrap(),
             }))
         }
+        Object::Boolean(boolean) => {
+            if boolean.value {
+                Ok(Object::Integer(Integer { value: 1 }))
+            } else {
+                Ok(Object::Integer(Integer { value: 0 }))
+            }
+        }
         _ => Err(VMException::IncorrectType(format!(
             "incorrect type. got=\"{:?}\"",
             extending
