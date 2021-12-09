@@ -50,10 +50,15 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> (Resu
     let context = Context::create();
     let module = context.create_module("program");
     let execution_engine = module
-        .create_jit_execution_engine(OptimizationLevel::None)
-        .ok()
-        .ok_or_else(|| "cannot start jit!".to_string())
-        .unwrap();
+        .create_jit_execution_engine(OptimizationLevel::None);
+
+    if execution_engine.is_err() {
+        println!("Error during start of JIT engine!");
+        return (Err(execution_engine.err().unwrap().to_string()), None);
+    }
+
+    let execution_engine = execution_engine.ok().unwrap();
+
 
     let fpm = PassManager::create(&module);
 
