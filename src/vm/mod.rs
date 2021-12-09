@@ -85,7 +85,7 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
 }
 
 impl VM {
-    pub fn run(&mut self, mut codegen: Option<CodeGen>) -> Result<Rc<RefCell<Object>>, String> {
+    pub fn run(&mut self, codegen: Option<CodeGen>) -> Result<Rc<RefCell<Object>>, String> {
 
         if CONFIG.jit_enabled {
             let mut codegen = codegen.unwrap();

@@ -49,10 +49,10 @@ impl Repl {
     }
 
     fn run_code(&mut self, s: String) {
-        let ran = execute_code(s.as_str(), self.compiler_state.as_ref());
+        let ran = execute_code(s.as_str(), self.compiler_state.as_ref(), self.vm_state.as_ref());
         self.compiler_state = ran.1;
 
-        if let Some(m) = ran.0.ok() {
+        if let Ok(m) = ran.0 {
             println!("{}", m.borrow().inspect());
         }
     }

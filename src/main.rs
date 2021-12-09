@@ -2,7 +2,6 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 use crate::lib::config::{load_config, LoadType};
-use crate::lib::flags::Flags;
 use crate::lib::util::execute_code;
 use dirs::home_dir;
 use lib::flags;
@@ -42,17 +41,17 @@ fn main() {
         return;
     }
 
-    if let Some(file) = flags.file.clone() {
-        run_file(file, flags);
+    if let Some(file) = flags.file {
+        run_file(file);
     } else {
         build_repl().start();
     }
 }
 
-fn run_file(file: String, flags: Flags) {
+fn run_file(file: String) {
     let content = read_to_string(file);
 
-    let last = execute_code(content.ok().unwrap().as_str(), None);
+    let last = execute_code(content.ok().unwrap().as_str(), None, None);
     println!("{}", last.0.ok().unwrap().borrow().inspect());
 }
 

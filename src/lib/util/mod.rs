@@ -12,8 +12,11 @@ use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
 use crate::lib::jit::CodeGen;
 use crate::lib::object::Object;
+use crate::vm::VMState;
 
-pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> (Result<Rc<RefCell<Object>>, String>, Option<CompilerState>) {
+type ExecuteCodeReturn = (Result<Rc<RefCell<Object>>, String>, Option<CompilerState>, Option<VMState>);
+
+pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>, vm_state: Option<&VMState>) -> ExecuteCodeReturn {
     let l = lexer::build_lexer(code);
     let mut parser = parser::build_parser(l);
 
@@ -35,14 +38,14 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> (Resu
     if error.is_err() {
         let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
         println!("{}", message.as_str().red());
-        return (Err(message), None);
+        return (Err(message), None, None);
     }
 
     if CONFIG.debug_mode {
         print_instructions(comp.scope().instructions.clone());
     }
 
-    let mut vm = vm::build_vm(comp.get_bytecode(), None, "MAIN".to_string());
+    let mut vm = vm::build_vm(comp.get_bytecode(), vm_state, "MAIN".to_string());
 
     let started = Utc::now();
 
@@ -53,7 +56,7 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> (Resu
 
     if execution_engine.is_err() {
         println!("Error during start of JIT engine!");
-        return (Err(execution_engine.err().unwrap().to_string()), None);
+        return (Err(execution_engine.err().unwrap().to_string()), None, None);
     }
 
     let execution_engine = execution_engine.ok().unwrap();
@@ -98,5 +101,5 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> (Resu
         println!("Execution Took: {}", formatted);
     }
 
-    (ran, Some(comp.get_state()))
+    (ran, Some(comp.get_state()), Some(vm.get_state()))
 }
