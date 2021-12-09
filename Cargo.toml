@@ -18,4 +18,5 @@ once_cell = "1.8.0"
 
 
 [profile.release]
+lto = true
 debug = true
