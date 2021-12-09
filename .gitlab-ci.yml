@@ -161,8 +161,8 @@ test linux x86_64:
     - .linux
     - .ci
   script:
-    - TEST_JIT=0 cargo test
-    - TEST_JIT=1 cargo test
+    - export TEST_JIT=0 && cargo test
+    - export TEST_JIT=1 && cargo test
 
 deploy linux x86_64:
   stage: deploy
