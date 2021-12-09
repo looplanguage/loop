@@ -617,6 +617,27 @@ mod tests {
         );
     }
 
+    #[test]
+    fn logical_operators_and() {
+        test_vm("true and false", Boolean(boolean::Boolean { value: false }));
+        test_vm("true and true and true and true", Boolean(boolean::Boolean { value: true }));
+        test_vm("(true and false) and true and true and (true and true)", Boolean(boolean::Boolean { value: false }));
+        test_vm("(true and true) and true and true and (true and true)", Boolean(boolean::Boolean { value: true }));
+    }
+
+    #[test]
+    fn logical_operators_or() {
+        test_vm("true or false", Boolean(boolean::Boolean { value: true }));
+        test_vm("true or true", Boolean(boolean::Boolean { value: true }));
+        test_vm("(true or false) or (false or true or false or false)", Boolean(boolean::Boolean { value: true }));
+    }
+
+    #[test]
+    fn logical_operators_combined() {
+        test_vm("((true or false) and (true and false)) or true", Boolean(boolean::Boolean { value: true }));
+        test_vm("((true or false) and (true and false)) and true", Boolean(boolean::Boolean { value: false }));
+    }
+
     fn test_vm(input: &str, expected: Object) {
         if let Ok(e) = env::var("TEST_JIT") {
             if e == "1" {
