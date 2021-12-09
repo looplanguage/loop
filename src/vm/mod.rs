@@ -86,7 +86,6 @@ pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM 
 
 impl VM {
     pub fn run(&mut self, codegen: Option<CodeGen>) -> Result<Rc<RefCell<Object>>, String> {
-
         if CONFIG.jit_enabled {
             let mut codegen = codegen.unwrap();
             let ptr = self.main_name.clone();
@@ -437,7 +436,7 @@ impl VM {
                 }
                 OpCode::Pow => run_suffix_expression(self, "^"),
                 OpCode::And => run_suffix_expression(self, "&&"),
-                OpCode::Or => run_suffix_expression(self, "||")
+                OpCode::Or => run_suffix_expression(self, "||"),
             };
 
             if let Some(err) = err {

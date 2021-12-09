@@ -6,11 +6,7 @@ use crate::vm::VM;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-pub fn run_function(
-    vm: &mut VM,
-    num_args: u8,
-    _attempt_jit: bool,
-) -> Option<VMException> {
+pub fn run_function(vm: &mut VM, num_args: u8, _attempt_jit: bool) -> Option<VMException> {
     let stack_item = &vm.stack[(vm.sp - 1 - (num_args as u16)) as usize].clone();
     let func_obj = &*(stack_item).borrow();
 

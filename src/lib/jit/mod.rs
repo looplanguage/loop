@@ -640,7 +640,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             return false;
                         }
                     }
-                        .into_int_value();
+                    .into_int_value();
 
                     let left = {
                         if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
@@ -649,13 +649,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             return false;
                         }
                     }
-                        .into_int_value();
+                    .into_int_value();
 
-                    let compared = self.builder.build_and(
-                        left,
-                        right,
-                        "and_operand",
-                    );
+                    let compared = self.builder.build_and(left, right, "and_operand");
 
                     self.push(
                         temp_stack.as_mut(),
@@ -670,7 +666,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             return false;
                         }
                     }
-                        .into_int_value();
+                    .into_int_value();
 
                     let left = {
                         if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
@@ -679,13 +675,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             return false;
                         }
                     }
-                        .into_int_value();
+                    .into_int_value();
 
-                    let compared = self.builder.build_or(
-                        left,
-                        right,
-                        "or_operand",
-                    );
+                    let compared = self.builder.build_or(left, right, "or_operand");
 
                     self.push(
                         temp_stack.as_mut(),
@@ -702,8 +694,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         if is_main {
             if let Some(StackItem::AnyValueEnum(p)) = self.last_popped {
                 let ret_val = match p {
-                    AnyValueEnum::IntValue(i) => { i.const_unsigned_to_float(self.context.f64_type())}
-                    _ => { p.into_float_value() }
+                    AnyValueEnum::IntValue(i) => i.const_unsigned_to_float(self.context.f64_type()),
+                    _ => p.into_float_value(),
                 };
 
                 self.builder.build_return(Some(&ret_val));

@@ -47,13 +47,13 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     }
 
     #[cfg(test)]
-        {
-            if let Ok(e) = env::var("TEST_JIT") {
-                config.jit_enabled = e == "1";
-            } else {
-                config.jit_enabled = false;
-            }
+    {
+        if let Ok(e) = env::var("TEST_JIT") {
+            config.jit_enabled = e == "1";
+        } else {
+            config.jit_enabled = false;
         }
+    }
 
     config
 });

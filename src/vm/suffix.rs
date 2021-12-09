@@ -35,7 +35,10 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
                 }
             }
 
-            return Some(format!("cannot use '&&' logical operator on non-boolean value: {:?} && {:?}", left, right));
+            return Some(format!(
+                "cannot use '&&' logical operator on non-boolean value: {:?} && {:?}",
+                left, right
+            ));
         }
         "||" => {
             if let Object::Boolean(left) = left {
@@ -48,7 +51,10 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
                 }
             }
 
-            return Some(format!("cannot use '&&' logical operator on non-boolean value: {:?} && {:?}", left, right));
+            return Some(format!(
+                "cannot use '&&' logical operator on non-boolean value: {:?} && {:?}",
+                left, right
+            ));
         }
         _ => {}
     }

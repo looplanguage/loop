@@ -60,7 +60,7 @@ pub fn compile_expression_suffix(
         "^" => {
             _compiler.emit(OpCode::Pow, vec![]);
         }
-        "or" | "||"  => {
+        "or" | "||" => {
             _compiler.emit(OpCode::Or, vec![]);
         }
         "and" | "&&" => {

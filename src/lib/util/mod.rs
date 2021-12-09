@@ -1,22 +1,30 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use chrono::Utc;
-use colored::Colorize;
-use inkwell::context::Context;
-use inkwell::OptimizationLevel;
-use inkwell::passes::PassManager;
-use crate::{compiler, lexer, parser, vm};
-use crate::compiler::CompilerState;
 use crate::compiler::instructions::print_instructions;
+use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
 use crate::lib::jit::CodeGen;
 use crate::lib::object::Object;
 use crate::vm::VMState;
+use crate::{compiler, lexer, parser, vm};
+use chrono::Utc;
+use colored::Colorize;
+use inkwell::context::Context;
+use inkwell::passes::PassManager;
+use inkwell::OptimizationLevel;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-type ExecuteCodeReturn = (Result<Rc<RefCell<Object>>, String>, Option<CompilerState>, Option<VMState>);
+type ExecuteCodeReturn = (
+    Result<Rc<RefCell<Object>>, String>,
+    Option<CompilerState>,
+    Option<VMState>,
+);
 
-pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>, vm_state: Option<&VMState>) -> ExecuteCodeReturn {
+pub fn execute_code(
+    code: &str,
+    compiler_state: Option<&CompilerState>,
+    vm_state: Option<&VMState>,
+) -> ExecuteCodeReturn {
     let l = lexer::build_lexer(code);
     let mut parser = parser::build_parser(l);
 
@@ -51,8 +59,7 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>, vm_state
 
     let context = Context::create();
     let module = context.create_module("program");
-    let execution_engine = module
-        .create_jit_execution_engine(OptimizationLevel::None);
+    let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None);
 
     if execution_engine.is_err() {
         println!("Error during start of JIT engine!");
@@ -60,7 +67,6 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>, vm_state
     }
 
     let execution_engine = execution_engine.ok().unwrap();
-
 
     let fpm = PassManager::create(&module);
 

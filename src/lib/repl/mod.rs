@@ -1,10 +1,10 @@
 use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
+use crate::lib::util::execute_code;
 use crate::vm::VMState;
 use colored::Colorize;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
-use crate::lib::util::execute_code;
 
 pub struct Repl {
     line: i32,
@@ -49,7 +49,11 @@ impl Repl {
     }
 
     fn run_code(&mut self, s: String) {
-        let ran = execute_code(s.as_str(), self.compiler_state.as_ref(), self.vm_state.as_ref());
+        let ran = execute_code(
+            s.as_str(),
+            self.compiler_state.as_ref(),
+            self.vm_state.as_ref(),
+        );
         self.compiler_state = ran.1;
 
         if let Ok(m) = ran.0 {
