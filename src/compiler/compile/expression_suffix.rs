@@ -60,6 +60,12 @@ pub fn compile_expression_suffix(
         "^" => {
             _compiler.emit(OpCode::Pow, vec![]);
         }
+        "or" | "||"  => {
+            _compiler.emit(OpCode::Or, vec![]);
+        }
+        "and" | "&&" => {
+            _compiler.emit(OpCode::And, vec![]);
+        }
         _ => {
             return Some(CompilerException::UnknownSuffixOperator(_suffix.operator));
         }

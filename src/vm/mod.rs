@@ -436,6 +436,8 @@ impl VM {
                     None
                 }
                 OpCode::Pow => run_suffix_expression(self, "^"),
+                OpCode::And => run_suffix_expression(self, "&&"),
+                OpCode::Or => run_suffix_expression(self, "||")
             };
 
             if let Some(err) = err {

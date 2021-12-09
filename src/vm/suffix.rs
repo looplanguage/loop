@@ -25,6 +25,31 @@ pub fn run_suffix_expression(vm: &mut VM, operator: &str) -> Option<String> {
             }))));
             return None;
         }
+        "&&" => {
+            if let Object::Boolean(left) = left {
+                if let Object::Boolean(right) = right {
+                    vm.push(Rc::from(RefCell::from(Object::Boolean(Boolean {
+                        value: left.value && right.value,
+                    }))));
+                    return None;
+                }
+            }
+
+            return Some(format!("cannot use '&&' logical operator on non-boolean value: {:?} && {:?}", left, right));
+        }
+        "||" => {
+            if let Object::Boolean(left) = left {
+                if let Object::Boolean(right) = right {
+                    vm.push(Rc::from(RefCell::from(Object::Boolean(Boolean {
+                        value: left.value || right.value,
+                    }))));
+
+                    return None;
+                }
+            }
+
+            return Some(format!("cannot use '&&' logical operator on non-boolean value: {:?} && {:?}", left, right));
+        }
         _ => {}
     }
 
