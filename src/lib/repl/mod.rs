@@ -1,16 +1,7 @@
-use crate::compiler::instructions::print_instructions;
-use crate::compiler::{build_compiler, CompilerState};
-use crate::lexer::build_lexer;
+use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
-use crate::lib::exception::Exception;
-use crate::lib::jit::CodeGen;
-use crate::parser::build_parser;
-use crate::vm::{build_vm, VMState};
-use chrono::Utc;
+use crate::vm::VMState;
 use colored::Colorize;
-use inkwell::context::Context;
-use inkwell::passes::PassManager;
-use inkwell::OptimizationLevel;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use crate::lib::util::execute_code;

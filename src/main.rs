@@ -1,27 +1,14 @@
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
-
-use chrono::Utc;
-use colored::Colorize;
-use dirs::home_dir;
-use inkwell::context::Context;
-use inkwell::passes::PassManager;
-use inkwell::OptimizationLevel;
-use std::borrow::BorrowMut;
-use std::env;
-use std::fs::read_to_string;
-
-use crate::compiler::instructions::print_instructions;
 use crate::lib::config::{load_config, LoadType};
-use crate::lib::exception::Exception;
-use crate::lib::flags::{FlagTypes, Flags};
-use crate::lib::jit::CodeGen;
+use crate::lib::flags::Flags;
+use crate::lib::util::execute_code;
+use dirs::home_dir;
 use lib::flags;
 use lib::repl::build_repl;
-use crate::lib::util::execute_code;
-
-use crate::vm::build_vm;
+use std::env;
+use std::fs::read_to_string;
 
 pub mod compiler;
 pub mod lexer;
