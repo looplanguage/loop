@@ -30,7 +30,7 @@ impl Flags {
     // ToDo: This is regarding the whole implementation of Flags.
 
     fn get_flag(string: &str) -> Result<FlagTypes, String> {
-        let flag_arguments: Vec<&str> = string.split('=').collect();
+        let mut flag_arguments: Vec<&str> = string.split('=').collect();
 
         if flag_arguments.len() > 2 {
             return Err(format!(
@@ -38,17 +38,28 @@ impl Flags {
                 flag_arguments.len() - 1
             ));
         }
-
-        match flag_arguments[0] {
-            "--debug" | "-d" => debug::debug_flag(flag_arguments[1]),
-            "--benchmark" | "-b" => benchmark::benchmark_flag(flag_arguments[1]),
-            "--jit" | "-j" => jit::jit_flag(flag_arguments[1]),
-            "--optimize" | "-o" => optimize::optimize_flag(flag_arguments[1]),
+        if flag_arguments.len() == 2 {
+            return match flag_arguments[0] {
+                "--debug" | "-d" => debug::debug_flag_with_param(flag_arguments[1]),
+                "--benchmark" | "-b" => benchmark::benchmark_flag_with_param(flag_arguments[1]),
+                "--jit" | "-j" => jit::jit_flag_with_param(flag_arguments[1]),
+                "--optimize" | "-o" => optimize::optimize_flag_with_param(flag_arguments[1]),
+                &_ => Err(format!(
+                    "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
+                    string
+                )),
+            };
+        }
+        return match flag_arguments[0] {
+            "--debug" | "-d" => debug::debug_flag(),
+            "--benchmark" | "-b" => benchmark::benchmark_flag(),
+            "--jit" | "-j" => jit::jit_flag(),
+            "--optimize" | "-o" => optimize::optimize_flag(),
             &_ => Err(format!(
                 "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
                 string
             )),
-        }
+        };
     }
 
     pub fn parse_flags(&mut self, args: Vec<String>) -> i32 {

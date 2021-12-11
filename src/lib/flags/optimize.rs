@@ -1,8 +1,8 @@
 use crate::lib::flags::FlagTypes;
 
-pub(crate) fn optimize_flag(parameter: &str) -> Result<FlagTypes, String> {
+pub fn optimize_flag_with_param(parameter: &str) -> Result<FlagTypes, String> {
     if parameter == "true" {
-        return Ok(FlagTypes::Jit);
+        return Ok(FlagTypes::Optimize);
     }
     if parameter == "false" {
         return Ok(FlagTypes::None);
@@ -11,4 +11,8 @@ pub(crate) fn optimize_flag(parameter: &str) -> Result<FlagTypes, String> {
         "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
         parameter
     ));
+}
+
+pub fn optimize_flag() -> Result<FlagTypes, String> {
+    Ok(FlagTypes::Optimize)
 }
