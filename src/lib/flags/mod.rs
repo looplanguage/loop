@@ -1,6 +1,5 @@
 #[derive(PartialEq)]
 pub enum FlagTypes {
-    None,
     Debug,
     Benchmark,
     Jit,
@@ -19,12 +18,15 @@ pub struct Flags {
 }
 
 impl Flags {
-    fn get_flag(string: &str) -> FlagTypes {
+    fn get_flag(string: &str) -> Result<FlagTypes, String> {
         match string {
-            "--debug" | "-d" => FlagTypes::Debug,
-            "--benchmark" | "-b" => FlagTypes::Benchmark,
-            "--jit" | "-j" => FlagTypes::Jit,
-            &_ => FlagTypes::None,
+            "--debug" | "-d" => Ok(FlagTypes::Debug),
+            "--benchmark" | "-b" => Ok(FlagTypes::Benchmark),
+            "--jit" | "-j" => Ok(FlagTypes::Jit),
+            &_ => Err(format!(
+                "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
+                string
+            )),
         }
     }
 
@@ -33,10 +35,12 @@ impl Flags {
 
         for arg in args.clone() {
             let flag = Flags::get_flag(arg.as_str());
-            if flag != FlagTypes::None {
-                self.flags.push(flag)
-            } else {
-                break;
+            match flag {
+                Ok(e) => self.flags.push(e),
+                Err(e) => {
+                    // ToDo: Make Loop crash in an elegant way instead of calling the "panic" function of Rust
+                    panic!("{}", e);
+                }
             }
 
             i += 1;
