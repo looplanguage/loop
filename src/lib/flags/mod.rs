@@ -1,3 +1,9 @@
+mod benchmark;
+mod debug;
+mod jit;
+mod optimize;
+
+#[allow(dead_code)]
 #[derive(PartialEq)]
 pub enum FlagTypes {
     None,
@@ -24,60 +30,20 @@ impl Flags {
     // ToDo: This is regarding the whole implementation of Flags.
 
     fn get_flag(string: &str) -> Result<FlagTypes, String> {
-        let x: Vec<&str> = string.split('=').collect();
+        let flag_arguments: Vec<&str> = string.split('=').collect();
 
-        if x.len() > 2 {
+        if flag_arguments.len() > 2 {
             return Err(format!(
                 "Found \"{}\" arguments, expected a max of one",
-                x.len() - 1
+                flag_arguments.len() - 1
             ));
         }
 
-        match x[0] {
-            "--debug" | "-d" => {
-                if x[1] == "true" {
-                    return Ok(FlagTypes::Debug);
-                } else if x[1] == "false" {
-                    return Ok(FlagTypes::None);
-                }
-                return Err(format!(
-                    "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
-                    x[1]
-                ));
-            }
-            "--benchmark" | "-b" => {
-                if x[1] == "true" {
-                    return Ok(FlagTypes::Benchmark);
-                } else if x[1] == "false" {
-                    return Ok(FlagTypes::None);
-                }
-                return Err(format!(
-                    "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
-                    x[1]
-                ));
-            }
-            "--jit" | "-j" => {
-                if x[1] == "true" {
-                    return Ok(FlagTypes::Jit);
-                } else if x[1] == "false" {
-                    return Ok(FlagTypes::None);
-                }
-                return Err(format!(
-                    "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
-                    x[1]
-                ));
-            }
-            "--optimize" | "-o" => {
-                if x[1] == "true" {
-                    return Ok(FlagTypes::Jit);
-                } else if x[1] == "false" {
-                    return Ok(FlagTypes::None);
-                }
-                return Err(format!(
-                    "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
-                    x[1]
-                ));
-            }
+        match flag_arguments[0] {
+            "--debug" | "-d" => debug::debug_flag(flag_arguments[1]),
+            "--benchmark" | "-b" => benchmark::benchmark_flag(flag_arguments[1]),
+            "--jit" | "-j" => jit::jit_flag(flag_arguments[1]),
+            "--optimize" | "-o" => optimize::optimize_flag(flag_arguments[1]),
             &_ => Err(format!(
                 "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
                 string
