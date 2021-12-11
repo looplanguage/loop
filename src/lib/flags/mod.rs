@@ -30,7 +30,7 @@ impl Flags {
     // ToDo: This is regarding the whole implementation of Flags.
 
     fn get_flag(string: &str) -> Result<FlagTypes, String> {
-        let mut flag_arguments: Vec<&str> = string.split('=').collect();
+        let flag_arguments: Vec<&str> = string.split('=').collect();
 
         if flag_arguments.len() > 2 {
             return Err(format!(
