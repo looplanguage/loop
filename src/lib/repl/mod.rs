@@ -56,7 +56,11 @@ impl Repl {
             self.compiler_state.as_ref(),
             self.vm_state.as_ref(),
         );
-        self.compiler_state = ran.1;
+
+        if !CONFIG.jit_enabled {
+            self.compiler_state = ran.1;
+            self.vm_state = ran.2;
+        }
 
         if let Ok(m) = ran.0 {
             println!("{}", m.borrow().inspect());
