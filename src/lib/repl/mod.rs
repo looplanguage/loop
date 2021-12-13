@@ -98,11 +98,11 @@ impl Repl {
 
                     additive_code.push_str(line.as_str());
 
-                    if line.ends_with("{") {
+                    if line.ends_with('{') {
                         level_depth += 1;
                     }
 
-                    if line.contains("}") && level_depth != 0 {
+                    if line.contains('}') && level_depth != 0 {
                         level_depth -= 1;
                     }
 
