@@ -13,14 +13,13 @@ pub fn compile_statement_variable_assign(
         .resolve(format!("{}{}", compiler.location, variable.ident.value).as_str());
 
     if symbol.is_some() {
-        let err = compiler.compile_expression(*variable.value);
+        let result = compiler.compile_expression(*variable.value);
 
         compiler.emit(OpCode::SetVar, vec![symbol.unwrap().index as u32]);
 
-        return if err.is_some() {
-            CompilerResult::Exception(err.unwrap())
-        } else {
-            CompilerResult::Success
+        return match &result {
+            CompilerResult::Exception(_exception) => result,
+            _ => CompilerResult::Success,
         };
     } else {
         let var = compiler
@@ -29,14 +28,13 @@ pub fn compile_statement_variable_assign(
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
         if var.is_some() {
-            let err = compiler.compile_expression(*variable.value);
+            let result = compiler.compile_expression(*variable.value);
 
             compiler.emit(OpCode::SetVar, vec![var.unwrap().index]);
 
-            return if err.is_some() {
-                CompilerResult::Exception(err.unwrap())
-            } else {
-                CompilerResult::Success
+            return match &result {
+                CompilerResult::Exception(_exception) => result,
+                _ => CompilerResult::Success,
             };
         }
     }

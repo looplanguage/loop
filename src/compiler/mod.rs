@@ -223,123 +223,28 @@ impl Compiler {
         }
     }
 
-    fn compile_expression(&mut self, expr: Expression) -> Option<CompilerException> {
-        let err = match expr {
-            Expression::Identifier(identifier) => {
-                let result = compile_expression_identifier(self, identifier);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Expression::Integer(int) => {
-                let _ = compile_expression_integer(self, int);
-                None
-            }
-            Expression::Suffix(suffix) => {
-                let result = compile_expression_suffix(self, *suffix);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Expression::Boolean(boolean) => {
-                let _ = compile_expression_boolean(self, boolean);
-                None
-            }
-            Expression::Function(func) => {
-                let result = compile_expression_function(self, func);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            },
+    fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
+        match expr {
+            Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
+            Expression::Integer(int) => compile_expression_integer(self, int),
+            Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
+            Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
+            Expression::Function(func) => compile_expression_function(self, func),
             Expression::Conditional(conditional) => {
-                let result = compile_expression_conditional(self, *conditional);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
+                compile_expression_conditional(self, *conditional)
             }
-            Expression::Null(_) => {
-                let _ = compile_expression_null(self);
-                None
-            }
-            Expression::Call(call) => {
-                let _ = compile_expression_call(self, call);
-                None
-            }
-            Expression::Float(float) => {
-                compile_expression_float(self, float);
-                None
-            }
-            Expression::String(string) => {
-                let _ = compile_expression_string(self, string);
-                None
-            }
-            Expression::Index(index) => {
-                let result = compile_expression_index(self, *index);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Expression::Array(array) => {
-                let _ = compile_expression_array(self, *array);
-                None
-            }
-            Expression::AssignIndex(assign) => {
-                let result = compile_expression_assign_index(self, *assign);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Expression::Loop(lp) => {
-                let result = compile_loop_expression(self, lp);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            },
-            Expression::LoopIterator(lp) => {
-                let result = compile_loop_iterator_expression(self, lp);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            },
-            Expression::LoopArrayIterator(lp) => {
-                let result = compile_loop_array_iterator_expression(self, lp);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            },
-            Expression::Hashmap(hash) => {
-                let result = compile_expression_hashmap(self, hash);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-        };
-
-        if err.is_some() {
-            return err;
+            Expression::Null(_) => compile_expression_null(self),
+            Expression::Call(call) => compile_expression_call(self, call),
+            Expression::Float(float) => compile_expression_float(self, float),
+            Expression::String(string) => compile_expression_string(self, string),
+            Expression::Index(index) => compile_expression_index(self, *index),
+            Expression::Array(array) => compile_expression_array(self, *array),
+            Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
+            Expression::Loop(lp) => compile_loop_expression(self, lp),
+            Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
+            Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
+            Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
         }
-
-        None
     }
 
     fn compile_loop_block(&mut self, block: Block) -> Option<CompilerException> {
@@ -389,11 +294,14 @@ impl Compiler {
                 x
             }
             Statement::Expression(expr) => {
-                let err = self.compile_expression(*expr.expression);
+                let result = self.compile_expression(*expr.expression);
 
                 self.emit(OpCode::Pop, vec![]);
 
-                err
+                return match result {
+                    CompilerResult::Exception(exception) => Some(exception),
+                    _ => None,
+                };
             }
             Statement::Block(block) => self.compile_block(block),
             Statement::VariableAssign(variable) => {
@@ -419,7 +327,7 @@ impl Compiler {
                     _ => None,
                 };
                 x
-            },
+            }
             Statement::Export(export) => {
                 let result = compile_export_statement(self, export);
                 let x = match result {
@@ -427,7 +335,7 @@ impl Compiler {
                     _ => None,
                 };
                 x
-            },
+            }
         }
     }
 

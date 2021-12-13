@@ -7,10 +7,7 @@ use crate::parser::statement::import::Import;
 use std::fs;
 use std::path::Path;
 
-pub fn compile_import_statement(
-    _compiler: &mut Compiler,
-    import: Import,
-) -> CompilerResult {
+pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> CompilerResult {
     // Keep hold of last_location
     let before_last_location = _compiler.prev_location.clone();
     let last_location = _compiler.location.clone();

@@ -3,10 +3,7 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
 
-pub fn compile_export_statement(
-    _compiler: &mut Compiler,
-    export: Export,
-) -> CompilerResult {
+pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> CompilerResult {
     if _compiler.export_name.is_empty() {
         // TODO: Return error
         return CompilerResult::Exception(CompilerException::Unknown);

@@ -10,10 +10,11 @@ pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
 ) -> CompilerResult {
-    let err = compiler.compile_expression(*conditional.condition);
+    let mut result = compiler.compile_expression(*conditional.condition);
 
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     let position_false = compiler.emit(OpCode::JumpIfFalse, vec![0]);

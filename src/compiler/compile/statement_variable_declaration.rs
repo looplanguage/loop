@@ -14,13 +14,12 @@ pub fn compile_statement_variable_declaration(
     );
 
     compiler.variable_count += 1;
-    let err = compiler.compile_expression(*variable.value);
+    let result = compiler.compile_expression(*variable.value);
 
     compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
-    }
-
-    CompilerResult::Success
+    return match &result {
+        CompilerResult::Exception(_exception) => result,
+        _ => CompilerResult::Success,
+    };
 }

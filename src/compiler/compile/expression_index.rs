@@ -63,9 +63,11 @@ pub fn compile_expression_extension_method(
     }
 
     for parameter in call.parameters.clone() {
-        let err = compiler.compile_expression(parameter);
-        if err.is_some() {
-            return CompilerResult::Exception(err.unwrap());
+        let result = compiler.compile_expression(parameter);
+
+        match &result {
+            CompilerResult::Exception(_exception) => return result,
+            _ => (),
         }
     }
 

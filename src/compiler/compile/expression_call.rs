@@ -4,16 +4,18 @@ use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::function::Call;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
-    let err = compiler.compile_expression(*call.identifier.clone());
+    let mut result = compiler.compile_expression(*call.identifier.clone());
 
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     for parameter in call.parameters.clone() {
-        let err = compiler.compile_expression(parameter);
-        if err.is_some() {
-            return CompilerResult::Exception(err.unwrap());
+        result = compiler.compile_expression(parameter);
+        match &result {
+            CompilerResult::Exception(_exception) => return result,
+            _ => (),
         }
     }
 

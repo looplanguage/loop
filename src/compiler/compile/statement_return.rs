@@ -10,9 +10,11 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
         );
     }
 
-    let err = _compiler.compile_expression(*rt.expression);
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
+    let result = _compiler.compile_expression(*rt.expression);
+
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     _compiler.emit(OpCode::Return, vec![]);

@@ -10,10 +10,11 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     compiler.enter_variable_scope();
 
     let start = compiler.scope().instructions.len();
-    let err = compiler.compile_expression(*lp.condition);
+    let result = compiler.compile_expression(*lp.condition);
 
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     let done = compiler.emit(OpCode::JumpIfFalse, vec![99999]); // To jump later
