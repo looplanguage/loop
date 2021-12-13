@@ -71,10 +71,22 @@ impl Repl {
         let mut rl = Editor::<()>::new();
         let mut code = "".to_string();
 
+        let mut additive_code = "".to_string();
+        let mut level_depth = 0;
+
         loop {
             self.line += 1;
 
-            let readline = rl.readline(format!("{} => ", self.line).as_str());
+            let mut adds = String::from("");
+            let mut is_line = String::from("=");
+
+            for _ in 0..level_depth {
+                adds.push('\x20');
+                adds.push('\x20');
+                is_line = "#".to_string();
+            }
+
+            let readline = rl.readline(format!("{} {}> {}", self.line, is_line, adds).as_str());
 
             match readline {
                 Ok(line) => {
@@ -83,13 +95,27 @@ impl Repl {
                         break;
                     }
                     rl.add_history_entry(line.as_str());
-                    if CONFIG.jit_enabled {
-                        code.push_str(&*line);
-                        code.push('\n');
 
-                        self.run_code(code.clone());
-                    } else {
-                        self.run_code(line);
+                    additive_code.push_str(line.as_str());
+
+                    if line.ends_with("{") {
+                        level_depth += 1;
+                    }
+
+                    if line.contains("}") && level_depth != 0 {
+                        level_depth -= 1;
+                    }
+
+                    if level_depth == 0 {
+                        if CONFIG.jit_enabled {
+                            code.push_str(&*additive_code);
+                            code.push('\n');
+
+                            self.run_code(code.clone());
+                        } else {
+
+                            self.run_code(additive_code.clone());
+                        }
                     }
                 }
                 Err(ReadlineError::Interrupted) => {
