@@ -45,6 +45,13 @@ impl Repl {
             );
         }
 
+        if CONFIG.enable_optimize {
+            println!(
+                "{}You are running Loop with compiler optimizations turned on. This may have errors",
+                "WARNING: ".red()
+            );
+        }
+
         self.run();
 
         None
