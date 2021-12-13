@@ -17,6 +17,14 @@ pub enum CompilerException {
     CanNotReadFile(String),
 }
 
+#[allow(dead_code)]
+#[derive(Debug, PartialEq)]
+pub enum CompilerResult {
+    Success,
+    Optimize,
+    Exception,
+}
+
 impl CompilerException {
     pub fn pretty_print(&self) -> String {
         match self {
