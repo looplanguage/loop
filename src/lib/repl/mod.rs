@@ -106,6 +106,22 @@ impl Repl {
                         level_depth -= 1;
                     }
 
+                    if line.contains('}') {
+                        adds = String::from("");
+                        for _ in 0..level_depth {
+                            adds.push('\x20');
+                            adds.push('\x20');
+                            is_line = "#".to_string();
+                        }
+
+                        let mut spaces = String::from("");
+                        for _ in 0..100 {
+                            spaces.push(' ');
+                        }
+
+                        println!("\u{8}\r{} {}> {}{}{}", self.line, is_line, adds, line, spaces);
+                    }
+
                     if level_depth == 0 {
                         if CONFIG.jit_enabled {
                             code.push_str(&*additive_code);
