@@ -19,10 +19,11 @@ pub fn compile_expression_conditional(
 
     let position_false = compiler.emit(OpCode::JumpIfFalse, vec![0]);
 
-    let err = compiler.compile_block(conditional.body);
+    result = compiler.compile_block(conditional.body);
 
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     compiler.remove_last(OpCode::Pop);

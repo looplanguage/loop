@@ -139,10 +139,14 @@ impl Compiler {
     pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
         for statement in program.statements {
             let err = self.compile_statement(statement);
-            if let Some(err) = err {
-                err.emit();
-
-                return Result::Err(err);
+            // if let Some(err) = err {
+            //     err.emit();
+            //
+            //     return Result::Err(err);
+            // }
+            match err {
+                CompilerResult::Exception(exception) => return Result::Err(exception),
+                _ => (),
             }
         }
 
@@ -247,23 +251,45 @@ impl Compiler {
         }
     }
 
-    fn compile_loop_block(&mut self, block: Block) -> Option<CompilerException> {
+    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
+        match stmt {
+            Statement::VariableDeclaration(var) => {
+                compile_statement_variable_declaration(self, var)
+            }
+            Statement::Expression(expr) => {
+                let result = self.compile_expression(*expr.expression);
+
+                self.emit(OpCode::Pop, vec![]);
+
+                result
+            }
+            Statement::Block(block) => self.compile_block(block),
+            Statement::VariableAssign(variable) => {
+                compile_statement_variable_assign(self, variable)
+            }
+            Statement::Return(_return) => compile_return_statement(self, _return),
+            Statement::Import(import) => compile_import_statement(self, import),
+            Statement::Export(export) => compile_export_statement(self, export),
+        }
+    }
+
+    fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
         for statement in block.statements {
             let err = self.compile_statement(statement);
-            if err.is_some() {
-                err.as_ref().unwrap().emit();
-                return err;
+            match &err {
+                CompilerResult::Exception(_exception) => return err,
+                _ => (),
             }
         }
 
         self.exit_variable_scope();
 
-        None
+        CompilerResult::Success
     }
 
-    fn compile_block(&mut self, block: Block) -> Option<CompilerException> {
+    fn compile_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
         if block.statements.is_empty() {
@@ -272,71 +298,15 @@ impl Compiler {
 
         for statement in block.statements {
             let err = self.compile_statement(statement);
-            if err.is_some() {
-                err.as_ref().unwrap().emit();
-                return err;
+            match &err {
+                CompilerResult::Exception(_exception) => return err,
+                _ => (),
             }
         }
 
         self.exit_variable_scope();
 
-        None
-    }
-
-    fn compile_statement(&mut self, stmt: Statement) -> Option<CompilerException> {
-        match stmt {
-            Statement::VariableDeclaration(var) => {
-                let result = compile_statement_variable_declaration(self, var);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Statement::Expression(expr) => {
-                let result = self.compile_expression(*expr.expression);
-
-                self.emit(OpCode::Pop, vec![]);
-
-                return match result {
-                    CompilerResult::Exception(exception) => Some(exception),
-                    _ => None,
-                };
-            }
-            Statement::Block(block) => self.compile_block(block),
-            Statement::VariableAssign(variable) => {
-                let result = compile_statement_variable_assign(self, variable);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Statement::Return(_return) => {
-                let result = compile_return_statement(self, _return);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Statement::Import(import) => {
-                let result = compile_import_statement(self, import);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-            Statement::Export(export) => {
-                let result = compile_export_statement(self, export);
-                let x = match result {
-                    CompilerResult::Exception(exception) => return Some(exception),
-                    _ => None,
-                };
-                x
-            }
-        }
+        CompilerResult::Success
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {

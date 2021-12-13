@@ -18,9 +18,11 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             .define(parameter.value.as_str(), 0);
     }
 
-    let err = compiler.compile_block(func.body.clone());
-    if err.is_some() {
-        return CompilerResult::Exception(err.unwrap());
+    let result = compiler.compile_block(func.body.clone());
+
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     compiler.remove_last(OpCode::Pop);
