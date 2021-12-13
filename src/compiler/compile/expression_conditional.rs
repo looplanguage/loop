@@ -1,7 +1,9 @@
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
+use crate::lib::config::CONFIG;
 use crate::parser::expression::conditional::Conditional;
+use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 
@@ -9,6 +11,17 @@ pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
 ) -> CompilerResult {
+
+    // User needs to enable optimization, for Loop to optimize code.
+    // Right now only does hardcoded "true" and "false" values
+    if CONFIG.enable_optimize {
+        let result = compile_expression_conditional_optimize(compiler, conditional.clone());
+        // "true" means that optimization is successful.
+        if result == true {
+            return CompilerResult::Optimize;
+        }
+    }
+
     let mut result = compiler.compile_expression(*conditional.condition);
 
     match &result {
@@ -71,4 +84,35 @@ pub fn compile_expression_conditional(
     compiler.change_operand(jump_to_end as u32, vec![len]);
 
     CompilerResult::Success
+}
+
+fn compile_expression_conditional_optimize (
+    compiler: &mut Compiler,
+    conditional: Conditional,
+) -> bool {
+    match conditional.condition.as_ref() {
+        Expression::Boolean(boolean) => {
+            // Does does compile if-expression
+            if boolean.value == false {
+                compiler.emit(OpCode::Constant, vec![0]);
+                return true;
+            }
+            // Only compiles the block of the if-expression
+            else {
+                let result = compiler.compile_block(conditional.body);
+
+                match &result {
+                    CompilerResult::Exception(_exception) => return false,
+                    _ => (),
+                }
+
+                compiler.remove_last(OpCode::Pop);
+
+                return true;
+            }
+        }
+        _ => (),
+    }
+
+    return false;
 }

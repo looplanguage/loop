@@ -3,10 +3,10 @@ mod tests {
     use crate::lib::exception::Exception;
     use crate::lib::jit::CodeGen;
     use crate::lib::object::Object;
+    use crate::lib::object::Object::Null;
     use crate::lib::object::Object::String;
     use crate::lib::object::Object::{Array, Integer};
     use crate::lib::object::Object::{Boolean, Float};
-    use crate::lib::object::Object::Null;
     use crate::lib::object::{array, null};
     use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;

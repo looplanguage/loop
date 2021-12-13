@@ -436,7 +436,7 @@ mod tests {
         }
 
         let mut comp = compiler::build_compiler(None);
-        let  _ = comp.compile(program);
+        let _ = comp.compile(program);
 
         let scope = comp.scope();
         let sc = scope.borrow();
