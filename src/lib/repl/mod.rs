@@ -119,7 +119,10 @@ impl Repl {
                             spaces.push(' ');
                         }
 
-                        println!("\u{8}\r{} {}> {}{}{}", self.line, is_line, adds, line, spaces);
+                        println!(
+                            "\u{8}\r{} {}> {}{}{}",
+                            self.line, is_line, adds, line, spaces
+                        );
                     }
 
                     if level_depth == 0 {
