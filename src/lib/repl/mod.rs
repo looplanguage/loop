@@ -113,7 +113,6 @@ impl Repl {
 
                             self.run_code(code.clone());
                         } else {
-
                             self.run_code(additive_code.clone());
                         }
                     }
