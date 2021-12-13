@@ -1,7 +1,6 @@
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;

@@ -1,6 +1,5 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::boolean;
 use crate::lib::object::Object;
 use crate::parser::expression::boolean::Boolean;

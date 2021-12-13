@@ -3,9 +3,7 @@ use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
-use std::borrow::Borrow;
 
 pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) -> CompilerResult {
     let length = hashmap.values.len();
@@ -18,7 +16,7 @@ pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) ->
         };
 
         match &result {
-            CompilerResult::Exception(exception) => return result,
+            CompilerResult::Exception(_exception) => return result,
             _ => (),
         }
 

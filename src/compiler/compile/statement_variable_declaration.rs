@@ -1,6 +1,5 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
 
 pub fn compile_statement_variable_declaration(

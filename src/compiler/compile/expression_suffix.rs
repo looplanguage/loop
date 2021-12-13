@@ -29,12 +29,12 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
             match right {
                 Expression::Integer(integer) => {
                     if integer.value == 0 {
-                        return CompilerResult::Exception((CompilerException::DivideByZero));
+                        return CompilerResult::Exception(CompilerException::DivideByZero);
                     }
                 }
                 Expression::Float(float) => {
                     if float.value == 0.0 {
-                        return CompilerResult::Exception((CompilerException::DivideByZero));
+                        return CompilerResult::Exception(CompilerException::DivideByZero);
                     }
                 }
                 _ => {}

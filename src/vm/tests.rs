@@ -1,13 +1,12 @@
 #[cfg(test)]
 mod tests {
-    use crate::lib::config::CONFIG;
     use crate::lib::exception::Exception;
     use crate::lib::jit::CodeGen;
     use crate::lib::object::Object;
     use crate::lib::object::Object::String;
     use crate::lib::object::Object::{Array, Integer};
     use crate::lib::object::Object::{Boolean, Float};
-    use crate::lib::object::Object::{Hashmap, Null};
+    use crate::lib::object::Object::Null;
     use crate::lib::object::{array, null};
     use crate::lib::object::{boolean, float, integer, string};
     use crate::vm::build_vm;
@@ -15,12 +14,8 @@ mod tests {
     use inkwell::context::Context;
     use inkwell::passes::PassManager;
     use inkwell::OptimizationLevel;
-    use serde::de::Unexpected::Bool;
-    use std::borrow::Borrow;
     use std::cell::RefCell;
-    use std::collections::HashMap;
     use std::env;
-    use std::ops::Deref;
     use std::rc::Rc;
 
     #[test]
@@ -554,6 +549,8 @@ mod tests {
             Integer(integer::Integer { value: 2 }),
         )
     }
+
+    #[test]
     fn loop_while() {
         test_vm(
             "var x = 0; for (x < 10) { x = x + 1 }; x",
@@ -707,7 +704,7 @@ mod tests {
 
         fpm.initialize();
 
-        let mut codegen = CodeGen {
+        let codegen = CodeGen {
             context: &context,
             module: &module,
             builder: context.create_builder(),

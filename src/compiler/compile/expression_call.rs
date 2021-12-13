@@ -1,6 +1,5 @@
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::function::Call;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
