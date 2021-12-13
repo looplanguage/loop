@@ -15,14 +15,7 @@ pub enum CompilerException {
     UnknownExtensionMethod(String),
     CanOnlyAssignToVariableArray,
     CanNotReadFile(String),
-}
-
-#[allow(dead_code)]
-#[derive(Debug, PartialEq)]
-pub enum CompilerResult {
-    Success,
-    Optimize,
-    Exception,
+    Unknown,
 }
 
 impl CompilerException {
@@ -48,6 +41,9 @@ impl CompilerException {
             }
             CompilerException::CanNotReadFile(error) => {
                 format!("unable to read file. got=\"{}\"", error)
+            }
+            CompilerException::Unknown => {
+                format!("got an error, unknown what went wrong")
             }
         }
     }

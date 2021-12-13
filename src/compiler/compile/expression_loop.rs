@@ -1,19 +1,19 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::{array, integer, Expression};
 
-pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<CompilerException> {
+pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerResult {
     compiler.enter_variable_scope();
 
     let start = compiler.scope().instructions.len();
     let err = compiler.compile_expression(*lp.condition);
 
     if err.is_some() {
-        return err;
+        return CompilerResult::Exception(err.unwrap());
     }
 
     let done = compiler.emit(OpCode::JumpIfFalse, vec![99999]); // To jump later
@@ -21,7 +21,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
     let err = compiler.compile_block(lp.body);
 
     if err.is_some() {
-        return err;
+        return CompilerResult::Exception(err.unwrap());
     }
 
     compiler.emit(OpCode::Jump, vec![start as u32]); // Jump back to start
@@ -35,13 +35,13 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
 
     compiler.exit_variable_scope();
 
-    None
+    CompilerResult::Success
 }
 
 pub fn compile_loop_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopIterator,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     compiler.enter_variable_scope();
 
     // Define the identifier variable, with the starting integer
@@ -91,13 +91,13 @@ pub fn compile_loop_iterator_expression(
 
     compiler.exit_variable_scope();
 
-    None
+    CompilerResult::Success
 }
 
 pub fn compile_loop_array_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopArrayIterator,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     compiler.enter_variable_scope();
 
     // Put the array on the stack and assign it to a cache variable
@@ -161,5 +161,5 @@ pub fn compile_loop_array_iterator_expression(
     compiler.change_operand(end as u32, vec![compiler.scope().instructions.len() as u32]);
     compiler.emit(OpCode::Constant, vec![0]);
 
-    None
+    CompilerResult::Success
 }

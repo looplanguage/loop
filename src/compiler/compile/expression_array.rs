@@ -1,9 +1,9 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::array::Array;
 
-pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Option<CompilerException> {
+pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> CompilerResult {
     let array_length = arr.values.len() as u32;
 
     for value in arr.values {
@@ -12,5 +12,5 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Option<C
 
     compiler.emit(OpCode::Array, vec![array_length]);
 
-    None
+    CompilerResult::Success
 }

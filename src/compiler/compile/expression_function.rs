@@ -1,5 +1,5 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::config::CONFIG;
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::function;
@@ -9,7 +9,7 @@ use crate::parser::expression::function::Function;
 pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: Function,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     let num_params = func.parameters.len() as u32;
 
     compiler.enter_scope();
@@ -23,21 +23,21 @@ pub fn compile_expression_function(
 
     let err = compiler.compile_block(func.body.clone());
     if err.is_some() {
-        return err;
+        return CompilerResult::Exception(err.unwrap());
     }
 
     compiler.remove_last(OpCode::Pop);
 
     let num_locals = compiler.symbol_table.borrow().num_definitions();
     if num_locals > 0xff {
-        return Some(CompilerException::TooManyLocals);
+        return CompilerResult::Exception(CompilerException::TooManyLocals);
     }
 
     let (instructions, free_symbols) = compiler.exit_scope();
 
     let num_frees = free_symbols.len() as u32;
     if num_frees > 0xff {
-        return Some(CompilerException::TooManyFrees);
+        return CompilerResult::Exception(CompilerException::TooManyFrees);
     }
 
     for free_symbol in free_symbols {
@@ -61,5 +61,5 @@ pub fn compile_expression_function(
 
     compiler.emit(OpCode::Function, vec![const_index, num_frees]);
 
-    None
+    CompilerResult::Success
 }

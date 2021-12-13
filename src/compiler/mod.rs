@@ -44,9 +44,17 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
-use std::borrow::BorrowMut;
+use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::rc::Rc;
+
+#[allow(dead_code)]
+#[derive(Debug, PartialEq)]
+pub enum CompilerResult {
+    Success,
+    Optimize,
+    Exception(CompilerException),
+}
 
 pub struct Bytecode {
     pub instructions: Instructions,
@@ -217,25 +225,114 @@ impl Compiler {
 
     fn compile_expression(&mut self, expr: Expression) -> Option<CompilerException> {
         let err = match expr {
-            Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
-            Expression::Integer(int) => compile_expression_integer(self, int),
-            Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
-            Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
-            Expression::Function(func) => compile_expression_function(self, func),
-            Expression::Conditional(conditional) => {
-                compile_expression_conditional(self, *conditional)
+            Expression::Identifier(identifier) => {
+                let result = compile_expression_identifier(self, identifier);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
             }
-            Expression::Null(_) => compile_expression_null(self),
-            Expression::Call(call) => compile_expression_call(self, call),
-            Expression::Float(float) => compile_expression_float(self, float),
-            Expression::String(string) => compile_expression_string(self, string),
-            Expression::Index(index) => compile_expression_index(self, *index),
-            Expression::Array(array) => compile_expression_array(self, *array),
-            Expression::AssignIndex(assign) => compile_expression_assign_index(self, *assign),
-            Expression::Loop(lp) => compile_loop_expression(self, lp),
-            Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
-            Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
-            Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
+            Expression::Integer(int) => {
+                let _ = compile_expression_integer(self, int);
+                None
+            }
+            Expression::Suffix(suffix) => {
+                let result = compile_expression_suffix(self, *suffix);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            }
+            Expression::Boolean(boolean) => {
+                let _ = compile_expression_boolean(self, boolean);
+                None
+            }
+            Expression::Function(func) => {
+                let result = compile_expression_function(self, func);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            },
+            Expression::Conditional(conditional) => {
+                let result = compile_expression_conditional(self, *conditional);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            }
+            Expression::Null(_) => {
+                let _ = compile_expression_null(self);
+                None
+            }
+            Expression::Call(call) => {
+                let _ = compile_expression_call(self, call);
+                None
+            }
+            Expression::Float(float) => {
+                compile_expression_float(self, float);
+                None
+            }
+            Expression::String(string) => {
+                let _ = compile_expression_string(self, string);
+                None
+            }
+            Expression::Index(index) => {
+                let result = compile_expression_index(self, *index);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            }
+            Expression::Array(array) => {
+                let _ = compile_expression_array(self, *array);
+                None
+            }
+            Expression::AssignIndex(assign) => {
+                let result = compile_expression_assign_index(self, *assign);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            }
+            Expression::Loop(lp) => {
+                let result = compile_loop_expression(self, lp);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            },
+            Expression::LoopIterator(lp) => {
+                let result = compile_loop_iterator_expression(self, lp);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            },
+            Expression::LoopArrayIterator(lp) => {
+                let result = compile_loop_array_iterator_expression(self, lp);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            },
+            Expression::Hashmap(hash) => {
+                let result = compile_expression_hashmap(self, hash);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            }
         };
 
         if err.is_some() {
@@ -284,7 +381,12 @@ impl Compiler {
     fn compile_statement(&mut self, stmt: Statement) -> Option<CompilerException> {
         match stmt {
             Statement::VariableDeclaration(var) => {
-                compile_statement_variable_declaration(self, var)
+                let result = compile_statement_variable_declaration(self, var);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
             }
             Statement::Expression(expr) => {
                 let err = self.compile_expression(*expr.expression);
@@ -295,11 +397,37 @@ impl Compiler {
             }
             Statement::Block(block) => self.compile_block(block),
             Statement::VariableAssign(variable) => {
-                compile_statement_variable_assign(self, variable)
+                let result = compile_statement_variable_assign(self, variable);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
             }
-            Statement::Return(_return) => compile_return_statement(self, _return),
-            Statement::Import(import) => compile_import_statement(self, import),
-            Statement::Export(export) => compile_export_statement(self, export),
+            Statement::Return(_return) => {
+                let result = compile_return_statement(self, _return);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            }
+            Statement::Import(import) => {
+                let result = compile_import_statement(self, import);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            },
+            Statement::Export(export) => {
+                let result = compile_export_statement(self, export);
+                let x = match result {
+                    CompilerResult::Exception(exception) => return Some(exception),
+                    _ => None,
+                };
+                x
+            },
         }
     }
 

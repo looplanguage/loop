@@ -1,15 +1,15 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
 
 pub fn compile_export_statement(
     _compiler: &mut Compiler,
     export: Export,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     if _compiler.export_name.is_empty() {
         // TODO: Return error
-        return None;
+        return CompilerResult::Exception(CompilerException::Unknown);
     }
 
     let var = _compiler.variable_scope.borrow_mut().define(
@@ -28,5 +28,5 @@ pub fn compile_export_statement(
 
     _compiler.emit(OpCode::SetVar, vec![var.index]);
 
-    None
+    CompilerResult::Success
 }

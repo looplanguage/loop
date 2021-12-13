@@ -1,6 +1,6 @@
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
@@ -9,11 +9,11 @@ use crate::parser::statement::Statement;
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     let err = compiler.compile_expression(*conditional.condition);
 
     if err.is_some() {
-        return err;
+        return CompilerResult::Exception(err.unwrap());
     }
 
     let position_false = compiler.emit(OpCode::JumpIfFalse, vec![0]);
@@ -21,7 +21,7 @@ pub fn compile_expression_conditional(
     let err = compiler.compile_block(conditional.body);
 
     if err.is_some() {
-        return err;
+        return CompilerResult::Exception(err.unwrap());
     }
 
     compiler.remove_last(OpCode::Pop);
@@ -69,5 +69,5 @@ pub fn compile_expression_conditional(
     let len = compiler.scope().instructions.len() as u32;
     compiler.change_operand(jump_to_end as u32, vec![len]);
 
-    None
+    CompilerResult::Success
 }
