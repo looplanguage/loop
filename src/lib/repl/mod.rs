@@ -77,16 +77,20 @@ impl Repl {
         loop {
             self.line += 1;
 
-            let mut adds = String::from("");
             let mut is_line = String::from("=");
 
+            /* TODO: Implement spacing
             for _ in 0..level_depth {
                 adds.push('\x20');
                 adds.push('\x20');
                 is_line = "#".to_string();
+            }*/
+
+            if level_depth != 0 {
+                is_line = level_depth.to_string();
             }
 
-            let readline = rl.readline(format!("{} {}> {}", self.line, is_line, adds).as_str());
+            let readline = rl.readline(format!("{} {}> ", self.line, is_line).as_str());
 
             match readline {
                 Ok(line) => {
@@ -106,6 +110,7 @@ impl Repl {
                         level_depth -= 1;
                     }
 
+                    /* TODO: Implement spacing
                     if line.contains('}') {
                         adds = String::from("");
                         for _ in 0..level_depth {
@@ -120,7 +125,7 @@ impl Repl {
                         }
 
                         println!("\u{8}\r{} {}> {}{}{}", self.line, is_line, adds, line, spaces);
-                    }
+                    }*/
 
                     if level_depth == 0 {
                         if CONFIG.jit_enabled {
