@@ -31,8 +31,6 @@ fn main() {
         LoadType::Normal(cfg) => cfg,
     };
 
-    let flags = get_flags();
-
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 2 && args[1] == "version" {
@@ -40,6 +38,8 @@ fn main() {
 
         return;
     }
+
+    let flags = get_flags();
 
     if let Some(file) = flags.file {
         run_file(file);
