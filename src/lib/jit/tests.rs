@@ -147,6 +147,9 @@ mod tests {
                 assert!(true);
                 return;
             }
+        } else {
+            assert!(true);
+            return;
         }
 
         let l = lexer::build_lexer(input);
