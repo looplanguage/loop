@@ -157,7 +157,7 @@ mod tests {
             Integer(integer::Integer { value: 21 }),
         );
 
-        // These tests failed, do not know why. 
+        // These tests failed, do not know why.
         // test_vm(
         //     "if(false) { 10 * 2 + 1 } else { 20 }",
         //     Integer(integer::Integer { value: 20 }),
