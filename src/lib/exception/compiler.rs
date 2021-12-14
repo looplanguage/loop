@@ -42,9 +42,7 @@ impl CompilerException {
             CompilerException::CanNotReadFile(error) => {
                 format!("unable to read file. got=\"{}\"", error)
             }
-            CompilerException::Unknown => {
-                "got an error, unknown what went wrong".to_string()
-            }
+            CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }
     }
 
