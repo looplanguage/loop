@@ -15,6 +15,7 @@ pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) ->
             HashableExpression::Boolean(boolean) => compile_expression_boolean(_compiler, boolean),
         };
 
+        #[allow(clippy::single_match)]
         match &result {
             CompilerResult::Exception(_exception) => return result,
             _ => (),

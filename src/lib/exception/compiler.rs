@@ -43,7 +43,7 @@ impl CompilerException {
                 format!("unable to read file. got=\"{}\"", error)
             }
             CompilerException::Unknown => {
-                format!("got an error, unknown what went wrong")
+                "got an error, unknown what went wrong".to_string()
             }
         }
     }

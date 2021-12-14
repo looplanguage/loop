@@ -17,8 +17,9 @@ pub fn compile_statement_variable_declaration(
 
     compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
-    return match &result {
+    #[allow(clippy::single_match)]
+    match &result {
         CompilerResult::Exception(_exception) => result,
         _ => CompilerResult::Success,
-    };
+    }
 }

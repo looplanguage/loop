@@ -12,6 +12,7 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
 
     let result = _compiler.compile_expression(*rt.expression);
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),

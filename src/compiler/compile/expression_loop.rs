@@ -11,6 +11,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     let start = compiler.scope().instructions.len();
     let mut result = compiler.compile_expression(*lp.condition);
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),
@@ -20,6 +21,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
 
     result = compiler.compile_block(lp.body);
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),

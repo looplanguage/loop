@@ -5,6 +5,7 @@ use crate::parser::expression::function::Call;
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     let mut result = compiler.compile_expression(*call.identifier.clone());
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),
@@ -12,6 +13,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
     for parameter in call.parameters.clone() {
         result = compiler.compile_expression(parameter);
+        #[allow(clippy::single_match)]
         match &result {
             CompilerResult::Exception(_exception) => return result,
             _ => (),

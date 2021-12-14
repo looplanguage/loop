@@ -144,6 +144,8 @@ impl Compiler {
             //
             //     return Result::Err(err);
             // }
+
+            #[allow(clippy::single_match)]
             match err {
                 CompilerResult::Exception(exception) => return Result::Err(exception),
                 _ => (),
@@ -278,6 +280,8 @@ impl Compiler {
 
         for statement in block.statements {
             let err = self.compile_statement(statement);
+
+            #[allow(clippy::single_match)]
             match &err {
                 CompilerResult::Exception(_exception) => return err,
                 _ => (),
@@ -298,6 +302,8 @@ impl Compiler {
 
         for statement in block.statements {
             let err = self.compile_statement(statement);
+
+            #[allow(clippy::single_match)]
             match &err {
                 CompilerResult::Exception(_exception) => return err,
                 _ => (),

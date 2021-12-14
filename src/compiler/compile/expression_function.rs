@@ -20,6 +20,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
 
     let result = compiler.compile_block(func.body.clone());
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),

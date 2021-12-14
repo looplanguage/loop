@@ -10,6 +10,7 @@ use crate::parser::expression::Expression;
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
 
+    #[allow(clippy::single_match)]
     match _index.index.clone() {
         Expression::Call(call) => {
             compile_expression_extension_method(_compiler, call, _index.left, true)
@@ -65,6 +66,7 @@ pub fn compile_expression_extension_method(
     for parameter in call.parameters.clone() {
         let result = compiler.compile_expression(parameter);
 
+        #[allow(clippy::single_match)]
         match &result {
             CompilerResult::Exception(_exception) => return result,
             _ => (),

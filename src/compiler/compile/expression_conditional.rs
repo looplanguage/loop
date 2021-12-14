@@ -11,19 +11,19 @@ pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
 ) -> CompilerResult {
-
     // User needs to enable optimization, for Loop to optimize code.
     // Right now only does hardcoded "true" and "false" values
     if CONFIG.enable_optimize {
         let result = compile_expression_conditional_optimize(compiler, conditional.clone());
         // "true" means that optimization is successful.
-        if result == true {
+        if result {
             return CompilerResult::Optimize;
         }
     }
 
     let mut result = compiler.compile_expression(*conditional.condition);
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),
@@ -33,6 +33,7 @@ pub fn compile_expression_conditional(
 
     result = compiler.compile_block(conditional.body);
 
+    #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
         _ => (),
@@ -86,14 +87,15 @@ pub fn compile_expression_conditional(
     CompilerResult::Success
 }
 
-fn compile_expression_conditional_optimize (
+fn compile_expression_conditional_optimize(
     compiler: &mut Compiler,
     conditional: Conditional,
 ) -> bool {
+    #[allow(clippy::single_match)]
     match conditional.condition.as_ref() {
         Expression::Boolean(boolean) => {
             // Does does compile if-expression
-            if boolean.value == false {
+            if !boolean.value {
                 compiler.emit(OpCode::Constant, vec![0]);
                 return true;
             }
@@ -101,18 +103,18 @@ fn compile_expression_conditional_optimize (
             else {
                 let result = compiler.compile_block(conditional.body);
 
+                #[allow(clippy::single_match)]
                 match &result {
                     CompilerResult::Exception(_exception) => return false,
                     _ => (),
                 }
 
                 compiler.remove_last(OpCode::Pop);
-
-                return true;
             }
+            return true;
         }
         _ => (),
     }
 
-    return false;
+    false
 }
