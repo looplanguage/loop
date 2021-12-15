@@ -40,6 +40,7 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) last_popped: Option<StackItem<'ctx>>,
+    pub(crate) jumps: Vec<(u32, u32)>
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -617,18 +618,40 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let _done =
                         self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
 
-                    //self.builder.build_unconditional_branch(cont_b);
+                    // Check if this was a loop
+                    let mut jumped_back = false;
+
+                    for jump in &self.jumps {
+                        if jump.0 == ip {
+                            jumped_back = true;
+
+                            self.builder.position_at_end(then_b);
+                            self.builder.build_conditional_branch(cond, then_b, else_b);
+
+                            break;
+                        }
+                    }
 
                     // else
                     self.builder.position_at_end(else_b);
                     self.builder.build_unconditional_branch(cont_b);
+
 
                     ip = jump_to;
                     //println!("Done: {}", done);
 
                     self.builder.position_at_end(cont_b);
                 }
-                OpCode::Jump => ip += 4,
+                OpCode::Jump => {
+                    let jump_to = read_uint32(&code[ip as usize..]);
+
+                    ip += 4;
+
+                    // Means we have to jump back, this **only** happens in loops
+                    if jump_to < ip && to != code.len() as u32 {
+                        self.jumps.push((from, jump_to));
+                    }
+                },
                 OpCode::Pop => {
                     self.pop(temp_stack.as_mut());
                 }
