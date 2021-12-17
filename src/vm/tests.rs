@@ -174,7 +174,7 @@ mod tests {
             "if(false) { 10 * 2 + 1 } else if(false) { 20 } else if(false) { 100 } else { 300 }",
             Integer(integer::Integer { value: 300 }),
         );
-        
+
         // ToDo: This is supposed to work, tested in manually
         // test_vm(
         //     "if(false) { 10 * 2 + 1 } else if(true) { 20 } else if(false) { 100 } else { 300 }",
