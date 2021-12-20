@@ -96,7 +96,20 @@ fn compile_expression_conditional_optimize(
         Expression::Boolean(boolean) => {
             // Does does compile if-expression
             if !boolean.value {
-                compiler.emit(OpCode::Constant, vec![0]);
+                compiler.remove_last(OpCode::Pop);
+                
+                if let Some(node) = conditional.else_condition.as_ref() {
+                    if let Node::Expression(exp) = node {
+                        compiler.compile_expression(exp.clone());
+                    }
+                    if let Node::Statement(stmt) = node {
+                        if let Statement::Block(block) = stmt.clone() {
+                            compiler.compile_block(block);
+
+                            compiler.remove_last(OpCode::Pop);
+                        }
+                    }
+                }
                 return true;
             }
             // Only compiles the block of the if-expression
