@@ -97,7 +97,7 @@ fn compile_expression_conditional_optimize(
             // Does does compile if-expression
             if !boolean.value {
                 compiler.remove_last(OpCode::Pop);
-                
+
                 if let Some(node) = conditional.else_condition.as_ref() {
                     if let Node::Expression(exp) = node {
                         compiler.compile_expression(exp.clone());
