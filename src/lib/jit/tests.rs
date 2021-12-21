@@ -204,6 +204,7 @@ mod tests {
             execution_engine,
             fpm: &fpm,
             last_popped: None,
+            jumps: Vec::new()
         };
 
         let err = vm.run(Some(codegen));
