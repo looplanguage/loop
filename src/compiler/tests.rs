@@ -152,16 +152,18 @@ mod tests {
 
         let expected = "[0] OpConstant 1
 [5] OpSetVar 0
-[10] OpConstant 3
+[10] OpConstant 2
 [15] OpGetVar 0
-[20] OpAdd
-[21] OpSetVar 0
-[26] OpGetVar 0
-[31] OpConstant 2
-[36] OpGreaterThan
-[37] OpJumpIfFalse 10
+[20] OpGreaterThan
+[21] OpJumpIfFalse 58
+[26] OpConstant 3
+[31] OpGetVar 0
+[36] OpAdd
+[37] OpSetVar 0
 [42] OpConstant 0
-[47] OpPop";
+[47] OpJump 10
+[52] OpConstant 0
+[57] OpPop";
 
         compiler_test(input, expected);
     }
