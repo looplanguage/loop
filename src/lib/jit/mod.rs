@@ -1,7 +1,7 @@
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{read_uint32, read_uint8};
+use crate::compiler::instructions::{print_instructions, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::lib::config::CONFIG;
 use crate::lib::object::function::{CompiledFunction, Function};
@@ -15,7 +15,7 @@ use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::passes::PassManager;
 use inkwell::types::BasicMetadataTypeEnum;
-use inkwell::values::{AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue};
+use inkwell::values::{AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue, InstructionValue};
 use inkwell::{AddressSpace, FloatPredicate};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -73,6 +73,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             }
 
             if CONFIG.debug_mode {
+                print_instructions(func.instructions);
                 println!("{}", self.module.print_to_string().to_string());
             }
 
@@ -113,6 +114,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             function.verify(true);
 
             if CONFIG.debug_mode {
+                print_instructions(func.instructions);
                 println!("{}", self.module.print_to_string().to_string());
             }
 
@@ -609,7 +611,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     let else_b = self.context.append_basic_block(function, "else");
                     let cont_b = self.context.append_basic_block(function, "ifcont");
 
-                    self.builder.build_conditional_branch(cond, then_b, else_b);
+                    let conditional_branch = self.builder.build_conditional_branch(cond, then_b, else_b);
 
                     // then block
                     self.builder.position_at_end(then_b);
@@ -625,8 +627,56 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         if jump.0 == ip {
                             jumped_back = true;
 
-                            self.builder.position_at_end(then_b);
-                            self.builder.build_conditional_branch(cond, then_b, else_b);
+                            let loop_block = self.context.append_basic_block(function, "loop");
+
+                            self.builder.position_at(function.get_first_basic_block().unwrap(), &conditional_branch);
+                            self.builder.build_unconditional_branch(loop_block);
+                            conditional_branch.erase_from_basic_block();
+
+                            // Add the comparison to this block
+                            self.builder.position_at_end(loop_block);
+
+                            // Get all instructions that the "condition" uses and move them here
+                            let mut at_instruction = cond.as_instruction();
+                            if let Some(mut at_instruction) = at_instruction {
+                                while let Some(ins) = at_instruction.get_previous_instruction() {
+                                    let mut at_used = ins.get_first_use();
+                                    while let Some(u) = at_used {
+                                        if u.get_user() == cond.as_any_value_enum() {
+                                            // Remove from its current block and move into the loop
+                                            ins.remove_from_basic_block();
+                                            self.builder.position_at_end(loop_block);
+                                            self.builder.insert_instruction(&ins, Some("copied_from_entry"));
+
+                                            break
+                                        }
+
+                                        at_used = at_used.unwrap().get_next_use();
+                                    }
+
+                                    if let Some(new_ins) = at_instruction.get_previous_instruction() {
+                                        at_instruction = new_ins;
+                                        continue
+                                    }
+
+                                    break
+                                }
+                            }
+
+                            // Remove the comparison from the other block
+                            cond.as_instruction().unwrap().remove_from_basic_block();
+
+                            //self.builder.position_before(&then_b.get_first_instruction().unwrap());
+                            self.builder.insert_instruction(&cond.as_instruction().unwrap(), Some("loop_condition"));
+
+                            if loop_block.get_terminator().is_none() {
+                                self.builder.build_conditional_branch(cond, then_b, else_b);
+                            }
+
+                            if then_b.get_terminator().is_none() {
+                                self.builder.position_at_end(then_b);
+                                self.builder.build_unconditional_branch(loop_block);
+                            }
 
                             break;
                         }
