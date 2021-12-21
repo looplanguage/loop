@@ -60,16 +60,23 @@ pub fn compile_loop_iterator_expression(
     // The constant to where we are iterating
     // We do minus 1 as we use the GreaterThan opcode
     let till = compiler.add_constant(Object::Integer(Integer {
-        value: lp.till as i64 - 1,
+        value: lp.till as i64,
     }));
 
     // A one constant (to add to the variable)
     let one = compiler.add_constant(Object::Integer(Integer { value: 1 }));
 
+    // Set the initial value
+
     compiler.emit(OpCode::Constant, vec![from]);
     compiler.emit(OpCode::SetVar, vec![var.index]);
 
+    // Check if we should skip over
     let start = compiler.scope().instructions.len();
+    compiler.emit(OpCode::Constant, vec![till]); // 2
+    compiler.emit(OpCode::GetVar, vec![var.index]); // 1
+    compiler.emit(OpCode::GreaterThan, vec![]); // 1
+    let start_jump = compiler.emit(OpCode::JumpIfFalse, vec![start as u32]); // 0
 
     // Compile the body that is executed
     compiler.compile_loop_block(lp.body);
@@ -80,14 +87,17 @@ pub fn compile_loop_iterator_expression(
     compiler.emit(OpCode::Add, vec![]);
     compiler.emit(OpCode::SetVar, vec![var.index]); // 0
 
-    // Check if we should go back to start or not
-    compiler.emit(OpCode::GetVar, vec![var.index]); // 1
-    compiler.emit(OpCode::Constant, vec![till]); // 2
-    compiler.emit(OpCode::GreaterThan, vec![]); // 1
-    compiler.emit(OpCode::JumpIfFalse, vec![start as u32]); // 0
-
     // Emit a null if we didn't break with anything
     compiler.emit(OpCode::Constant, vec![0]);
+
+    // Jump to start
+    compiler.emit(OpCode::Jump, vec![start as u32]);
+
+    // Change JumpIfFalse to the end
+    compiler.emit(OpCode::Constant, vec![0]);
+    compiler.change_operand(start_jump as u32, vec![compiler.scope().instructions.len() as u32 + 1]);
+
+
 
     compiler.exit_variable_scope();
 

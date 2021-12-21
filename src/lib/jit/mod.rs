@@ -464,6 +464,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             ),
                         );
                     } else {
+                        println!("VARIABLE ID: {}", idx);
                         let variable = vm.variables.get(&idx).unwrap().clone();
 
                         match &*variable.as_ref().borrow() {
@@ -639,7 +640,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             // Get all instructions that the "condition" uses and move them here
                             let mut at_instruction = cond.as_instruction();
                             if let Some(mut at_instruction) = at_instruction {
-                                while let Some(ins) = at_instruction.get_previous_instruction() {
+                                'outer: while let Some(ins) = at_instruction.get_previous_instruction() {
                                     let mut at_used = ins.get_first_use();
                                     while let Some(u) = at_used {
                                         if u.get_user() == cond.as_any_value_enum() {
@@ -659,7 +660,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                                         continue
                                     }
 
-                                    break
+                                    break 'outer
                                 }
                             }
 
