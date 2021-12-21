@@ -147,6 +147,11 @@ mod tests {
         test_jit("var i = 0; for(i < 10) { i = i + 1 }; i", Object::Integer(Integer { value: 10 }));
     }
 
+    #[test]
+    fn loop_iterator() {
+        test_jit("var x = 0; for (var i = 0 to 10) { x = x + 1  }; x", Object::Integer(Integer { value: 10 }))
+    }
+
     fn test_jit(input: &str, expected: Object) {
         if let Ok(e) = env::var("TEST_JIT") {
             if e == "0" {
