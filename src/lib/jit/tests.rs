@@ -141,6 +141,12 @@ mod tests {
         );
     }
 
+    #[test]
+    fn loop_while() {
+        test_jit("var test = fn() { var i = 0; for(i < 10) { i = i + 1 } return i }; test()", Object::Integer(Integer { value: 10 }));
+        test_jit("var i = 0; for(i < 10) { i = i + 1 }; i", Object::Integer(Integer { value: 10 }));
+    }
+
     fn test_jit(input: &str, expected: Object) {
         if let Ok(e) = env::var("TEST_JIT") {
             if e == "0" {
