@@ -232,6 +232,8 @@ impl Lexer {
     }
 
     fn get_block_comment(&mut self) -> String {
+        //let begin_index = self.current - 1;
+
         self.next_character();
 
         let mut text: String = "".parse().unwrap();

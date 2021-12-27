@@ -20,7 +20,7 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    let mut result = compiler.compile_expression(*conditional.condition);
+    let result = compiler.compile_expression(*conditional.condition);
 
     #[allow(clippy::single_match)]
     match &result {
@@ -30,7 +30,7 @@ pub fn compile_expression_conditional(
 
     let position_false = compiler.emit(OpCode::JumpIfFalse, vec![0]);
 
-    result = compiler.compile_block(conditional.body);
+    let result = compiler.compile_block(conditional.body);
 
     #[allow(clippy::single_match)]
     match &result {
