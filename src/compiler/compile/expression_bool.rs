@@ -1,14 +1,10 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
-use crate::lib::exception::compiler::CompilerException;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::object::boolean;
 use crate::lib::object::Object;
 use crate::parser::expression::boolean::Boolean;
 
-pub fn compile_expression_boolean(
-    compiler: &mut Compiler,
-    bl: Boolean,
-) -> Option<CompilerException> {
+pub fn compile_expression_boolean(compiler: &mut Compiler, bl: Boolean) -> CompilerResult {
     let value = match bl.value {
         true => Object::Boolean(boolean::Boolean { value: true }),
         false => Object::Boolean(boolean::Boolean { value: false }),
@@ -21,5 +17,5 @@ pub fn compile_expression_boolean(
         compiler.emit(OpCode::Constant, vec![ct]);
     }
 
-    None
+    CompilerResult::Success
 }

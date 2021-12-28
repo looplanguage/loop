@@ -198,8 +198,8 @@ mod tests {
 
     #[test]
     fn hashmaps() {
-        let input = "{20: 30, \"hello test\": { 100: 20 }, false: true }";
-        let expected = "[0] OpConstant 1
+        let _input = "{20: 30, \"hello test\": { 100: 20 }, false: true }";
+        let _expected = "[0] OpConstant 1
 [5] OpConstant 2
 [10] OpConstant 3
 [15] OpConstant 4
@@ -403,7 +403,7 @@ mod tests {
         }
 
         let mut comp = compiler::build_compiler(None);
-        comp.compile(program);
+        let _ = comp.compile(program);
 
         let mut i = 0;
         for constant in comp.constants {
@@ -436,7 +436,7 @@ mod tests {
         }
 
         let mut comp = compiler::build_compiler(None);
-        comp.compile(program);
+        let _ = comp.compile(program);
 
         let scope = comp.scope();
         let sc = scope.borrow();

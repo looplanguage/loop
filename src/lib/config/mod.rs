@@ -32,6 +32,9 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         enable_benchmark: cfg
             .enable_benchmark
             .unwrap_or_else(|| flags.contains(FlagTypes::Benchmark)),
+        enable_optimize: cfg
+            .enable_optimize
+            .unwrap_or_else(|| flags.contains(FlagTypes::Optimize)),
     };
 
     if cfg.jit_enabled.is_some() {
@@ -44,6 +47,10 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 
     if cfg.enable_benchmark.is_some() {
         config.enable_benchmark = !flags.contains(FlagTypes::Benchmark);
+    }
+
+    if cfg.enable_optimize.is_some() {
+        config.enable_optimize = !flags.contains(FlagTypes::Optimize);
     }
 
     #[cfg(test)]
@@ -63,6 +70,7 @@ pub struct Config {
     pub jit_enabled: bool,
     pub debug_mode: bool,
     pub enable_benchmark: bool,
+    pub enable_optimize: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -71,6 +79,7 @@ pub struct ConfigInternal {
     pub jit_enabled: Option<bool>,
     pub debug_mode: Option<bool>,
     pub enable_benchmark: Option<bool>,
+    pub enable_optimize: Option<bool>,
 }
 
 impl Default for ConfigInternal {
@@ -80,6 +89,7 @@ impl Default for ConfigInternal {
             jit_enabled: Some(false),
             debug_mode: Some(false),
             enable_benchmark: Some(false),
+            enable_optimize: Some(false),
         }
     }
 }

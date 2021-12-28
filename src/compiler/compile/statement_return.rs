@@ -1,22 +1,24 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
 
-pub fn compile_return_statement(
-    _compiler: &mut Compiler,
-    rt: ReturnStatement,
-) -> Option<CompilerException> {
+pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -> CompilerResult {
     if _compiler.scope_index == 0 {
-        return Some(CompilerException::ReturnStatementNotAllowedOutsideFunction);
+        return CompilerResult::Exception(
+            CompilerException::ReturnStatementNotAllowedOutsideFunction,
+        );
     }
 
-    let err = _compiler.compile_expression(*rt.expression);
-    if err.is_some() {
-        return err;
+    let result = _compiler.compile_expression(*rt.expression);
+
+    #[allow(clippy::single_match)]
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     _compiler.emit(OpCode::Return, vec![]);
 
-    None
+    CompilerResult::Success
 }

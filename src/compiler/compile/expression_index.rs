@@ -1,5 +1,5 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::extension_method::lookup;
 use crate::parser::expression::assign_index::AssignIndex;
@@ -7,12 +7,10 @@ use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
 
-pub fn compile_expression_index(
-    _compiler: &mut Compiler,
-    _index: Index,
-) -> Option<CompilerException> {
+pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
 
+    #[allow(clippy::single_match)]
     match _index.index.clone() {
         Expression::Call(call) => {
             compile_expression_extension_method(_compiler, call, _index.left, true)
@@ -24,27 +22,27 @@ pub fn compile_expression_index(
 pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     compiler.compile_expression(assign.left);
     compiler.compile_expression(assign.index);
     compiler.compile_expression(assign.value);
 
     compiler.emit(OpCode::AssignIndex, vec![]);
 
-    None
+    CompilerResult::Success
 }
 
 fn compile_expression_index_internal(
     compiler: &mut Compiler,
     left: Expression,
     index: Expression,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     compiler.compile_expression(left);
     compiler.compile_expression(index);
 
     compiler.emit(OpCode::Index, vec![]);
 
-    None
+    CompilerResult::Success
 }
 
 pub fn compile_expression_extension_method(
@@ -52,7 +50,7 @@ pub fn compile_expression_extension_method(
     call: Call,
     left: Expression,
     deeper: bool,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     let method = match *call.identifier.clone() {
         Expression::Identifier(identifier) => identifier.value,
         _ => String::from(""),
@@ -62,13 +60,16 @@ pub fn compile_expression_extension_method(
     let method_id = lookup(method.as_str());
 
     if method_id.is_none() {
-        return Some(CompilerException::UnknownExtensionMethod(method));
+        return CompilerResult::Exception(CompilerException::UnknownExtensionMethod(method));
     }
 
     for parameter in call.parameters.clone() {
-        let err = compiler.compile_expression(parameter);
-        if err.is_some() {
-            return err;
+        let result = compiler.compile_expression(parameter);
+
+        #[allow(clippy::single_match)]
+        match &result {
+            CompilerResult::Exception(_exception) => return result,
+            _ => (),
         }
     }
 
@@ -83,5 +84,5 @@ pub fn compile_expression_extension_method(
         vec![method_id.unwrap() as u32, param_len as u32],
     );
 
-    None
+    CompilerResult::Success
 }

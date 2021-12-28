@@ -48,6 +48,14 @@ use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[allow(dead_code)]
+#[derive(Debug, PartialEq)]
+pub enum CompilerResult {
+    Success,
+    Optimize,
+    Exception(CompilerException),
+}
+
 pub struct Bytecode {
     pub instructions: Instructions,
     pub constants: Vec<Rc<RefCell<Object>>>,
@@ -131,10 +139,16 @@ impl Compiler {
     pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
         for statement in program.statements {
             let err = self.compile_statement(statement);
-            if let Some(err) = err {
-                err.emit();
+            // if let Some(err) = err {
+            //     err.emit();
+            //
+            //     return Result::Err(err);
+            // }
 
-                return Result::Err(err);
+            #[allow(clippy::single_match)]
+            match err {
+                CompilerResult::Exception(exception) => return Result::Err(exception),
+                _ => (),
             }
         }
 
@@ -215,8 +229,8 @@ impl Compiler {
         }
     }
 
-    fn compile_expression(&mut self, expr: Expression) -> Option<CompilerException> {
-        let err = match expr {
+    fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
+        match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
@@ -236,62 +250,20 @@ impl Compiler {
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
             Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
             Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
-        };
-
-        if err.is_some() {
-            return err;
         }
-
-        None
     }
 
-    fn compile_loop_block(&mut self, block: Block) -> Option<CompilerException> {
-        self.enter_variable_scope();
-
-        for statement in block.statements {
-            let err = self.compile_statement(statement);
-            if err.is_some() {
-                err.as_ref().unwrap().emit();
-                return err;
-            }
-        }
-
-        self.exit_variable_scope();
-
-        None
-    }
-
-    fn compile_block(&mut self, block: Block) -> Option<CompilerException> {
-        self.enter_variable_scope();
-
-        if block.statements.is_empty() {
-            compile_expression_null(self);
-        }
-
-        for statement in block.statements {
-            let err = self.compile_statement(statement);
-            if err.is_some() {
-                err.as_ref().unwrap().emit();
-                return err;
-            }
-        }
-
-        self.exit_variable_scope();
-
-        None
-    }
-
-    fn compile_statement(&mut self, stmt: Statement) -> Option<CompilerException> {
+    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
         match stmt {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
             Statement::Expression(expr) => {
-                let err = self.compile_expression(*expr.expression);
+                let result = self.compile_expression(*expr.expression);
 
                 self.emit(OpCode::Pop, vec![]);
 
-                err
+                result
             }
             Statement::Block(block) => self.compile_block(block),
             Statement::VariableAssign(variable) => {
@@ -301,6 +273,46 @@ impl Compiler {
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
         }
+    }
+
+    fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
+        self.enter_variable_scope();
+
+        for statement in block.statements {
+            let err = self.compile_statement(statement);
+
+            #[allow(clippy::single_match)]
+            match &err {
+                CompilerResult::Exception(_exception) => return err,
+                _ => (),
+            }
+        }
+
+        self.exit_variable_scope();
+
+        CompilerResult::Success
+    }
+
+    fn compile_block(&mut self, block: Block) -> CompilerResult {
+        self.enter_variable_scope();
+
+        if block.statements.is_empty() {
+            compile_expression_null(self);
+        }
+
+        for statement in block.statements {
+            let err = self.compile_statement(statement);
+
+            #[allow(clippy::single_match)]
+            match &err {
+                CompilerResult::Exception(_exception) => return err,
+                _ => (),
+            }
+        }
+
+        self.exit_variable_scope();
+
+        CompilerResult::Success
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {
