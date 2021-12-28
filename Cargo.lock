@@ -162,6 +162,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "funny_string"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "065525e3da78603332b0ad07d194f429cef56c3f294e1a31eafc5441e4e84982"
+
+[[package]]
 name = "getrandom"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -274,6 +280,7 @@ dependencies = [
  "chrono",
  "colored",
  "dirs",
+ "funny_string",
  "inkwell",
  "once_cell",
  "rustyline",

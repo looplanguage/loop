@@ -2,6 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
+use funny_string::{replace_substring};
 use token::Token;
 use token::TokenType;
 
@@ -75,8 +76,8 @@ impl Lexer {
                     create_token(TokenType::Comment, comment.parse().unwrap())
                 } else if self.peek_character() == '/' {
                     self.next_character();
-                    let comment = self.get_line_comment();
-                    create_token(TokenType::Comment, comment.parse().unwrap())
+                    self.get_line_comment();
+                    self.internal_next_token()
                 } else {
                     create_token(TokenType::Divide, ch.to_string())
                 }
@@ -217,18 +218,20 @@ impl Lexer {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
     }
 
-    fn get_line_comment(&mut self) -> String {
+    fn get_line_comment(&mut self) {
         self.next_character();
 
-        let mut text: String = "".parse().unwrap();
+        let start_index = self.current - 2;
+        let mut end_index = 0;
         let mut possible_char = self.input.chars().nth(self.current as usize);
 
         while possible_char != None && self.current_character() != '\n' {
-            text.push_str(self.current_character().to_string().as_str());
+            end_index += 1;
             possible_char = self.input.chars().nth(self.current as usize);
             self.next_character();
         }
-        text
+        end_index -= 1;
+        self.input = replace_substring(&*self.input, start_index, end_index, ' ');
     }
 
     fn get_block_comment(&mut self) -> String {
