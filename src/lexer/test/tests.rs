@@ -152,9 +152,10 @@ mod tests {
     fn comments_single_line() {
         let input = "//hallo, this is a comment\
         var";
-        let expected = vec![
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
-        ];
+        let expected = vec![test_helper::generate_token(
+            "var",
+            TokenType::VariableDeclaration,
+        )];
 
         do_test(input, expected);
     }
@@ -162,9 +163,7 @@ mod tests {
     #[test]
     fn comments_block() {
         let input = "/<hello2>/";
-        let expected = vec![
-            test_helper::generate_token("hello2", TokenType::Comment),
-        ];
+        let expected = vec![test_helper::generate_token("hello2", TokenType::Comment)];
 
         do_test(input, expected);
     }
