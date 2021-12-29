@@ -561,7 +561,7 @@ mod tests {
 
         test_vm(
             "if(true) { /<hello>/ print(5) }",
-            Integer(integer::Integer { value: 10 }),
+            Integer(integer::Integer { value: 5 }),
         );
 
     }

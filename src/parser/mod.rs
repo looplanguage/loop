@@ -47,7 +47,6 @@ impl Parser {
 
         while self.lexer.get_current_token().unwrap().token != TokenType::Eof {
             let tok = self.lexer.get_current_token().unwrap().clone();
-            println!("{}", tok.literal);
             let new_statement = self.parse_statement(tok);
 
             if let Some(Node::Statement(i)) = new_statement {
