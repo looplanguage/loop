@@ -26,10 +26,10 @@ pub struct Flags {
 }
 
 impl Flags {
-    // ToDo: Make Loop crash in an elegant way instead of calling the "panic" function of Rust
-    // ToDo: This is regarding the whole implementation of Flags.
+    // ToDo: Make Loop crash in an elegant way instead of calling the "panic" function of Rust. This is regarding the whole implementation of Flags.
+    // ToDo: Just refactor the whole way to do flags.
 
-    fn get_flag(string: &str) -> Result<FlagTypes, String> {
+    fn get_flag(&mut self, string: &str, is_last: bool) -> Result<FlagTypes, String> {
         let flag_arguments: Vec<&str> = string.split('=').collect();
 
         if flag_arguments.len() > 2 {
@@ -44,10 +44,16 @@ impl Flags {
                 "--benchmark" | "-b" => benchmark::benchmark_flag_with_param(flag_arguments[1]),
                 "--jit" | "-j" => jit::jit_flag_with_param(flag_arguments[1]),
                 "--optimize" | "-o" => optimize::optimize_flag_with_param(flag_arguments[1]),
-                &_ => Err(format!(
-                    "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
-                    string
-                )),
+                &_ => {
+                    if !is_last{
+                        return Err(format!(
+                            "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
+                            string
+                        ));
+                    }
+                    self.file = Option::from(string.to_string());
+                    Ok(FlagTypes::None)
+                },
             };
         }
         return match flag_arguments[0] {
@@ -55,10 +61,16 @@ impl Flags {
             "--benchmark" | "-b" => benchmark::benchmark_flag(),
             "--jit" | "-j" => jit::jit_flag(),
             "--optimize" | "-o" => optimize::optimize_flag(),
-            &_ => Err(format!(
-                "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
-                string
-            )),
+            &_ => {
+                if !is_last{
+                    return Err(format!(
+                        "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
+                        string
+                    ));
+                }
+                self.file = Option::from(string.to_string());
+                Ok(FlagTypes::None)
+            },
         };
     }
 
@@ -66,17 +78,14 @@ impl Flags {
         let mut i: i32 = 0;
 
         for arg in args.clone() {
-            if i == 0 && !arg.starts_with('-') {
-                self.file = Option::from(arg.clone());
-            } else {
-                let flag = Flags::get_flag(arg.as_str());
-                match flag {
-                    Ok(e) => self.flags.push(e),
-                    Err(e) => {
-                        panic!("{}", e);
-                    }
+            let flag = Flags::get_flag(self, arg.as_str(), arg.eq(args.last().unwrap()));
+            match flag {
+                Ok(e) => self.flags.push(e),
+                Err(e) => {
+                    panic!("{}", e);
                 }
             }
+
             i += 1;
         }
 
