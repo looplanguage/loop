@@ -1,6 +1,4 @@
-use std::borrow::Borrow;
-
-use funny_string::{index_string, substring};
+use funny_string::index_string;
 mod benchmark;
 mod debug;
 mod jit;
@@ -71,8 +69,7 @@ impl Flags {
         for arg in args.clone() {
             if i == 0 && index_string(arg.as_str(), 0) != '-' {
                 self.file = Option::from(arg.clone());
-            }
-            else {
+            } else {
                 let flag = Flags::get_flag(arg.as_str());
                 match flag {
                     Ok(e) => self.flags.push(e),
