@@ -245,6 +245,8 @@ impl Lexer {
         loop {
             let current: char = self.current_character();
             let next: char = self.peek_character();
+            let possible_char = self.input.chars().nth(self.current as usize);
+
             if current == '\\' && next == 'n' {
                 self.next_character();
                 self.next_character();
@@ -252,6 +254,8 @@ impl Lexer {
                 self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
                 self.next_character();
                 self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                break;
+            } else if possible_char == None {
                 break;
             } else {
                 self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
