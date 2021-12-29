@@ -552,7 +552,18 @@ mod tests {
             /< hello \
             multiline >/",
             Integer(integer::Integer { value: 2 }),
-        )
+        );
+
+        test_vm(
+            "/<hello>/ var x = 11",
+            Integer(integer::Integer { value: 11 }),
+        );
+
+        test_vm(
+            "if(true) { /<hello>/ print(5) }",
+            Integer(integer::Integer { value: 10 }),
+        );
+
     }
 
     #[test]
