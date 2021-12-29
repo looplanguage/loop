@@ -2,7 +2,6 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use funny_string::{replace_char, replace_substring};
 use token::Token;
 use token::TokenType;
 
@@ -233,13 +232,17 @@ impl Lexer {
         // Replacing the whole comment with spaces.
         // That way implementing line and column with an error is way easier.
         //println!("last char: {}", index_string(self.input.as_str(), end_index));
-        self.input = replace_substring(&*self.input, start_index, end_index, ' ');
+        let mut replacement: String = "".to_string();
+        for _ in 0..end_index-start_index {
+            replacement.push(' ');
+        }
+        self.input.replace_range((start_index) as usize..(end_index) as usize, replacement.as_str());
     }
 
     fn remove_block_comment(&mut self) {
-        self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+        self.input.replace_range((self.current-1) as usize..(self.current) as usize, " ");
         self.next_character();
-        self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+        self.input.replace_range((self.current-1) as usize..(self.current) as usize, " ");
         self.next_character();
 
         loop {
@@ -251,14 +254,14 @@ impl Lexer {
                 self.next_character();
                 self.next_character();
             } else if current == '>' && next == '/' {
-                self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                self.input.replace_range((self.current-1) as usize..(self.current) as usize, " ");
                 self.next_character();
-                self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                self.input.replace_range((self.current-1) as usize..(self.current) as usize, " ");
                 break;
             } else if possible_char == None {
                 break;
             } else {
-                self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                self.input.replace_range((self.current-1) as usize..(self.current) as usize, " ");
                 self.next_character();
             }
         }
