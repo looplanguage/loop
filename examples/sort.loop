@@ -1,0 +1,21 @@
+var Sort = fn(numbers){
+    var sorted = []
+    for (len(numbers) > 0) {
+        var i = 0
+        var x = 0
+        for(i < len(numbers)) {
+            if(numbers[i] < numbers[x]){
+                x = i
+            }
+            i = i + 1
+        }
+        sorted.add(numbers[x])
+        numbers.remove(x)
+    }
+    return sorted
+}
+
+var arr = [5, 1, 2, 3, 4]
+print("Unsorted:   ") println(arr)
+var result = Sort(arr)
+print("Sorted:     ") println(result)
