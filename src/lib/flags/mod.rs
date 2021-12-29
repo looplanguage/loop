@@ -1,4 +1,3 @@
-use funny_string::index_string;
 mod benchmark;
 mod debug;
 mod jit;
