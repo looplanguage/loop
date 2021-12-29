@@ -2,7 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use funny_string::{replace_char, replace_substring, index_string};
+use funny_string::{replace_char, replace_substring};
 use token::Token;
 use token::TokenType;
 
@@ -236,7 +236,7 @@ impl Lexer {
         self.input = replace_substring(&*self.input, start_index, end_index, ' ');
     }
 
-    fn remove_block_comment(&mut self){
+    fn remove_block_comment(&mut self) {
         self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
         self.next_character();
         self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
@@ -248,18 +248,16 @@ impl Lexer {
             if current == '\\' && next == 'n' {
                 self.next_character();
                 self.next_character();
-            }
-            else if current == '>' && next == '/' {
+            } else if current == '>' && next == '/' {
                 self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
                 self.next_character();
                 self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
                 break;
-            }
-            else{
+            } else {
                 self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
                 self.next_character();
             }
-        };
+        }
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {

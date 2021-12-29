@@ -163,7 +163,10 @@ mod tests {
     #[test]
     fn comments_block() {
         let input = "/<hello2>/ var";
-        let expected = vec![test_helper::generate_token("var", TokenType::VariableDeclaration)];
+        let expected = vec![test_helper::generate_token(
+            "var",
+            TokenType::VariableDeclaration,
+        )];
 
         do_test(input, expected);
     }

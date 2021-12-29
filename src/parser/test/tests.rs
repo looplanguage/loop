@@ -763,7 +763,6 @@ mod tests {
         test_parser(input, expected);
     }
 
-
     fn test_parser(input: &str, expected: Vec<Statement>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
