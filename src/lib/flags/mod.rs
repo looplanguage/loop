@@ -45,7 +45,7 @@ impl Flags {
                 "--jit" | "-j" => jit::jit_flag_with_param(flag_arguments[1]),
                 "--optimize" | "-o" => optimize::optimize_flag_with_param(flag_arguments[1]),
                 &_ => {
-                    if !is_last{
+                    if !is_last {
                         return Err(format!(
                             "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
                             string
@@ -53,7 +53,7 @@ impl Flags {
                     }
                     self.file = Option::from(string.to_string());
                     Ok(FlagTypes::None)
-                },
+                }
             };
         }
         return match flag_arguments[0] {
@@ -62,7 +62,7 @@ impl Flags {
             "--jit" | "-j" => jit::jit_flag(),
             "--optimize" | "-o" => optimize::optimize_flag(),
             &_ => {
-                if !is_last{
+                if !is_last {
                     return Err(format!(
                         "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
                         string
@@ -70,7 +70,7 @@ impl Flags {
                 }
                 self.file = Option::from(string.to_string());
                 Ok(FlagTypes::None)
-            },
+            }
         };
     }
 
