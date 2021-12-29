@@ -2,7 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use funny_string::replace_substring;
+use funny_string::{replace_char, replace_substring, index_string};
 use token::Token;
 use token::TokenType;
 
@@ -71,9 +71,8 @@ impl Lexer {
             '"' => self.find_string(),
             '/' => {
                 if self.peek_character() == '<' {
-                    self.next_character();
-                    let comment = self.get_block_comment();
-                    create_token(TokenType::Comment, comment.parse().unwrap())
+                    self.remove_block_comment();
+                    self.internal_next_token()
                 } else if self.peek_character() == '/' {
                     self.next_character();
                     self.remove_line_comment();
@@ -222,7 +221,7 @@ impl Lexer {
         self.next_character();
 
         let start_index = self.current - 2;
-        let mut end_index = 0;
+        let mut end_index = start_index;
         let mut possible_char = self.input.chars().nth(self.current as usize);
 
         while possible_char != None && self.current_character() != '\n' {
@@ -230,35 +229,37 @@ impl Lexer {
             possible_char = self.input.chars().nth(self.current as usize);
             self.next_character();
         }
-        self.input = replace_substring(&*self.input, start_index, end_index - 1, ' ');
+
+        // Replacing the whole comment with spaces.
+        // That way implementing line and column with an error is way easier.
+        //println!("last char: {}", index_string(self.input.as_str(), end_index));
+        self.input = replace_substring(&*self.input, start_index, end_index, ' ');
     }
 
-    fn get_block_comment(&mut self) -> String {
-        //let begin_index = self.current - 1;
-
+    fn remove_block_comment(&mut self){
+        self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+        self.next_character();
+        self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
         self.next_character();
 
-        let mut text: String = "".parse().unwrap();
-        let mut con = true;
-
-        // Todo: Make this while loop less scuffed, I do not know how to make an while loop or something. Example given below:
-        /*
-        while self.current_character() != '>' && self.peek_character() != '/' {
-            text.push_str(self.current_character().to_string().as_str());
-            self.next_character();
-        }
-        */
-
-        while con {
-            text.push_str(self.current_character().to_string().as_str());
-            self.next_character();
-            if self.current_character() == '>' && self.peek_character() == '/' {
-                con = false;
+        loop {
+            let current: char = self.current_character();
+            let next: char = self.peek_character();
+            if current == '\\' && next == 'n' {
+                self.next_character();
+                self.next_character();
             }
-        }
-        self.next_character();
-
-        text
+            else if current == '>' && next == '/' {
+                self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                self.next_character();
+                self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                break;
+            }
+            else{
+                self.input = replace_char(self.input.as_str(), self.current - 1, ' ');
+                self.next_character();
+            }
+        };
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {
