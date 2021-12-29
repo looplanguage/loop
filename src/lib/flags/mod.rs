@@ -66,7 +66,7 @@ impl Flags {
         let mut i: i32 = 0;
 
         for arg in args.clone() {
-            if i == 0 && arg.chars().next().unwrap() != '-' {
+            if i == 0 && !arg.starts_with('-') {
                 self.file = Option::from(arg.clone());
             } else {
                 let flag = Flags::get_flag(arg.as_str());
