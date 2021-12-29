@@ -4,7 +4,7 @@ Here you will find example programs that are written in [_Loop_](https://looplan
 They illustrate the capability of Loop, but also as a reference for conventions, help for developing 
 in **and** for Loop.
 
-All the example programs will be maintained to they will always be up to date with the
+All the example programs will be maintained thus, they will always be up to date with the
 latest version of Loop. 
 
 ## Contributing
