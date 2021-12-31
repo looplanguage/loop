@@ -70,13 +70,12 @@ impl Lexer {
             '"' => self.find_string(),
             '/' => {
                 if self.peek_character() == '<' {
-                    self.next_character();
-                    let comment = self.get_block_comment();
-                    create_token(TokenType::Comment, comment.parse().unwrap())
+                    self.remove_block_comment();
+                    self.internal_next_token()
                 } else if self.peek_character() == '/' {
                     self.next_character();
-                    let comment = self.get_line_comment();
-                    create_token(TokenType::Comment, comment.parse().unwrap())
+                    self.remove_line_comment();
+                    self.internal_next_token()
                 } else {
                     create_token(TokenType::Divide, ch.to_string())
                 }
@@ -217,46 +216,63 @@ impl Lexer {
         return self.input.chars().nth((self.current - 1) as usize).unwrap();
     }
 
-    fn get_line_comment(&mut self) -> String {
+    fn remove_line_comment(&mut self) {
         self.next_character();
 
-        let mut text: String = "".parse().unwrap();
+        let start_index = self.current - 2;
+        let mut end_index = start_index;
         let mut possible_char = self.input.chars().nth(self.current as usize);
 
         while possible_char != None && self.current_character() != '\n' {
-            text.push_str(self.current_character().to_string().as_str());
+            end_index += 1;
             possible_char = self.input.chars().nth(self.current as usize);
             self.next_character();
         }
-        text
+
+        // Replacing the whole comment with spaces.
+        // That way implementing line and column with an error is way easier.
+        //println!("last char: {}", index_string(self.input.as_str(), end_index));
+        let mut replacement: String = "".to_string();
+        for _ in 0..end_index - start_index {
+            replacement.push(' ');
+        }
+        self.input.replace_range(
+            (start_index) as usize..(end_index) as usize,
+            replacement.as_str(),
+        );
     }
 
-    fn get_block_comment(&mut self) -> String {
-        //let begin_index = self.current - 1;
-
+    fn remove_block_comment(&mut self) {
+        self.input
+            .replace_range((self.current - 1) as usize..(self.current) as usize, " ");
+        self.next_character();
+        self.input
+            .replace_range((self.current - 1) as usize..(self.current) as usize, " ");
         self.next_character();
 
-        let mut text: String = "".parse().unwrap();
-        let mut con = true;
+        loop {
+            let current: char = self.current_character();
+            let next: char = self.peek_character();
+            let possible_char = self.input.chars().nth(self.current as usize);
 
-        // Todo: Make this while loop less scuffed, I do not know how to make an while loop or something. Example given below:
-        /*
-        while self.current_character() != '>' && self.peek_character() != '/' {
-            text.push_str(self.current_character().to_string().as_str());
-            self.next_character();
-        }
-        */
-
-        while con {
-            text.push_str(self.current_character().to_string().as_str());
-            self.next_character();
-            if self.current_character() == '>' && self.peek_character() == '/' {
-                con = false;
+            if current == '\\' && next == 'n' {
+                self.next_character();
+                self.next_character();
+            } else if current == '>' && next == '/' {
+                self.input
+                    .replace_range((self.current - 1) as usize..(self.current) as usize, " ");
+                self.next_character();
+                self.input
+                    .replace_range((self.current - 1) as usize..(self.current) as usize, " ");
+                break;
+            } else if possible_char == None {
+                break;
+            } else {
+                self.input
+                    .replace_range((self.current - 1) as usize..(self.current) as usize, " ");
+                self.next_character();
             }
         }
-        self.next_character();
-
-        text
     }
 
     pub fn next_is(&mut self, token: TokenType) -> bool {

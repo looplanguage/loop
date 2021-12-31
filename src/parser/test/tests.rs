@@ -747,9 +747,16 @@ mod tests {
     }
 
     #[test]
-    fn comments() {
-        let input = "// Hello \n \
-        /< hello \
+    fn comments_single_line() {
+        let input = "// Hello";
+
+        let expected: Vec<Statement> = vec![];
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn comments_block() {
+        let input = "/<hello \
         multiline >/";
 
         let expected: Vec<Statement> = vec![];
