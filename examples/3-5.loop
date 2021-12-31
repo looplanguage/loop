@@ -1,0 +1,17 @@
+var Algorithm = fn(max) {
+    var sum = 0;
+    var x = 0
+    for (x < max){
+        if(x % 3 == 0){
+            sum = sum + x
+        }
+        else if(x % 5 == 0) {
+            sum = sum + x
+        }
+        x = x + 1
+    }
+    return sum
+}
+
+var result = Algorithm(1000) // Max is exclusive
+println(result)
