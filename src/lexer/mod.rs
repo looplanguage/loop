@@ -10,6 +10,8 @@ pub struct Lexer {
     input: String,
     pub current_token: Option<Token>,
     pub peek_token: Option<Token>,
+    pub current_line: i32,
+    pub current_col: i32,
 }
 
 impl Lexer {
@@ -170,7 +172,7 @@ impl Lexer {
             self.next_character();
         }
 
-        let mut token_type: TokenType = lookup_keyword(keyword.as_str());
+        let mut token_type: TokenType = self.lookup_keyword(keyword.as_str());
 
         if token_type == TokenType::Integer
             && self.peek_character() == '.'
@@ -210,6 +212,14 @@ impl Lexer {
 
     fn next_character(&mut self) {
         self.current += 1;
+        let possible_char = self.input.chars().nth(self.current as usize);
+        if possible_char != None && self.current_character() == '\n' {
+            self.current_line += 1;
+            self.current_col = 0;
+        }
+        else {
+            self.current_col += 1;
+        }
     }
 
     fn current_character(&self) -> char {
@@ -231,7 +241,6 @@ impl Lexer {
 
         // Replacing the whole comment with spaces.
         // That way implementing line and column with an error is way easier.
-        //println!("last char: {}", index_string(self.input.as_str(), end_index));
         let mut replacement: String = "".to_string();
         for _ in 0..end_index - start_index {
             replacement.push(' ');
@@ -296,43 +305,48 @@ impl Lexer {
 
         false
     }
-}
 
-fn lookup_keyword(keyword: &str) -> TokenType {
-    match keyword {
-        "var" => TokenType::VariableDeclaration,
-        "true" => TokenType::True,
-        "false" => TokenType::False,
-        "fn" => TokenType::Function,
-        "import" => TokenType::Import,
-        "export" => TokenType::Export,
-        "else" => TokenType::Else,
-        "for" => TokenType::For,
-        "and" | "&&" => TokenType::And,
-        "or" | "||" => TokenType::Or,
-        "null" => TokenType::Null,
-        "return" => TokenType::Return,
-        "if" => TokenType::If,
-        "as" => TokenType::As,
-        "from" => TokenType::From,
-        "in" => TokenType::In,
-        "to" => TokenType::To,
-        _ => {
-            if keyword.parse::<i64>().is_ok() {
-                return TokenType::Integer;
-            } else if keyword.parse::<f64>().is_ok() {
-                return TokenType::Float;
+    fn lookup_keyword(&mut self, keyword: &str) -> TokenType {
+        match keyword {
+            "var" => TokenType::VariableDeclaration,
+            "true" => TokenType::True,
+            "false" => TokenType::False,
+            "fn" => TokenType::Function,
+            "import" => TokenType::Import,
+            "export" => TokenType::Export,
+            "else" => TokenType::Else,
+            "for" => TokenType::For,
+            "and" | "&&" => TokenType::And,
+            "or" | "||" => TokenType::Or,
+            "null" => TokenType::Null,
+            "return" => TokenType::Return,
+            "if" => TokenType::If,
+            "as" => TokenType::As,
+            "from" => TokenType::From,
+            "in" => TokenType::In,
+            "to" => TokenType::To,
+            _ => {
+                if keyword.parse::<i64>().is_ok() {
+                    return TokenType::Integer;
+                } else if keyword.parse::<f64>().is_ok() {
+                    return TokenType::Float;
+                }
+                else if !keyword.contains('.') {
+                    return TokenType::Identifier;
+                }
+                // Not sure if you ever come to this error message, could not get it done...
+                panic!(
+                    "Error -> On line: {}, Column: {}. Message: Keyword: {}, contains a '.', This is not allowed.",
+                    self.current_line,
+                    self.current_col,
+                    keyword,
+                )
             }
-            if !keyword.contains('.') {
-                return TokenType::Identifier;
-            }
-            panic!(
-                "Error -> Keyword: {}, contains a '.', This is not allowed.",
-                keyword
-            )
         }
     }
 }
+
+
 
 pub fn build_lexer(input: &str) -> Lexer {
     let mut l = Lexer {
@@ -340,6 +354,8 @@ pub fn build_lexer(input: &str) -> Lexer {
         input: input.to_string(),
         current_token: None,
         peek_token: None,
+        current_line: 1,
+        current_col: 0,
     };
 
     l.next_token();
