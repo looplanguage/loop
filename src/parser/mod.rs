@@ -201,7 +201,7 @@ impl Parser {
     // Exits program with code 0, which is successful.
     // Code one would mean that the Loop compiler itself had crashed. But in this case,
     // The code from the user is bad, thus 0.
-    pub fn throw_exception(&mut self, message: String){
+    pub fn throw_exception(&mut self, message: String) {
         println!(message);
         process::exit(0);
     }

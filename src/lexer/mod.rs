@@ -216,8 +216,7 @@ impl Lexer {
         if possible_char != None && self.current_character() == '\n' {
             self.current_line += 1;
             self.current_col = 0;
-        }
-        else {
+        } else {
             self.current_col += 1;
         }
     }
@@ -330,8 +329,7 @@ impl Lexer {
                     return TokenType::Integer;
                 } else if keyword.parse::<f64>().is_ok() {
                     return TokenType::Float;
-                }
-                else if !keyword.contains('.') {
+                } else if !keyword.contains('.') {
                     return TokenType::Identifier;
                 }
                 // Not sure if you ever come to this error message, could not get it done...
@@ -345,8 +343,6 @@ impl Lexer {
         }
     }
 }
-
-
 
 pub fn build_lexer(input: &str) -> Lexer {
     let mut l = Lexer {
