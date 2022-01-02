@@ -91,7 +91,6 @@ pub fn execute_code(
             execution_engine,
             fpm: &fpm,
             last_popped: None,
-            jumps: Vec::new(),
             section_depth: Vec::new(),
         });
     }

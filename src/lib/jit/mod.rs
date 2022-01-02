@@ -41,7 +41,6 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) last_popped: Option<StackItem<'ctx>>,
-    pub(crate) jumps: Vec<(u32, u32)>,
     pub(crate) section_depth: Vec<(u32, BasicBlock<'ctx>)>,
 }
 
