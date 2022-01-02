@@ -1,6 +1,5 @@
-use crate::lexer::token::TokenType;
 use crate::parser::expression::null::Null;
-use crate::parser::expression::{Expression, Precedence};
+use crate::parser::expression::Expression;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use crate::parser::Parser;

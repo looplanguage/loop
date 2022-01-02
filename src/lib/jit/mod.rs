@@ -16,11 +16,8 @@ use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::passes::PassManager;
 use inkwell::types::BasicMetadataTypeEnum;
-use inkwell::values::{
-    AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue, InstructionValue,
-};
+use inkwell::values::{AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue};
 use inkwell::{AddressSpace, FloatPredicate};
-use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
