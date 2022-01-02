@@ -9,7 +9,6 @@ use crate::parser::statement::return_statement::ReturnStatement;
 pub mod assign;
 pub mod block;
 pub mod break_statement;
-pub(crate) mod comment;
 pub mod export;
 pub mod expression;
 pub mod import;

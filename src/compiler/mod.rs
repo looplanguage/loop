@@ -256,28 +256,6 @@ impl Compiler {
         }
     }
 
-    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
-        match stmt {
-            Statement::VariableDeclaration(var) => {
-                compile_statement_variable_declaration(self, var)
-            }
-            Statement::Expression(expr) => {
-                let result = self.compile_expression(*expr.expression);
-
-                self.emit(OpCode::Pop, vec![]);
-
-                result
-            }
-            Statement::Block(block) => self.compile_block(block),
-            Statement::VariableAssign(variable) => {
-                compile_statement_variable_assign(self, variable)
-            }
-            Statement::Return(_return) => compile_return_statement(self, _return),
-            Statement::Import(import) => compile_import_statement(self, import),
-            Statement::Export(export) => compile_export_statement(self, export),
-        }
-    }
-
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
@@ -318,7 +296,7 @@ impl Compiler {
         CompilerResult::Success
     }
 
-    fn compile_statement(&mut self, stmt: Statement) -> Option<CompilerException> {
+    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
         match stmt {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
