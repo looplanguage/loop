@@ -317,6 +317,7 @@ fn lookup_keyword(keyword: &str) -> TokenType {
         "from" => TokenType::From,
         "in" => TokenType::In,
         "to" => TokenType::To,
+        "break" => TokenType::Break,
         _ => {
             if keyword.parse::<i64>().is_ok() {
                 return TokenType::Integer;

@@ -29,4 +29,6 @@ pub enum OpCode {
     Pow,           // 26
     And,           // 27
     Or,            // 28
+    StartSection,  // 29
+    EndSection,    // 30
 }

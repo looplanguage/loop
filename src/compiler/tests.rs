@@ -136,12 +136,14 @@ mod tests {
     fn loop_while() {
         let input = "for(true) {}";
 
-        let expected = "[0] OpConstant 1
-[5] OpJumpIfFalse 20
-[10] OpConstant 0
-[15] OpJump 0
-[20] OpConstant 0
-[25] OpPop";
+        let expected = "[0] StartSection 0 32
+[7] OpConstant 1
+[12] OpJumpIfFalse 27
+[17] OpConstant 0
+[22] OpJump 7
+[27] OpConstant 0
+[32] EndSection
+[33] OpPop";
 
         compiler_test(input, expected);
     }
@@ -150,18 +152,23 @@ mod tests {
     fn loop_iterator() {
         let input = "for(var i = 0 to 100) {}";
 
-        let expected = "[0] OpConstant 1
-[5] OpSetVar 0
-[10] OpConstant 3
-[15] OpGetVar 0
-[20] OpAdd
-[21] OpSetVar 0
-[26] OpGetVar 0
-[31] OpConstant 2
-[36] OpGreaterThan
-[37] OpJumpIfFalse 10
-[42] OpConstant 0
-[47] OpPop";
+        let expected = "[0] StartSection 1 54
+[7] OpConstant 1
+[12] OpSetVar 0
+[17] OpConstant 2
+[22] OpGetVar 0
+[27] OpGreaterThan
+[28] OpJumpIfFalse 54
+[33] OpConstant 3
+[38] OpGetVar 0
+[43] OpAdd
+[44] OpSetVar 0
+[49] OpJump 17
+[54] EndSection
+[55] OpConstant 0
+[60] OpConstant 1
+[65] OpSetVar 0
+[70] OpPop";
 
         compiler_test(input, expected);
     }
@@ -170,28 +177,32 @@ mod tests {
     fn loop_array_iterator() {
         let input = "for(var i in []) {}";
 
-        let expected = "[0] OpArray 0
-[3] OpSetVar 0
-[8] OpConstant 1
-[13] OpSetVar 2
-[18] OpGetBuiltin 0
-[20] OpGetVar 0
-[25] OpCall 1
-[27] OpGetVar 2
-[32] OpGreaterThan
-[33] OpJumpIfFalse 80
-[38] OpGetVar 0
-[43] OpGetVar 2
-[48] OpIndex
-[49] OpSetVar 1
-[54] OpConstant 0
-[59] OpConstant 2
-[64] OpGetVar 2
-[69] OpAdd
-[70] OpSetVar 2
-[75] OpJump 18
-[80] OpConstant 0
-[85] OpPop";
+        let expected = "[0] StartSection 2 102
+[7] OpArray 0
+[10] OpSetVar 0
+[15] OpConstant 1
+[20] OpSetVar 2
+[25] OpGetBuiltin 0
+[27] OpGetVar 0
+[32] OpCall 1
+[34] OpGetVar 2
+[39] OpGreaterThan
+[40] OpJumpIfFalse 87
+[45] OpGetVar 0
+[50] OpGetVar 2
+[55] OpIndex
+[56] OpSetVar 1
+[61] OpConstant 0
+[66] OpConstant 2
+[71] OpGetVar 2
+[76] OpAdd
+[77] OpSetVar 2
+[82] OpJump 25
+[87] OpConstant 1
+[92] OpSetVar 2
+[97] OpConstant 0
+[102] EndSection
+[103] OpPop";
 
         compiler_test(input, expected);
     }
