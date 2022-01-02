@@ -24,6 +24,7 @@ use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
+use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::export::parse_export_statement;
 use crate::parser::statement::import::parse_import_statement;
 
@@ -75,6 +76,7 @@ impl Parser {
             TokenType::Import => parse_import_statement(self),
             TokenType::Export => parse_export_statement(self),
             TokenType::Comment => parse_comment(self),
+            TokenType::Break => parse_break_statement(self),
             _ => self.parse_expression_statement(),
         };
 

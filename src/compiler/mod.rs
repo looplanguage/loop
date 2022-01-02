@@ -25,6 +25,7 @@ use crate::compiler::compile::expression_loop::{
 use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
+use crate::compiler::compile::statement_break::compile_break_statement;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
@@ -76,6 +77,7 @@ pub struct Compiler {
     pub location: String,
     pub export_name: String,
     pub prev_location: String,
+    pub breaks: Vec<u32>,
 }
 
 pub struct CompilerState {
@@ -107,6 +109,7 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
         location: String::new(),
         export_name: String::new(),
         prev_location: String::new(),
+        breaks: Vec::new(),
     }
 }
 
@@ -300,6 +303,7 @@ impl Compiler {
             Statement::Return(_return) => compile_return_statement(self, _return),
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
+            Statement::Break(br) => compile_break_statement(self, br),
         }
     }
 
