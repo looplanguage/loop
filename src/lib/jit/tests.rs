@@ -143,13 +143,27 @@ mod tests {
 
     #[test]
     fn loop_while() {
-        test_jit("var test = fn() { var i = 0; for(i < 10) { i = i + 1 } return i }; test()", Object::Integer(Integer { value: 10 }));
-        test_jit("var i = 0; for(i < 10) { i = i + 1 }; i", Object::Integer(Integer { value: 10 }));
+        test_jit(
+            "var test = fn() { var i = 0; for(i < 10) { i = i + 1 } return i }; test()",
+            Object::Integer(Integer { value: 10 }),
+        );
+        test_jit(
+            "var i = 0; for(i < 10) { i = i + 1 }; i",
+            Object::Integer(Integer { value: 10 }),
+        );
     }
 
     #[test]
     fn loop_iterator() {
-        test_jit("var x = 0; for (var i = 0 to 10) { x = x + 1  }; x", Object::Integer(Integer { value: 10 }))
+        test_jit(
+            "var x = 0; for (var i = 0 to 10) { x = x + 1  }; x",
+            Object::Integer(Integer { value: 10 }),
+        )
+    }
+
+    #[test]
+    fn loop_iterator_nested_break() {
+        test_jit("var x = 0; for(var i = 0 to 10) { for(var y = 0 to 10) { for(var y = 0 to 10) { x = x + 1; if(x > 20) { break } } } }; x", Object::Integer(Integer { value: 118 }))
     }
 
     fn test_jit(input: &str, expected: Object) {
@@ -215,7 +229,7 @@ mod tests {
             execution_engine,
             fpm: &fpm,
             last_popped: None,
-            jumps: Vec::new()
+            jumps: Vec::new(),
         };
 
         let err = vm.run(Some(codegen));
