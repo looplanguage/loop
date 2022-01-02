@@ -714,7 +714,8 @@ mod tests {
             execution_engine,
             fpm: &fpm,
             last_popped: None,
-            jumps: Vec::new()
+            jumps: Vec::new(),
+            section_depth: Vec::new(),
         };
 
         let mut vm = build_vm(comp.get_bytecode(), None, "MAIN".to_string());

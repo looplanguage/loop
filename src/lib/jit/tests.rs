@@ -230,6 +230,7 @@ mod tests {
             fpm: &fpm,
             last_popped: None,
             jumps: Vec::new(),
+            section_depth: Vec::new(),
         };
 
         let err = vm.run(Some(codegen));
