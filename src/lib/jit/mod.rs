@@ -600,7 +600,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 }
                 OpCode::StartSection => {
                     handling_loop_compare = true;
-                    let section_type = read_uint16(&code[ip as usize..]);
+                    let _section_type = read_uint16(&code[ip as usize..]);
 
                     ip += 2;
 
@@ -651,7 +651,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         self.builder.position_at_end(then_b);
 
                         // get current section
-                        let mut section = self.section_depth.last_mut().unwrap();
+                        let section = self.section_depth.last_mut().unwrap();
 
                         *section = (section.0, cont_b);
 

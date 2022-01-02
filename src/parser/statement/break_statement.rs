@@ -9,8 +9,8 @@ pub struct BreakStatement {
     pub expression: Box<crate::parser::expression::Expression>,
 }
 
-pub fn parse_break_statement(p: &mut Parser) -> Option<Node> {
-    let mut expr = Some(Node::Expression(Expression::Null(Null {})));
+pub fn parse_break_statement(_: &mut Parser) -> Option<Node> {
+    let expr = Some(Node::Expression(Expression::Null(Null {})));
 
     // TODO: Allow breaking with a value
     /*
