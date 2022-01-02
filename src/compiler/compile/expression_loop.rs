@@ -44,7 +44,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
     compiler.exit_variable_scope();
 
     let end = compiler.emit(OpCode::EndSection, vec![]);
-    compiler.change_operand(section as u32, vec![2, end as u32]);
+    compiler.change_operand(section as u32, vec![0, end as u32]);
 
     None
 }
@@ -79,7 +79,6 @@ pub fn compile_loop_iterator_expression(
     let one = compiler.add_constant(Object::Integer(Integer { value: 1 }));
 
     // Set the initial value
-
     compiler.emit(OpCode::Constant, vec![from]);
     compiler.emit(OpCode::SetVar, vec![var.index]);
 
@@ -120,8 +119,12 @@ pub fn compile_loop_iterator_expression(
     compiler.breaks = vec![];
 
     compiler.exit_variable_scope();
+
     let end = compiler.emit(OpCode::EndSection, vec![]);
     compiler.change_operand(section as u32, vec![1, end as u32]);
+    // Reset iterator
+    compiler.emit(OpCode::Constant, vec![from]);
+    compiler.emit(OpCode::SetVar, vec![var.index]);
 
     None
 }
@@ -131,7 +134,7 @@ pub fn compile_loop_array_iterator_expression(
     lp: LoopArrayIterator,
 ) -> Option<CompilerException> {
     compiler.enter_variable_scope();
-    let section = compiler.emit(OpCode::StartSection, vec![2, 9999]);
+    let section = compiler.emit(OpCode::StartSection, vec![40, 9999]);
 
     // Put the array on the stack and assign it to a cache variable
     let array = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -199,6 +202,10 @@ pub fn compile_loop_array_iterator_expression(
     }
 
     compiler.breaks = vec![];
+
+    // Reset iterator
+    compiler.emit(OpCode::Constant, vec![zero]);
+    compiler.emit(OpCode::SetVar, vec![index.index]);
 
     compiler.emit(OpCode::Constant, vec![0]);
     let end = compiler.emit(OpCode::EndSection, vec![]);

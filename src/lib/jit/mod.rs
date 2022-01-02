@@ -1,7 +1,7 @@
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{print_instructions, read_uint32, read_uint8};
+use crate::compiler::instructions::{print_instructions, read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::lib::config::CONFIG;
 use crate::lib::object::function::{CompiledFunction, Function};
@@ -15,7 +15,9 @@ use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::passes::PassManager;
 use inkwell::types::BasicMetadataTypeEnum;
-use inkwell::values::{AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue, InstructionValue};
+use inkwell::values::{
+    AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue, InstructionValue,
+};
 use inkwell::{AddressSpace, FloatPredicate};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -40,7 +42,8 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) last_popped: Option<StackItem<'ctx>>,
-    pub(crate) jumps: Vec<(u32, u32)>
+    pub(crate) jumps: Vec<(u32, u32)>,
+    pub(crate) section_depth: Vec<u32>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -594,7 +597,29 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         StackItem::AnyValueEnum(returns.as_any_value_enum()),
                     );
                 }
+                OpCode::StartSection => {
+                    let section_type = read_uint16(&code[ip as usize..]);
+
+                    ip += 2;
+
+                    let end_section = read_uint32(&code[ip as usize..]);
+
+                    ip += 4;
+
+                    // Go deeper
+                    let block = self.context.append_basic_block(function, "section");
+
+                    self.builder.build_unconditional_branch(block);
+
+                    self.builder.position_at_end(block);
+
+                    // Conditional (while) loop
+                    if section_type == 0 {}
+                }
+                OpCode::EndSection => {}
                 OpCode::JumpIfFalse => {
+                    let section_block = function.get_last_basic_block().unwrap();
+
                     let jump_to = read_uint32(&code[ip as usize..]);
 
                     ip += 4;
@@ -609,10 +634,10 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     // branches
                     let then_b = self.context.append_basic_block(function, "then");
-                    let else_b = self.context.append_basic_block(function, "else");
+                    //let else_b = self.context.append_basic_block(function, "else");
                     let cont_b = self.context.append_basic_block(function, "ifcont");
 
-                    let conditional_branch = self.builder.build_conditional_branch(cond, then_b, else_b);
+                    self.builder.build_conditional_branch(cond, then_b, cont_b);
 
                     // then block
                     self.builder.position_at_end(then_b);
@@ -620,73 +645,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     // do then block
                     let _done =
                         self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
-
-                    // Check if this was a loop
-                    let mut jumped_back = false;
-
-                    for jump in &self.jumps {
-                        if jump.0 == ip {
-                            jumped_back = true;
-
-                            let loop_block = self.context.append_basic_block(function, "loop");
-
-                            self.builder.position_at(function.get_first_basic_block().unwrap(), &conditional_branch);
-                            self.builder.build_unconditional_branch(loop_block);
-                            conditional_branch.erase_from_basic_block();
-
-                            // Add the comparison to this block
-                            self.builder.position_at_end(loop_block);
-
-                            // Get all instructions that the "condition" uses and move them here
-                            let mut at_instruction = cond.as_instruction();
-                            if let Some(mut at_instruction) = at_instruction {
-                                'outer: while let Some(ins) = at_instruction.get_previous_instruction() {
-                                    let mut at_used = ins.get_first_use();
-                                    while let Some(u) = at_used {
-                                        if u.get_user() == cond.as_any_value_enum() {
-                                            // Remove from its current block and move into the loop
-                                            ins.remove_from_basic_block();
-                                            self.builder.position_at_end(loop_block);
-                                            self.builder.insert_instruction(&ins, Some("copied_from_entry"));
-
-                                            break
-                                        }
-
-                                        at_used = at_used.unwrap().get_next_use();
-                                    }
-
-                                    if let Some(new_ins) = at_instruction.get_previous_instruction() {
-                                        at_instruction = new_ins;
-                                        continue
-                                    }
-
-                                    break 'outer
-                                }
-                            }
-
-                            // Remove the comparison from the other block
-                            cond.as_instruction().unwrap().remove_from_basic_block();
-
-                            //self.builder.position_before(&then_b.get_first_instruction().unwrap());
-                            self.builder.insert_instruction(&cond.as_instruction().unwrap(), Some("loop_condition"));
-
-                            if loop_block.get_terminator().is_none() {
-                                self.builder.build_conditional_branch(cond, then_b, else_b);
-                            }
-
-                            if then_b.get_terminator().is_none() {
-                                self.builder.position_at_end(then_b);
-                                self.builder.build_unconditional_branch(loop_block);
-                            }
-
-                            break;
-                        }
-                    }
-
-                    // else
-                    self.builder.position_at_end(else_b);
-                    self.builder.build_unconditional_branch(cont_b);
-
+                    self.builder.build_unconditional_branch(section_block);
 
                     ip = jump_to;
                     //println!("Done: {}", done);
@@ -702,7 +661,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     if jump_to < ip && to != code.len() as u32 {
                         self.jumps.push((from, jump_to));
                     }
-                },
+                }
                 OpCode::Pop => {
                     self.pop(temp_stack.as_mut());
                 }
