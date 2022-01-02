@@ -1,0 +1,22 @@
+var Algorithm = fn(array) {
+    var reverse = []
+    var i = len(array) - 1
+    for(i > -1){
+        reverse.add(array[i])
+        i = i - 1
+    }
+ 
+    i = 0
+    for(i < len(array)){
+        if(array[i] != reverse[i]){
+            return false
+        }
+        i = i + 1
+    }
+    
+    return true
+}
+
+var array = [2, 1, 2, 1, 2]
+var result = Algorithm(array)
+print(array) print(", Is an palindrome --> ") println(result)

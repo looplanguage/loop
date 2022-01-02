@@ -149,12 +149,24 @@ mod tests {
     }
 
     #[test]
-    fn comments() {
-        let mut input = "/<hello2>/ //hello";
-        let expected = vec![
-            test_helper::generate_token("hello2", TokenType::Comment),
-            test_helper::generate_token("hello", TokenType::Comment),
-        ];
+    fn comments_single_line() {
+        let input = "//hallo, this is a comment\
+        var";
+        let expected = vec![test_helper::generate_token(
+            "var",
+            TokenType::VariableDeclaration,
+        )];
+
+        do_test(input, expected);
+    }
+
+    #[test]
+    fn comments_block() {
+        let input = "/<hello2>/ var";
+        let expected = vec![test_helper::generate_token(
+            "var",
+            TokenType::VariableDeclaration,
+        )];
 
         do_test(input, expected);
     }

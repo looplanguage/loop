@@ -1,4 +1,4 @@
-use crate::compiler::Compiler;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lexer::build_lexer;
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::exception::Exception;
@@ -7,10 +7,7 @@ use crate::parser::statement::import::Import;
 use std::fs;
 use std::path::Path;
 
-pub fn compile_import_statement(
-    _compiler: &mut Compiler,
-    import: Import,
-) -> Option<CompilerException> {
+pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> CompilerResult {
     // Keep hold of last_location
     let before_last_location = _compiler.prev_location.clone();
     let last_location = _compiler.location.clone();
@@ -27,7 +24,7 @@ pub fn compile_import_statement(
     let contents = fs::read_to_string(location);
 
     if contents.is_err() {
-        return Some(CompilerException::CanNotReadFile(
+        return CompilerResult::Exception(CompilerException::CanNotReadFile(
             contents.err().unwrap().to_string(),
         ));
     }
@@ -61,7 +58,7 @@ pub fn compile_import_statement(
     let err = _compiler.compile(program);
 
     if err.is_err() {
-        return err.err();
+        return CompilerResult::Exception(err.err().unwrap());
     }
 
     // Set last_location back
@@ -69,5 +66,5 @@ pub fn compile_import_statement(
     _compiler.location = last_location;
     _compiler.export_name = last_import_location;
 
-    None
+    CompilerResult::Success
 }

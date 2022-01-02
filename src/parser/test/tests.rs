@@ -5,7 +5,6 @@ mod tests {
     use crate::parser;
     use crate::parser::expression::array::Array;
     use crate::parser::expression::boolean::Boolean;
-    use crate::parser::expression::conditional::Conditional;
     use crate::parser::expression::function::{Call, Function};
     use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
     use crate::parser::expression::identifier::Identifier;
@@ -15,7 +14,6 @@ mod tests {
     use crate::parser::expression::string::LoopString;
     use crate::parser::expression::suffix::Suffix;
     use crate::parser::expression::Expression::Index;
-    use crate::parser::program::Node;
     use crate::parser::statement::assign::VariableAssign;
     use crate::parser::statement::block::Block;
     use crate::parser::statement::expression::Expression;
@@ -469,19 +467,15 @@ mod tests {
         let mut expected: Vec<Statement> = Vec::new();
 
         expected.push(Statement::Expression(Box::from(Expression {
-            expression: Box::new(
-                (parser::expression::Expression::String(LoopString {
-                    value: String::from("hello world!"),
-                })),
-            ),
+            expression: Box::new(parser::expression::Expression::String(LoopString {
+                value: String::from("hello world!"),
+            })),
         })));
 
         expected.push(Statement::Expression(Box::from(Expression {
-            expression: Box::new(
-                (parser::expression::Expression::String(LoopString {
-                    value: String::from("hello world, from a string!"),
-                })),
-            ),
+            expression: Box::new(parser::expression::Expression::String(LoopString {
+                value: String::from("hello world, from a string!"),
+            })),
         })));
 
         test_parser(input, expected);
@@ -670,7 +664,7 @@ mod tests {
     fn array_mixed_content() {
         let input = "[1, null, true, \"hello world\"]";
 
-        let mut expected: Vec<Statement> = vec![];
+        let expected: Vec<Statement> = vec![];
 
         let expected = add_array_mixed_content(expected);
 
@@ -681,7 +675,7 @@ mod tests {
     fn arrays_mixed_content() {
         let input = "[1, null, true, \"hello world\"]; [1, null, true, \"hello world\"]";
 
-        let mut expected: Vec<Statement> = vec![];
+        let expected: Vec<Statement> = vec![];
 
         let expected = add_array_mixed_content(expected);
         let expected = add_array_mixed_content(expected);
@@ -753,9 +747,16 @@ mod tests {
     }
 
     #[test]
-    fn comments() {
-        let input = "// Hello \n \
-        /< hello \
+    fn comments_single_line() {
+        let input = "// Hello";
+
+        let expected: Vec<Statement> = vec![];
+        test_parser(input, expected);
+    }
+
+    #[test]
+    fn comments_block() {
+        let input = "/<hello \
         multiline >/";
 
         let expected: Vec<Statement> = vec![];

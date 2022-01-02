@@ -52,7 +52,6 @@ pub enum TokenType {
     RightBracket,
     String,
     As,
-    Comment,
     For,
     From,
     To,

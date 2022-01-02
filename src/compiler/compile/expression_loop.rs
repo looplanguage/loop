@@ -1,28 +1,31 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
-use crate::lib::exception::compiler::CompilerException;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::{array, integer, Expression};
 
-pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<CompilerException> {
+pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerResult {
     compiler.enter_variable_scope();
     let section = compiler.emit(OpCode::StartSection, vec![0, 9999]);
 
     let start = compiler.scope().instructions.len();
-    let err = compiler.compile_expression(*lp.condition);
+    let result = compiler.compile_expression(*lp.condition);
 
-    if err.is_some() {
-        return err;
+    #[allow(clippy::single_match)]
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     let done = compiler.emit(OpCode::JumpIfFalse, vec![99999]); // To jump later
 
-    let err = compiler.compile_block(lp.body);
+    let result = compiler.compile_block(lp.body);
 
-    if err.is_some() {
-        return err;
+    #[allow(clippy::single_match)]
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     compiler.emit(OpCode::Jump, vec![start as u32]); // Jump back to start
@@ -46,13 +49,13 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
 
     compiler.breaks = vec![];
 
-    None
+    CompilerResult::Success
 }
 
 pub fn compile_loop_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopIterator,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     compiler.enter_variable_scope();
     let section = compiler.emit(OpCode::StartSection, vec![1, 9999]);
 
@@ -122,13 +125,13 @@ pub fn compile_loop_iterator_expression(
     compiler.emit(OpCode::Constant, vec![from]);
     compiler.emit(OpCode::SetVar, vec![var.index]);
 
-    None
+    CompilerResult::Success
 }
 
 pub fn compile_loop_array_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopArrayIterator,
-) -> Option<CompilerException> {
+) -> CompilerResult {
     compiler.enter_variable_scope();
     let section = compiler.emit(OpCode::StartSection, vec![40, 9999]);
 
@@ -206,5 +209,5 @@ pub fn compile_loop_array_iterator_expression(
     }
     compiler.breaks = vec![];
 
-    None
+    CompilerResult::Success
 }

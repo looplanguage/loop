@@ -1,19 +1,22 @@
 use crate::compiler::opcode::OpCode;
-use crate::compiler::Compiler;
-use crate::lib::exception::compiler::CompilerException;
+use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Call;
 
-pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> Option<CompilerException> {
-    let err = compiler.compile_expression(*call.identifier.clone());
+pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
+    let result = compiler.compile_expression(*call.identifier.clone());
 
-    if err.is_some() {
-        return err;
+    #[allow(clippy::single_match)]
+    match &result {
+        CompilerResult::Exception(_exception) => return result,
+        _ => (),
     }
 
     for parameter in call.parameters.clone() {
-        let err = compiler.compile_expression(parameter);
-        if err.is_some() {
-            return err;
+        let result = compiler.compile_expression(parameter);
+        #[allow(clippy::single_match)]
+        match &result {
+            CompilerResult::Exception(_exception) => return result,
+            _ => (),
         }
     }
 
@@ -21,5 +24,5 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> Option<Co
 
     compiler.emit(OpCode::Call, vec![param_len as u32]);
 
-    None
+    CompilerResult::Success
 }

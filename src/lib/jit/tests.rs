@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use crate::lib::config::CONFIG;
     use crate::lib::exception::Exception;
     use crate::lib::jit::CodeGen;
     use crate::lib::object::integer::Integer;
@@ -10,7 +9,6 @@ mod tests {
     use inkwell::context::Context;
     use inkwell::passes::PassManager;
     use inkwell::OptimizationLevel;
-    use std::collections::HashMap;
     use std::env;
 
     #[test]
@@ -222,7 +220,7 @@ mod tests {
 
         fpm.initialize();
 
-        let mut codegen = CodeGen {
+        let codegen = CodeGen {
             context: &context,
             module: &module,
             builder: context.create_builder(),
