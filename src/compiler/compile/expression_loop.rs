@@ -98,18 +98,9 @@ pub fn compile_loop_iterator_expression(
     compiler.emit(OpCode::Add, vec![]);
     compiler.emit(OpCode::SetVar, vec![var.index]); // 0
 
-    // Emit a null if we didn't break with anything
-    compiler.emit(OpCode::Constant, vec![0]);
-
+    //compiler.emit(OpCode::Constant, vec![0]);
     // Jump to start
     compiler.emit(OpCode::Jump, vec![start as u32]);
-
-    // Change JumpIfFalse to the end
-    compiler.emit(OpCode::Constant, vec![0]);
-    compiler.change_operand(
-        start_jump as u32,
-        vec![compiler.scope().instructions.len() as u32 + 1],
-    );
 
     // Set all breaks to go to the end of current loop
     for br in compiler.breaks.clone() {
@@ -120,11 +111,15 @@ pub fn compile_loop_iterator_expression(
 
     compiler.exit_variable_scope();
 
+    compiler.emit(OpCode::Constant, vec![0]);
     let end = compiler.emit(OpCode::EndSection, vec![]);
     compiler.change_operand(section as u32, vec![1, end as u32]);
-    // Reset iterator
-    compiler.emit(OpCode::Constant, vec![from]);
-    compiler.emit(OpCode::SetVar, vec![var.index]);
+
+    // Change JumpIfFalse to the end
+    compiler.change_operand(
+        start_jump as u32,
+        vec![compiler.scope().instructions.len() as u32 + 1],
+    );
 
     None
 }
