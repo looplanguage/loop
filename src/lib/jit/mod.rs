@@ -695,7 +695,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         let _done =
                             self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
 
-                        //self.builder.build_unconditional_branch(cont_b);
+                        self.builder.build_unconditional_branch(cont_b);
 
                         // else
                         self.builder.position_at_end(else_b);
