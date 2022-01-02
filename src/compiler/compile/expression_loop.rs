@@ -8,11 +8,10 @@ use crate::parser::expression::{array, integer, Expression};
 
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<CompilerException> {
     compiler.enter_variable_scope();
+    compiler.emit(OpCode::StartSection, vec![]);
 
     let start = compiler.scope().instructions.len();
     let err = compiler.compile_expression(*lp.condition);
-
-    compiler.emit(OpCode::StartSection, vec![]);
 
     if err.is_some() {
         return err;
