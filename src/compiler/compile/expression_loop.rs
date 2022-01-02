@@ -12,6 +12,8 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
     let start = compiler.scope().instructions.len();
     let err = compiler.compile_expression(*lp.condition);
 
+    compiler.emit(OpCode::StartSection, vec![]);
+
     if err.is_some() {
         return err;
     }
@@ -42,6 +44,8 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
 
     compiler.exit_variable_scope();
 
+    compiler.emit(OpCode::EndSection, vec![]);
+
     None
 }
 
@@ -50,6 +54,7 @@ pub fn compile_loop_iterator_expression(
     lp: LoopIterator,
 ) -> Option<CompilerException> {
     compiler.enter_variable_scope();
+    compiler.emit(OpCode::StartSection, vec![]);
 
     // Define the identifier variable, with the starting integer
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -115,6 +120,7 @@ pub fn compile_loop_iterator_expression(
     compiler.breaks = vec![];
 
     compiler.exit_variable_scope();
+    compiler.emit(OpCode::EndSection, vec![]);
 
     None
 }
@@ -124,6 +130,7 @@ pub fn compile_loop_array_iterator_expression(
     lp: LoopArrayIterator,
 ) -> Option<CompilerException> {
     compiler.enter_variable_scope();
+    compiler.emit(OpCode::StartSection, vec![]);
 
     // Put the array on the stack and assign it to a cache variable
     let array = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -193,6 +200,7 @@ pub fn compile_loop_array_iterator_expression(
     compiler.breaks = vec![];
 
     compiler.emit(OpCode::Constant, vec![0]);
+    compiler.emit(OpCode::EndSection, vec![]);
 
     None
 }
