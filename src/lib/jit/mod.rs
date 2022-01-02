@@ -9,6 +9,7 @@ use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use crate::vm::VM;
+use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
@@ -19,6 +20,7 @@ use inkwell::values::{
     AnyValue, AnyValueEnum, BasicMetadataValueEnum, BasicValue, FunctionValue, InstructionValue,
 };
 use inkwell::{AddressSpace, FloatPredicate};
+use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -43,7 +45,7 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) last_popped: Option<StackItem<'ctx>>,
     pub(crate) jumps: Vec<(u32, u32)>,
-    pub(crate) section_depth: Vec<u32>,
+    pub(crate) section_depth: Vec<(u32, BasicBlock<'ctx>)>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -152,6 +154,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         let mut ip = from;
         let mut temp_stack: Vec<StackItem> = Vec::new();
         let mut compile_at_end: HashMap<String, CompiledFunction> = HashMap::new();
+
+        // Temp, should be replaced by a better alternative
+        let mut handling_loop_compare = false;
 
         while ip < (code.len() as u32) {
             let _op = lookup_op(code[ip as usize]);
@@ -467,7 +472,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                             ),
                         );
                     } else {
-                        println!("VARIABLE ID: {}", idx);
                         let variable = vm.variables.get(&idx).unwrap().clone();
 
                         match &*variable.as_ref().borrow() {
@@ -598,6 +602,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     );
                 }
                 OpCode::StartSection => {
+                    handling_loop_compare = true;
                     let section_type = read_uint16(&code[ip as usize..]);
 
                     ip += 2;
@@ -613,53 +618,105 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
                     self.builder.position_at_end(block);
 
-                    // Conditional (while) loop
-                    if section_type == 0 {}
+                    self.section_depth.push((end_section, block));
                 }
-                OpCode::EndSection => {}
+                OpCode::EndSection => {
+                    self.section_depth.pop();
+                }
                 OpCode::JumpIfFalse => {
-                    let section_block = function.get_last_basic_block().unwrap();
+                    if handling_loop_compare {
+                        // This is a loop
+                        handling_loop_compare = false;
+                        let section_block = function.get_last_basic_block().unwrap();
 
-                    let jump_to = read_uint32(&code[ip as usize..]);
+                        let jump_to = read_uint32(&code[ip as usize..]);
 
-                    ip += 4;
+                        ip += 4;
 
-                    let cond = {
-                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
-                            a.into_int_value()
-                        } else {
-                            self.context.i64_type().const_int(0, false)
-                        }
-                    };
+                        let cond = {
+                            if let StackItem::AnyValueEnum(a) =
+                                self.pop(temp_stack.as_mut()).unwrap()
+                            {
+                                a.into_int_value()
+                            } else {
+                                self.context.i64_type().const_int(0, false)
+                            }
+                        };
 
-                    // branches
-                    let then_b = self.context.append_basic_block(function, "then");
-                    //let else_b = self.context.append_basic_block(function, "else");
-                    let cont_b = self.context.append_basic_block(function, "ifcont");
+                        // branches
+                        let then_b = self.context.append_basic_block(function, "then");
+                        //let else_b = self.context.append_basic_block(function, "else");
+                        let cont_b = self.context.append_basic_block(function, "ifcont");
 
-                    self.builder.build_conditional_branch(cond, then_b, cont_b);
+                        self.builder.build_conditional_branch(cond, then_b, cont_b);
 
-                    // then block
-                    self.builder.position_at_end(then_b);
+                        // then block
+                        self.builder.position_at_end(then_b);
 
-                    // do then block
-                    let _done =
-                        self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
-                    self.builder.build_unconditional_branch(section_block);
+                        // get current section
+                        let mut section = self.section_depth.last_mut().unwrap();
 
-                    ip = jump_to;
-                    //println!("Done: {}", done);
+                        *section = (section.0, cont_b);
 
-                    self.builder.position_at_end(cont_b);
+                        // do then block
+                        let _done =
+                            self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
+                        self.builder.build_unconditional_branch(section_block);
+
+                        ip = jump_to;
+
+                        self.builder.position_at_end(cont_b);
+                    } else {
+                        let jump_to = read_uint32(&code[ip as usize..]);
+
+                        ip += 4;
+
+                        let cond = {
+                            if let StackItem::AnyValueEnum(a) =
+                                self.pop(temp_stack.as_mut()).unwrap()
+                            {
+                                a.into_int_value()
+                            } else {
+                                self.context.i64_type().const_int(0, false)
+                            }
+                        };
+
+                        // branches
+                        let then_b = self.context.append_basic_block(function, "then");
+                        let else_b = self.context.append_basic_block(function, "else");
+                        let cont_b = self.context.append_basic_block(function, "ifcont");
+
+                        self.builder.build_conditional_branch(cond, then_b, else_b);
+
+                        // then block
+                        self.builder.position_at_end(then_b);
+
+                        // do then block
+                        let _done =
+                            self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
+
+                        //self.builder.build_unconditional_branch(cont_b);
+
+                        // else
+                        self.builder.position_at_end(else_b);
+                        self.builder.build_unconditional_branch(cont_b);
+
+                        ip = jump_to;
+                        //println!("Done: {}", done);
+
+                        self.builder.position_at_end(cont_b);
+                    }
                 }
                 OpCode::Jump => {
                     let jump_to = read_uint32(&code[ip as usize..]);
 
                     ip += 4;
 
-                    // Means we have to jump back, this **only** happens in loops
-                    if jump_to < ip && to != code.len() as u32 {
-                        self.jumps.push((from, jump_to));
+                    if !self.section_depth.is_empty()
+                        && self.section_depth.last().unwrap().0 == jump_to
+                    {
+                        self.builder
+                            .build_unconditional_branch(self.section_depth.last().unwrap().1);
                     }
                 }
                 OpCode::Pop => {

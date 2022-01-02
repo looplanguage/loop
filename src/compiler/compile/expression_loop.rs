@@ -32,19 +32,19 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
         vec![compiler.scope().instructions.len() as u32],
     );
 
-    // Set all breaks to go to the end of current loop
-    for br in compiler.breaks.clone() {
-        compiler.change_operand(br, vec![compiler.scope().instructions.len() as u32])
-    }
-
-    compiler.breaks = vec![];
-
     compiler.emit(OpCode::Constant, vec![0]);
 
     compiler.exit_variable_scope();
 
     let end = compiler.emit(OpCode::EndSection, vec![]);
     compiler.change_operand(section as u32, vec![0, end as u32]);
+
+    // Set all breaks to go to the end of current loop
+    for br in compiler.breaks.clone() {
+        compiler.change_operand(br, vec![end as u32])
+    }
+
+    compiler.breaks = vec![];
 
     None
 }
@@ -101,23 +101,20 @@ pub fn compile_loop_iterator_expression(
     // Jump to start
     compiler.emit(OpCode::Jump, vec![start as u32]);
 
-    // Set all breaks to go to the end of current loop
-    for br in compiler.breaks.clone() {
-        compiler.change_operand(br, vec![compiler.scope().instructions.len() as u32])
-    }
-
-    compiler.breaks = vec![];
-
     compiler.exit_variable_scope();
 
     let end = compiler.emit(OpCode::EndSection, vec![]);
     compiler.change_operand(section as u32, vec![1, end as u32]);
 
     // Change JumpIfFalse to the end
-    compiler.change_operand(
-        start_jump as u32,
-        vec![compiler.scope().instructions.len() as u32],
-    );
+    compiler.change_operand(start_jump as u32, vec![end as u32]);
+
+    // Set all breaks to go to the end of current loop
+    for br in compiler.breaks.clone() {
+        compiler.change_operand(br, vec![end as u32])
+    }
+
+    compiler.breaks = vec![];
 
     compiler.emit(OpCode::Constant, vec![0]);
 
@@ -195,13 +192,6 @@ pub fn compile_loop_array_iterator_expression(
     // set jump to end & add a final "null" value for if we didn't break inside the loop
     compiler.change_operand(end as u32, vec![compiler.scope().instructions.len() as u32]);
 
-    // Set all breaks to go to the end of current loop
-    for br in compiler.breaks.clone() {
-        compiler.change_operand(br, vec![compiler.scope().instructions.len() as u32])
-    }
-
-    compiler.breaks = vec![];
-
     // Reset iterator
     compiler.emit(OpCode::Constant, vec![zero]);
     compiler.emit(OpCode::SetVar, vec![index.index]);
@@ -209,6 +199,12 @@ pub fn compile_loop_array_iterator_expression(
     compiler.emit(OpCode::Constant, vec![0]);
     let end = compiler.emit(OpCode::EndSection, vec![]);
     compiler.change_operand(section as u32, vec![2, end as u32]);
+
+    // Set all breaks to go to the end of current loop
+    for br in compiler.breaks.clone() {
+        compiler.change_operand(br, vec![end as u32])
+    }
+    compiler.breaks = vec![];
 
     None
 }
