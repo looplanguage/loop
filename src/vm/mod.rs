@@ -439,7 +439,8 @@ impl VM {
                 OpCode::Or => run_suffix_expression(self, "||"),
                 // Sections are completely ignored by the VM, they serve as helpers for the JIT engine
                 OpCode::StartSection => {
-                    self.increment_ip(2);
+                    // Byte width: 2 from section type + 4 from section end ip = 6
+                    self.increment_ip(6);
 
                     None
                 }

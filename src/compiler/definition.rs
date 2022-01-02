@@ -126,11 +126,12 @@ pub fn get_definition(op: OpCode) -> Definition {
         },
         OpCode::StartSection => Definition {
             name: "StartSection".to_string(),
-            // The operand is the type of section that is started
+            // The first operand is the type of section that is started
             // 0 = conditional loop
             // 1 = iterator loop
             // 2 = foreach loop
-            operand_width: vec![2],
+            // The second operand is when the section ends
+            operand_width: vec![2, 4],
         },
         OpCode::EndSection => Definition {
             name: "EndSection".to_string(),

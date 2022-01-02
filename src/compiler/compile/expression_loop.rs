@@ -8,7 +8,7 @@ use crate::parser::expression::{array, integer, Expression};
 
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<CompilerException> {
     compiler.enter_variable_scope();
-    compiler.emit(OpCode::StartSection, vec![0]);
+    let section = compiler.emit(OpCode::StartSection, vec![0, 9999]);
 
     let start = compiler.scope().instructions.len();
     let err = compiler.compile_expression(*lp.condition);
@@ -43,7 +43,8 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> Option<Comp
 
     compiler.exit_variable_scope();
 
-    compiler.emit(OpCode::EndSection, vec![]);
+    let end = compiler.emit(OpCode::EndSection, vec![]);
+    compiler.change_operand(section as u32, vec![2, end as u32]);
 
     None
 }
@@ -53,7 +54,7 @@ pub fn compile_loop_iterator_expression(
     lp: LoopIterator,
 ) -> Option<CompilerException> {
     compiler.enter_variable_scope();
-    compiler.emit(OpCode::StartSection, vec![1]);
+    let section = compiler.emit(OpCode::StartSection, vec![1, 9999]);
 
     // Define the identifier variable, with the starting integer
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -119,7 +120,8 @@ pub fn compile_loop_iterator_expression(
     compiler.breaks = vec![];
 
     compiler.exit_variable_scope();
-    compiler.emit(OpCode::EndSection, vec![]);
+    let end = compiler.emit(OpCode::EndSection, vec![]);
+    compiler.change_operand(section as u32, vec![1, end as u32]);
 
     None
 }
@@ -129,7 +131,7 @@ pub fn compile_loop_array_iterator_expression(
     lp: LoopArrayIterator,
 ) -> Option<CompilerException> {
     compiler.enter_variable_scope();
-    compiler.emit(OpCode::StartSection, vec![2]);
+    let section = compiler.emit(OpCode::StartSection, vec![2, 9999]);
 
     // Put the array on the stack and assign it to a cache variable
     let array = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -199,7 +201,8 @@ pub fn compile_loop_array_iterator_expression(
     compiler.breaks = vec![];
 
     compiler.emit(OpCode::Constant, vec![0]);
-    compiler.emit(OpCode::EndSection, vec![]);
+    let end = compiler.emit(OpCode::EndSection, vec![]);
+    compiler.change_operand(section as u32, vec![2, end as u32]);
 
     None
 }
