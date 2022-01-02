@@ -438,7 +438,11 @@ impl VM {
                 OpCode::And => run_suffix_expression(self, "&&"),
                 OpCode::Or => run_suffix_expression(self, "||"),
                 // Sections are completely ignored by the VM, they serve as helpers for the JIT engine
-                OpCode::StartSection => None,
+                OpCode::StartSection => {
+                    self.increment_ip(2);
+
+                    None
+                }
                 OpCode::EndSection => None,
             };
 
