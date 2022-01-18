@@ -3,15 +3,15 @@
        A Modern Type-Safe Programming Language<br>
        <a href="https://looplang.org/">Website</a> |
        <a href="https://looplang.org/docs">Documentation</a> |
+       <a href="https://downloads.looplang.org">Downloads</a> |
        <a href="https://discord.gg/T3tqQBTyJA">Discord</a> |
        <a href="https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues">Jira Board</a><br>
     </p>
 <br>
 
-**Note:** Loop is still in development, we are in the early days in the development. This means that the language is not production ready.
+> **Note:** Loop is still in development, we are in the early days in the development. This means that the language is not production ready.
 
-In this repository, you will find the lexer, parser, compiler and virtual
-machine.<br>
+
 
 ## Get started (usage)
 
@@ -31,9 +31,64 @@ machine.<br>
 
 Go to our [Jira](https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues) board to see all the issues and tasks to work on.
 
+### Compiler Walkthrough
+
+
+> **Note:** We are currently working on a technical document that is way more detailed and comprehensive than the one below.
+
+Parsing is the first thing that happens when a Loop program 
+is ran. The Lexer converts the input program to tokens and 
+the parser parses that to an abstract syntax tree (AST). The 
+compiler runs through the AST and generates bytecode. 
+That bytecode will either be interpreted by the virtual 
+machine or it will be JIT-compiler to machine code and 
+directly executed.
+
+### Folder structure
+
+The Loop compiler is fully contained in the `/src` folder
+
+```
+loop
+|  
+|--examples            contains example programs for Loop
+|  |  ....
+|
+|--scripts             contains scripts which we might need for e.g CI/CD 
+|  |  ....
+|
+|--src                 Loop compiler source code
+   |  main.rs          Entry point of compiler
+   |
+   |--compiler
+   |  | ....           Files and folders regarding compiler code
+   |  |
+   |  |--tests         Containing all tests from compiler
+   |
+   |--lexer
+   |  | ....           Files and folders regarding lexer code
+   |  |
+   |  |--tests         Containing all tests from lexer
+   |
+   |--lib
+   |  | ....           "lib" contains all first-party libraries that are used in Loop.
+   |                   The individual folders could be used independently from Loop.
+   |
+   |--parser
+   |  | ....           Files and folders regarding parser code
+   |  |
+   |  |--tests         Containing all tests from parser
+   |
+   |--vm
+      | ....           Files and folders regarding compiler code
+      |
+      |--tests         Containing all tests from compiler
+    
+```
+
 ## Guidelines
 
-If you want to contribute to one of the projects, it is recommenced to read two things: [development guidelines](https://github.com/looplanguage/.github/issues/1) and the [contributor guidelines](https://looplang.org/contributor_guidelines). 
+If you want to contribute to one of the projects, it is recommenced to read two things: [development guidelines](https://gitlab.com/looplanguage/loop/-/wikis/Loop-Language-Development-Guidelines) and the [contributor guidelines](https://looplang.org/contributor_guidelines). 
 
 ## Code of Conduct
 
