@@ -3,8 +3,8 @@ pub mod definition;
 pub mod instructions;
 pub mod opcode;
 mod symbol_table;
-mod variable_table;
 mod test;
+mod variable_table;
 
 use crate::compiler::compile::expression_array::compile_expression_array;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
