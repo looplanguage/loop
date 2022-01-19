@@ -1,7 +1,7 @@
 mod frame;
 pub(crate) mod function;
 mod suffix;
-mod tests;
+mod test;
 
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
