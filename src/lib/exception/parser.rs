@@ -26,6 +26,17 @@ pub struct ParserException {
 impl ParserException {
 
     /// Prints parser error in terminal, and exits the program with code '1'
+    /// # Error Template
+    /// <pre>
+    /// SyntaxError [(LINE):(COLUMN)] -->
+    ///     Error: (LINE OF ERROR)
+    ///
+    ///     Expected    : '(TOKEN)', but got: '(TOKEN)'
+    ///
+    ///	    NOTE:
+    ///         (OPTIONAL NOTE)
+    /// </pre>
+    ///
     /// # Examples
     /// ```(rust)
     /// let foo = ParserException { /*Instantiate ParserException Struct*/ };
