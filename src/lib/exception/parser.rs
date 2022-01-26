@@ -24,7 +24,6 @@ pub struct ParserException {
 }
 
 impl ParserException {
-
     /// Prints parser error in terminal, and exits the program with code '1'
     /// # Error Template
     /// <pre>
@@ -77,8 +76,7 @@ impl ParserException {
             if char == '\n' {
                 new_text.push(char);
                 new_text += &*insert;
-            }
-            else {
+            } else {
                 new_text.push(char);
             }
         }

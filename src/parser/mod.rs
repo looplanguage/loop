@@ -61,6 +61,7 @@ impl Parser {
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
+        println!("{}", self.lexer.get_line(self.lexer.current_line));
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             TokenType::Identifier => {
@@ -202,7 +203,7 @@ impl Parser {
     // Code one would mean that the Loop compiler itself had crashed. But in this case,
     // The code from the user is bad, thus 0.
     pub fn throw_exception(&mut self, message: String) {
-        println!(message);
+        println!("{}", message);
         process::exit(0);
     }
 }

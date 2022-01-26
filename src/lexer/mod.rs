@@ -2,6 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
+use std::borrow::Borrow;
 use token::Token;
 use token::TokenType;
 
@@ -34,17 +35,40 @@ impl Lexer {
         self.peek_token.as_ref()
     }
 
+    pub fn get_line(&self, line: i32) -> String {
+        let mut line_count = 0;
+        let mut char_count = 0;
+        for char in self.input.chars() {
+            char_count += 1;
+            if char == '\n' {
+                line_count += 1;
+            }
+            if line_count == line {
+                break;
+            }
+        }
+
+        let mut line = String::from("");
+        let mut current_char = self.input.chars().nth(char_count as usize);
+        while !current_char.is_none() && current_char.unwrap() != '\n' {
+            line.push(current_char.unwrap());
+            char_count += 1;
+            current_char = self.input.chars().nth(char_count as usize);
+        }
+
+        line
+    }
+
     fn internal_next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
 
-        if possible_char == None {
+        if possible_char.is_none() {
             return create_token(TokenType::Eof, "".to_string());
         }
 
         let ch: char = possible_char.unwrap();
-
         if ch.is_whitespace() {
             return self.internal_next_token();
         }
