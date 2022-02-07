@@ -124,6 +124,19 @@ pub fn get_definition(op: OpCode) -> Definition {
             name: "OpOr".to_string(),
             operand_width: vec![],
         },
+        OpCode::StartSection => Definition {
+            name: "StartSection".to_string(),
+            // The first operand is the type of section that is started
+            // 0 = conditional loop
+            // 1 = iterator loop
+            // 2 = foreach loop
+            // The second operand is when the section ends
+            operand_width: vec![2, 4],
+        },
+        OpCode::EndSection => Definition {
+            name: "EndSection".to_string(),
+            operand_width: vec![],
+        },
     }
 }
 
@@ -158,6 +171,8 @@ pub fn lookup_op(op: u8) -> Option<OpCode> {
         26 => Some(OpCode::Pow),
         27 => Some(OpCode::And),
         28 => Some(OpCode::Or),
+        29 => Some(OpCode::StartSection),
+        30 => Some(OpCode::EndSection),
         _ => None,
     }
 }
@@ -193,6 +208,8 @@ pub fn lookup(op: u8) -> Option<Definition> {
         26 => Some(get_definition(OpCode::Pow)),
         27 => Some(get_definition(OpCode::And)),
         28 => Some(get_definition(OpCode::Or)),
+        29 => Some(get_definition(OpCode::StartSection)),
+        30 => Some(get_definition(OpCode::EndSection)),
         _ => None,
     }
 }

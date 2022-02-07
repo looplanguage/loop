@@ -57,6 +57,7 @@ pub enum TokenType {
     To,
     In,
     Colon,
+    Break,
     Eof,
 }
 

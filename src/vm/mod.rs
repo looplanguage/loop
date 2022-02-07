@@ -1,7 +1,7 @@
 mod frame;
 pub(crate) mod function;
 mod suffix;
-mod tests;
+mod test;
 
 use crate::compiler::definition::lookup_op;
 use crate::compiler::instructions::{read_uint16, read_uint32, read_uint8};
@@ -437,6 +437,14 @@ impl VM {
                 OpCode::Pow => run_suffix_expression(self, "^"),
                 OpCode::And => run_suffix_expression(self, "&&"),
                 OpCode::Or => run_suffix_expression(self, "||"),
+                // Sections are completely ignored by the VM, they serve as helpers for the JIT engine
+                OpCode::StartSection => {
+                    // Byte width: 2 from section type + 4 from section end ip = 6
+                    self.increment_ip(6);
+
+                    None
+                }
+                OpCode::EndSection => None,
             };
 
             if let Some(err) = err {

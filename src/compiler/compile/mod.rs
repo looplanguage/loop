@@ -12,6 +12,7 @@ pub mod expression_loop;
 pub mod expression_null;
 pub mod expression_string;
 pub mod expression_suffix;
+pub mod statement_break;
 pub mod statement_export;
 pub mod statement_import;
 pub mod statement_return;

@@ -328,40 +328,34 @@ impl Lexer {
         false
     }
 
-    fn lookup_keyword(&mut self, keyword: &str) -> TokenType {
-        match keyword {
-            "var" => TokenType::VariableDeclaration,
-            "true" => TokenType::True,
-            "false" => TokenType::False,
-            "fn" => TokenType::Function,
-            "import" => TokenType::Import,
-            "export" => TokenType::Export,
-            "else" => TokenType::Else,
-            "for" => TokenType::For,
-            "and" | "&&" => TokenType::And,
-            "or" | "||" => TokenType::Or,
-            "null" => TokenType::Null,
-            "return" => TokenType::Return,
-            "if" => TokenType::If,
-            "as" => TokenType::As,
-            "from" => TokenType::From,
-            "in" => TokenType::In,
-            "to" => TokenType::To,
-            _ => {
-                if keyword.parse::<i64>().is_ok() {
-                    return TokenType::Integer;
-                } else if keyword.parse::<f64>().is_ok() {
-                    return TokenType::Float;
-                } else if !keyword.contains('.') {
-                    return TokenType::Identifier;
-                }
-                // Not sure if you ever come to this error message, could not get it done...
-                panic!(
-                    "Error -> On line: {}, Column: {}. Message: Keyword: {}, contains a '.', This is not allowed.",
-                    self.current_line,
-                    self.current_col,
-                    keyword,
-                )
+fn lookup_keyword(keyword: &str) -> TokenType {
+    match keyword {
+        "var" => TokenType::VariableDeclaration,
+        "true" => TokenType::True,
+        "false" => TokenType::False,
+        "fn" => TokenType::Function,
+        "import" => TokenType::Import,
+        "export" => TokenType::Export,
+        "else" => TokenType::Else,
+        "for" => TokenType::For,
+        "and" | "&&" => TokenType::And,
+        "or" | "||" => TokenType::Or,
+        "null" => TokenType::Null,
+        "return" => TokenType::Return,
+        "if" => TokenType::If,
+        "as" => TokenType::As,
+        "from" => TokenType::From,
+        "in" => TokenType::In,
+        "to" => TokenType::To,
+        "break" => TokenType::Break,
+        _ => {
+            if keyword.parse::<i64>().is_ok() {
+                return TokenType::Integer;
+            } else if keyword.parse::<f64>().is_ok() {
+                return TokenType::Float;
+            }
+            if !keyword.contains('.') {
+                return TokenType::Identifier;
             }
         }
     }

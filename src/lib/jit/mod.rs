@@ -1,7 +1,7 @@
 mod tests;
 
 use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{read_uint32, read_uint8};
+use crate::compiler::instructions::{print_instructions, read_uint16, read_uint32, read_uint8};
 use crate::compiler::opcode::OpCode;
 use crate::lib::config::CONFIG;
 use crate::lib::object::function::{CompiledFunction, Function};
@@ -9,6 +9,7 @@ use crate::lib::object::integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::Object;
 use crate::vm::VM;
+use inkwell::basic_block::BasicBlock;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
@@ -40,6 +41,7 @@ pub struct CodeGen<'a, 'ctx> {
     pub(crate) builder: Builder<'ctx>,
     pub(crate) execution_engine: ExecutionEngine<'ctx>,
     pub(crate) last_popped: Option<StackItem<'ctx>>,
+    pub(crate) section_depth: Vec<(u32, BasicBlock<'ctx>)>,
 }
 
 // TODO: Document this quite a bit more, as this is a little complicated
@@ -72,6 +74,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             }
 
             if CONFIG.debug_mode {
+                print_instructions(func.instructions);
                 println!("{}", self.module.print_to_string().to_string());
             }
 
@@ -112,6 +115,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
             function.verify(true);
 
             if CONFIG.debug_mode {
+                print_instructions(func.instructions);
                 println!("{}", self.module.print_to_string().to_string());
             }
 
@@ -146,6 +150,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         let mut ip = from;
         let mut temp_stack: Vec<StackItem> = Vec::new();
         let mut compile_at_end: HashMap<String, CompiledFunction> = HashMap::new();
+
+        // Temp, should be replaced by a better alternative
+        let mut handling_loop_compare = false;
 
         while ip < (code.len() as u32) {
             let _op = lookup_op(code[ip as usize]);
@@ -590,45 +597,126 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         StackItem::AnyValueEnum(returns.as_any_value_enum()),
                     );
                 }
+                OpCode::StartSection => {
+                    handling_loop_compare = true;
+                    let _section_type = read_uint16(&code[ip as usize..]);
+
+                    ip += 2;
+
+                    let end_section = read_uint32(&code[ip as usize..]);
+
+                    ip += 4;
+
+                    // Go deeper
+                    let block = self.context.append_basic_block(function, "section");
+
+                    self.builder.build_unconditional_branch(block);
+
+                    self.builder.position_at_end(block);
+
+                    self.section_depth.push((end_section, block));
+                }
+                OpCode::EndSection => {
+                    self.section_depth.pop();
+                }
                 OpCode::JumpIfFalse => {
+                    if handling_loop_compare {
+                        // This is a loop
+                        handling_loop_compare = false;
+                        let section_block = function.get_last_basic_block().unwrap();
+
+                        let jump_to = read_uint32(&code[ip as usize..]);
+
+                        ip += 4;
+
+                        let cond = {
+                            if let StackItem::AnyValueEnum(a) =
+                                self.pop(temp_stack.as_mut()).unwrap()
+                            {
+                                a.into_int_value()
+                            } else {
+                                self.context.i64_type().const_int(0, false)
+                            }
+                        };
+
+                        // branches
+                        let then_b = self.context.append_basic_block(function, "then");
+                        //let else_b = self.context.append_basic_block(function, "else");
+                        let cont_b = self.context.append_basic_block(function, "ifcont");
+
+                        self.builder.build_conditional_branch(cond, then_b, cont_b);
+
+                        // then block
+                        self.builder.position_at_end(then_b);
+
+                        // get current section
+                        let section = self.section_depth.last_mut().unwrap();
+
+                        *section = (section.0, cont_b);
+
+                        // do then block
+                        let _done =
+                            self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
+                        self.builder.build_unconditional_branch(section_block);
+
+                        ip = jump_to;
+
+                        self.builder.position_at_end(cont_b);
+                    } else {
+                        let jump_to = read_uint32(&code[ip as usize..]);
+
+                        ip += 4;
+
+                        let cond = {
+                            if let StackItem::AnyValueEnum(a) =
+                                self.pop(temp_stack.as_mut()).unwrap()
+                            {
+                                a.into_int_value()
+                            } else {
+                                self.context.i64_type().const_int(0, false)
+                            }
+                        };
+
+                        // branches
+                        let then_b = self.context.append_basic_block(function, "then");
+                        let else_b = self.context.append_basic_block(function, "else");
+                        let cont_b = self.context.append_basic_block(function, "ifcont");
+
+                        self.builder.build_conditional_branch(cond, then_b, else_b);
+
+                        // then block
+                        self.builder.position_at_end(then_b);
+
+                        // do then block
+                        let _done =
+                            self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
+
+                        if then_b.get_terminator().is_none() {
+                            self.builder.build_unconditional_branch(cont_b);
+                        }
+
+                        // else
+                        self.builder.position_at_end(else_b);
+                        self.builder.build_unconditional_branch(cont_b);
+
+                        ip = jump_to;
+                        //println!("Done: {}", done);
+
+                        self.builder.position_at_end(cont_b);
+                    }
+                }
+                OpCode::Jump => {
                     let jump_to = read_uint32(&code[ip as usize..]);
 
                     ip += 4;
 
-                    let cond = {
-                        if let StackItem::AnyValueEnum(a) = self.pop(temp_stack.as_mut()).unwrap() {
-                            a.into_int_value()
-                        } else {
-                            self.context.i64_type().const_int(0, false)
-                        }
-                    };
-
-                    // branches
-                    let then_b = self.context.append_basic_block(function, "then");
-                    let else_b = self.context.append_basic_block(function, "else");
-                    let cont_b = self.context.append_basic_block(function, "ifcont");
-
-                    self.builder.build_conditional_branch(cond, then_b, else_b);
-
-                    // then block
-                    self.builder.position_at_end(then_b);
-
-                    // do then block
-                    let _done =
-                        self.compile_bytecode(code.clone(), function, vm, ip, jump_to, false);
-
-                    //self.builder.build_unconditional_branch(cont_b);
-
-                    // else
-                    self.builder.position_at_end(else_b);
-                    self.builder.build_unconditional_branch(cont_b);
-
-                    ip = jump_to;
-                    //println!("Done: {}", done);
-
-                    self.builder.position_at_end(cont_b);
+                    if !self.section_depth.is_empty()
+                        && self.section_depth.last().unwrap().0 == jump_to
+                    {
+                        self.builder
+                            .build_unconditional_branch(self.section_depth.last().unwrap().1);
+                    }
                 }
-                OpCode::Jump => ip += 4,
                 OpCode::Pop => {
                     self.pop(temp_stack.as_mut());
                 }
