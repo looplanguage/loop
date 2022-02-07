@@ -1,7 +1,7 @@
 mod test;
 pub mod token;
 
-use crate::lexer::token::{create_token};
+use crate::lexer::token::create_token;
 use token::Token;
 use token::TokenType;
 
