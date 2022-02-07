@@ -14,6 +14,7 @@ use std::process;
 ///    extra_message: Some(String::from("Syntax -> if (<EXPRESSION>) {STATEMENTS} ")),
 /// }
 /// ```
+#[allow(dead_code)]
 pub struct ParserException {
     error_line: String,
     expected: Token,
@@ -22,17 +23,18 @@ pub struct ParserException {
     column: i32,
     extra_message: Option<String>,
 }
-
+#[allow(dead_code)]
 impl ParserException {
+    #[rustfmt::skip]
     /// Prints parser error in terminal, and exits the program with code '1'
     /// # Error Template
     /// <pre>
     /// SyntaxError [(LINE):(COLUMN)] -->
-    ///     Error: (LINE OF ERROR)
+    ///    Error: (LINE OF ERROR)
     ///
-    ///     Expected    : '(TOKEN)', but got: '(TOKEN)'
+    ///    Expected: '(TOKEN)', but got: '(TOKEN)'
     ///
-    ///	    NOTE:
+    ///    NOTE:
     ///         (OPTIONAL NOTE)
     /// </pre>
     ///
@@ -42,6 +44,7 @@ impl ParserException {
     /// foo.throw_exception();
     /// ```
     #[rustfmt::skip]
+    #[allow(dead_code)]
     pub fn throw_exception(&mut self) {
         println!("==========================================================");
         println!("{}", format!("SyntaxError [{}:{}] -->", self.line, self.column).bright_red());
@@ -73,13 +76,11 @@ impl ParserException {
         let insert = " ".repeat(spaces as usize);
         let mut new_text: String = String::from("");
         for char in text.chars() {
+            new_text.push(char);
             if char == '\n' {
-                new_text.push(char);
                 new_text += &*insert;
-            } else {
-                new_text.push(char);
             }
         }
-        return new_text.clone();
+        new_text.clone()
     }
 }

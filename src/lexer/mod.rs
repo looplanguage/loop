@@ -2,7 +2,6 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use std::borrow::Borrow;
 use token::Token;
 use token::TokenType;
 
@@ -50,7 +49,7 @@ impl Lexer {
 
         let mut line = String::from("");
         let mut current_char = self.input.chars().nth(char_count as usize);
-        while !current_char.is_none() && current_char.unwrap() != '\n' {
+        while current_char.is_some() && current_char.unwrap() != '\n' {
             line.push(current_char.unwrap());
             char_count += 1;
             current_char = self.input.chars().nth(char_count as usize);
