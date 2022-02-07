@@ -1,7 +1,7 @@
 mod test;
 pub mod token;
 
-use crate::lexer::token::create_token;
+use crate::lexer::token::{create_token};
 use token::Token;
 use token::TokenType;
 
@@ -195,7 +195,7 @@ impl Lexer {
             self.next_character();
         }
 
-        let mut token_type: TokenType = self.lookup_keyword(keyword.as_str());
+        let mut token_type: TokenType = Lexer::lookup_keyword(keyword.as_str());
 
         if token_type == TokenType::Integer
             && self.peek_character() == '.'
@@ -328,34 +328,39 @@ impl Lexer {
         false
     }
 
-fn lookup_keyword(keyword: &str) -> TokenType {
-    match keyword {
-        "var" => TokenType::VariableDeclaration,
-        "true" => TokenType::True,
-        "false" => TokenType::False,
-        "fn" => TokenType::Function,
-        "import" => TokenType::Import,
-        "export" => TokenType::Export,
-        "else" => TokenType::Else,
-        "for" => TokenType::For,
-        "and" | "&&" => TokenType::And,
-        "or" | "||" => TokenType::Or,
-        "null" => TokenType::Null,
-        "return" => TokenType::Return,
-        "if" => TokenType::If,
-        "as" => TokenType::As,
-        "from" => TokenType::From,
-        "in" => TokenType::In,
-        "to" => TokenType::To,
-        "break" => TokenType::Break,
-        _ => {
-            if keyword.parse::<i64>().is_ok() {
-                return TokenType::Integer;
-            } else if keyword.parse::<f64>().is_ok() {
-                return TokenType::Float;
-            }
-            if !keyword.contains('.') {
-                return TokenType::Identifier;
+    fn lookup_keyword(keyword: &str) -> TokenType {
+        match keyword {
+            "var" => TokenType::VariableDeclaration,
+            "true" => TokenType::True,
+            "false" => TokenType::False,
+            "fn" => TokenType::Function,
+            "import" => TokenType::Import,
+            "export" => TokenType::Export,
+            "else" => TokenType::Else,
+            "for" => TokenType::For,
+            "and" | "&&" => TokenType::And,
+            "or" | "||" => TokenType::Or,
+            "null" => TokenType::Null,
+            "return" => TokenType::Return,
+            "if" => TokenType::If,
+            "as" => TokenType::As,
+            "from" => TokenType::From,
+            "in" => TokenType::In,
+            "to" => TokenType::To,
+            "break" => TokenType::Break,
+            _ => {
+                if keyword.parse::<i64>().is_ok() {
+                    return TokenType::Integer;
+                } else if keyword.parse::<f64>().is_ok() {
+                    return TokenType::Float;
+                }
+                if !keyword.contains('.') {
+                    return TokenType::Identifier;
+                }
+                panic!(
+                    "Error -> Keyword: {}, contains a '.', This is not allowed.",
+                    keyword
+                )
             }
         }
     }
