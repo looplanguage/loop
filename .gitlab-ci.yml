@@ -128,14 +128,6 @@ deploy windows x86_64:
     - py scripts/prerelease.py
 
 # Linux
-check linux x86_64:
-  stage: check
-  extends:
-    - .linux
-    - .ci
-  script:
-    - cargo check
-
 lint linux x86_64:
   stage: lint
   extends:
@@ -144,6 +136,14 @@ lint linux x86_64:
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
+
+check linux x86_64:
+  stage: check
+  extends:
+    - .linux
+    - .ci
+  script:
+    - cargo check
 
 test linux x86_64:
   stage: test
