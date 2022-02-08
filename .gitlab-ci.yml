@@ -52,8 +52,8 @@
 
 stages:
   - setup
-  - check
   - lint
+  - check
   - test
   - deploy
   - dl site refresh
