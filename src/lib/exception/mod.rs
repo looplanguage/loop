@@ -3,6 +3,7 @@ use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::vm::VMException;
 
 pub mod compiler;
+mod parser;
 pub mod runtime;
 pub mod vm;
 

@@ -10,6 +10,8 @@ pub struct Lexer {
     input: String,
     pub current_token: Option<Token>,
     pub peek_token: Option<Token>,
+    pub current_line: i32,
+    pub current_col: i32,
 }
 
 impl Lexer {
@@ -32,17 +34,40 @@ impl Lexer {
         self.peek_token.as_ref()
     }
 
+    pub fn get_line(&self, line: i32) -> String {
+        let mut line_count = 0;
+        let mut char_count = 0;
+        for char in self.input.chars() {
+            char_count += 1;
+            if char == '\n' {
+                line_count += 1;
+            }
+            if line_count == line {
+                break;
+            }
+        }
+
+        let mut line = String::from("");
+        let mut current_char = self.input.chars().nth(char_count as usize);
+        while current_char.is_some() && current_char.unwrap() != '\n' {
+            line.push(current_char.unwrap());
+            char_count += 1;
+            current_char = self.input.chars().nth(char_count as usize);
+        }
+
+        line
+    }
+
     fn internal_next_token(&mut self) -> Token {
         let possible_char = self.input.chars().nth(self.current as usize);
 
         self.next_character();
 
-        if possible_char == None {
+        if possible_char.is_none() {
             return create_token(TokenType::Eof, "".to_string());
         }
 
         let ch: char = possible_char.unwrap();
-
         if ch.is_whitespace() {
             return self.internal_next_token();
         }
@@ -170,7 +195,7 @@ impl Lexer {
             self.next_character();
         }
 
-        let mut token_type: TokenType = lookup_keyword(keyword.as_str());
+        let mut token_type: TokenType = Lexer::lookup_keyword(keyword.as_str());
 
         if token_type == TokenType::Integer
             && self.peek_character() == '.'
@@ -210,6 +235,13 @@ impl Lexer {
 
     fn next_character(&mut self) {
         self.current += 1;
+        let possible_char = self.input.chars().nth(self.current as usize);
+        if possible_char != None && self.current_character() == '\n' {
+            self.current_line += 1;
+            self.current_col = 0;
+        } else {
+            self.current_col += 1;
+        }
     }
 
     fn current_character(&self) -> char {
@@ -231,7 +263,6 @@ impl Lexer {
 
         // Replacing the whole comment with spaces.
         // That way implementing line and column with an error is way easier.
-        //println!("last char: {}", index_string(self.input.as_str(), end_index));
         let mut replacement: String = "".to_string();
         for _ in 0..end_index - start_index {
             replacement.push(' ');
@@ -296,41 +327,41 @@ impl Lexer {
 
         false
     }
-}
 
-fn lookup_keyword(keyword: &str) -> TokenType {
-    match keyword {
-        "var" => TokenType::VariableDeclaration,
-        "true" => TokenType::True,
-        "false" => TokenType::False,
-        "fn" => TokenType::Function,
-        "import" => TokenType::Import,
-        "export" => TokenType::Export,
-        "else" => TokenType::Else,
-        "for" => TokenType::For,
-        "and" | "&&" => TokenType::And,
-        "or" | "||" => TokenType::Or,
-        "null" => TokenType::Null,
-        "return" => TokenType::Return,
-        "if" => TokenType::If,
-        "as" => TokenType::As,
-        "from" => TokenType::From,
-        "in" => TokenType::In,
-        "to" => TokenType::To,
-        "break" => TokenType::Break,
-        _ => {
-            if keyword.parse::<i64>().is_ok() {
-                return TokenType::Integer;
-            } else if keyword.parse::<f64>().is_ok() {
-                return TokenType::Float;
+    fn lookup_keyword(keyword: &str) -> TokenType {
+        match keyword {
+            "var" => TokenType::VariableDeclaration,
+            "true" => TokenType::True,
+            "false" => TokenType::False,
+            "fn" => TokenType::Function,
+            "import" => TokenType::Import,
+            "export" => TokenType::Export,
+            "else" => TokenType::Else,
+            "for" => TokenType::For,
+            "and" | "&&" => TokenType::And,
+            "or" | "||" => TokenType::Or,
+            "null" => TokenType::Null,
+            "return" => TokenType::Return,
+            "if" => TokenType::If,
+            "as" => TokenType::As,
+            "from" => TokenType::From,
+            "in" => TokenType::In,
+            "to" => TokenType::To,
+            "break" => TokenType::Break,
+            _ => {
+                if keyword.parse::<i64>().is_ok() {
+                    return TokenType::Integer;
+                } else if keyword.parse::<f64>().is_ok() {
+                    return TokenType::Float;
+                }
+                if !keyword.contains('.') {
+                    return TokenType::Identifier;
+                }
+                panic!(
+                    "Error -> Keyword: {}, contains a '.', This is not allowed.",
+                    keyword
+                )
             }
-            if !keyword.contains('.') {
-                return TokenType::Identifier;
-            }
-            panic!(
-                "Error -> Keyword: {}, contains a '.', This is not allowed.",
-                keyword
-            )
         }
     }
 }
@@ -341,6 +372,8 @@ pub fn build_lexer(input: &str) -> Lexer {
         input: input.to_string(),
         current_token: None,
         peek_token: None,
+        current_line: 1,
+        current_col: 0,
     };
 
     l.next_token();

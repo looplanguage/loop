@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::process;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
@@ -61,6 +62,7 @@ impl Parser {
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
+        println!("{}", self.lexer.get_line(self.lexer.current_line));
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             TokenType::Identifier => {
@@ -197,6 +199,14 @@ impl Parser {
 
     pub fn cur_precedence(&mut self) -> Precedence {
         get_precedence(self.lexer.get_current_token().unwrap().token)
+    }
+
+    // Exits program with code 0, which is successful.
+    // Code one would mean that the Loop compiler itself had crashed. But in this case,
+    // The code from the user is bad, thus 0.
+    pub fn throw_exception(&mut self, message: String) {
+        println!("{}", message);
+        process::exit(0);
     }
 }
 

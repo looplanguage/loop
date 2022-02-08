@@ -15,7 +15,9 @@ pub struct Conditional {
 pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
     if !p.lexer.next_is(TokenType::LeftParenthesis) {
         p.add_error(format!(
-            "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
+            "Wrong token on line: {}, column: {} -> Got=\"{:?}\". Expected=\"LeftParentheses\"",
+            p.lexer.current_line,
+            p.lexer.current_col,
             p.lexer.peek_token.clone().unwrap().token
         ));
         return None;
