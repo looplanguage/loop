@@ -85,16 +85,6 @@ check windows x86_64:
   script:
     - cargo check
 
-lint windows x86_64:
-  stage: lint
-  extends:
-    - .windows
-    - .ci
-    - .windows-build-tooling
-  script:
-    - cargo clippy -- -D warnings
-    - cargo fmt --all -- --check
-
 test windows x86_64:
   stage: test
   extends:
