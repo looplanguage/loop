@@ -3,7 +3,6 @@ use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 use crate::lib::object::Object;
-use rand::Rng;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -29,7 +28,6 @@ pub const BUILTINS: &[Builtin] = &[
     builtin!(print),
     builtin!(println),
     builtin!(format),
-    builtin!(rand),
 ];
 
 /*
