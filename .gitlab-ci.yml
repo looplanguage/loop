@@ -39,8 +39,8 @@
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.56.1
-    - rustup override set 1.56.1
+    - rustup install 1.58.1
+    - rustup override set 1.58.1
 
 .ci:
   only:
@@ -116,8 +116,8 @@ deploy windows x86_64:
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.56.1
-    - rustup override set 1.56.1
+    - rustup install 1.58.1
+    - rustup override set 1.58.1
     - choco install -y python --version=3.8.3
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
     - python -m pip install boto3
