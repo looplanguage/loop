@@ -3,7 +3,6 @@ use crate::lib::object::integer::Integer;
 use crate::lib::object::null::Null;
 use crate::lib::object::string::LoopString;
 use crate::lib::object::Object;
-use rand::Rng;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -29,7 +28,6 @@ pub const BUILTINS: &[Builtin] = &[
     builtin!(print),
     builtin!(println),
     builtin!(format),
-    builtin!(rand),
 ];
 
 /*
@@ -74,32 +72,6 @@ fn println(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
     }
 
     Ok(Object::Null(Null {}))
-}
-
-// This prob need to go into the standard library
-fn rand(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {
-    check_length(arguments.clone(), 2)?;
-    match &*arguments[0].as_ref().borrow() {
-        Object::Integer(arg1) => match &*arguments[1].as_ref().borrow() {
-            Object::Integer(arg2) => {
-                let min: i32 = arg1.value as i32;
-                let max: i32 = arg2.value as i32;
-                let result = rand::thread_rng().gen_range(min..max);
-
-                Ok(Object::Integer(Integer {
-                    value: i64::from(result),
-                }))
-            }
-            _ => Err(VMException::IncorrectType(format!(
-                "incorrect type for function 'rand'. got=\"{:?}\"",
-                &arguments[0]
-            ))),
-        },
-        _ => Err(VMException::IncorrectType(format!(
-            "incorrect type for function 'rand'. got=\"{:?}\"",
-            &arguments[0]
-        ))),
-    }
 }
 
 fn len(arguments: Vec<Rc<RefCell<Object>>>) -> EvalResult {

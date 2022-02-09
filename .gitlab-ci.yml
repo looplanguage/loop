@@ -39,8 +39,8 @@
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.56.1
-    - rustup override set 1.56.1
+    - rustup install 1.58.1
+    - rustup override set 1.58.1
 
 .ci:
   only:
@@ -52,8 +52,8 @@
 
 stages:
   - setup
-  - check
   - lint
+  - check
   - test
   - deploy
   - dl site refresh
@@ -84,16 +84,6 @@ check windows x86_64:
     - .windows-build-tooling
   script:
     - cargo check
-
-lint windows x86_64:
-  stage: lint
-  extends:
-    - .windows
-    - .ci
-    - .windows-build-tooling
-  script:
-    - cargo clippy -- -D warnings
-    - cargo fmt --all -- --check
 
 test windows x86_64:
   stage: test
@@ -126,8 +116,8 @@ deploy windows x86_64:
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.56.1
-    - rustup override set 1.56.1
+    - rustup install 1.58.1
+    - rustup override set 1.58.1
     - choco install -y python --version=3.8.3
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
     - python -m pip install boto3
@@ -138,14 +128,6 @@ deploy windows x86_64:
     - py scripts/prerelease.py
 
 # Linux
-check linux x86_64:
-  stage: check
-  extends:
-    - .linux
-    - .ci
-  script:
-    - cargo check
-
 lint linux x86_64:
   stage: lint
   extends:
@@ -154,6 +136,14 @@ lint linux x86_64:
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
+
+check linux x86_64:
+  stage: check
+  extends:
+    - .linux
+    - .ci
+  script:
+    - cargo check
 
 test linux x86_64:
   stage: test
