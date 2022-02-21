@@ -44,7 +44,10 @@
 
 .ci:
   only:
-    - merge_requests
+    refs:
+      - merge_requests
+    changes:
+      - src/*
 
 .deploy:
   only:
@@ -62,8 +65,11 @@ stages:
 setup windows x86_64:
   stage: setup
   only:
-    - main
-    - merge_requests
+    refs:
+      - main
+      - merge_requests
+    changes:
+      - src/*
   extends:
     - .windows
   script:
