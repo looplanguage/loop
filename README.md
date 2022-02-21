@@ -16,9 +16,9 @@ For the second release of Loop 0.2.0, this version will be released at the begin
 We want to make sure that everything you can do everything in Loop. 
 This will require a couple of developments, these are listed below:
 
- -[ ] Foreign Function Interface to call Rust functions in Loop.
- -[ ] Finalizing JIT-compiler.
- -[ ] Expanding native language features: structs, http, etc.
+ - [ ] Foreign Function Interface to call Rust functions in Loop.
+ - [ ] Finalizing JIT-compiler.
+ - [ ] Expanding native language features: structs, http, etc.
 
 ## Get started (usage)
 
