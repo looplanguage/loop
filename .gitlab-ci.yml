@@ -44,9 +44,10 @@
 
 .ci:
   only:
+    refs:
+      - merge_requests
     changes:
-       - src/*
-    - merge_requests
+      - src/*
 
 .deploy:
   only:
