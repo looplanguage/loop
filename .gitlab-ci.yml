@@ -45,10 +45,14 @@
 .ci:
   only:
     - merge_requests
+    changes:
+      - src/*
 
 .deploy:
   only:
     - main
+    changes:
+      - src/*
 
 stages:
   - setup
