@@ -10,7 +10,15 @@
 
 > **Note:** Loop is still in development, we are in the early days in the development. This means that the language is not production ready.
 
+## Development Roadmap
 
+For the second release of Loop 0.2.0, this version will be released at the beginning of the summer 2022. 
+We want to make sure that everything you can do everything in Loop. 
+This will require a couple of developments, these are listed below:
+
+ -[ ] Foreign Function Interface to call Rust functions in Loop.
+ -[ ] Finalizing JIT-compiler.
+ -[ ] Expanding native language features: structs, http, etc.
 
 ## Get started (usage)
 
@@ -31,7 +39,6 @@
 Go to our [Jira](https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues) board to see all the issues and tasks to work on.
 
 ### Compiler Walkthrough
-
 
 > **Note:** We are currently working on a technical document that is way more detailed and comprehensive than the one below.
 
