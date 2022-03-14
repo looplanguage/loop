@@ -2,7 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use crate::lib::exception::syntax::{throw_syntax_error};
+use crate::lib::exception::syntax::throw_syntax_error;
 use token::Token;
 use token::TokenType;
 
@@ -207,7 +207,7 @@ impl Lexer {
             self.next_character();
         }
 
-        let mut token_type: TokenType = Lexer::lookup_keyword(keyword.as_str());
+        let mut token_type: TokenType = self.lookup_keyword(keyword.as_str());
 
         if token_type == TokenType::Integer
             && self.get_character(1) == '.'
@@ -388,7 +388,14 @@ impl Lexer {
                 if !keyword.contains('.') {
                     return TokenType::Identifier;
                 }
-                throw_syntax_error(self.current_line, self.current_col, self.get_line(self.current_line), keyword.to_string())
+                throw_syntax_error(
+                    self.current_line,
+                    self.current_col,
+                    self.get_line(self.current_line),
+                    keyword.to_string(),
+                );
+                // Will never be reached, throw_function_error will quit program before.
+                TokenType::Unknown
             }
         }
     }

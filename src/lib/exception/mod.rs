@@ -1,7 +1,6 @@
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::vm::VMException;
-use crate::parser::Parser;
 
 pub mod compiler;
 pub mod runtime;
