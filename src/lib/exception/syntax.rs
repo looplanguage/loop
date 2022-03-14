@@ -84,3 +84,11 @@ impl ParserException {
         new_text.clone()
     }
 }
+
+pub fn throw_syntax_error(line_num: i32, column_num: i32, error_line: String, string: String){
+    println!("==========================================================");
+    println!("{}", format!("SyntaxError [{}:{}] -->", line_num, column_num).bright_red());
+    println!("    {}: {}", "Line".bright_blue(),format!("{}\n", error_line.as_str()).bright_white());
+    println!("    Unexpected string: {}", string.as_str().bright_white());
+    process::exit(1);
+}

@@ -2,6 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
+use crate::lib::exception::syntax::{throw_syntax_error};
 use token::Token;
 use token::TokenType;
 
@@ -15,7 +16,6 @@ pub struct Lexer {
 }
 
 impl Lexer {
-
     /// Converts the next piece of the input into a Token.
     /// Call: `self.get_current_token()`, to get the tokenized token.
     ///
@@ -359,7 +359,7 @@ impl Lexer {
     }
 
     /// Returns the type of the token, of any literal that is larger than one character
-    fn lookup_keyword(keyword: &str) -> TokenType {
+    fn lookup_keyword(&self, keyword: &str) -> TokenType {
         match keyword {
             "var" => TokenType::VariableDeclaration,
             "true" => TokenType::True,
@@ -388,10 +388,7 @@ impl Lexer {
                 if !keyword.contains('.') {
                     return TokenType::Identifier;
                 }
-                panic!(
-                    "Error -> Keyword: {}, contains a '.', This is not allowed.",
-                    keyword
-                )
+                throw_syntax_error(self.current_line, self.current_col, self.get_line(self.current_line), keyword.to_string())
             }
         }
     }
