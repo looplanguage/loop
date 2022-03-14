@@ -28,7 +28,10 @@ pub struct LoopArrayIterator {
 
 // TODO: Stack overflow with above 2048 loops, probably not popping enough
 pub fn parse_loop(p: &mut Parser) -> Option<Node> {
-    if !p.lexer.next_is(TokenType::LeftParenthesis) {
+    if !p
+        .lexer
+        .next_token_is_and_next_token(TokenType::LeftParenthesis)
+    {
         p.add_error(format!(
             "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
             p.lexer.peek_token.clone().unwrap().token
@@ -36,14 +39,16 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    if p.lexer.next_is(TokenType::VariableDeclaration) {
+    if p.lexer
+        .next_token_is_and_next_token(TokenType::VariableDeclaration)
+    {
         p.lexer.next_token();
 
         let identifier = parse_identifier(p);
 
         if let Some(Node::Expression(Expression::Identifier(ident))) = identifier {
-            if !p.lexer.next_is(TokenType::Assign) {
-                if p.lexer.next_is(TokenType::In) {
+            if !p.lexer.next_token_is_and_next_token(TokenType::Assign) {
+                if p.lexer.next_token_is_and_next_token(TokenType::In) {
                     p.lexer.next_token();
 
                     let exp = p.parse_expression(Precedence::Lowest);
@@ -52,7 +57,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
                         p.lexer.next_token();
                         p.lexer.next_token();
 
-                        if !p.lexer.next_current_is(TokenType::LeftBrace) {
+                        if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
                             p.add_error(format!(
                                 "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
                                 p.lexer.get_current_token().unwrap().token
@@ -79,7 +84,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
                 }
             }
 
-            if !p.lexer.next_is(TokenType::Integer) {
+            if !p.lexer.next_token_is_and_next_token(TokenType::Integer) {
                 p.add_error(format!(
                     "wrong token. got=\"{:?}\". expected=\"Integer\"",
                     p.lexer.peek_token.clone().unwrap().token
@@ -96,7 +101,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
                 .parse::<u32>()
                 .unwrap();
 
-            if !p.lexer.next_is(TokenType::To) {
+            if !p.lexer.next_token_is_and_next_token(TokenType::To) {
                 p.add_error(format!(
                     "wrong token. got=\"{:?}\". expected=\"To\"",
                     p.lexer.peek_token.clone().unwrap().token
@@ -104,7 +109,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
                 return None;
             }
 
-            if !p.lexer.next_is(TokenType::Integer) {
+            if !p.lexer.next_token_is_and_next_token(TokenType::Integer) {
                 p.add_error(format!(
                     "wrong token. got=\"{:?}\". expected=\"Integer\"",
                     p.lexer.peek_token.clone().unwrap().token
@@ -124,7 +129,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
             p.lexer.next_token();
             p.lexer.next_token();
 
-            if !p.lexer.next_current_is(TokenType::LeftBrace) {
+            if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
                 p.add_error(format!(
                     "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
                     p.lexer.get_current_token().unwrap().token
@@ -151,7 +156,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
     p.lexer.next_token();
 
-    if !p.lexer.next_current_is(TokenType::LeftBrace) {
+    if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
         p.add_error(format!(
             "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
             p.lexer.get_current_token().unwrap().token

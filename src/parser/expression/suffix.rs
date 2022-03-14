@@ -42,7 +42,7 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    if !p.lexer.next_is(RightParenthesis) {
+    if !p.lexer.next_token_is_and_next_token(RightParenthesis) {
         p.add_error(format!(
             "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
             p.lexer.peek_token.clone().unwrap().token

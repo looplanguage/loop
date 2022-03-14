@@ -15,15 +15,24 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn next_token(&mut self) -> &Token {
+
+    /// Converts the next piece of the input into a Token.
+    /// Call: `self.get_current_token()`, to get the tokenized token.
+    ///
+    /// returns: &Token
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let token: Token = self.next_token();
+    /// ```
+    pub fn next_token(&mut self) {
         self.current_token = self.peek_token.clone();
         self.peek_token = Some(self.internal_next_token());
 
         if self.get_current_token().is_none() {
             self.current_token = Some(create_token(TokenType::Unknown, "".to_string()));
         }
-
-        self.get_current_token().unwrap()
     }
 
     pub fn get_current_token(&self) -> Option<&Token> {
@@ -34,6 +43,9 @@ impl Lexer {
         self.peek_token.as_ref()
     }
 
+    /// Returns current line of the lexer as a String.
+    ///
+    /// It is used to throw syntax errors.
     pub fn get_line(&self, line: i32) -> String {
         let mut line_count = 0;
         let mut char_count = 0;
@@ -94,10 +106,10 @@ impl Lexer {
             '^' => create_token(TokenType::Power, ch.to_string()),
             '"' => self.find_string(),
             '/' => {
-                if self.peek_character() == '<' {
+                if self.get_character(1) == '<' {
                     self.remove_block_comment();
                     self.internal_next_token()
-                } else if self.peek_character() == '/' {
+                } else if self.get_character(1) == '/' {
                     self.next_character();
                     self.remove_line_comment();
                     self.internal_next_token()
@@ -106,44 +118,44 @@ impl Lexer {
                 }
             }
             '!' => {
-                if self.peek_character() == '=' {
+                if self.get_character(1) == '=' {
                     self.next_character();
                     return create_token(
                         TokenType::NotEquals,
-                        ch.to_string() + self.current_character().to_string().as_str(),
+                        ch.to_string() + self.get_character(0).to_string().as_str(),
                     );
                 }
 
                 create_token(TokenType::InvertSign, ch.to_string())
             }
             '=' => {
-                if self.peek_character() == '=' {
+                if self.get_character(1) == '=' {
                     self.next_character();
                     return create_token(
                         TokenType::Equals,
-                        ch.to_string() + self.current_character().to_string().as_str(),
+                        ch.to_string() + self.get_character(0).to_string().as_str(),
                     );
                 }
 
                 create_token(TokenType::Assign, ch.to_string())
             }
             '>' => {
-                if self.peek_character() == '=' {
+                if self.get_character(1) == '=' {
                     self.next_character();
                     return create_token(
                         TokenType::GreaterThanOrEquals,
-                        ch.to_string() + self.current_character().to_string().as_str(),
+                        ch.to_string() + self.get_character(0).to_string().as_str(),
                     );
                 }
 
                 create_token(TokenType::GreaterThan, ch.to_string())
             }
             '<' => {
-                if self.peek_character() == '=' {
+                if self.get_character(1) == '=' {
                     self.next_character();
                     return create_token(
                         TokenType::LessThanOrEquals,
-                        ch.to_string() + self.current_character().to_string().as_str(),
+                        ch.to_string() + self.get_character(0).to_string().as_str(),
                     );
                 }
 
@@ -157,13 +169,13 @@ impl Lexer {
         let mut string: String = String::new();
         self.next_character();
 
-        while self.current_character() != '"' && self.current_character() != char::from(0) {
+        while self.get_character(0) != '"' && self.get_character(0) != char::from(0) {
             let res: Option<String> = self.find_escape_sequence();
             if res != None {
                 string.push_str(res.unwrap().as_str());
                 self.next_character();
             } else {
-                string.push_str(self.current_character().to_string().as_str());
+                string.push_str(self.get_character(0).to_string().as_str());
             }
             self.next_character();
         }
@@ -172,11 +184,11 @@ impl Lexer {
     }
 
     fn find_escape_sequence(&mut self) -> Option<String> {
-        if self.current_character() != '\\' {
+        if self.get_character(0) != '\\' {
             return None;
         }
 
-        match self.peek_character() {
+        match self.get_character(1) {
             'n' => Some("\n".to_string()),
             't' => Some("\t".to_string()),
             'r' => Some("\r".to_string()),
@@ -190,21 +202,21 @@ impl Lexer {
     fn find_keyword(&mut self, ch: char) -> Token {
         let mut keyword: String = String::from(ch);
 
-        while self.peek_character().is_alphanumeric() || self.peek_character() == '_' {
-            keyword.push_str(self.peek_character().to_string().as_str());
+        while self.get_character(1).is_alphanumeric() || self.get_character(1) == '_' {
+            keyword.push_str(self.get_character(1).to_string().as_str());
             self.next_character();
         }
 
         let mut token_type: TokenType = Lexer::lookup_keyword(keyword.as_str());
 
         if token_type == TokenType::Integer
-            && self.peek_character() == '.'
-            && self.double_peek_character().is_numeric()
+            && self.get_character(1) == '.'
+            && self.get_character(2).is_numeric()
         {
-            keyword.push_str(self.peek_character().to_string().as_str());
+            keyword.push_str(self.get_character(1).to_string().as_str());
             self.next_character();
-            while self.peek_character().is_numeric() {
-                keyword.push_str(self.peek_character().to_string().as_str());
+            while self.get_character(1).is_numeric() {
+                keyword.push_str(self.get_character(1).to_string().as_str());
                 self.next_character();
             }
             token_type = TokenType::Float;
@@ -213,30 +225,15 @@ impl Lexer {
         create_token(token_type, keyword.to_string())
     }
 
-    fn peek_character(&self) -> char {
-        let val = self.input.chars().nth((self.current) as usize);
-
-        if val == None {
-            return char::from(0);
-        }
-
-        val.unwrap()
-    }
-
-    fn double_peek_character(&self) -> char {
-        let val = self.input.chars().nth((self.current + 1) as usize);
-
-        if val == None {
-            return char::from(0);
-        }
-
-        val.unwrap()
-    }
-
+    /// Lexer increments to next character of its input.
+    ///
+    /// **Note:** Also increments the column-and-line counter correct, and resets column counts if necessary.
     fn next_character(&mut self) {
         self.current += 1;
+
+        // Keeping the line and column counter correct for the syntax error handeling
         let possible_char = self.input.chars().nth(self.current as usize);
-        if possible_char != None && self.current_character() == '\n' {
+        if possible_char != None && self.get_character(0) == '\n' {
             self.current_line += 1;
             self.current_col = 0;
         } else {
@@ -244,10 +241,35 @@ impl Lexer {
         }
     }
 
-    fn current_character(&self) -> char {
-        return self.input.chars().nth((self.current - 1) as usize).unwrap();
+    /// Returns a character of the lexer, `diff` allows you to "peek" at the upcoming characters
+    ///
+    /// # Arguments
+    ///
+    /// * `diff`: How far you want to look at the upcoming chars
+    ///
+    /// returns: char
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// self.get_character(0);  // Returns current character
+    /// self.get_character(1);  // "Peeking" at the next character
+    /// self.get_character(-1); // Getting the previous character
+    /// ```
+    fn get_character(&self, diff: i32) -> char {
+        let val = self.input.chars().nth((self.current + diff - 1) as usize);
+
+        if val == None {
+            return char::from(0);
+        }
+
+        val.unwrap()
     }
 
+    /// Replaces the line comment in the inputted source code with spaces.
+    /// It stops when it reaches the end of the line: '\n'
+    ///
+    /// **Note:** It is replaced with spaces, to keep the location of errors working.
     fn remove_line_comment(&mut self) {
         self.next_character();
 
@@ -255,7 +277,7 @@ impl Lexer {
         let mut end_index = start_index;
         let mut possible_char = self.input.chars().nth(self.current as usize);
 
-        while possible_char != None && self.current_character() != '\n' {
+        while possible_char != None && self.get_character(0) != '\n' {
             end_index += 1;
             possible_char = self.input.chars().nth(self.current as usize);
             self.next_character();
@@ -273,6 +295,10 @@ impl Lexer {
         );
     }
 
+    /// Replaces the block comment in the inputted source code with spaces.
+    /// It stops when it reaches the closing token of a block comments ("\>")
+    ///
+    /// **Note:** It is replaced with spaces, to keep the location of errors working.
     fn remove_block_comment(&mut self) {
         self.input
             .replace_range((self.current - 1) as usize..(self.current) as usize, " ");
@@ -282,8 +308,8 @@ impl Lexer {
         self.next_character();
 
         loop {
-            let current: char = self.current_character();
-            let next: char = self.peek_character();
+            let current: char = self.get_character(0);
+            let next: char = self.get_character(1);
             let possible_char = self.input.chars().nth(self.current as usize);
 
             if current == '\\' && next == 'n' {
@@ -306,7 +332,9 @@ impl Lexer {
         }
     }
 
-    pub fn next_is(&mut self, token: TokenType) -> bool {
+    /// Checks if next token is the same as the current token,
+    /// **if next and given token are the same, then**: `lexer::next_token()`
+    pub fn next_token_is_and_next_token(&mut self, token: TokenType) -> bool {
         if let Some(peek_token) = self.get_peek_token() {
             if peek_token.token == token {
                 self.next_token();
@@ -317,7 +345,9 @@ impl Lexer {
         false
     }
 
-    pub fn next_current_is(&mut self, token: TokenType) -> bool {
+    /// Checks if given TokenType is the same as the current token,
+    /// **if current and given token are the same, then**: `lexer::next_token()`
+    pub fn next_token_and_current_is(&mut self, token: TokenType) -> bool {
         if let Some(peek_token) = self.get_current_token() {
             if peek_token.token == token {
                 self.next_token();
@@ -328,6 +358,7 @@ impl Lexer {
         false
     }
 
+    /// Returns the type of the token, of any literal that is larger than one character
     fn lookup_keyword(keyword: &str) -> TokenType {
         match keyword {
             "var" => TokenType::VariableDeclaration,

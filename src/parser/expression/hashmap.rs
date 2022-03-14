@@ -36,7 +36,7 @@ pub fn parse_expression_hashmap(p: &mut Parser) -> Option<Node> {
         let key_exp = p.parse_expression(Lowest);
 
         if let Some(Node::Expression(key)) = key_exp {
-            if !p.lexer.next_is(TokenType::Colon) {
+            if !p.lexer.next_token_is_and_next_token(TokenType::Colon) {
                 p.add_error(format!(
                     "wrong token. expected=\"Colon\". got=\"{:?}\"",
                     p.lexer.peek_token.clone().unwrap().token
