@@ -25,7 +25,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
             p.lexer.next_token();
 
             // Now we check if we want to assign to this index, otherwise just return the index
-            if p.lexer.next_is(TokenType::Assign) {
+            if p.lexer.next_token_is_and_next_token(TokenType::Assign) {
                 p.lexer.next_token();
 
                 let value = p.parse_expression(Precedence::Lowest);

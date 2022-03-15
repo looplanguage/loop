@@ -79,7 +79,10 @@ pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
 }
 
 pub fn parse_function(p: &mut Parser) -> Option<Node> {
-    if !p.lexer.next_is(TokenType::LeftParenthesis) {
+    if !p
+        .lexer
+        .next_token_is_and_next_token(TokenType::LeftParenthesis)
+    {
         p.add_error(format!(
             "wrong token. expected=\"LeftParentheses\". got=\"{:?}\"",
             p.lexer.get_current_token().unwrap().token
@@ -89,7 +92,10 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let arguments: Vec<Identifier> = parse_arguments(p);
 
-    if !p.lexer.next_current_is(TokenType::RightParenthesis) {
+    if !p
+        .lexer
+        .next_token_and_current_is(TokenType::RightParenthesis)
+    {
         p.add_error(format!(
             "wrong token. expected=\"RightParenthesis\". got=\"{:?}\".",
             p.lexer.get_current_token().unwrap().token
@@ -97,7 +103,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    if !p.lexer.next_current_is(TokenType::LeftBrace) {
+    if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
         p.add_error(format!(
             "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
             p.lexer.get_current_token().unwrap().token

@@ -13,12 +13,12 @@ pub struct VariableDeclaration {
 }
 
 pub fn parse_variable_declaration(p: &mut Parser) -> Option<Node> {
-    if !p.lexer.next_is(TokenType::Identifier) {
+    if !p.lexer.next_token_is_and_next_token(TokenType::Identifier) {
         return None;
     }
 
     let ident = p.lexer.get_current_token().unwrap().clone();
-    if !p.lexer.next_is(TokenType::Assign) {
+    if !p.lexer.next_token_is_and_next_token(TokenType::Assign) {
         return None;
     }
 
