@@ -1,7 +1,7 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::identifier::{parse_identifier, Identifier};
-use crate::parser::expression::{Expression, Precedence};
 use crate::parser::expression::Precedence::Lowest;
+use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::Parser;
@@ -31,9 +31,10 @@ pub struct LoopArrayIterator {
 pub fn parse_loop(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
     let uses_parenthesis = p.current_token_is(TokenType::LeftParenthesis);
-    if uses_parenthesis { p.lexer.next_token(); }
-    if p.current_token_is(TokenType::VariableDeclaration)
-    {
+    if uses_parenthesis {
+        p.lexer.next_token();
+    }
+    if p.current_token_is(TokenType::VariableDeclaration) {
         p.lexer.next_token();
 
         let identifier = parse_identifier(p);
@@ -47,10 +48,11 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
                     if let Some(Node::Expression(expression)) = exp {
                         p.lexer.next_token();
-                        if uses_parenthesis { p.lexer.next_token(); }
+                        if uses_parenthesis {
+                            p.lexer.next_token();
+                        }
 
                         if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
-
                             p.lexer.current_token.clone().unwrap().display();
 
                             p.add_error(format!(
@@ -121,7 +123,9 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
                 .parse::<u32>()
                 .unwrap();
 
-            if uses_parenthesis { p.lexer.next_token(); }
+            if uses_parenthesis {
+                p.lexer.next_token();
+            }
             p.lexer.next_token();
             if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
                 p.add_error(format!(
@@ -146,17 +150,12 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    // parsing of conditional expression, different types of parsing depending on use of parenthesis
-    // let condition_node: Option<Node>;
-    // if uses_parenthesis {
-    //     condition_node = p.parse_expression(Lowest);
-    // } else {
-    //     condition_node = parse_grouped_expression_without_param(p);
-    // }
     let condition_node = p.parse_expression(Lowest);
     condition_node.as_ref()?;
 
     p.lexer.next_token();
+    // ToDo: Give error when it begins with parenthesis but does not end with it.
+    if uses_parenthesis { p.lexer.next_token(); }
 
     if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
         p.add_error(format!(
