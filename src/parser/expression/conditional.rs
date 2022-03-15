@@ -94,8 +94,6 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
 fn parse_else(p: &mut Parser) -> Box<Option<Node>> {
     p.lexer.next_token();
     if !p.current_token_is(TokenType::LeftBrace) {
-        p.lexer.next_token();
-
         return Box::new(p.parse_expression(Precedence::Lowest));
     }
     p.lexer.next_token();
