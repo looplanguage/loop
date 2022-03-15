@@ -46,8 +46,8 @@
   only:
     refs:
       - merge_requests
-    changes:
-      - src/*
+#    changes:
+#      - src/*
 
 .deploy:
   only:
