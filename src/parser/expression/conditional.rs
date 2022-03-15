@@ -20,19 +20,18 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
     let uses_parenthesis = p.current_token_is(TokenType::LeftParenthesis);
 
     // parsing of conditional expression, different types of parsing depending on use of parenthesis
-    let condition_node = if uses_parenthesis {
-        parse_grouped_expression_without_param(p);
+    let condition_node;
+    if uses_parenthesis {
+        condition_node = parse_grouped_expression_without_param(p);
     } else {
-        p.parse_expression(Lowest);
-    };
+        condition_node = p.parse_expression(Lowest);
+    }
     condition_node.as_ref()?;
 
     p.lexer.next_token();
     if let Node::Expression(exp) = condition_node.unwrap() {
         // Checks if the parenthesis around the if-expression are consistent
-        if (p.lexer.current_token.clone().unwrap().token == TokenType::RightParenthesis)
-            != uses_parenthesis
-        {
+        if (p.current_token_is(TokenType::RightParenthesis)) != uses_parenthesis {
             // Custom error whether if-expression has parenthesis or not
             if uses_parenthesis {
                 let message = "Syntax  -> for (<condition>) { <code> }\nExample -> if (i < 3) { println(i) }\n\nA loop can be with or without parenthesis".to_string();
