@@ -92,12 +92,12 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
 
 /// Parsing of else block of an if-expression
 fn parse_else(p: &mut Parser) -> Box<Option<Node>> {
-    if !p.lexer.next_token_is_and_next_token(TokenType::LeftBrace) {
+    p.lexer.next_token();
+    if !p.current_token_is(TokenType::LeftBrace) {
         p.lexer.next_token();
 
         return Box::new(p.parse_expression(Precedence::Lowest));
     }
-
     p.lexer.next_token();
 
     let else_condition = parse_block(p);
