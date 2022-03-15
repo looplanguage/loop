@@ -68,8 +68,8 @@ setup windows x86_64:
     refs:
       - main
       - merge_requests
-    changes:
-      - src/*
+#    changes:
+#      - src/*
   extends:
     - .windows
   script:
