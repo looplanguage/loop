@@ -42,11 +42,9 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    if !p
-        .lexer
-        .next_token_is_and_next_token(TokenType::RightParenthesis)
-    {
-        p.add_error(format!(
+    p.lexer.next_token();
+    if !p.current_token_is(TokenType::RightParenthesis) {
+        p.add_error(format !(
             "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
             p.lexer.peek_token.clone().unwrap().token
         ));
@@ -55,7 +53,6 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
 
     Some(exp.unwrap())
 }
-
 
 /// Same as: `parse_grouped_expression`, except it is for for and if expressions, without any parenthesis
 ///
