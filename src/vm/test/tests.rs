@@ -19,9 +19,6 @@ mod tests {
     use std::rc::Rc;
 
     #[test]
-    fn recursive_functions() {}
-
-    #[test]
     fn strings() {
         test_vm(
             "\"hello\"",
@@ -141,39 +138,8 @@ mod tests {
         );
     }
 
-    // TODO: Add early return tests
-
-    // TODO: Add expression checks for conditionals
-
     #[test]
     fn conditional() {
-        test_vm("if(true) { 10 }", Integer(integer::Integer { value: 10 }));
-
-        test_vm(
-            "if(true) { 40 + 40 }",
-            Integer(integer::Integer { value: 80 }),
-        );
-
-        test_vm(
-            "if(true) { 10 * 2 + 1 }",
-            Integer(integer::Integer { value: 21 }),
-        );
-
-        test_vm(
-            "if(false) { 10 * 2 + 1 } else { 20 }",
-            Integer(integer::Integer { value: 20 }),
-        );
-
-        test_vm(
-            "if(false) { 10 * 2 + 1 } else if(false) { 20 } else { 100 }",
-            Integer(integer::Integer { value: 100 }),
-        );
-
-        test_vm(
-            "if(false) { 10 * 2 + 1 } else if(false) { 20 } else if(false) { 100 } else { 300 }",
-            Integer(integer::Integer { value: 300 }),
-        );
-
         test_vm(
             "if(false) { 10 * 2 + 1 } else if(true) { 20 } else if(false) { 100 } else { 300 }",
             Integer(integer::Integer { value: 20 }),
@@ -185,22 +151,24 @@ mod tests {
         );
 
         test_vm(
-            "if(false) { 10 * 2 + 1 } else { if(false) { 100 } else { 400 } }",
-            Integer(integer::Integer { value: 400 }),
+            "if false { 10 * 2 + 1 } else if true { 20 } else if false { 100 } else { 300 }",
+            Integer(integer::Integer { value: 20 }),
+        );
+
+        test_vm(
+            "if true { 10 * 2 + 1 } else if false { 20 } else if true { 100 } else { 300 }",
+            Integer(integer::Integer { value: 21 }),
         );
     }
 
     #[test]
     fn conditional_null() {
-        test_vm("if(false) { 10 }", Null(null::Null {}));
-        test_vm("if(false) { 10 } else {}", Null(null::Null {}));
-        test_vm(
-            "if(false) { 10 } else { if(false) { 10 } }",
-            Null(null::Null {}),
-        );
-
         test_vm(
             "if(false) { 10 } else if(false) { if(false) { 10 } } else if(false) {320 + 400} else if(true) {} else { 6000 }",
+            Null(null::Null {}),
+        );
+        test_vm(
+            "if false { 10 } else if false { if false { 10 } } else if false {320 + 400} else if true {} else { 6000 }",
             Null(null::Null {}),
         );
     }
@@ -210,7 +178,21 @@ mod tests {
         test_vm(
             "
             var fib = fn(x) {
-                if(x < 2) {
+                if (x < 2) {
+                    return 1
+                } else {
+                    return fib(x - 1) + fib(x - 2)
+                }
+            }
+            fib(10)
+        ",
+            Integer(integer::Integer { value: 89 }),
+        );
+
+        test_vm(
+            "
+            var fib = fn(x) {
+                if x < 2 {
                     return 1
                 } else {
                     return fib(x - 1) + fib(x - 2)
@@ -560,9 +542,7 @@ mod tests {
             "/<hello>/ var x = 11",
             Integer(integer::Integer { value: 11 }),
         );
-
-        // This is supposed to work, tested it manually...
-        // ToDo: Fix this
+        //
         // test_vm(
         //     "if(true) { /<hello>/ print(5) }",
         //     Integer(integer::Integer { value: 5 }),

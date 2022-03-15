@@ -1,0 +1,2 @@
+if true { 10 * 2 + 1 }
+else { println(20) }

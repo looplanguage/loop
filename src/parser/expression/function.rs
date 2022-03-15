@@ -64,7 +64,7 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
 pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
     let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-    if !p.cur_token_is(TokenType::RightParenthesis) {
+    if !p.current_token_is(TokenType::RightParenthesis) {
         p.add_error(format!(
             "wrong token. got=\"{:?}\". expected=\"RightParenthesis\"",
             p.lexer.get_current_token().unwrap().token
@@ -113,7 +113,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let body = parse_block(p);
 
-    if !p.cur_token_is(TokenType::RightBrace) {
+    if !p.current_token_is(TokenType::RightBrace) {
         p.add_error(format!(
             "wrong token. expected=\"RightBrace\". got=\"{:?}\".",
             p.lexer.get_current_token().unwrap().token

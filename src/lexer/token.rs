@@ -4,6 +4,12 @@ pub struct Token {
     pub literal: String,
 }
 
+impl Token {
+    pub fn literal_len(&self) -> i32 {
+        self.literal.len() as i32
+    }
+}
+
 #[derive(PartialEq, Clone, Debug, AsRefStr, Copy, Eq, Hash)]
 pub enum TokenType {
     /// Variable name

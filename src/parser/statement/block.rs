@@ -18,7 +18,7 @@ pub fn parse_block_statement(p: &mut Parser) -> Option<Node> {
 
     let block = parse_block(p);
 
-    if !p.cur_token_is(TokenType::RightBrace) {
+    if !p.current_token_is(TokenType::RightBrace) {
         p.add_error(format!(
             "unknown token. expected=\"RightBrace\". got=\"{:?}\"",
             p.lexer.get_current_token().unwrap().token

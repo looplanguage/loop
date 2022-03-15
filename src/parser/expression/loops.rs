@@ -128,7 +128,6 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
             p.lexer.next_token();
             p.lexer.next_token();
-
             if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
                 p.add_error(format!(
                     "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
@@ -166,7 +165,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
     let body = parse_block(p);
 
-    if !p.cur_token_is(TokenType::RightBrace) {
+    if !p.current_token_is(TokenType::RightBrace) {
         p.add_error(format!(
             "wrong token. expected=\"RightBrace\". got=\"{:?}\"",
             p.lexer.get_current_token().unwrap().token
