@@ -155,7 +155,9 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
     p.lexer.next_token();
     // ToDo: Give error when it begins with parenthesis but does not end with it.
-    if uses_parenthesis { p.lexer.next_token(); }
+    if uses_parenthesis {
+        p.lexer.next_token();
+    }
 
     if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
         p.add_error(format!(
