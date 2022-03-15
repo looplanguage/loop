@@ -1,6 +1,7 @@
 use crate::lexer::token::TokenType;
 use crate::parser::expression::identifier::{parse_identifier, Identifier};
 use crate::parser::expression::{Expression, Precedence};
+use crate::parser::expression::Precedence::Lowest;
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::Parser;
@@ -28,19 +29,10 @@ pub struct LoopArrayIterator {
 
 // TODO: Stack overflow with above 2048 loops, probably not popping enough
 pub fn parse_loop(p: &mut Parser) -> Option<Node> {
-    if !p
-        .lexer
-        .next_token_is_and_next_token(TokenType::LeftParenthesis)
-    {
-        p.add_error(format!(
-            "wrong token. got=\"{:?}\". expected=\"LeftParentheses\"",
-            p.lexer.peek_token.clone().unwrap().token
-        ));
-        return None;
-    }
-
-    if p.lexer
-        .next_token_is_and_next_token(TokenType::VariableDeclaration)
+    p.lexer.next_token();
+    let uses_parenthesis = p.current_token_is(TokenType::LeftParenthesis);
+    if uses_parenthesis { p.lexer.next_token(); }
+    if p.current_token_is(TokenType::VariableDeclaration)
     {
         p.lexer.next_token();
 
@@ -55,9 +47,12 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 
                     if let Some(Node::Expression(expression)) = exp {
                         p.lexer.next_token();
-                        p.lexer.next_token();
+                        if uses_parenthesis { p.lexer.next_token(); }
 
                         if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
+
+                            p.lexer.current_token.clone().unwrap().display();
+
                             p.add_error(format!(
                                 "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
                                 p.lexer.get_current_token().unwrap().token
@@ -126,7 +121,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
                 .parse::<u32>()
                 .unwrap();
 
-            p.lexer.next_token();
+            if uses_parenthesis { p.lexer.next_token(); }
             p.lexer.next_token();
             if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
                 p.add_error(format!(
@@ -151,7 +146,15 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    let condition = p.parse_expression(Precedence::Lowest);
+    // parsing of conditional expression, different types of parsing depending on use of parenthesis
+    // let condition_node: Option<Node>;
+    // if uses_parenthesis {
+    //     condition_node = p.parse_expression(Lowest);
+    // } else {
+    //     condition_node = parse_grouped_expression_without_param(p);
+    // }
+    let condition_node = p.parse_expression(Lowest);
+    condition_node.as_ref()?;
 
     p.lexer.next_token();
 
@@ -173,7 +176,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    if let Some(Node::Expression(exp)) = condition {
+    if let Some(Node::Expression(exp)) = condition_node {
         return Some(Node::Expression(Expression::Loop(Loop {
             condition: Box::from(exp),
             body,

@@ -555,6 +555,11 @@ mod tests {
             "var x = 0; for (x < 10) { x = x + 1 }; x",
             Integer(integer::Integer { value: 10 }),
         );
+
+        test_vm(
+            "var x = 0; for x < 10 { x = x + 1 }; x",
+            Integer(integer::Integer { value: 10 }),
+        );
     }
 
     #[test]
@@ -563,12 +568,22 @@ mod tests {
             "var x = 0; for (var i = 0 to 10) { x = x + 1 }; x",
             Integer(integer::Integer { value: 10 }),
         );
+
+        test_vm(
+            "var x = 0; for var i = 0 to 10 { x = x + 1 }; x",
+            Integer(integer::Integer { value: 10 }),
+        );
     }
 
     #[test]
     fn loop_array_iterator() {
         test_vm(
-            "var x = 0; var array = [3, 8, 12, 56] for (var i in array) { x = i }; x",
+            "var x = 0; var array = [3, 8, 12, 56]; for (var i in array) { x = i }; x",
+            Integer(integer::Integer { value: 56 }),
+        );
+
+        test_vm(
+            "var x = 0; var array = [3, 8, 12, 56]; for var i in array { x = i }; x",
             Integer(integer::Integer { value: 56 }),
         );
     }
