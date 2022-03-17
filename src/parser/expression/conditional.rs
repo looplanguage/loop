@@ -20,12 +20,11 @@ pub fn parse_conditional(p: &mut Parser) -> Option<Node> {
     let uses_parenthesis = p.current_token_is(TokenType::LeftParenthesis);
 
     // parsing of conditional expression, different types of parsing depending on use of parenthesis
-    let condition_node;
-    if uses_parenthesis {
-        condition_node = parse_grouped_expression_without_param(p);
+    let condition_node = if uses_parenthesis {
+        parse_grouped_expression_without_param(p)
     } else {
-        condition_node = p.parse_expression(Lowest);
-    }
+        p.parse_expression(Lowest)
+    };
     condition_node.as_ref()?;
 
     p.lexer.next_token();
