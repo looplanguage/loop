@@ -47,24 +47,20 @@ impl Flags {
         let mut i: i32 = 0;
         for arg in args.clone() {
             let flag = Flags::get_flag(self, arg.as_str(), arg.eq(args.last().unwrap()));
-            match flag {
-                Ok(e) => {
-                    match e {
-                        FlagTypes::Jit(b) => self.flags.jit_enabled = b,
-                        FlagTypes::Optimize(b) => self.flags.enable_optimize = b,
-                        FlagTypes::Debug(b) => self.flags.debug_mode = b,
-                        FlagTypes::Benchmark(b) => self.flags.enable_benchmark = b,
-                        FlagTypes::File(f) => self.file = Some(f),
-                        FlagTypes::Help(h) => {
-                            // Prints help message and exists program
-                            println!("{}", h);
-                            process::exit(0);
-                        }
+            if let Ok(e) = flag {
+                match e {
+                    FlagTypes::Jit(b) => self.flags.jit_enabled = b,
+                    FlagTypes::Optimize(b) => self.flags.enable_optimize = b,
+                    FlagTypes::Debug(b) => self.flags.debug_mode = b,
+                    FlagTypes::Benchmark(b) => self.flags.enable_benchmark = b,
+                    FlagTypes::File(f) => self.file = Some(f),
+                    FlagTypes::Help(h) => {
+                        // Prints help message and exists program
+                        println!("{}", h);
+                        process::exit(0);
                     }
                 }
-                _ => (),
             }
-
             i += 1;
         }
 
@@ -87,7 +83,7 @@ impl Flags {
                 _ => self.handle_unknown_flag(string.to_string(), is_last),
             };
         }
-        return match flag_arguments[0] {
+        match flag_arguments[0] {
             "--debug" | "-d" => debug::debug_flag(),
             "--benchmark" | "-b" => benchmark::benchmark_flag(),
             "--jit" | "-j" => jit::jit_flag(),
@@ -100,21 +96,19 @@ impl Flags {
                 Err(())
             }
             _ => self.handle_unknown_flag(string.to_string(), is_last),
-        };
+        }
     }
 
     fn handle_unknown_flag(&self, string: String, is_last: bool) -> Result<FlagTypes, ()> {
         if !is_last {
-            flag::throw_exception_unknown_flag(string.to_string());
+            flag::throw_exception_unknown_flag(string);
             return Err(());
         }
         let ext = Path::new(string.as_str())
             .extension()
             .and_then(OsStr::to_str);
-        if ext.is_some() {
-            if ext.unwrap() == "loop" || ext.unwrap() == "lp" {
-                return Ok(FlagTypes::File(string.to_string()));
-            }
+        if ext.is_some() && (ext.unwrap() == "loop" || ext.unwrap() == "lp") {
+            return Ok(FlagTypes::File(string.to_string()));
         }
         // Program quits, will never reach the Err return
         flag::throw_exception_unknown_flag(string.to_string());
