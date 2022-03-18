@@ -1,18 +1,17 @@
+use crate::lib::exception::flag;
 use crate::lib::flags::FlagTypes;
 
-pub fn optimize_flag_with_param(parameter: &str) -> Result<FlagTypes, String> {
+pub fn optimize_flag_with_param(parameter: &str) -> Result<FlagTypes, ()> {
     if parameter == "true" {
-        return Ok(FlagTypes::Optimize);
+        return Ok(FlagTypes::Optimize(Some(true)));
     }
     if parameter == "false" {
-        return Ok(FlagTypes::None);
+        return Ok(FlagTypes::Optimize(Some(false)));
     }
-    return Err(format!(
-        "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
-        parameter
-    ));
+    flag::throw_exception_unexpected_value(format!("-o | --optimize = {}", parameter));
+    Err(())
 }
 
-pub fn optimize_flag() -> Result<FlagTypes, String> {
-    Ok(FlagTypes::Optimize)
+pub fn optimize_flag() -> Result<FlagTypes, ()> {
+    Ok(FlagTypes::Optimize(Some(true)))
 }

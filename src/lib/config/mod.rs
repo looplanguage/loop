@@ -2,7 +2,6 @@ use crate::get_flags;
 use crate::lib::config::LoadType::{FirstRun, Normal};
 use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::Exception;
-use crate::lib::flags::FlagTypes;
 use dirs::home_dir;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
@@ -21,36 +20,42 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 
     let flags = get_flags();
 
+    // Setting up the config
     let mut config: Config = Config {
+        // Currently no telemetry in Loop, kind of redundant
         enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
-        jit_enabled: cfg
-            .jit_enabled
-            .unwrap_or_else(|| flags.contains(FlagTypes::Jit)),
-        debug_mode: cfg
-            .debug_mode
-            .unwrap_or_else(|| flags.contains(FlagTypes::Debug)),
-        enable_benchmark: cfg
-            .enable_benchmark
-            .unwrap_or_else(|| flags.contains(FlagTypes::Benchmark)),
-        enable_optimize: cfg
-            .enable_optimize
-            .unwrap_or_else(|| flags.contains(FlagTypes::Optimize)),
+        jit_enabled: false,
+        debug_mode: false,
+        enable_benchmark: false,
+        enable_optimize: false,
     };
 
-    if cfg.jit_enabled.is_some() {
-        config.jit_enabled = !flags.contains(FlagTypes::Jit);
+    // The flags go over the config file.
+    // If config has: "jit_enabled = true" and flag has: "jit_enabled = false",
+    // Than the config will disable JIT
+
+    if flags.flags.jit_enabled.is_some() {
+        config.jit_enabled = flags.flags.jit_enabled.unwrap();
+    } else if cfg.jit_enabled.is_some() {
+        config.jit_enabled = cfg.jit_enabled.unwrap();
     }
 
-    if cfg.debug_mode.is_some() {
-        config.debug_mode = !flags.contains(FlagTypes::Debug);
+    if flags.flags.debug_mode.is_some() {
+        config.debug_mode = flags.flags.debug_mode.unwrap();
+    } else if cfg.debug_mode.is_some() {
+        config.debug_mode = cfg.debug_mode.unwrap();
     }
 
-    if cfg.enable_benchmark.is_some() {
-        config.enable_benchmark = !flags.contains(FlagTypes::Benchmark);
+    if flags.flags.enable_benchmark.is_some() {
+        config.enable_benchmark = flags.flags.enable_benchmark.unwrap();
+    } else if cfg.enable_benchmark.is_some() {
+        config.enable_benchmark = cfg.enable_benchmark.unwrap();
     }
 
-    if cfg.enable_optimize.is_some() {
-        config.enable_optimize = !flags.contains(FlagTypes::Optimize);
+    if flags.flags.enable_optimize.is_some() {
+        config.enable_optimize = flags.flags.enable_optimize.unwrap();
+    } else if cfg.enable_optimize.is_some() {
+        config.enable_optimize = cfg.enable_optimize.unwrap();
     }
 
     #[cfg(test)]

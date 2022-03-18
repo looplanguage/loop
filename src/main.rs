@@ -16,7 +16,7 @@ pub mod parser;
 mod vm;
 
 fn main() {
-    let _config = match load_config() {
+    match load_config() {
         LoadType::FirstRun(cfg) => {
             println!("This is your first time running Loop! (Or your config was re-generated)");
             println!("Configuration file is at: ");

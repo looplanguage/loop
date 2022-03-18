@@ -1,18 +1,17 @@
+use crate::lib::exception::flag;
 use crate::lib::flags::FlagTypes;
 
-pub fn benchmark_flag_with_param(parameter: &str) -> Result<FlagTypes, String> {
+pub fn benchmark_flag_with_param(parameter: &str) -> Result<FlagTypes, ()> {
     if parameter == "true" {
-        return Ok(FlagTypes::Benchmark);
+        return Ok(FlagTypes::Benchmark(Some(true)));
     }
     if parameter == "false" {
-        return Ok(FlagTypes::None);
+        return Ok(FlagTypes::Benchmark(Some(false)));
     }
-    return Err(format!(
-        "Found parameter: \"{}\", which wasn't expected, or isn't valid in this context",
-        parameter
-    ));
+    flag::throw_exception_unexpected_value(format!("-b | --benchmark = {}", parameter));
+    Err(())
 }
 
-pub fn benchmark_flag() -> Result<FlagTypes, String> {
-    Ok(FlagTypes::Benchmark)
+pub fn benchmark_flag() -> Result<FlagTypes, ()> {
+    Ok(FlagTypes::Benchmark(Some(true)))
 }
