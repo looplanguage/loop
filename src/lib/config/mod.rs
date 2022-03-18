@@ -1,3 +1,4 @@
+use crate::env::current_dir;
 use crate::get_flags;
 use crate::lib::config::LoadType::{FirstRun, Normal};
 use crate::lib::exception::runtime::RuntimeException;
@@ -11,7 +12,6 @@ use std::env;
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
-use crate::env::current_dir;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     let cfg = match load_config() {
