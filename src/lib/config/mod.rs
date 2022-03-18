@@ -11,6 +11,7 @@ use std::env;
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
+use crate::env::current_dir;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     let cfg = match load_config() {
@@ -126,13 +127,13 @@ struct TryLoadConfig {
 
 impl TryLoadConfig {
     pub fn load_config_internal(&mut self) -> Result<LoadType, Exception> {
-        let home = dirs::home_dir();
+        let path = current_dir();
+        let home = match path {
+            Err(_e) => panic!("Could not see current working directory"),
+            Ok(e) => e.display().to_string(),
+        };
 
-        if home.is_none() {
-            return Result::Err(Exception::Runtime(RuntimeException::NoHomeFolderDetected));
-        }
-
-        let directory = format!("{}/.loop", home.unwrap().to_str().unwrap());
+        let directory = format!("{}/.loop", home);
 
         let config_file = format!("{}/config.toml", directory);
 
