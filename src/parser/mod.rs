@@ -62,7 +62,6 @@ impl Parser {
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
-        println!("{}", self.lexer.get_line(self.lexer.current_line));
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             TokenType::Identifier => {
