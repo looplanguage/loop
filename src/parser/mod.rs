@@ -22,7 +22,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
-use crate::lib::exception::parser::{throw_syntax_error, ParserException};
+use crate::lib::exception::syntax::{throw_syntax_error, SyntaxError};
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::export::parse_export_statement;
@@ -203,7 +203,7 @@ impl Parser {
             },
         );*/
 
-        self.errors.push(Exception::Parser(error));
+        self.errors.push(Exception::Syntax(error));
     }
 
     pub fn peek_precedence(&mut self) -> Precedence {
@@ -218,7 +218,7 @@ impl Parser {
     /// Code one would mean that the Loop compiler itself had crashed. But in this case,
     /// the code from the user is bad, thus 0.
     pub fn throw_exception(&mut self, expected: Token, message: Option<String>) {
-        let mut e = ParserException {
+        let mut e = SyntaxError {
             error_line: self.lexer.get_line(self.lexer.current_line - 1),
             expected,
             got: self.lexer.current_token.clone().unwrap(),

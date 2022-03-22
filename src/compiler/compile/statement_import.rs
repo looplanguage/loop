@@ -46,7 +46,7 @@ pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> Com
 
     if !parser.errors.is_empty() {
         for err in parser.errors {
-            if let Exception::Parser(msg) = err {
+            if let Exception::Syntax(msg) = err {
                 println!("ParserException: {}", msg);
             }
         }
