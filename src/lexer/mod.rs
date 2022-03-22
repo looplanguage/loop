@@ -2,7 +2,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use crate::lib::exception::syntax::throw_syntax_error;
+use crate::lib::exception::parser::throw_syntax_error;
 use token::Token;
 use token::TokenType;
 
@@ -67,7 +67,7 @@ impl Lexer {
             current_char = self.input.chars().nth(char_count as usize);
         }
 
-        line
+        line.trim_start().to_string()
     }
 
     fn internal_next_token(&mut self) -> Token {

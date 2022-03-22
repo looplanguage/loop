@@ -4,8 +4,8 @@ use crate::lib::exception::vm::VMException;
 
 pub mod compiler;
 pub mod flag;
-pub mod runtime;
 pub mod syntax;
+pub mod runtime;
 pub mod vm;
 
 #[allow(dead_code)]
