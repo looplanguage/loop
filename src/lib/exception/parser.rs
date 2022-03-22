@@ -16,12 +16,12 @@ use std::process;
 /// ```
 #[allow(dead_code)]
 pub struct ParserException {
-    error_line: String,
-    expected: Token,
-    got: Token,
-    line: i32,
-    column: i32,
-    extra_message: Option<String>,
+    pub error_line: String,
+    pub expected: Token,
+    pub got: Token,
+    pub line: i32,
+    pub column: i32,
+    pub extra_message: Option<String>,
 }
 #[allow(dead_code)]
 impl ParserException {

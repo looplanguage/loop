@@ -283,40 +283,38 @@ mod tests {
 
     #[test]
     fn conditionals() {
-        let input = "\
-        if(true) {} \
-        if(false) {} else if(true) {}\
-        if(false) {} else if(false) {} else {}\
+        // Same test, only parenthesis are different
+        let input = "
         if(false) { 1; true; } else if(false) {true; 1 + 1} else { true; }\
+        if false { 1; true; } else if false  {true; 1 + 1} else { true; }\
         ";
 
         let mut expected: Vec<Statement> = Vec::new();
 
-        expected.push(test_helper::generate_if_expression(
-            true,
-            Block { statements: vec![] },
-            Box::new(None),
-        ));
-
-        let else_conditional = test_helper::generate_else_condition(
-            true,
-            Block { statements: vec![] },
-            Box::new(None),
-        );
-        expected.push(test_helper::generate_if_expression(
-            false,
-            Block { statements: vec![] },
-            else_conditional,
-        ));
-
+        // TODO: This is a hot mess. It is kind of readable but not really...
         let else_conditional = test_helper::generate_else_condition(
             false,
-            Block { statements: vec![] },
-            test_helper::generate_else_block_box(vec![]),
+            test_helper::generate_else_block(vec![
+                test_helper::generate_boolean_expression_box(true),
+                Statement::Expression(Box::new(Expression {
+                    expression: Box::new(test_helper::generate_expression_suffix(1, '+', 1)),
+                })),
+            ]),
+            test_helper::generate_else_block_box(vec![Statement::Expression(Box::new(
+                Expression {
+                    expression: Box::new(test_helper::generate_boolean_expression(true)),
+                },
+            ))]),
         );
+
         expected.push(test_helper::generate_if_expression(
             false,
-            Block { statements: vec![] },
+            Block {
+                statements: vec![
+                    test_helper::generate_integer_expression_box(1),
+                    test_helper::generate_boolean_expression_box(true),
+                ],
+            },
             else_conditional,
         ));
 

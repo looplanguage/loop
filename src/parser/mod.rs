@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::process;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
@@ -23,6 +22,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
+use crate::lib::exception::parser::{throw_syntax_error, ParserException};
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::export::parse_export_statement;
@@ -62,7 +62,6 @@ impl Parser {
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
-        println!("{}", self.lexer.get_line(self.lexer.current_line));
         let r = match token.token {
             TokenType::VariableDeclaration => parse_variable_declaration(self),
             TokenType::Identifier => {
@@ -125,9 +124,11 @@ impl Parser {
 
                 if infix_expression_node.is_some() {
                     if let Node::Expression(a) = infix_expression_node.clone().unwrap() {
+                        // Calling parser functions from the hashmap
                         infix_expression_node = infix_parser.unwrap()(self, a);
                     }
                 } else {
+                    // Calling parser functions from the hashmap
                     infix_expression_node = infix_parser.unwrap()(self, exp.clone())
                 }
             }
@@ -139,10 +140,12 @@ impl Parser {
             return Some(Node::Expression(exp));
         }
 
-        self.add_error(format!(
-            "unable to parse: {}",
-            self.lexer.get_current_token().unwrap().literal
-        ));
+        throw_syntax_error(
+            self.lexer.current_line - self.lexer.current_token.clone().unwrap().literal_len(),
+            self.lexer.current_col,
+            self.lexer.get_line(self.lexer.current_line),
+            self.lexer.current_token.clone().unwrap().literal,
+        );
 
         None
     }
@@ -169,8 +172,18 @@ impl Parser {
         peek.unwrap().token == tok
     }
 
-    fn cur_token_is(&self, tok: TokenType) -> bool {
+    pub fn current_token_is(&self, tok: TokenType) -> bool {
         let cur = self.lexer.get_current_token();
+
+        if cur.is_none() {
+            return false;
+        }
+
+        cur.unwrap().token == tok
+    }
+
+    pub fn next_token_is(&self, tok: TokenType) -> bool {
+        let cur = self.lexer.get_peek_token();
 
         if cur.is_none() {
             return false;
@@ -197,16 +210,24 @@ impl Parser {
         get_precedence(self.lexer.peek_token.clone().unwrap().token)
     }
 
-    pub fn cur_precedence(&mut self) -> Precedence {
+    pub fn current_precedence(&mut self) -> Precedence {
         get_precedence(self.lexer.get_current_token().unwrap().token)
     }
 
-    // Exits program with code 0, which is successful.
-    // Code one would mean that the Loop compiler itself had crashed. But in this case,
-    // The code from the user is bad, thus 0.
-    pub fn throw_exception(&mut self, message: String) {
-        println!("{}", message);
-        process::exit(0);
+    /// Exits program with code 0, which is successful.
+    /// Code one would mean that the Loop compiler itself had crashed. But in this case,
+    /// the code from the user is bad, thus 0.
+    pub fn throw_exception(&mut self, expected: Token, message: Option<String>) {
+        let mut e = ParserException {
+            error_line: self.lexer.get_line(self.lexer.current_line - 1),
+            expected,
+            got: self.lexer.current_token.clone().unwrap(),
+            line: self.lexer.current_line,
+            column: self.lexer.current_col
+                - self.lexer.current_token.clone().unwrap().literal_len(),
+            extra_message: message,
+        };
+        e.throw_exception();
     }
 }
 
