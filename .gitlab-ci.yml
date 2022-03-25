@@ -207,7 +207,7 @@ integration_test linux:
     - .linux
     - .ci
   before_script:
-    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive apt-get update
     - apt-get install python3
   script:
     - cargo build --release
