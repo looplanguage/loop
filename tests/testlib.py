@@ -4,7 +4,7 @@ import sys
 from dataclasses import dataclass
 
 #BUILD = "./loop"
-BUILD = "../target/release/loop"
+BUILD = "./target/release/loop"
 ENCODER = "utf-8"
 
 @dataclass

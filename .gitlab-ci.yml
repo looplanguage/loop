@@ -112,7 +112,6 @@ test windows x86_64:
     - cargo build --release
     - py tests/integration_test.py
 
-
 deploy windows x86_64:
   stage: deploy
   variables:
