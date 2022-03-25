@@ -54,8 +54,8 @@
     - main
 
 stages:
-  - integration test
   - setup
+  - integration test
   - lint
   - check
   - test
