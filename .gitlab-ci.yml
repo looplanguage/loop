@@ -54,11 +54,11 @@
     - main
 
 stages:
+  - integration test
   - setup
   - lint
   - check
   - test
-  - integration test
   - deploy
   - dl site refresh
 
@@ -205,8 +205,9 @@ integration_test linux:
   stage: integration test
   extends:
     - .linux
-  only:
-    refs:
-      - merge_requests
+    - .ci
   before_script:
-    -
+    - apt-get install python3
+  script:
+    - cargo build --release
+    - python3 tests/integration_test.py
