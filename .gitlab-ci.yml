@@ -96,9 +96,14 @@ test windows x86_64:
   extends:
     - .windows
     - .ci
-    - .windows-build-tooling
+    # - .windows-build-tooling
   before_script:
     - choco install -y python --version=3.10
+    - curl -o rustup-init.exe https://win.rustup.rs/
+    - ./rustup-init.exe -y
+    - $env:Path += ";$Env:Userprofile\.cargo\bin"
+    - rustup install 1.58.1
+    - rustup override set 1.58.1
   script:
     - $Env:TEST_JIT="0"
     - cargo test
