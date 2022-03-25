@@ -182,7 +182,7 @@ mod tests {
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
-                if let Exception::Parser(err) = err {
+                if let Exception::Syntax(err) = err {
                     println!("ParserException: {}", err);
                 }
             }

@@ -32,7 +32,7 @@ pub fn execute_code(
 
     if !parser.errors.is_empty() {
         for err in parser.errors {
-            if let Exception::Parser(msg) = err {
+            if let Exception::Syntax(msg) = err {
                 println!("ParserException: {}", msg);
             }
         }

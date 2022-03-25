@@ -5,7 +5,7 @@ use std::process;
 /// Struct that contains all data needed to throw a parser error
 /// # Example
 /// ```(rust)
-/// let foo = ParserException {
+/// let foo = SyntaxError {
 ///    error_line: String::from("if (true) }"),
 ///    expected: Token {TokenType::LeftBracket, String::from("{")},
 ///    got: Token {TokenType::RightBracket, String::from("}")},
@@ -15,7 +15,7 @@ use std::process;
 /// }
 /// ```
 #[allow(dead_code)]
-pub struct ParserException {
+pub struct SyntaxError {
     pub error_line: String,
     pub expected: Token,
     pub got: Token,
@@ -24,7 +24,7 @@ pub struct ParserException {
     pub extra_message: Option<String>,
 }
 #[allow(dead_code)]
-impl ParserException {
+impl SyntaxError {
     #[rustfmt::skip]
     /// Prints parser error in terminal, and exits the program with code '1'
     /// # Error Template
@@ -40,7 +40,7 @@ impl ParserException {
     ///
     /// # Examples
     /// ```(rust)
-    /// let foo = ParserException { /*Instantiate ParserException Struct*/ };
+    /// let foo = SyntaxError { /*Instantiate SyntaxError Struct*/ };
     /// foo.throw_exception();
     /// ```
     #[rustfmt::skip]

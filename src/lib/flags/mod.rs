@@ -1,42 +1,78 @@
+use crate::lib::config::ConfigInternal;
+use crate::lib::exception::flag;
+use std::ffi::OsStr;
+use std::path::Path;
+use std::process;
+
 mod benchmark;
 mod debug;
+mod help;
 mod jit;
 mod optimize;
 
+/// Value: `true` -> is enabled<br>
+/// Value: `false` -> is not enabled<br>
+/// Value: `None` -> unspecified<br>
 #[allow(dead_code)]
 #[derive(PartialEq)]
 pub enum FlagTypes {
-    None,
-    Debug,
-    Benchmark,
-    Jit,
-    Optimize, // There are no optimizations yet, this is for the near future
+    Help(String), // When user does -h or --help it gives all the flags and closes program
+    File(String),
+    Debug(Option<bool>),
+    Benchmark(Option<bool>),
+    Jit(Option<bool>),
+    Optimize(Option<bool>), // There are no optimizations yet, this is for the near future
 }
 
 pub fn build_flags() -> Flags {
     Flags {
-        flags: vec![],
+        flags: ConfigInternal {
+            enable_telemetry: None,
+            jit_enabled: None,
+            debug_mode: None,
+            enable_benchmark: None,
+            enable_optimize: None,
+        },
         file: None,
     }
 }
 
 pub struct Flags {
-    pub flags: Vec<FlagTypes>,
+    pub flags: ConfigInternal,
     pub file: Option<String>,
 }
 
 impl Flags {
-    // ToDo: Make Loop crash in an elegant way instead of calling the "panic" function of Rust. This is regarding the whole implementation of Flags.
-    // ToDo: Just refactor the whole way to do flags.
+    pub fn parse_flags(&mut self, args: Vec<String>) -> i32 {
+        let mut i: i32 = 0;
+        for arg in args.clone() {
+            let flag = Flags::get_flag(self, arg.as_str(), arg.eq(args.last().unwrap()));
+            if let Ok(e) = flag {
+                match e {
+                    FlagTypes::Jit(b) => self.flags.jit_enabled = b,
+                    FlagTypes::Optimize(b) => self.flags.enable_optimize = b,
+                    FlagTypes::Debug(b) => self.flags.debug_mode = b,
+                    FlagTypes::Benchmark(b) => self.flags.enable_benchmark = b,
+                    FlagTypes::File(f) => self.file = Some(f),
+                    FlagTypes::Help(h) => {
+                        // Prints help message and exists program
+                        println!("{}", h);
+                        process::exit(0);
+                    }
+                }
+            }
+            i += 1;
+        }
 
-    fn get_flag(&mut self, string: &str, is_last: bool) -> Result<FlagTypes, String> {
+        i
+    }
+
+    fn get_flag(&mut self, string: &str, is_last: bool) -> Result<FlagTypes, ()> {
         let flag_arguments: Vec<&str> = string.split('=').collect();
 
         if flag_arguments.len() > 2 {
-            return Err(format!(
-                "Found \"{}\" arguments, expected a max of one",
-                flag_arguments.len() - 1
-            ));
+            // Program quits
+            flag::throw_exception_value(string.to_string());
         }
         if flag_arguments.len() == 2 {
             return match flag_arguments[0] {
@@ -44,55 +80,38 @@ impl Flags {
                 "--benchmark" | "-b" => benchmark::benchmark_flag_with_param(flag_arguments[1]),
                 "--jit" | "-j" => jit::jit_flag_with_param(flag_arguments[1]),
                 "--optimize" | "-o" => optimize::optimize_flag_with_param(flag_arguments[1]),
-                &_ => {
-                    if !is_last {
-                        return Err(format!(
-                            "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
-                            string
-                        ));
-                    }
-                    self.file = Option::from(string.to_string());
-                    Ok(FlagTypes::None)
-                }
+                _ => self.handle_unknown_flag(string.to_string(), is_last),
             };
         }
-        return match flag_arguments[0] {
+        match flag_arguments[0] {
             "--debug" | "-d" => debug::debug_flag(),
             "--benchmark" | "-b" => benchmark::benchmark_flag(),
             "--jit" | "-j" => jit::jit_flag(),
             "--optimize" | "-o" => optimize::optimize_flag(),
-            &_ => {
-                if !is_last {
-                    return Err(format!(
-                        "Found argument: \"{}\", which wasn't expected, or isn't valid in this context",
-                        string
-                    ));
+            "--help" => {
+                if let Ok(e) = help::generate_help_text() {
+                    return Ok(FlagTypes::Help(e));
                 }
-                self.file = Option::from(string.to_string());
-                Ok(FlagTypes::None)
+                // Will never be reached, because: "help::generate_help_text()", will always return Ok()
+                Err(())
             }
-        };
-    }
-
-    pub fn parse_flags(&mut self, args: Vec<String>) -> i32 {
-        let mut i: i32 = 0;
-
-        for arg in args.clone() {
-            let flag = Flags::get_flag(self, arg.as_str(), arg.eq(args.last().unwrap()));
-            match flag {
-                Ok(e) => self.flags.push(e),
-                Err(e) => {
-                    panic!("{}", e);
-                }
-            }
-
-            i += 1;
+            _ => self.handle_unknown_flag(string.to_string(), is_last),
         }
-
-        i
     }
 
-    pub fn contains(&self, flag: FlagTypes) -> bool {
-        self.flags.contains(&flag)
+    fn handle_unknown_flag(&self, string: String, is_last: bool) -> Result<FlagTypes, ()> {
+        if !is_last {
+            flag::throw_exception_unknown_flag(string);
+            return Err(());
+        }
+        let ext = Path::new(string.as_str())
+            .extension()
+            .and_then(OsStr::to_str);
+        if ext.is_some() && (ext.unwrap() == "loop" || ext.unwrap() == "lp") {
+            return Ok(FlagTypes::File(string.to_string()));
+        }
+        // Program quits, will never reach the Err return
+        flag::throw_exception_unknown_flag(string.to_string());
+        Err(())
     }
 }

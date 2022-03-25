@@ -36,7 +36,10 @@ impl Repl {
 ╚══════╝ ╚════╝  ╚════╝ ╚═╝
         "
         );
-        println!("Welcome to Loop v{}", VERSION);
+        println!(
+            "Welcome to Loop v{}, more info: https://looplang.org/docs/intro",
+            VERSION
+        );
 
         if CONFIG.jit_enabled {
             println!(
