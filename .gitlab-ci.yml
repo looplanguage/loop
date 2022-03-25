@@ -55,9 +55,8 @@
 
 stages:
   - setup
-  - integration test
-  - lint
-  - check
+  # - lint
+  # - check
   - test
   - deploy
   - dl site refresh
@@ -98,11 +97,15 @@ test windows x86_64:
     - .windows
     - .ci
     - .windows-build-tooling
+  before_script:
+    - choco install -y python --version=3.10
   script:
     - $Env:TEST_JIT="0"
     - cargo test
-    - $Env:TEST_JIT="1"
-    - cargo test
+    # - $Env:TEST_JIT="1"
+    # - cargo test
+    - cargo build --release
+    - py tests/integration_test.py
 
 deploy windows x86_64:
   stage: deploy
@@ -212,15 +215,3 @@ refresh downloads website:
 #   script:
 #     - cargo build --release
 #     - python3 tests/integration_test.py
-
-integration test windows:
-  stage: integration test
-  extends:
-    - .windows
-    - .ci
-    - .windows-build-tooling
-  before_script:
-    - choco install -y python --version=3.10
-  script:
-    - cargo build --release
-    - py tests/integration_test.py
