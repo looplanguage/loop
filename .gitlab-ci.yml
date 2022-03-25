@@ -137,23 +137,23 @@ deploy windows x86_64:
     - cargo build --release
     - py scripts/prerelease.py
 
-# Linux
-lint linux x86_64:
-  stage: lint
-  extends:
-    - .linux
-    - .ci
-  script:
-    - cargo clippy -- -D warnings
-    - cargo fmt --all -- --check
+# # Linux
+# lint linux x86_64:
+#   stage: lint
+#   extends:
+#     - .linux
+#     - .ci
+#   script:
+#     - cargo clippy -- -D warnings
+#     - cargo fmt --all -- --check
 
-check linux x86_64:
-  stage: check
-  extends:
-    - .linux
-    - .ci
-  script:
-    - cargo check
+# check linux x86_64:
+#   stage: check
+#   extends:
+#     - .linux
+#     - .ci
+#   script:
+#     - cargo check
 
 test linux x86_64:
   stage: test
