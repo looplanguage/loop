@@ -1,5 +1,6 @@
 /target
 /.idea
 /.loop
+/__pycache__
 # Script to run checks locally in one command
 loop-pipeline.ps1
