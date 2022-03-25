@@ -82,14 +82,14 @@ setup windows x86_64:
         ls $Env:LLVM_SYS_120_PREFIX
       }
 
-check windows x86_64:
-  stage: check
-  extends:
-    - .windows
-    - .ci
-    - .windows-build-tooling
-  script:
-    - cargo check
+# check windows x86_64:
+#   stage: check
+#   extends:
+#     - .windows
+#     - .ci
+#     - .windows-build-tooling
+#   script:
+#     - cargo check
 
 test windows x86_64:
   stage: test
@@ -155,14 +155,14 @@ deploy windows x86_64:
 #   script:
 #     - cargo check
 
-test linux x86_64:
-  stage: test
-  extends:
-    - .linux
-    - .ci
-  script:
-    - export TEST_JIT=0 && cargo test
-    - export TEST_JIT=1 && cargo test
+# test linux x86_64:
+#   stage: test
+#   extends:
+#     - .linux
+#     - .ci
+#   script:
+#     - export TEST_JIT=0 && cargo test
+#     - export TEST_JIT=1 && cargo test
 
 deploy linux x86_64:
   stage: deploy
