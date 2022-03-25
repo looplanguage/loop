@@ -1,4 +1,3 @@
-use crate::env::current_dir;
 use crate::get_flags;
 use crate::lib::config::LoadType::{FirstRun, Normal};
 use crate::lib::exception::runtime::RuntimeException;
@@ -127,13 +126,13 @@ struct TryLoadConfig {
 
 impl TryLoadConfig {
     pub fn load_config_internal(&mut self) -> Result<LoadType, Exception> {
-        let path = current_dir();
-        let home = match path {
-            Err(_e) => panic!("Could not see current working directory"),
-            Ok(e) => e.display().to_string(),
-        };
+        let home = dirs::home_dir();
 
-        let directory = format!("{}/.loop", home);
+        if home.is_none() {
+            return Result::Err(Exception::Runtime(RuntimeException::NoHomeFolderDetected));
+        }
+
+        let directory = format!("{}/.loop", home.unwrap().to_str().unwrap());
 
         let config_file = format!("{}/config.toml", directory);
 
