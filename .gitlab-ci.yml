@@ -97,15 +97,11 @@ test windows x86_64:
     - .windows
     - .ci
     - .windows-build-tooling
-  before_script:
-    - choco install -y python --version=3.10
   script:
     - $Env:TEST_JIT="0"
     - cargo test
-    # - $Env:TEST_JIT="1"
-    # - cargo test
-    - cargo build --release
-    - py tests/integration_test.py
+    - $Env:TEST_JIT="1"
+    - cargo test
 
 deploy windows x86_64:
   stage: deploy
@@ -169,7 +165,7 @@ deploy linux x86_64:
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-    NETLIFY_BUILD _LINK: $NETLIFY_BUILD_LINK
+    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .linux
@@ -203,6 +199,7 @@ refresh downloads website:
     - apt-get update && apt-get install curl -y
   script:
     - curl -X POST -d {} $NETLIFY_BUILD_LINK
+
 
 # integration test linux:
 #   stage: integration test
