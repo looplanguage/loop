@@ -56,7 +56,7 @@
 stages:
   - setup
   # - lint
-  # - check
+  - check
   - test
   - deploy
   - dl site refresh
@@ -82,14 +82,14 @@ setup windows x86_64:
         ls $Env:LLVM_SYS_120_PREFIX
       }
 
-# check windows x86_64:
-#   stage: check
-#   extends:
-#     - .windows
-#     - .ci
-#     - .windows-build-tooling
-#   script:
-#     - cargo check
+check windows x86_64:
+  stage: check
+  extends:
+    - .windows
+    - .ci
+    - .windows-build-tooling
+  script:
+    - cargo check
 
 test windows x86_64:
   stage: test
