@@ -58,6 +58,7 @@ stages:
   - lint
   - check
   - test
+  - integration test
   - deploy
   - dl site refresh
 
@@ -165,7 +166,7 @@ deploy linux x86_64:
   variables:
     AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
+    NETLIFY_BUILD _LINK: $NETLIFY_BUILD_LINK
     CI_PIPELINE_ID: $CI_PIPELINE_IID
   extends:
     - .linux
@@ -199,3 +200,13 @@ refresh downloads website:
     - apt-get update && apt-get install curl -y
   script:
     - curl -X POST -d {} $NETLIFY_BUILD_LINK
+
+integration_test linux:
+  stage: integration test
+  extends:
+    - .linux
+  only:
+    refs:
+      - merge_requests
+  before_script:
+    -
