@@ -217,6 +217,7 @@ integration_test windows:
   stage: integration test
   extends:
     - .windows
+    - .ci
   before_script:
     - choco install -y python --version=3.10
   script:
