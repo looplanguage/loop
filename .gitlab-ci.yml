@@ -201,7 +201,7 @@ refresh downloads website:
   script:
     - curl -X POST -d {} $NETLIFY_BUILD_LINK
 
-# integration_test linux:
+# integration test linux:
 #   stage: integration test
 #   extends:
 #     - .linux
@@ -213,12 +213,14 @@ refresh downloads website:
 #     - cargo build --release
 #     - python3 tests/integration_test.py
 
-integration_test windows:
+integration test windows:
   stage: integration test
   extends:
     - .windows
     - .ci
+    - .windows-build-tooling
   before_script:
     - choco install -y python --version=3.10
   script:
+    - cargo build --release
     - py tests/integration_test.py
