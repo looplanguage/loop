@@ -63,10 +63,6 @@ stages:
     - rustup install 1.58.1
     - rustup override set 1.58.1
 
-.windows-python:
-  before_script:
-    - choco install -y python --version=3.10
-
 
 
 # Pipeline Types
@@ -117,6 +113,13 @@ test windows x86_64:
     - .ci
     - .windows-rust
     - .windows-python
+  before_scripts:
+    - curl -o rustup-init.exe https://win.rustup.rs/
+    - ./rustup-init.exe -y
+    - $env:Path += ";$Env:Userprofile\.cargo\bin"
+    - rustup install 1.58.1
+    - rustup override set 1.58.1
+    - choco install -y python --version=3.10
   script:
     - cargo build --release
     - $Env:TEST_JIT="0"
