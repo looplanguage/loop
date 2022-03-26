@@ -14,7 +14,7 @@ class Test:
 
 tests = []
 def AddTest(file_loc, answer):
-    tests.append(Test(file_loc, answer))
+    tests.append(Test("./tests/"+file_loc, answer))
 
 def HasSucceeded(stdout, stderr, answer):
     output = stdout.decode(ENCODER)
