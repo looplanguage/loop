@@ -113,7 +113,7 @@ test windows x86_64:
     - .ci
     - .windows-rust
     - .windows-python
-  before_scripts:
+  before_script:
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
     - $env:Path += ";$Env:Userprofile\.cargo\bin"
