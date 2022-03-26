@@ -112,7 +112,6 @@ test windows x86_64:
     - .windows
     - .ci
     - .windows-rust
-    - .windows-python
   before_script:
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
