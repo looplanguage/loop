@@ -1,3 +1,20 @@
+# Loop Pipeline
+stages:
+  # Runs on merge requests AND on main branch
+  - setup               # Windows, installing LLVM:12.0.1
+
+  # Runs only on merge requests
+  - lint                # Linux, cargo clippy and cargo fmt
+  - check               # Windows + Linux, cargo check (Checking for compilition errors, but without the code generation)
+  - test                # Windows + Linux, cargo test and integration_test.py
+
+  # Runs only on main branch
+  - deploy              # Windows + Linux, builds and pushes to S3 (AWS)
+  - dl site refresh     # Linux Updates download.looplang.org
+
+
+
+# Images: Windows and Linux
 .linux:
   image: ubuntu:20.04
   before_script:
@@ -9,6 +26,7 @@
     - chmod +x llvm.sh
     - ./llvm.sh 12
     - source $HOME/.cargo/env
+    - apt-get install python3
   cache:
     - key: "rust-linux"
       paths:
@@ -34,7 +52,10 @@
       paths:
         - target
 
-.windows-build-tooling:
+
+
+# Software Installation
+.windows-rust:
   before_script:
     - curl -o rustup-init.exe https://win.rustup.rs/
     - ./rustup-init.exe -y
@@ -42,34 +63,30 @@
     - rustup install 1.58.1
     - rustup override set 1.58.1
 
+.windows-python:
+  before_script:
+    - choco install -y python --version=3.10
+
+
+
+# Pipeline Types
 .ci:
   only:
     refs:
       - merge_requests
-#    changes:
-#      - src/*
 
 .deploy:
   only:
     - main
 
-stages:
-  - setup
-  - lint
-  - check
-  - test
-  - deploy
-  - dl site refresh
-
 # Windows
+# Runs on main branch and merge requests
 setup windows x86_64:
   stage: setup
   only:
     refs:
       - main
       - merge_requests
-#    changes:
-#      - src/*
   extends:
     - .windows
   script:
@@ -82,36 +99,34 @@ setup windows x86_64:
         ls $Env:LLVM_SYS_120_PREFIX
       }
 
+# Runs on merge requests
 check windows x86_64:
   stage: check
   extends:
     - .windows
     - .ci
-    - .windows-build-tooling
+    - .windows-rust
   script:
     - cargo check
 
+# Runs on merge requests
 test windows x86_64:
   stage: test
   extends:
     - .windows
     - .ci
-    # - .windows-build-tooling
-  before_script:
-    - choco install -y python --version=3.10
-    - curl -o rustup-init.exe https://win.rustup.rs/
-    - ./rustup-init.exe -y
-    - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.58.1
-    - rustup override set 1.58.1
+    - .windows-rust
+    - .windows-python
   script:
+    - cargo build --release
     - $Env:TEST_JIT="0"
     - cargo test
+    - py tests/integration_test.py
     - $Env:TEST_JIT="1"
     - cargo test
-    - cargo build --release
     - py tests/integration_test.py
 
+# Runs on main branch
 deploy windows x86_64:
   stage: deploy
   variables:
@@ -122,7 +137,7 @@ deploy windows x86_64:
   extends:
     - .windows
     - .deploy
-    - .windows-build-tooling
+    - .windows-rust
   before_script:
     - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
     - |
@@ -142,6 +157,8 @@ deploy windows x86_64:
     - cargo build --release
     - py scripts/prerelease.py
 
+
+
 # Linux
 lint linux x86_64:
   stage: lint
@@ -152,6 +169,7 @@ lint linux x86_64:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
 
+# Runs on merge requests
 check linux x86_64:
   stage: check
   extends:
@@ -160,15 +178,20 @@ check linux x86_64:
   script:
     - cargo check
 
+# Runs on merge requests
 test linux x86_64:
   stage: test
   extends:
     - .linux
     - .ci
   script:
+    - cargo build --release
     - export TEST_JIT=0 && cargo test
+    - py tests/integration_test.py
     - export TEST_JIT=1 && cargo test
+    - py tests/integration_test.py
 
+# Runs on main branch
 deploy linux x86_64:
   stage: deploy
   variables:
@@ -197,7 +220,7 @@ deploy linux x86_64:
     - cargo build --release
     - python3 scripts/prerelease.py
 
-
+# Runs on main branch
 refresh downloads website:
   only:
     refs:
@@ -208,16 +231,3 @@ refresh downloads website:
     - apt-get update && apt-get install curl -y
   script:
     - curl -X POST -d {} $NETLIFY_BUILD_LINK
-
-
-# integration test linux:
-#   stage: integration test
-#   extends:
-#     - .linux
-#     - .ci
-#   before_script:
-#     - DEBIAN_FRONTEND=noninteractive apt-get update
-#     - apt-get install python3
-#   script:
-#     - cargo build --release
-#     - python3 tests/integration_test.py
