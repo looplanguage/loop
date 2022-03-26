@@ -62,6 +62,9 @@ loop
 |--scripts             contains scripts which we might need for e.g CI/CD 
 |  |  ....
 |
+|--tests               Integration tests for the pipeline
+|  |  ....
+|
 |--src                 Loop compiler source code
    |  main.rs          Entry point of compiler
    |
