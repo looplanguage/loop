@@ -31,7 +31,8 @@ fun(5)
 
 You save the file in the folder `/tests`. The filename should start with `test` and and with `.loop`, in between you give a short but descriptive name. In this case something like: `test_function_return.loop` would suit well.
 
-> **Note:** Try not the create a sub-directory in the `/tests` directory
+> **Note:** Try not the create a sub-directory in the `/tests` directoryfireclar
+> 
 
 
 Now that you have written the code for the test it needs to be added.
