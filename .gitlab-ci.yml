@@ -189,9 +189,9 @@ test linux x86_64:
   script:
     - cargo build --release
     - export TEST_JIT=0 && cargo test
-    - python3 tests/end2end_test_test.py
+    - python3 tests/end2end_test.py
     - export TEST_JIT=1 && cargo test
-    - python3 tests/end2end_test_test.py
+    - python3 tests/end2end_test.py
 
 # Runs on main branch
 deploy linux x86_64:
