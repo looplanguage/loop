@@ -126,7 +126,7 @@ test windows x86_64:
     - py tests/end2end_test.py
     - $Env:TEST_JIT="1"
     - cargo test
-    - py tests/end2end_test.py
+    # - py tests/end2end_test.py
 
 # Runs on main branch
 deploy windows x86_64:
@@ -191,7 +191,7 @@ test linux x86_64:
     - export TEST_JIT=0 && cargo test
     - python3 tests/end2end_test.py
     - export TEST_JIT=1 && cargo test
-    - python3 tests/end2end_test.py
+    # - python3 tests/end2end_test.py
 
 # Runs on main branch
 deploy linux x86_64:
