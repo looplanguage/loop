@@ -39,11 +39,11 @@ Now that you have written the code for the test it needs to be added.
 
 ### Adding to Test List
 
-In the Python script called: `end2end_test.py` there is a imported function called `AddTest()`. It expects two arguments: 1. The name of the test file (`test_function_return.loop` is our example), 2. The expected value ('5' in our case). In our case you endup with something like this:
+In the Python script called: `end2end_test.py` there is a imported function called `add_test()`. It expects two arguments: 1. The name of the test file (`test_function_return.loop` is our example), 2. The expected value ('5' in our case). In our case you endup with something like this:
 ```python
-AddTest("test_comments.loop", "3")
-AddTest("test_import_export.loop", "8")
-AddTest("test_function_return.loop", "5")
+add_test("test_comments.loop", "3")
+add_test("test_import_export.loop", "8")
+add_test("test_function_return.loop", "5")
 ```
 
 This is everything you have to do to write and add a test.
