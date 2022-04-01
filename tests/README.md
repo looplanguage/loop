@@ -2,6 +2,11 @@
 
 To keep everything working in Loop we make use of tests. Most of these are written in the source code, and can we run like this: `cargo test`. Some tests are not really possible, tedious or are just better to write end2end tests for. This directory contains all the end2end tests for Loop. 
 
+Just for clarification, these are the three types of tests we use:
+ - Unit-test, tests a small unit of code
+ - Integration-test, tests the whole stack of the source-code (lexer to compiler/vm)
+ - End2End-test, tests by simulating user behaviour (running *.loop files)
+
 ## Run Locally
 
 It is meant to be ran in the pipeline, but you can be ran locally too. Here is how to do it:
