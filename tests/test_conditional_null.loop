@@ -1,0 +1,2 @@
+// answer = null
+if false { 10 } else if false { if false { 10 } } else if false {320 + 400} else if true {} else { 6000 }

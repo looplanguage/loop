@@ -1,0 +1,3 @@
+// answer = 1230
+var q = 200; var newClosure = fn(a) { var c = 1000; return fn(b) { return a + b + c + q } }; 
+newClosure(20)(10)

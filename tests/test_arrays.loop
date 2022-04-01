@@ -1,0 +1,7 @@
+// answer = [][1, 2, 3][1, null, true]
+var x = []
+print(x)
+var y = [1, 2, 3]
+print(y)
+var z = [1, null, true]
+z
