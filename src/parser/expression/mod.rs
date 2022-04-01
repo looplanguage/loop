@@ -101,4 +101,16 @@ impl Expression {
             _ => None,
         }
     }
+
+    pub fn get_value(&self) -> Option<String> {
+        match self {
+            Expression::Integer(integer) => Some(integer.value.to_string()),
+            Expression::String(string) => Some(format!("\"{}\"", string.value)),
+            _ => None
+        }
+    }
+
+    pub fn get_type(&self) -> Option<String> {
+        Some(String::from("int"))
+    }
 }

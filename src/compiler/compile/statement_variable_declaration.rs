@@ -13,13 +13,13 @@ pub fn compile_statement_variable_declaration(
     );
 
     compiler.variable_count += 1;
-    let result = compiler.compile_expression(*variable.value);
+    // let result = compiler.compile_expression(*variable.value);
 
-    compiler.emit(OpCode::SetVar, vec![var.index as u32]);
+    let mut _type = "int";
 
-    #[allow(clippy::single_match)]
-    match &result {
-        CompilerResult::Exception(_exception) => result,
-        _ => CompilerResult::Success,
-    }
+    compiler.add_to_current_function(format!("{} var_{}_{} = {};", _type, variable.ident.value, var.index, variable.value.clone().get_value().unwrap()));
+
+    // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
+
+    CompilerResult::Success
 }

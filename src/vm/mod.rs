@@ -38,7 +38,7 @@ pub struct VM {
 const STACK_SIZE: usize = 2048;
 
 pub struct VMState {
-    variables: HashMap<u32, Rc<RefCell<Object>>>,
+    pub(crate) variables: HashMap<u32, Rc<RefCell<Object>>>,
 }
 
 pub fn build_vm(bt: Bytecode, state: Option<&VMState>, main_name: String) -> VM {

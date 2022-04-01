@@ -47,6 +47,7 @@ use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 #[allow(dead_code)]
@@ -60,6 +61,8 @@ pub enum CompilerResult {
 pub struct Bytecode {
     pub instructions: Instructions,
     pub constants: Vec<Rc<RefCell<Object>>>,
+    pub imports: Vec<String>,
+    pub functions: HashMap<String, String>
 }
 
 #[derive(Copy, Clone)]
@@ -86,6 +89,11 @@ pub struct Compiler {
     pub export_name: String,
     pub prev_location: String,
     pub breaks: Vec<u32>,
+
+    pub imports: Vec<String>,
+    pub functions: HashMap<String, String>,
+    pub function_stack: Vec<String>,
+    pub current_function: String
 }
 
 pub struct CompilerState {
@@ -118,6 +126,11 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
         export_name: String::new(),
         prev_location: String::new(),
         breaks: Vec::new(),
+
+        imports: Vec::new(),
+        functions: HashMap::new(),
+        function_stack: Vec::new(),
+        current_function: String::from("main")
     }
 }
 
@@ -140,8 +153,13 @@ fn empty_state() -> CompilerState {
 
 impl Compiler {
     pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
+        // Insert main function
+        let mut main_function = String::from("void main() {");
+
+        self.functions.insert(String::from("main"), main_function);
+
         for statement in program.statements {
-            let err = self.compile_statement(statement);
+            let err = self.compile_statement(statement, String::from("main"));
             // if let Some(err) = err {
             //     err.emit();
             //
@@ -155,6 +173,8 @@ impl Compiler {
             }
         }
 
+        self.functions.get_mut("main").unwrap().push_str("}");
+
         Result::Ok(self.get_bytecode())
     }
 
@@ -165,6 +185,12 @@ impl Compiler {
             variable_count: self.variable_count,
             variable_scope: self.variable_scope.clone(),
         }
+    }
+
+    pub fn add_to_current_function(&mut self, code: String) {
+        let func = self.functions.get_mut(&*self.current_function);
+
+        func.unwrap().push_str(code.as_str());
     }
 
     pub fn scope(&self) -> &CompilationScope {
@@ -229,6 +255,8 @@ impl Compiler {
         Bytecode {
             instructions: self.scope().instructions.clone(),
             constants: self.constants.clone(),
+            functions: self.functions.clone(),
+            imports: self.imports.clone()
         }
     }
 
@@ -260,7 +288,7 @@ impl Compiler {
         self.enter_variable_scope();
 
         for statement in block.statements {
-            let err = self.compile_statement(statement);
+            let err = self.compile_statement(statement, String::from("main"));
 
             #[allow(clippy::single_match)]
             match &err {
@@ -282,7 +310,7 @@ impl Compiler {
         }
 
         for statement in block.statements {
-            let err = self.compile_statement(statement);
+            let err = self.compile_statement(statement, String::from("main"));
 
             #[allow(clippy::single_match)]
             match &err {
@@ -296,7 +324,7 @@ impl Compiler {
         CompilerResult::Success
     }
 
-    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
+    fn compile_statement(&mut self, stmt: Statement, current_function: String) -> CompilerResult {
         match stmt {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
