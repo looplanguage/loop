@@ -26,6 +26,12 @@ pub fn build_deeper_variable_scope(outer: Option<Rc<RefCell<VariableScope>>>) ->
     }
 }
 
+impl Variable {
+    pub fn transpile(&self) -> String {
+        format!("var_{}_{}", self.name, self.index)
+    }
+}
+
 impl VariableScope {
     pub fn define(&mut self, index: u32, name: String, _type: Expression) -> Variable {
         self.variables.push(Variable {

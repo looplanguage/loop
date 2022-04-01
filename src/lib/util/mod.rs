@@ -45,8 +45,14 @@ pub fn execute_code(
     let mut comp = compiler::build_compiler(compiler_state);
     let error = comp.compile(program);
 
+    let mut imports = String::new();
+
+    for import in comp.imports.clone() {
+        imports.push_str(&*format!("import {};", import));
+    }
+
     println!("Compiled to:");
-    println!("{}", comp.functions.get("main").unwrap());
+    println!("{}{}", imports, comp.functions.get("main").unwrap());
 
     if error.is_err() {
         let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());

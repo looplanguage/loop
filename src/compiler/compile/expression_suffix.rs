@@ -5,7 +5,11 @@ use crate::parser::expression::suffix::Suffix;
 use crate::parser::expression::Expression;
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> CompilerResult {
-    let right = _suffix.right.clone();
+    _compiler.add_to_current_function(_suffix.transpile().unwrap());
+
+    /*let right = _suffix.right.clone();
+
+    _compiler.add_to_current_function(_suffix.)
 
     if _suffix.operator.as_str() == "<" {
         _compiler.compile_expression(_suffix.right);
@@ -69,6 +73,8 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
             ));
         }
     }
+
+     */
 
     CompilerResult::Success
 }

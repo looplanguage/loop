@@ -13,7 +13,7 @@ pub enum Scope {
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Symbol {
     pub scope: Scope,
-    pub index: u32,
+    pub index: u32
 }
 
 #[derive(Default)]

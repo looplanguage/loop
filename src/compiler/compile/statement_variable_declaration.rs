@@ -15,9 +15,12 @@ pub fn compile_statement_variable_declaration(
     compiler.variable_count += 1;
     // let result = compiler.compile_expression(*variable.value);
 
-    let mut _type = "int";
+    // TODO: Make this not auto
+    let mut _type = "auto";
 
-    compiler.add_to_current_function(format!("{} var_{}_{} = {};", _type, variable.ident.value, var.index, variable.value.clone().get_value().unwrap()));
+
+
+    compiler.add_to_current_function(format!("{} {} = {}", _type, var.transpile(), variable.value.clone().get_value().unwrap()));
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 

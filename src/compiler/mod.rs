@@ -49,6 +49,7 @@ use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::lib::object::builtin::BUILTINS;
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
@@ -159,7 +160,7 @@ impl Compiler {
         self.functions.insert(String::from("main"), main_function);
 
         for statement in program.statements {
-            let err = self.compile_statement(statement, String::from("main"));
+            let err = self.compile_statement(statement);
             // if let Some(err) = err {
             //     err.emit();
             //
@@ -201,12 +202,41 @@ impl Compiler {
         self.scopes[self.scope_index as usize].borrow_mut()
     }
 
+    pub fn add_import(&mut self, import: String) {
+        let found = self.imports.iter().find(|&imp| *imp == import);
+
+        if found.is_none() {
+            self.imports.push(import);
+        }
+    }
+
     pub fn load_symbol(&mut self, symbol: Symbol) {
         match symbol.scope {
-            Scope::Local => self.emit(OpCode::GetLocal, vec![symbol.index]),
-            Scope::Global => self.emit(OpCode::GetVar, vec![symbol.index]),
-            Scope::Free => self.emit(OpCode::GetFree, vec![symbol.index]),
-            Scope::Builtin => self.emit(OpCode::GetBuiltin, vec![symbol.index]),
+            Scope::Local => {self.emit(OpCode::GetLocal, vec![symbol.index]); },
+            Scope::Global => {self.emit(OpCode::GetVar, vec![symbol.index]); },
+            Scope::Free => { self.emit(OpCode::GetFree, vec![symbol.index]); },
+            Scope::Builtin => {
+                // Temporary
+                /*
+                    builtin!(len),
+                    builtin!(print),
+                    builtin!(println),
+                    builtin!(format),
+                 */
+                match symbol.index {
+                    1 => {
+                        self.add_import(String::from("std"));
+                        self.add_to_current_function(String::from("write"));
+                    },
+                    2 => {
+                        self.add_import(String::from("std"));
+                        self.add_to_current_function(String::from("writeln"));
+                    }
+                    _ => {
+                        println!("Unknown symbol!");
+                    }
+                };
+            },
         };
     }
 
@@ -288,7 +318,7 @@ impl Compiler {
         self.enter_variable_scope();
 
         for statement in block.statements {
-            let err = self.compile_statement(statement, String::from("main"));
+            let err = self.compile_statement(statement);
 
             #[allow(clippy::single_match)]
             match &err {
@@ -310,7 +340,7 @@ impl Compiler {
         }
 
         for statement in block.statements {
-            let err = self.compile_statement(statement, String::from("main"));
+            let err = self.compile_statement(statement);
 
             #[allow(clippy::single_match)]
             match &err {
@@ -324,8 +354,8 @@ impl Compiler {
         CompilerResult::Success
     }
 
-    fn compile_statement(&mut self, stmt: Statement, current_function: String) -> CompilerResult {
-        match stmt {
+    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
+        let result = match stmt {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
@@ -344,7 +374,11 @@ impl Compiler {
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
             Statement::Break(br) => compile_break_statement(self, br),
-        }
+        };
+
+        self.add_to_current_function(";".parse().unwrap());
+
+        result
     }
 
     fn add_constant(&mut self, obj: Object) -> u32 {

@@ -11,18 +11,27 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         _ => (),
     }
 
+    compiler.add_to_current_function(String::from("("));
+
+    let mut current = 0;
     for parameter in call.parameters.clone() {
+        current = current + 1;
+
         let result = compiler.compile_expression(parameter);
+
         #[allow(clippy::single_match)]
         match &result {
             CompilerResult::Exception(_exception) => return result,
             _ => (),
         }
+
+        if call.parameters.len() > 1 && current != call.parameters.len() {
+            compiler.add_to_current_function(String::from(","));
+        }
     }
 
-    let param_len = call.parameters.len();
 
-    compiler.emit(OpCode::Call, vec![param_len as u32]);
+    compiler.add_to_current_function(String::from(")"));
 
     CompilerResult::Success
 }

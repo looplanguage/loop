@@ -22,7 +22,9 @@ pub fn compile_expression_identifier(
             .resolve(format!("{}{}", compiler.location, identifier.value));
 
         if var.is_some() {
-            compiler.emit(OpCode::GetVar, vec![var.unwrap().index]);
+
+            compiler.add_to_current_function(var.unwrap().transpile());
+
             return CompilerResult::Success;
         }
     }
