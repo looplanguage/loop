@@ -399,11 +399,7 @@ impl Compiler {
                     Expression::LoopIterator(_) => false,
                     Expression::LoopArrayIterator(_) => false,
                     Expression::Function(func) => {
-                        if func.name.len() > 0 {
-                            false
-                        } else {
-                            true
-                        }
+                        func.name.len() < 0
                     }
                     _ => true,
                 }
