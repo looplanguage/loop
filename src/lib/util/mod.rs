@@ -13,7 +13,11 @@ use inkwell::passes::PassManager;
 use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fs::{create_dir_all, File};
+use std::io::Write;
+use std::process::{Command, exit, ExitStatus};
 use std::rc::Rc;
+use dirs::home_dir;
 use crate::lib::object::integer::Integer;
 
 type ExecuteCodeReturn = (
@@ -53,13 +57,23 @@ pub fn execute_code(
 
     println!("Compiled to:");
 
+    let mut code = String::new();
+
+    code.push_str(imports.as_str());
+
     for function in comp.functions.clone() {
-        if function.0 != "main" {
-            print!("{}", function.1);
-        }
+        code.push_str(function.1.as_str());
     }
 
-    println!("{}{}", imports, comp.functions.get("main").unwrap());
+    // Write output to temp directory in Loop home directory
+    let home_dir = home_dir().unwrap();
+    let mut dir = home_dir.to_str().unwrap().to_string();
+    dir.push_str("/.loop/tmp/");
+
+    create_dir_all(dir.clone());
+
+    let mut file = File::create(format!("{}main.d", dir));
+    file.unwrap().write_all(code.as_bytes());
 
     if error.is_err() {
         let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
@@ -67,60 +81,28 @@ pub fn execute_code(
         return (Err(message), None, None);
     }
 
-    if CONFIG.debug_mode {
-        print_instructions(comp.scope().instructions.clone());
-    }
-
-
-    //let mut vm = vm::build_vm(comp.get_bytecode(), vm_state, "MAIN".to_string());
-
     let started = Utc::now();
 
-    // let context = Context::create();
-    //let module = context.create_module("program");
-    //let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None);
+    // Compile it & execute (only on macos and arm)
+    let output = if cfg!(all(target_os = "macos")) {
+        Command::new("ldc2")
+            .args([format!("{}main.d", dir), format!("--of={}main", dir)])
+            .output()
+            .expect("failed to run D compiler!");
 
-    // if execution_engine.is_err() {
-    //     println!("Error during start of JIT engine!");
-    //     return (Err(execution_engine.err().unwrap().to_string()), None, None);
-    // }
+        let output = Command::new(format!("{}main", dir))
+            .output()
+            .expect("unable to run Loop program!");
 
-    // let execution_engine = execution_engine.ok().unwrap();
-    //
-    // let fpm = PassManager::create(&module);
-    //
-    // fpm.add_instruction_combining_pass();
-    // fpm.add_reassociate_pass();
-    // fpm.add_gvn_pass();
-    // fpm.add_cfg_simplification_pass();
-    // fpm.add_basic_alias_analysis_pass();
-    // fpm.add_promote_memory_to_register_pass();
-    // fpm.add_instruction_combining_pass();
-    // fpm.add_reassociate_pass();
-    //
-    // fpm.initialize();
-    //
-    // let mut codegen: Option<CodeGen> = None;
-    //
-    // if CONFIG.jit_enabled {
-    //     codegen = Option::from(CodeGen {
-    //         context: &context,
-    //         module: &module,
-    //         builder: context.create_builder(),
-    //         execution_engine,
-    //         fpm: &fpm,
-    //         last_popped: None,
-    //         section_depth: Vec::new(),
-    //     });
-    // }
-    //
-    // let ran = vm.run(codegen);
+        if !output.status.success() {
+            println!("{}", String::from_utf8_lossy(&*output.stderr).to_string());
+            exit(output.status.code().unwrap());
+        } else {
+            println!("{}", String::from_utf8_lossy(&*output.stdout).to_string());
+        }
+    };
 
     let duration = Utc::now().signed_duration_since(started);
-    //
-    // if ran.is_err() {
-    //     panic!("{}", ran.err().unwrap());
-    // }
 
     if CONFIG.enable_benchmark {
         let formatted = duration.to_string().replace("PT", "");

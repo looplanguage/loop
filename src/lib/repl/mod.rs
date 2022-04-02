@@ -73,7 +73,7 @@ impl Repl {
         }
 
         if let Ok(m) = ran.0 {
-            println!("{}", m.borrow().inspect());
+            //println!("{}", m.borrow().inspect());
         }
     }
 
