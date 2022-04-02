@@ -55,8 +55,6 @@ pub fn execute_code(
         imports.push_str(&*format!("import {};", import));
     }
 
-    println!("Compiled to:");
-
     let mut code = String::new();
 
     code.push_str(imports.as_str());
