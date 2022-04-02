@@ -1,3 +1,4 @@
+use crate::compiler::Compiler;
 use crate::lexer::token::TokenType;
 use crate::parser::expression::array::Array;
 use crate::parser::expression::assign_index::AssignIndex;
@@ -102,12 +103,20 @@ impl Expression {
         }
     }
 
-    pub fn get_value(&self) -> Option<String> {
+    pub fn get_value(&self, compiler: &Compiler) -> Option<String> {
         match self {
             Expression::Integer(integer) => Some(integer.value.to_string()),
             Expression::String(string) => Some(format!("\"{}\"", string.value)),
-            Expression::Identifier(identifier) => Some(identifier.clone().value),
-            Expression::Suffix(suffix) => Some(format!("{} {} {}", suffix.left.clone().get_value().unwrap(), suffix.operator, suffix.right.clone().get_value().unwrap())),
+            Expression::Identifier(identifier) => {
+                let var = compiler.variable_scope.borrow().resolve(identifier.clone().value);
+
+                if var.is_some() {
+                    Some(var.unwrap().transpile())
+                } else {
+                    None
+                }
+            },
+            Expression::Suffix(suffix) => Some(format!("{} {} {}", suffix.left.clone().get_value(compiler).unwrap(), suffix.operator, suffix.right.clone().get_value(compiler).unwrap())),
             _ => None
         }
     }

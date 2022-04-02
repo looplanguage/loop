@@ -11,12 +11,6 @@ pub struct Suffix {
     pub(crate) right: Expression,
 }
 
-impl Suffix {
-    pub fn transpile(&self) -> Option<String> {
-        Some(format!("{} {} {}", self.left.clone().get_value().unwrap(), self.operator, self.right.clone().get_value().unwrap()))
-    }
-}
-
 pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node> {
     let operator = p.lexer.get_current_token().unwrap().literal.clone();
 

@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::variable::VariableDeclaration;
@@ -20,7 +21,9 @@ pub fn compile_statement_variable_declaration(
 
 
 
-    compiler.add_to_current_function(format!("{} {} = {}", _type, var.transpile(), variable.value.clone().get_value().unwrap()));
+    let value = variable.value.clone().get_value(compiler.borrow());
+
+    compiler.add_to_current_function(format!("{} {} = {}", _type, var.transpile(), value.unwrap()));
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 

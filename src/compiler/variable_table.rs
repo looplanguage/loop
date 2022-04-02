@@ -49,7 +49,7 @@ impl VariableScope {
         }
     }
 
-    pub fn resolve(&mut self, name: String) -> Option<Variable> {
+    pub fn resolve(&self, name: String) -> Option<Variable> {
         for variable in &self.variables {
             if variable.name == name {
                 return Some(Variable {
