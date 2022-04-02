@@ -188,6 +188,16 @@ impl Compiler {
         }
     }
 
+    pub fn new_function(&mut self, name: String) {
+        self.function_stack.push(self.current_function.clone());
+        self.functions.insert(name.clone(), String::new());
+        self.current_function = name.clone();
+    }
+
+    pub fn exit_function(&mut self) {
+        self.current_function = self.function_stack.pop().unwrap();
+    }
+
     pub fn add_to_current_function(&mut self, code: String) {
         let func = self.functions.get_mut(&*self.current_function);
 
@@ -384,6 +394,13 @@ impl Compiler {
                     Expression::Loop(_) => false,
                     Expression::LoopIterator(_) => false,
                     Expression::LoopArrayIterator(_) => false,
+                    Expression::Function(func) => {
+                        if func.name.len() > 0 {
+                            false
+                        } else {
+                            true
+                        }
+                    }
                     _ => true,
                 }
             },

@@ -4,9 +4,22 @@ use crate::lib::config::CONFIG;
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::object::function;
 use crate::lib::object::Object::CompiledFunction;
+use crate::parser::expression::Expression;
 use crate::parser::expression::function::Function;
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> CompilerResult {
+    // Named function ^.^
+    if func.name.len() > 0 {
+        let var = compiler.variable_scope.borrow_mut().define(
+            compiler.variable_count,
+            format!("{}{}", compiler.location, func.name.clone()),
+            Expression::Function(func.clone()),
+        );
+
+        compiler.new_function(var.transpile());
+        compiler.add_to_current_function(format!("auto {}", var.transpile()));
+    }
+
     let num_params = func.parameters.len() as u32;
 
     compiler.enter_scope();
@@ -31,6 +44,10 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
     compiler.add_to_current_function(") ".to_string());
 
     compiler.compile_block(func.body);
+
+    if func.name.len() > 0 {
+        compiler.exit_function();
+    }
 
     CompilerResult::Success
 }

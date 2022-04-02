@@ -20,6 +20,7 @@ impl Parameter {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Function {
+    pub name: String,
     pub parameters: Vec<Parameter>,
     pub body: Block,
 }
@@ -98,15 +99,22 @@ pub fn parse_call(p: &mut Parser, left: Expression) -> Option<Node> {
 }
 
 pub fn parse_function(p: &mut Parser) -> Option<Node> {
+    let mut name = String::from("");
+
     if !p
         .lexer
         .next_token_is_and_next_token(TokenType::LeftParenthesis)
     {
-        p.add_error(format!(
-            "wrong token. expected=\"LeftParentheses\". got=\"{:?}\"",
-            p.lexer.get_current_token().unwrap().token
-        ));
-        return None;
+        if p.lexer.next_token_is_and_next_token(TokenType::Identifier) {
+            name = p.lexer.current_token.as_ref().unwrap().clone().literal;
+            p.lexer.next_token();
+        } else {
+            p.add_error(format!(
+                "wrong token. expected=\"LeftParentheses\". got=\"{:?}\"",
+                p.lexer.get_current_token().unwrap().token
+            ));
+            return None;
+        }
     }
 
     let arguments: Vec<Parameter> = parse_arguments(p);
@@ -141,6 +149,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     }
 
     Some(Node::Expression(Expression::Function(Function {
+        name,
         parameters: arguments,
         body,
     })))

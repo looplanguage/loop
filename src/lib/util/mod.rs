@@ -52,6 +52,13 @@ pub fn execute_code(
     }
 
     println!("Compiled to:");
+
+    for function in comp.functions.clone() {
+        if function.0 != "main" {
+            print!("{}", function.1);
+        }
+    }
+
     println!("{}{}", imports, comp.functions.get("main").unwrap());
 
     if error.is_err() {
