@@ -5,11 +5,11 @@ use crate::parser::expression::suffix::Suffix;
 use crate::parser::expression::Expression;
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> CompilerResult {
-    let left = _suffix.left.get_value(_compiler);
-    let right = _suffix.right.get_value(_compiler);
+    _compiler.compile_expression(_suffix.left);
 
+    _compiler.add_to_current_function(format!("{}", _suffix.operator));
 
-    _compiler.add_to_current_function(format!("{} {} {}", left.unwrap(), _suffix.operator, right.unwrap()));
+    _compiler.compile_expression(_suffix.right);
 
     /*let right = _suffix.right.clone();
 
