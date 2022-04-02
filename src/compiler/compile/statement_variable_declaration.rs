@@ -19,11 +19,9 @@ pub fn compile_statement_variable_declaration(
     // TODO: Make this not auto
     let mut _type = "auto";
 
+    compiler.add_to_current_function(format!("{} {} = ", _type, var.transpile()));
 
-
-    let value = variable.value.clone().get_value(compiler.borrow());
-
-    compiler.add_to_current_function(format!("{} {} = {}", _type, var.transpile(), value.unwrap()));
+    compiler.compile_expression(*variable.value.clone());
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
