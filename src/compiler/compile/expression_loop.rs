@@ -7,47 +7,14 @@ use crate::parser::expression::{array, integer, Expression};
 
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerResult {
     compiler.enter_variable_scope();
-    let section = compiler.emit(OpCode::StartSection, vec![0, 9999]);
 
-    let start = compiler.scope().instructions.len();
+    // Condition
+    compiler.add_to_current_function("while (".to_string());
     let result = compiler.compile_expression(*lp.condition);
+    compiler.add_to_current_function(") ".to_string());
 
-    #[allow(clippy::single_match)]
-    match &result {
-        CompilerResult::Exception(_exception) => return result,
-        _ => (),
-    }
-
-    let done = compiler.emit(OpCode::JumpIfFalse, vec![99999]); // To jump later
-
+    // Body
     let result = compiler.compile_block(lp.body);
-
-    #[allow(clippy::single_match)]
-    match &result {
-        CompilerResult::Exception(_exception) => return result,
-        _ => (),
-    }
-
-    compiler.emit(OpCode::Jump, vec![start as u32]); // Jump back to start
-
-    compiler.change_operand(
-        done as u32,
-        vec![compiler.scope().instructions.len() as u32],
-    );
-
-    compiler.emit(OpCode::Constant, vec![0]);
-
-    compiler.exit_variable_scope();
-
-    let end = compiler.emit(OpCode::EndSection, vec![]);
-    compiler.change_operand(section as u32, vec![0, end as u32]);
-
-    // Set all breaks to go to the end of current loop
-    for br in compiler.breaks.clone() {
-        compiler.change_operand(br, vec![end as u32])
-    }
-
-    compiler.breaks = vec![];
 
     CompilerResult::Success
 }
@@ -57,8 +24,6 @@ pub fn compile_loop_iterator_expression(
     lp: LoopIterator,
 ) -> CompilerResult {
     compiler.enter_variable_scope();
-    let section = compiler.emit(OpCode::StartSection, vec![1, 9999]);
-
     // Define the identifier variable, with the starting integer
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
@@ -72,58 +37,23 @@ pub fn compile_loop_iterator_expression(
         value: lp.from as i64,
     }));
 
+    compiler.add_to_current_function(format!("int {} = {};", var.transpile(), lp.from));
+
     // The constant to where we are iterating
     // We do minus 1 as we use the GreaterThan opcode
     let till = compiler.add_constant(Object::Integer(Integer {
         value: lp.till as i64,
     }));
 
-    // A one constant (to add to the variable)
-    let one = compiler.add_constant(Object::Integer(Integer { value: 1 }));
-
-    // Set the initial value
-    compiler.emit(OpCode::Constant, vec![from]);
-    compiler.emit(OpCode::SetVar, vec![var.index]);
-
-    // Check if we should skip over
-    let start = compiler.scope().instructions.len();
-    compiler.emit(OpCode::Constant, vec![till]); // 2
-    compiler.emit(OpCode::GetVar, vec![var.index]); // 1
-    compiler.emit(OpCode::GreaterThan, vec![]); // 1
-    let start_jump = compiler.emit(OpCode::JumpIfFalse, vec![start as u32]); // 0
+    compiler.add_to_current_function(format!("while({} < {}) {{", var.transpile(), lp.till));
 
     // Compile the body that is executed
     compiler.compile_loop_block(lp.body);
 
-    // Increase value at the end of body and check if we should go back to start
-    compiler.emit(OpCode::Constant, vec![one]);
-    compiler.emit(OpCode::GetVar, vec![var.index]);
-    compiler.emit(OpCode::Add, vec![]);
-    compiler.emit(OpCode::SetVar, vec![var.index]); // 0
-
-    // Jump to start
-    compiler.emit(OpCode::Jump, vec![start as u32]);
-
     compiler.exit_variable_scope();
 
-    let end = compiler.emit(OpCode::EndSection, vec![]);
-    compiler.change_operand(section as u32, vec![1, end as u32]);
-
-    // Change JumpIfFalse to the end
-    compiler.change_operand(start_jump as u32, vec![end as u32]);
-
-    // Set all breaks to go to the end of current loop
-    for br in compiler.breaks.clone() {
-        compiler.change_operand(br, vec![end as u32])
-    }
-
-    compiler.breaks = vec![];
-
-    compiler.emit(OpCode::Constant, vec![0]);
-
-    // Set the initial value
-    compiler.emit(OpCode::Constant, vec![from]);
-    compiler.emit(OpCode::SetVar, vec![var.index]);
+    // Increase it
+    compiler.add_to_current_function(format!("{} += 1; }}", var.transpile()));
 
     CompilerResult::Success
 }
@@ -133,18 +63,19 @@ pub fn compile_loop_array_iterator_expression(
     lp: LoopArrayIterator,
 ) -> CompilerResult {
     compiler.enter_variable_scope();
-    let section = compiler.emit(OpCode::StartSection, vec![40, 9999]);
 
     // Put the array on the stack and assign it to a cache variable
     let array = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
-        "/iterator-array".to_string(),
+        "_iterator_array".to_string(),
         Expression::Array(Box::from(array::Array { values: vec![] })),
     );
     compiler.variable_count += 1;
 
+    // Array
+    compiler.add_to_current_function(format!("auto {} = ", array.transpile()));
     compiler.compile_expression(*lp.array);
-    compiler.emit(OpCode::SetVar, vec![array.index]);
+    compiler.add_to_current_function(";".to_string());
 
     // Define the identifier variable, with the starting value of the array
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -156,58 +87,21 @@ pub fn compile_loop_array_iterator_expression(
 
     let index = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
-        "/iterator-index".to_string(),
+        "_iterator_index".to_string(),
         Expression::Integer(integer::Integer { value: 0 }),
     );
     compiler.variable_count += 1;
 
-    // Set index to 0
-    let zero = compiler.add_constant(Object::Integer(Integer { value: 0 }));
-    let one = compiler.add_constant(Object::Integer(Integer { value: 1 }));
+    compiler.add_to_current_function(format!("int {} = 0;", index.transpile()));
+    compiler.add_to_current_function(format!("auto {} = {}[0];", var.transpile(), array.transpile()));
 
-    compiler.emit(OpCode::Constant, vec![zero]);
-    compiler.emit(OpCode::SetVar, vec![index.index]);
-
-    // Check length before we assign and continue to the next one
-    // Skip to end if length is lower than our index
-    let start = compiler.scope().instructions.len();
-    compiler.emit(OpCode::GetBuiltin, vec![0]); // 0 = len builtin
-    compiler.emit(OpCode::GetVar, vec![array.index]);
-    compiler.emit(OpCode::Call, vec![1]); // actually call to check length
-    compiler.emit(OpCode::GetVar, vec![index.index]); // Get the index of the current iteration
-    compiler.emit(OpCode::GreaterThan, vec![]); // Get the index of the current iteration
-    let end = compiler.emit(OpCode::JumpIfFalse, vec![999999]); // Create a jump to end if it is greater, otherwise increase index
-
-    compiler.emit(OpCode::GetVar, vec![array.index]); // Get the array
-    compiler.emit(OpCode::GetVar, vec![index.index]); // Get the index
-    compiler.emit(OpCode::Index, vec![]); // Index the array
-    compiler.emit(OpCode::SetVar, vec![var.index]); // Assign it to the variable
+    compiler.add_to_current_function(format!("while({} < {}.length) {{ ", index.transpile(), array.transpile()));
 
     // Compile body and then increase the index
-    compiler.compile_block(lp.body);
+    compiler.compile_loop_block(lp.body);
 
-    compiler.emit(OpCode::Constant, vec![one]);
-    compiler.emit(OpCode::GetVar, vec![index.index]); // Get the index
-    compiler.emit(OpCode::Add, vec![]); // Add to the index
-    compiler.emit(OpCode::SetVar, vec![index.index]); // Assign the new value to it
-    compiler.emit(OpCode::Jump, vec![start as u32]); // And go back to start
-
-    // set jump to end & add a final "null" value for if we didn't break inside the loop
-    compiler.change_operand(end as u32, vec![compiler.scope().instructions.len() as u32]);
-
-    // Reset iterator
-    compiler.emit(OpCode::Constant, vec![zero]);
-    compiler.emit(OpCode::SetVar, vec![index.index]);
-
-    compiler.emit(OpCode::Constant, vec![0]);
-    let end = compiler.emit(OpCode::EndSection, vec![]);
-    compiler.change_operand(section as u32, vec![2, end as u32]);
-
-    // Set all breaks to go to the end of current loop
-    for br in compiler.breaks.clone() {
-        compiler.change_operand(br, vec![end as u32])
-    }
-    compiler.breaks = vec![];
+    compiler.add_to_current_function(format!("{} += 1;", index.transpile()));
+    compiler.add_to_current_function(format!("if({} < {}.length) {{ {} = {}[{}]; }} }}", index.transpile(), array.transpile(), var.transpile(), array.transpile(), index.transpile()));
 
     CompilerResult::Success
 }

@@ -381,6 +381,9 @@ impl Compiler {
             Statement::Expression(expr) => {
                 match *expr.expression {
                     Expression::Conditional(_) => false,
+                    Expression::Loop(_) => false,
+                    Expression::LoopIterator(_) => false,
+                    Expression::LoopArrayIterator(_) => false,
                     _ => true,
                 }
             },
