@@ -4,10 +4,38 @@ use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::Parser;
+use crate::parser::types::{BaseTypes, Types};
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Parameter {
+    pub identifier: Identifier,
+    pub _type: Types
+}
+
+impl Parameter {
+    pub fn get_type(&self) -> String {
+        match self._type.clone() {
+            Types::Basic(basic) => {
+                match basic {
+                    BaseTypes::Integer => "int".to_string(),
+                    BaseTypes::String => "char[]".to_string(),
+                    BaseTypes::Boolean => "bool".to_string(),
+                }
+            }
+            Types::Array(array) => {
+                match array {
+                    BaseTypes::Integer => "int[]".to_string(),
+                    BaseTypes::String => "char[][]".to_string(),
+                    BaseTypes::Boolean => "bool[]".to_string(),
+                }
+            }
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Function {
-    pub parameters: Vec<Identifier>,
+    pub parameters: Vec<Parameter>,
     pub body: Block,
 }
 
@@ -17,14 +45,19 @@ pub struct Call {
     pub parameters: Vec<Expression>,
 }
 
-pub fn parse_arguments(p: &mut Parser) -> Vec<Identifier> {
-    let mut arguments: Vec<Identifier> = Vec::new();
+pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
+    let mut arguments: Vec<Parameter> = Vec::new();
 
     p.lexer.next_token();
 
     while p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
-        arguments.push(Identifier {
-            value: p.lexer.get_current_token().unwrap().literal.to_string(),
+        let tp = p.parse_type(p.lexer.get_current_token().unwrap().clone()).unwrap();
+
+        p.lexer.next_token();
+
+        arguments.push(Parameter {
+            identifier: Identifier { value: p.lexer.get_current_token().unwrap().literal.to_string() },
+            _type: tp
         });
 
         p.lexer.next_token();
@@ -90,7 +123,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
-    let arguments: Vec<Identifier> = parse_arguments(p);
+    let arguments: Vec<Parameter> = parse_arguments(p);
 
     if !p
         .lexer

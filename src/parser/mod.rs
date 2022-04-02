@@ -27,11 +27,13 @@ use crate::parser::expression::number::{parse_negative_number, parse_number_lite
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::export::parse_export_statement;
 use crate::parser::statement::import::parse_import_statement;
+use crate::parser::types::{BaseTypes, Types};
 
 pub mod expression;
 pub mod program;
 pub mod statement;
 mod test;
+pub mod types;
 
 type PrefixParseFn = fn(parser: &mut Parser) -> Option<Node>;
 type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Option<Node>;
@@ -59,6 +61,40 @@ impl Parser {
         }
 
         Program { statements }
+    }
+
+    fn parse_type(&mut self, token: Token) -> Option<Types> {
+        match token.token {
+            TokenType::Identifier => {
+                match token.literal.as_str() {
+                    "int" => {
+                        if self.peek_token_is(TokenType::LeftBracket) {
+                            self.lexer.next_token();
+
+                            if self.peek_token_is(TokenType::RightBracket) {
+                                self.lexer.next_token();
+
+                                Some(Types::Array(BaseTypes::Integer))
+                            } else {
+                                None
+                            }
+                        } else {
+                            Some(Types::Basic(BaseTypes::Integer))
+                        }
+                    },
+                    "bool" => {
+                        Some(Types::Basic(BaseTypes::Boolean))
+                    },
+                    "string" => {
+                        Some(Types::Basic(BaseTypes::String))
+                    }
+                    _ => {
+                        None
+                    }
+                }
+            }
+            _ => None
+        }
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {

@@ -19,9 +19,9 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
         let symbol = compiler
             .symbol_table
             .borrow_mut()
-            .define(parameter.value.as_str(), 0).clone();
+            .define(parameter.identifier.value.as_str(), 0).clone();
 
-        compiler.add_to_current_function(format!("int local_{}", symbol.index));
+        compiler.add_to_current_function(format!("{} local_{}", parameter.get_type(), symbol.index));
 
         if func.parameters.len() > 1 && index != func.parameters.len() {
             compiler.add_to_current_function(", ".to_string());
