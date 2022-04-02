@@ -15,7 +15,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
     let mut current = 0;
     for parameter in call.parameters.clone() {
-        current = current + 1;
+        current += 1;
 
         let result = compiler.compile_expression(parameter);
 
