@@ -335,9 +335,7 @@ impl Compiler {
     fn compile_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
-        if block.statements.is_empty() {
-            compile_expression_null(self);
-        }
+        self.add_to_current_function("{".to_string());
 
         for statement in block.statements {
             let err = self.compile_statement(statement);
@@ -349,13 +347,15 @@ impl Compiler {
             }
         }
 
+        self.add_to_current_function("}".to_string());
+
         self.exit_variable_scope();
 
         CompilerResult::Success
     }
 
     fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
-        let result = match stmt {
+        let result = match stmt.clone() {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
@@ -376,7 +376,25 @@ impl Compiler {
             Statement::Break(br) => compile_break_statement(self, br),
         };
 
-        self.add_to_current_function(";".parse().unwrap());
+        let add_semicolon = match stmt.clone() {
+            Statement::VariableDeclaration(_) => true,
+            Statement::Expression(expr) => {
+                match *expr.expression {
+                    Expression::Conditional(_) => false,
+                    _ => true,
+                }
+            },
+            Statement::Block(_) => false,
+            Statement::VariableAssign(_) => true,
+            Statement::Return(_) => true,
+            Statement::Import(_) => false,
+            Statement::Export(_) => false,
+            Statement::Break(_) => true,
+        };
+
+        if add_semicolon {
+            self.add_to_current_function(";".to_string());
+        }
 
         result
     }

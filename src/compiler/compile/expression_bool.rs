@@ -14,7 +14,12 @@ pub fn compile_expression_boolean(compiler: &mut Compiler, bl: Boolean) -> Compi
         let ct = compiler.add_constant(Object::Boolean(boolean::Boolean {
             value: boolean.value,
         }));
-        compiler.emit(OpCode::Constant, vec![ct]);
+
+        if bl.value {
+            compiler.add_to_current_function(String::from("true"));
+        } else {
+            compiler.add_to_current_function(String::from("false"));
+        }
     }
 
     CompilerResult::Success
