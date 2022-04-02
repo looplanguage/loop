@@ -212,9 +212,9 @@ impl Compiler {
 
     pub fn load_symbol(&mut self, symbol: Symbol) {
         match symbol.scope {
-            Scope::Local => {self.emit(OpCode::GetLocal, vec![symbol.index]); },
+            Scope::Local => {self.add_to_current_function(format!("local_{}", symbol.index)); },
             Scope::Global => {self.emit(OpCode::GetVar, vec![symbol.index]); },
-            Scope::Free => { self.emit(OpCode::GetFree, vec![symbol.index]); },
+            Scope::Free => { self.add_to_current_function(format!("free_{}", symbol.index)); },
             Scope::Builtin => {
                 // Temporary
                 /*

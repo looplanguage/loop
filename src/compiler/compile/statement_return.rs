@@ -10,6 +10,8 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
         );
     }
 
+    _compiler.add_to_current_function("return ".to_string());
+
     let result = _compiler.compile_expression(*rt.expression);
 
     #[allow(clippy::single_match)]
@@ -17,8 +19,6 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
         CompilerResult::Exception(_exception) => return result,
         _ => (),
     }
-
-    _compiler.emit(OpCode::Return, vec![]);
 
     CompilerResult::Success
 }
