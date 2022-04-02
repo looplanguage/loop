@@ -6,6 +6,25 @@ use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::{array, integer, Expression};
 
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerResult {
+    /// Compiles (/transpiles) the "while" loop of Loop
+    ///
+    /// Take this example in Loop
+    /// ```loop
+    /// var x = 0
+    /// for(x < 10) {
+    ///     x = x + 1
+    /// }
+    /// println(x)
+    /// ```
+    ///
+    /// Will translate to this D code (excluding imports & main declaration)
+    /// ```d
+    /// auto x = 0;
+    /// while(x < 10) {
+    ///     x = x + 1;
+    /// }
+    /// writeln(x);
+    /// ```
     compiler.enter_variable_scope();
 
     // Condition
@@ -23,6 +42,27 @@ pub fn compile_loop_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopIterator,
 ) -> CompilerResult {
+    /// Compiles (/transpiles) the "iterator" loop of Loop
+    ///
+    /// Take this example in Loop
+    /// ```loop
+    /// var x = 0
+    /// for(var n = 0..10) {
+    ///     x = x + 1
+    /// }
+    /// println(x)
+    /// ```
+    ///
+    /// Will translate to this D code (excluding imports & main declaration)
+    /// ```d
+    /// auto x = 0;
+    /// auto n = 0;
+    /// while(n < 10) {
+    ///     x = x + 1;
+    ///     n = n + 1;
+    /// }
+    /// writeln(x);
+    /// ```
     compiler.enter_variable_scope();
     // Define the identifier variable, with the starting integer
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
@@ -62,6 +102,33 @@ pub fn compile_loop_array_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopArrayIterator,
 ) -> CompilerResult {
+    /// Compiles (/transpiles) the "while" loop of Loop
+    ///
+    /// Take this example in Loop
+    /// ```loop
+    /// var array = [10, 20, 30]
+    /// for(var value in array) {
+    ///     println(value)
+    /// }
+    /// ```
+    ///
+    /// Will translate to this D code (excluding imports & main declaration)
+    /// ```d
+    /// auto var_array_0 = [10, 20, 30];
+    /// auto var__iterator_array_1 = var_array_0;
+    ///
+    /// int var__iterator_index_3 = 0;
+    ///
+    /// auto var_value_2 = var__iterator_array_1[0];
+    ///
+    /// while(var__iterator_index_3 < var__iterator_array_1.length) {
+    ///     writeln(var_value_2);var__iterator_index_3 += 1;
+    ///
+    ///     if(var__iterator_index_3 < var__iterator_array_1.length) {
+    ///         var_value_2 = var__iterator_array_1[var__iterator_index_3];
+    ///     }
+    /// }
+    /// ```
     compiler.enter_variable_scope();
 
     // Put the array on the stack and assign it to a cache variable
