@@ -513,43 +513,6 @@ mod tests {
     }
 
     #[test]
-    fn comments_single_line() {
-        test_vm(
-            "var x = 10 // This is a comment",
-            Integer(integer::Integer { value: 10 }),
-        );
-
-        // This is supposed to work, tested it manually...
-        // ToDo: Fix this
-        // test_vm(
-        //     "// This is a comment \n
-        //      var y = 11",
-        //     Integer(integer::Integer { value: 11 }),
-        // );
-    }
-
-    #[test]
-    fn comments_block() {
-        test_vm(
-            " var y = 10 \
-            y = 2\
-            /< hello \
-            multiline >/",
-            Integer(integer::Integer { value: 2 }),
-        );
-
-        test_vm(
-            "/<hello>/ var x = 11",
-            Integer(integer::Integer { value: 11 }),
-        );
-        //
-        // test_vm(
-        //     "if(true) { /<hello>/ print(5) }",
-        //     Integer(integer::Integer { value: 5 }),
-        // );
-    }
-
-    #[test]
     fn loop_while() {
         test_vm(
             "var x = 0; for (x < 10) { x = x + 1 }; x",

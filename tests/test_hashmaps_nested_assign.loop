@@ -1,0 +1,12 @@
+// answer = true
+var x = { 
+    true: { 
+        0: { 
+            "hello": {
+                30: 500 
+            }
+        } 
+    } 
+} 
+x[true][0]["hello"][30] = true 
+x[true][0]["hello"][30]
