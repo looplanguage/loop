@@ -28,9 +28,9 @@ pub fn compile_statement_variable_assign(
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
         if var.is_some() {
-            let result = compiler.compile_expression(*variable.value);
+            compiler.add_to_current_function(format!("{} = ", var.unwrap().transpile()));
 
-            compiler.emit(OpCode::SetVar, vec![var.unwrap().index]);
+            let result = compiler.compile_expression(*variable.value);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,
