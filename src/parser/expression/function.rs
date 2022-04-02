@@ -18,14 +18,14 @@ impl Parameter {
             Types::Basic(basic) => {
                 match basic {
                     BaseTypes::Integer => "int".to_string(),
-                    BaseTypes::String => "char[]".to_string(),
+                    BaseTypes::String => "string".to_string(),
                     BaseTypes::Boolean => "bool".to_string(),
                 }
             }
             Types::Array(array) => {
                 match array {
                     BaseTypes::Integer => "int[]".to_string(),
-                    BaseTypes::String => "char[][]".to_string(),
+                    BaseTypes::String => "string[]".to_string(),
                     BaseTypes::Boolean => "bool[]".to_string(),
                 }
             }

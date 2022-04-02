@@ -8,10 +8,11 @@ pub fn compile_expression_string(
     compiler: &mut Compiler,
     string: expression::string::LoopString,
 ) -> CompilerResult {
-    let ct = compiler.add_constant(Object::String(LoopString {
-        value: string.value,
+    compiler.add_constant(Object::String(LoopString {
+        value: string.value.clone(),
     }));
-    compiler.emit(OpCode::Constant, vec![ct]);
+
+    compiler.add_to_current_function(format!("\"{}\"", string.value));
 
     CompilerResult::Success
 }
