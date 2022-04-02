@@ -222,9 +222,13 @@ impl Compiler {
 
     pub fn load_symbol(&mut self, symbol: Symbol) {
         match symbol.scope {
+            // Parameters in functions
             Scope::Local => {self.add_to_current_function(format!("local_{}", symbol.index)); },
+            // Globally defined functions (TODO: should be removed due to transpiling)
             Scope::Global => {self.emit(OpCode::GetVar, vec![symbol.index]); },
+            // Free "variables" in the scope of closures (D "lambdas") probably unused
             Scope::Free => { self.add_to_current_function(format!("free_{}", symbol.index)); },
+            // Builtin symbols, currently this is "std" related symbols and should be replaced by such in the future
             Scope::Builtin => {
                 // Temporary
                 /*
