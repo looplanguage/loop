@@ -61,20 +61,11 @@ impl Repl {
     }
 
     fn run_code(&mut self, s: String) {
-        let ran = execute_code(
+        execute_code(
             s.as_str(),
             self.compiler_state.as_ref(),
             self.vm_state.as_ref(),
         );
-
-        if !CONFIG.jit_enabled {
-            self.compiler_state = ran.1;
-            self.vm_state = ran.2;
-        }
-
-        if let Ok(m) = ran.0 {
-            //println!("{}", m.borrow().inspect());
-        }
     }
 
     fn run(&mut self) {
