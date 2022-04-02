@@ -63,30 +63,53 @@ impl Parser {
         Program { statements }
     }
 
+    fn is_type_array(&mut self) -> bool {
+        if self.peek_token_is(TokenType::LeftBracket) {
+            self.lexer.next_token();
+
+            if self.peek_token_is(TokenType::RightBracket) {
+                self.lexer.next_token();
+
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
     fn parse_type(&mut self, token: Token) -> Option<Types> {
         match token.token {
             TokenType::Identifier => {
                 match token.literal.as_str() {
                     "int" => {
-                        if self.peek_token_is(TokenType::LeftBracket) {
-                            self.lexer.next_token();
-
-                            if self.peek_token_is(TokenType::RightBracket) {
-                                self.lexer.next_token();
-
-                                Some(Types::Array(BaseTypes::Integer))
-                            } else {
-                                None
-                            }
+                        if self.is_type_array() {
+                            Some(Types::Array(BaseTypes::Integer))
                         } else {
                             Some(Types::Basic(BaseTypes::Integer))
                         }
                     },
                     "bool" => {
-                        Some(Types::Basic(BaseTypes::Boolean))
+                        if self.is_type_array() {
+                            Some(Types::Array(BaseTypes::Boolean))
+                        } else {
+                            Some(Types::Basic(BaseTypes::Boolean))
+                        }
                     },
                     "string" => {
-                        Some(Types::Basic(BaseTypes::String))
+                        if self.is_type_array() {
+                            Some(Types::Array(BaseTypes::String))
+                        } else {
+                            Some(Types::Basic(BaseTypes::String))
+                        }
+                    },
+                    "float" => {
+                        if self.is_type_array() {
+                            Some(Types::Array(BaseTypes::Float))
+                        } else {
+                            Some(Types::Basic(BaseTypes::Float))
+                        }
                     }
                     _ => {
                         None

@@ -14,22 +14,7 @@ pub struct Parameter {
 
 impl Parameter {
     pub fn get_type(&self) -> String {
-        match self._type.clone() {
-            Types::Basic(basic) => {
-                match basic {
-                    BaseTypes::Integer => "int".to_string(),
-                    BaseTypes::String => "string".to_string(),
-                    BaseTypes::Boolean => "bool".to_string(),
-                }
-            }
-            Types::Array(array) => {
-                match array {
-                    BaseTypes::Integer => "int[]".to_string(),
-                    BaseTypes::String => "string[]".to_string(),
-                    BaseTypes::Boolean => "bool[]".to_string(),
-                }
-            }
-        }
+        self._type.transpile().to_string()
     }
 }
 
@@ -68,6 +53,7 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
     }
 
     arguments
+
 }
 
 pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
