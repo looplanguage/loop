@@ -1,7 +1,6 @@
 use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::util::execute_code;
-use crate::vm::VMState;
 use colored::*;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -9,7 +8,6 @@ use rustyline::Editor;
 pub struct Repl {
     line: i32,
     compiler_state: Option<CompilerState>,
-    vm_state: Option<VMState>,
 }
 
 pub fn build_repl() -> Repl {
@@ -18,7 +16,6 @@ pub fn build_repl() -> Repl {
     Repl {
         line: 0,
         compiler_state: None,
-        vm_state: None,
     }
 }
 
@@ -41,13 +38,6 @@ impl Repl {
             VERSION
         );
 
-        if CONFIG.jit_enabled {
-            println!(
-                "{}You're running Loop in JIT mode. More info: https://looplang.org/docs/internal/jit",
-                "WARNING: ".red()
-            );
-        }
-
         if CONFIG.enable_optimize {
             println!(
                 "{}You are running Loop with compiler optimizations turned on. This may have errors",
@@ -64,7 +54,6 @@ impl Repl {
         execute_code(
             s.as_str(),
             self.compiler_state.as_ref(),
-            self.vm_state.as_ref(),
         );
     }
 
@@ -73,12 +62,12 @@ impl Repl {
         let mut code = "".to_string();
 
         let mut additive_code = "".to_string();
-        let mut level_depth = 0;
+        let mut level_depth: i32 = 0;
 
         loop {
             self.line += 1;
 
-            let mut is_line = String::from("=");
+            let mut is_line: String = String::from("=");
 
             /* TODO: Implement spacing
             for _ in 0..level_depth {
@@ -129,14 +118,10 @@ impl Repl {
                     }*/
 
                     if level_depth == 0 {
-                        if CONFIG.jit_enabled {
-                            code.push_str(&*additive_code);
-                            code.push('\n');
+                        code.push_str(&*additive_code);
+                        code.push('\n');
 
-                            self.run_code(code.clone());
-                        } else {
-                            self.run_code(additive_code.clone());
-                        }
+                        self.run_code(code.clone());
                     }
                 }
                 Err(ReadlineError::Interrupted) => {

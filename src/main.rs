@@ -13,7 +13,6 @@ pub mod compiler;
 pub mod lexer;
 mod lib;
 pub mod parser;
-mod vm;
 
 fn main() {
     match load_config() {
@@ -51,7 +50,7 @@ fn main() {
 fn run_file(file: String) {
     let content = read_to_string(file);
 
-    let last = execute_code(content.ok().unwrap().as_str(), None, None);
+    let last = execute_code(content.ok().unwrap().as_str(), None);
     println!("{}", last.0.ok().unwrap().borrow().inspect());
 }
 

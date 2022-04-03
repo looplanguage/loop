@@ -2,15 +2,10 @@ use crate::compiler::instructions::print_instructions;
 use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
-use crate::lib::jit::CodeGen;
 use crate::lib::object::Object;
-use crate::vm::VMState;
-use crate::{compiler, lexer, parser, vm};
+use crate::{compiler, lexer, parser};
 use chrono::Utc;
 use colored::Colorize;
-use inkwell::context::Context;
-use inkwell::passes::PassManager;
-use inkwell::OptimizationLevel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, File};
@@ -23,13 +18,11 @@ use crate::lib::object::integer::Integer;
 type ExecuteCodeReturn = (
     Result<Rc<RefCell<Object>>, String>,
     Option<CompilerState>,
-    Option<VMState>,
 );
 
 pub fn execute_code(
     code: &str,
     compiler_state: Option<&CompilerState>,
-    vm_state: Option<&VMState>,
 ) -> ExecuteCodeReturn {
     let l = lexer::build_lexer(code);
     let mut parser = parser::build_parser(l);
@@ -76,7 +69,7 @@ pub fn execute_code(
     if error.is_err() {
         let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
         println!("{}", message.as_str().red());
-        return (Err(message), None, None);
+        return (Err(message), None);
     }
 
     let started = Utc::now();
@@ -107,5 +100,5 @@ pub fn execute_code(
         println!("Execution Took: {}", formatted);
     }
 
-    (Ok(Rc::from(RefCell::from(Object::Integer(Integer{ value: 0 })))), Some(comp.get_state()), Some(VMState { variables: HashMap::new() }))
+    (Ok(Rc::from(RefCell::from(Object::Integer(Integer{ value: 0 })))), Some(comp.get_state()))
 }
