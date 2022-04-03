@@ -266,7 +266,7 @@ impl Compiler {
     }
 
     fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
-        let result = match expr.clone() {
+        match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
@@ -286,9 +286,7 @@ impl Compiler {
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
             Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
             Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
-        };
-
-        result
+        }
     }
 
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
@@ -367,7 +365,7 @@ impl Compiler {
             Statement::Break(_) => true,
         };
 
-        if add_semicolon && no_semicolon == false {
+        if add_semicolon && !no_semicolon {
             self.add_to_current_function(";".to_string());
         }
 

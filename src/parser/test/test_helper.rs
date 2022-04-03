@@ -64,7 +64,7 @@ pub mod test_helper {
         Box::new(parser::expression::Expression::Function(Function {
             parameters,
             body: Block { statements },
-            name: "".to_string()
+            name: "".to_string(),
         }))
     }
 
@@ -75,7 +75,7 @@ pub mod test_helper {
         parser::expression::Expression::Function(Function {
             parameters,
             body: Block { statements },
-            name: "".to_string()
+            name: "".to_string(),
         })
     }
 
@@ -106,7 +106,7 @@ pub mod test_helper {
             identifier: Identifier {
                 value: name.to_string(),
             },
-            _type
+            _type,
         }
     }
 

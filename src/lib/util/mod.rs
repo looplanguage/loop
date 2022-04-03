@@ -8,7 +8,7 @@ use chrono::{Local, Utc};
 use colored::Colorize;
 use dirs::home_dir;
 use std::cell::RefCell;
-use std::fs::{create_dir, create_dir_all, remove_dir_all, File};
+use std::fs::{create_dir, File};
 use std::io::Write;
 use std::path::Path;
 use std::process::{exit, Command};

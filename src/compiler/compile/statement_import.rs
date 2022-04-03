@@ -31,15 +31,13 @@ pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> Com
 
     // Set required context for compiling
     _compiler.prev_location = last_location.clone();
-    _compiler.location = String::from(
-        location
-            .parent()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .replace(".", "_")
-            .replace("/", "_"),
-    );
+    _compiler.location = location
+        .parent()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .replace(".", "_")
+        .replace("/", "_");
     _compiler.export_name = import.identifier.clone();
 
     let contents = contents.unwrap();

@@ -139,7 +139,7 @@ fn transpile_extension_add(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left.clone());
+    compiler.compile_expression(left);
 
     compiler.add_to_current_function(" ~= ".to_string());
 
@@ -238,7 +238,7 @@ fn transpile_extension_slice(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left.clone());
+    compiler.compile_expression(left);
 
     compiler.add_to_current_function("[".to_string());
 
@@ -272,7 +272,7 @@ fn transpile_extension_slice(
 fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
     compiler.add_to_current_function("to!int(".to_string());
 
-    compiler.compile_expression(left.clone());
+    compiler.compile_expression(left);
 
     compiler.add_to_current_function(".length)".to_string());
 

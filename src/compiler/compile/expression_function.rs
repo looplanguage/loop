@@ -1,6 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Function;
-use crate::parser::expression::Expression::Integer;
 use crate::parser::expression::{integer, Expression};
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> CompilerResult {
