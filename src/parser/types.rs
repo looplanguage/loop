@@ -28,7 +28,7 @@ impl Types {
                     BaseTypes::Integer => "int[]".to_string(),
                     BaseTypes::String => "string[]".to_string(),
                     BaseTypes::Boolean => "bool[]".to_string(),
-                    BaseTypes::Float => "float".to_string(),
+                    BaseTypes::Float => "float[]".to_string(),
                 }
             }
         }
