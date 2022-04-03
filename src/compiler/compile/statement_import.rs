@@ -36,8 +36,8 @@ pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> Com
         .unwrap()
         .to_str()
         .unwrap()
-        .replace(".", "_")
-        .replace("/", "_");
+        .replace('.', "_")
+        .replace('/', "_");
     _compiler.export_name = import.identifier.clone();
 
     let contents = contents.unwrap();
