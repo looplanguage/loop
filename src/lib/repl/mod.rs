@@ -1,10 +1,10 @@
-use std::process::exit;
 use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::util::execute_code;
 use colored::*;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
+use std::process::exit;
 
 pub struct Repl {
     line: i32,
@@ -52,10 +52,7 @@ impl Repl {
     }
 
     fn run_code(&mut self, s: String) {
-        let result = execute_code(
-            s.as_str(),
-            self.compiler_state.as_ref(),
-        );
+        let result = execute_code(s.as_str(), self.compiler_state.as_ref());
 
         if result.0.is_err() {
             println!("{}", result.0.unwrap_err());

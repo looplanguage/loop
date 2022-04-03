@@ -81,42 +81,38 @@ impl Parser {
 
     fn parse_type(&mut self, token: Token) -> Option<Types> {
         match token.token {
-            TokenType::Identifier => {
-                match token.literal.as_str() {
-                    "int" => {
-                        if self.peek_is_array() {
-                            Some(Types::Array(BaseTypes::Integer))
-                        } else {
-                            Some(Types::Basic(BaseTypes::Integer))
-                        }
-                    },
-                    "bool" => {
-                        if self.peek_is_array() {
-                            Some(Types::Array(BaseTypes::Boolean))
-                        } else {
-                            Some(Types::Basic(BaseTypes::Boolean))
-                        }
-                    },
-                    "string" => {
-                        if self.peek_is_array() {
-                            Some(Types::Array(BaseTypes::String))
-                        } else {
-                            Some(Types::Basic(BaseTypes::String))
-                        }
-                    },
-                    "float" => {
-                        if self.peek_is_array() {
-                            Some(Types::Array(BaseTypes::Float))
-                        } else {
-                            Some(Types::Basic(BaseTypes::Float))
-                        }
-                    }
-                    _ => {
-                        None
+            TokenType::Identifier => match token.literal.as_str() {
+                "int" => {
+                    if self.peek_is_array() {
+                        Some(Types::Array(BaseTypes::Integer))
+                    } else {
+                        Some(Types::Basic(BaseTypes::Integer))
                     }
                 }
-            }
-            _ => None
+                "bool" => {
+                    if self.peek_is_array() {
+                        Some(Types::Array(BaseTypes::Boolean))
+                    } else {
+                        Some(Types::Basic(BaseTypes::Boolean))
+                    }
+                }
+                "string" => {
+                    if self.peek_is_array() {
+                        Some(Types::Array(BaseTypes::String))
+                    } else {
+                        Some(Types::Basic(BaseTypes::String))
+                    }
+                }
+                "float" => {
+                    if self.peek_is_array() {
+                        Some(Types::Array(BaseTypes::Float))
+                    } else {
+                        Some(Types::Basic(BaseTypes::Float))
+                    }
+                }
+                _ => None,
+            },
+            _ => None,
         }
     }
 

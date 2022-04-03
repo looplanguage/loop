@@ -29,7 +29,6 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         }
     }
 
-
     compiler.add_to_current_function(String::from(")"));
 
     CompilerResult::Success

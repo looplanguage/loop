@@ -1,6 +1,6 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
-use crate::parser::expression::{array, Expression, integer};
+use crate::parser::expression::{array, integer, Expression};
 
 /// Compiles (/transpiles) the "while" loop of Loop
 ///
@@ -148,15 +148,30 @@ pub fn compile_loop_array_iterator_expression(
     compiler.variable_count += 1;
 
     compiler.add_to_current_function(format!("int {} = 0;", index.transpile()));
-    compiler.add_to_current_function(format!("auto {} = {}[0];", var.transpile(), array.transpile()));
+    compiler.add_to_current_function(format!(
+        "auto {} = {}[0];",
+        var.transpile(),
+        array.transpile()
+    ));
 
-    compiler.add_to_current_function(format!("while({} < {}.length) {{ ", index.transpile(), array.transpile()));
+    compiler.add_to_current_function(format!(
+        "while({} < {}.length) {{ ",
+        index.transpile(),
+        array.transpile()
+    ));
 
     // Compile body and then increase the index
     compiler.compile_loop_block(lp.body);
 
     compiler.add_to_current_function(format!("{} += 1;", index.transpile()));
-    compiler.add_to_current_function(format!("if({} < {}.length) {{ {} = {}[{}]; }} }}", index.transpile(), array.transpile(), var.transpile(), array.transpile(), index.transpile()));
+    compiler.add_to_current_function(format!(
+        "if({} < {}.length) {{ {} = {}[{}]; }} }}",
+        index.transpile(),
+        array.transpile(),
+        var.transpile(),
+        array.transpile(),
+        index.transpile()
+    ));
 
     CompilerResult::Success
 }

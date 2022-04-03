@@ -28,7 +28,6 @@ pub fn compile_expression_conditional(
         _ => (),
     }
 
-
     let result = compiler.compile_block(conditional.body);
 
     #[allow(clippy::single_match)]

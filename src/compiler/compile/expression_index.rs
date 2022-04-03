@@ -11,9 +11,7 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
 
     #[allow(clippy::single_match)]
     match _index.index.clone() {
-        Expression::Call(call) => {
-            compile_expression_extension_method(_compiler, call, _index.left)
-        }
+        Expression::Call(call) => compile_expression_extension_method(_compiler, call, _index.left),
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
     }
 }
@@ -131,7 +129,11 @@ fn transpile_extension_add(compiler: &mut Compiler, call: Call) -> CompilerResul
 /// auto var_array_0 = [10, 20, 30];
 /// var_array_0 = var_array_0.remove(0, 1);
 /// ```
-fn transpile_extension_remove(compiler: &mut Compiler, call: Call, left: Expression) -> CompilerResult {
+fn transpile_extension_remove(
+    compiler: &mut Compiler,
+    call: Call,
+    left: Expression,
+) -> CompilerResult {
     compiler.add_to_current_function(" = ".to_string());
 
     compiler.compile_expression(left);

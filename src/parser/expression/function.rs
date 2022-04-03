@@ -3,13 +3,13 @@ use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
-use crate::parser::Parser;
 use crate::parser::types::Types;
+use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Parameter {
     pub identifier: Identifier,
-    pub _type: Types
+    pub _type: Types,
 }
 
 impl Parameter {
@@ -37,13 +37,17 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
     p.lexer.next_token();
 
     while p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
-        let tp = p.parse_type(p.lexer.get_current_token().unwrap().clone()).unwrap();
+        let tp = p
+            .parse_type(p.lexer.get_current_token().unwrap().clone())
+            .unwrap();
 
         p.lexer.next_token();
 
         arguments.push(Parameter {
-            identifier: Identifier { value: p.lexer.get_current_token().unwrap().literal.to_string() },
-            _type: tp
+            identifier: Identifier {
+                value: p.lexer.get_current_token().unwrap().literal.to_string(),
+            },
+            _type: tp,
         });
 
         p.lexer.next_token();
@@ -54,7 +58,6 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
     }
 
     arguments
-
 }
 
 pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {

@@ -1,27 +1,21 @@
 use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
+use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
 use crate::{compiler, lexer, parser};
 use chrono::Utc;
 use colored::Colorize;
+use dirs::home_dir;
 use std::cell::RefCell;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 use std::rc::Rc;
-use dirs::home_dir;
-use crate::lib::object::integer::Integer;
 
-type ExecuteCodeReturn = (
-    Result<Rc<RefCell<Object>>, String>,
-    Option<CompilerState>,
-);
+type ExecuteCodeReturn = (Result<Rc<RefCell<Object>>, String>, Option<CompilerState>);
 
-pub fn execute_code(
-    code: &str,
-    compiler_state: Option<&CompilerState>,
-) -> ExecuteCodeReturn {
+pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> ExecuteCodeReturn {
     let l = lexer::build_lexer(code);
     let mut parser = parser::build_parser(l);
 
@@ -114,5 +108,10 @@ pub fn execute_code(
         println!("Execution Took: {}", formatted);
     }
 
-    (Ok(Rc::from(RefCell::from(Object::Integer(Integer{ value: 0 })))), Some(comp.get_state()))
+    (
+        Ok(Rc::from(RefCell::from(Object::Integer(Integer {
+            value: 0,
+        })))),
+        Some(comp.get_state()),
+    )
 }
