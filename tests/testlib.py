@@ -20,6 +20,7 @@ def has_succeeded(stdout, stderr, answer):
     error = stderr.decode(ENCODER)
     if error:
         return False
+
     return output.strip() == answer
 
 def run_tests():

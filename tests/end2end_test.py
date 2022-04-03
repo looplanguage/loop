@@ -8,7 +8,7 @@ def main():
     add_test("test_comments.loop", "3")
     add_test("test_import_export.loop", "8")
     add_test("test_function.loop", "9")
-    add_test("test_string.loop", "\"Hello,\n1234\"")
+    add_test("test_string.loop", "Hello World!")
     add_test("test_expression.loop", "1.5")
     add_test("test_expression_precedence.loop", "-29.616")
     add_test("test_variable_declaration.loop",  "250")
@@ -16,7 +16,7 @@ def main():
     add_test("test_conditional_false.loop", "300")          # Some conditionals have parenthesis others do not
     add_test("test_conditional_null.loop", "50")
     add_test("test_fibonacci.loop", "178")                  # Does twice, one with parenthesis other time without, than adds them
-    add_test("test_closure.loop", "60")                     # 3 deep 
+    add_test("test_closure.loop", "60")                     # 3 deep
     add_test("test_closure_variable_scope.loop", "1230")
     add_test("test_division_float.loop", "2.45")
     add_test("test_division_integer.loop", "1")

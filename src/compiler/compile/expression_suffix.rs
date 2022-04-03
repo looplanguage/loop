@@ -9,6 +9,12 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
         "^" => {
             _compiler.add_to_current_function("^^".to_string());
         }
+        "and" => {
+            _compiler.add_to_current_function("&&".to_string());
+        }
+        "or" => {
+            _compiler.add_to_current_function("||".to_string());
+        }
         _ => {
             _compiler.add_to_current_function(_suffix.operator);
         }
