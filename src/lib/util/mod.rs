@@ -79,19 +79,28 @@ pub fn execute_code(
         Command::new("ldc2")
             .args([format!("{}main.d", dir), format!("--of={}main", dir)])
             .output()
-            .expect("failed to run D compiler!");
+            .expect("failed to run D compiler! (ldc2)");
 
-        let output = Command::new(format!("{}main", dir))
+        Command::new(format!("{}main", dir))
             .output()
-            .expect("unable to run Loop program!");
+            .expect("unable to run Loop program!")
+    } else {
+        Command::new("dmd")
+            .args([format!("{}main.d", dir), format!("-of={}main", dir)])
+            .output()
+            .expect("failed to run D compiler! (dmd)");
 
-        if !output.status.success() {
-            println!("{}", String::from_utf8_lossy(&*output.stderr).to_string());
-            exit(output.status.code().unwrap());
-        } else {
-            println!("{}", String::from_utf8_lossy(&*output.stdout).to_string());
-        }
+        Command::new(format!("{}main", dir))
+            .output()
+            .expect("unable to run Loop program!")
     };
+
+    if !output.status.success() {
+        println!("{}", String::from_utf8_lossy(&*output.stderr).to_string());
+        exit(output.status.code().unwrap());
+    } else {
+        println!("{}", String::from_utf8_lossy(&*output.stdout).to_string());
+    }
 
     let duration = Utc::now().signed_duration_since(started);
 
