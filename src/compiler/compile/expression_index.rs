@@ -61,12 +61,64 @@ pub fn compile_expression_extension_method(
     }
 
     match method_id.unwrap() {
+        0 => transpile_extension_to_string(compiler, left),
+        1 => transpile_extension_to_int(compiler, left),
         2 => transpile_extension_add(compiler, call, left),
         3 => transpile_extension_remove(compiler, call, left),
         4 => transpile_extension_slice(compiler, call, left),
         5 => transpile_extension_length(compiler, left),
         _ => CompilerResult::Exception(CompilerException::Unknown),
     }
+}
+
+/// Transpiles the extension method 'to_string'
+///
+/// Take this Loop code:
+/// ```loop
+/// 500.to_string()
+/// ```
+///
+/// And generates this D code:
+/// ```d
+/// to!string(500)
+/// ```
+fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> CompilerResult {
+    compiler.add_to_current_function("to!string(".to_string());
+
+    let result = compiler.compile_expression(left);
+
+    if let CompilerResult::Exception(exception) = result {
+        return CompilerResult::Exception(exception);
+    }
+
+    compiler.add_to_current_function(")".to_string());
+
+    CompilerResult::Success
+}
+
+/// Transpiles the extension method 'to_int'
+///
+/// Take this Loop code:
+/// ```loop
+/// "500".to_int()
+/// ```
+///
+/// And generates this D code:
+/// ```d
+/// to!int("500")
+/// ```
+fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> CompilerResult {
+    compiler.add_to_current_function("to!int(".to_string());
+
+    let result = compiler.compile_expression(left);
+
+    if let CompilerResult::Exception(exception) = result {
+        return CompilerResult::Exception(exception);
+    }
+
+    compiler.add_to_current_function(")".to_string());
+
+    CompilerResult::Success
 }
 
 /// Transpiles the extension method 'add'
@@ -82,7 +134,11 @@ pub fn compile_expression_extension_method(
 /// auto var_array_0 = [10, 20, 30];
 /// var_array_0 ~= [40, 50];
 /// ```
-fn transpile_extension_add(compiler: &mut Compiler, call: Call, left: Expression) -> CompilerResult {
+fn transpile_extension_add(
+    compiler: &mut Compiler,
+    call: Call,
+    left: Expression,
+) -> CompilerResult {
     compiler.compile_expression(left.clone());
 
     compiler.add_to_current_function(" ~= ".to_string());
@@ -177,7 +233,11 @@ fn transpile_extension_remove(
 /// auto var_array_0 = [10, 20, 30];
 /// auto sliced = var_array_0[0..2];
 /// ```
-fn transpile_extension_slice(compiler: &mut Compiler, call: Call, left: Expression) -> CompilerResult {
+fn transpile_extension_slice(
+    compiler: &mut Compiler,
+    call: Call,
+    left: Expression,
+) -> CompilerResult {
     compiler.compile_expression(left.clone());
 
     compiler.add_to_current_function("[".to_string());
