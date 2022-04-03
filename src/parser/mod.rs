@@ -63,7 +63,7 @@ impl Parser {
         Program { statements }
     }
 
-    fn is_type_array(&mut self) -> bool {
+    fn peek_is_array(&mut self) -> bool {
         if self.peek_token_is(TokenType::LeftBracket) {
             self.lexer.next_token();
 
@@ -84,28 +84,28 @@ impl Parser {
             TokenType::Identifier => {
                 match token.literal.as_str() {
                     "int" => {
-                        if self.is_type_array() {
+                        if self.peek_is_array() {
                             Some(Types::Array(BaseTypes::Integer))
                         } else {
                             Some(Types::Basic(BaseTypes::Integer))
                         }
                     },
                     "bool" => {
-                        if self.is_type_array() {
+                        if self.peek_is_array() {
                             Some(Types::Array(BaseTypes::Boolean))
                         } else {
                             Some(Types::Basic(BaseTypes::Boolean))
                         }
                     },
                     "string" => {
-                        if self.is_type_array() {
+                        if self.peek_is_array() {
                             Some(Types::Array(BaseTypes::String))
                         } else {
                             Some(Types::Basic(BaseTypes::String))
                         }
                     },
                     "float" => {
-                        if self.is_type_array() {
+                        if self.peek_is_array() {
                             Some(Types::Array(BaseTypes::Float))
                         } else {
                             Some(Types::Basic(BaseTypes::Float))

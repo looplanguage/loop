@@ -1,4 +1,3 @@
-use crate::compiler::instructions::print_instructions;
 use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
@@ -7,10 +6,9 @@ use crate::{compiler, lexer, parser};
 use chrono::Utc;
 use colored::Colorize;
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
-use std::process::{Command, exit, ExitStatus};
+use std::process::{Command, exit};
 use std::rc::Rc;
 use dirs::home_dir;
 use crate::lib::object::integer::Integer;
@@ -61,10 +59,17 @@ pub fn execute_code(
     let mut dir = home_dir.to_str().unwrap().to_string();
     dir.push_str("/.loop/tmp/");
 
-    create_dir_all(dir.clone());
+    let result = create_dir_all(dir.clone());
+    if let Err(result) = result {
+        return (Err(result.to_string()), None);
+    }
 
-    let mut file = File::create(format!("{}main.d", dir));
-    file.unwrap().write_all(code.as_bytes());
+    let file = File::create(format!("{}main.d", dir));
+    let result = file.unwrap().write_all(code.as_bytes());
+
+    if let Err(result) = result {
+        return (Err(result.to_string()), None);
+    }
 
     if error.is_err() {
         let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
@@ -96,10 +101,10 @@ pub fn execute_code(
     };
 
     if !output.status.success() {
-        println!("{}", String::from_utf8_lossy(&*output.stderr).to_string());
+        println!("{}", String::from_utf8_lossy(&*output.stderr));
         exit(output.status.code().unwrap());
     } else {
-        println!("{}", String::from_utf8_lossy(&*output.stdout).to_string());
+        println!("{}", String::from_utf8_lossy(&*output.stdout));
     }
 
     let duration = Utc::now().signed_duration_since(started);

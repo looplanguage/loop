@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::statement::assign::VariableAssign;
@@ -14,8 +13,6 @@ pub fn compile_statement_variable_assign(
 
     if symbol.is_some() {
         let result = compiler.compile_expression(*variable.value);
-
-        compiler.emit(OpCode::SetVar, vec![symbol.unwrap().index as u32]);
 
         return match &result {
             CompilerResult::Exception(_exception) => result,

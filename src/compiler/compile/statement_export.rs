@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
@@ -21,9 +20,9 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
 
     _compiler.variable_count += 1;
 
-    _compiler.compile_expression(export.expression);
+    _compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
 
-    _compiler.emit(OpCode::SetVar, vec![var.index]);
+    _compiler.compile_expression(export.expression);
 
     CompilerResult::Success
 }

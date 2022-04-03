@@ -4,7 +4,7 @@ use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::Parser;
-use crate::parser::types::{BaseTypes, Types};
+use crate::parser::types::Types;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Parameter {
@@ -14,7 +14,7 @@ pub struct Parameter {
 
 impl Parameter {
     pub fn get_type(&self) -> String {
-        self._type.transpile().to_string()
+        self._type.transpile()
     }
 }
 

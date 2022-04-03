@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::expression::identifier::Identifier;
@@ -21,9 +20,8 @@ pub fn compile_expression_identifier(
             .borrow_mut()
             .resolve(format!("{}{}", compiler.location, identifier.value));
 
-        if var.is_some() {
-
-            compiler.add_to_current_function(var.unwrap().transpile());
+        if let Some(var) = var {
+            compiler.add_to_current_function(var.transpile());
 
             return CompilerResult::Success;
         }
