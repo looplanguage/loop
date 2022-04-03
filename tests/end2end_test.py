@@ -14,7 +14,7 @@ def main():
     add_test("test_variable_declaration.loop",  "250")
     add_test("test_conditional_true.loop", "100")           # Some conditionals have parenthesis others do not
     add_test("test_conditional_false.loop", "300")          # Some conditionals have parenthesis others do not
-    add_test("test_conditional_null.loop", "null")  
+    add_test("test_conditional_null.loop", "50")
     add_test("test_fibonacci.loop", "178")                  # Does twice, one with parenthesis other time without, than adds them
     add_test("test_closure.loop", "60")                     # 3 deep 
     add_test("test_closure_variable_scope.loop", "1230")
@@ -25,7 +25,7 @@ def main():
     add_test("test_extension_methods_variable.loop", "102")
     add_test("test_array_index.loop", "91")
     add_test("test_array_3d_assign_index.loop", "[[[0, 200, 2]], []]")
-    add_test("test_arrays.loop", "[][1, 2, 3][1, null, true]")
+    add_test("test_arrays.loop", "[][1, 2, 3]")
     add_test("test_logical_operators.loop", "false")
     add_test("test_hashmaps.loop", "30") # order of things change
     add_test("test_hashmaps_nested_assign.loop", "true")

@@ -50,8 +50,7 @@ fn main() {
 fn run_file(file: String) {
     let content = read_to_string(file);
 
-    let last = execute_code(content.ok().unwrap().as_str(), None);
-    println!("{}", last.0.ok().unwrap().borrow().inspect());
+    let _last = execute_code(content.ok().unwrap().as_str(), None);
 }
 
 fn get_flags() -> flags::Flags {

@@ -4,12 +4,13 @@ use crate::lib::exception::Exception;
 use crate::lib::object::integer::Integer;
 use crate::lib::object::Object;
 use crate::{compiler, lexer, parser};
-use chrono::Utc;
+use chrono::{Local, Utc};
 use colored::Colorize;
 use dirs::home_dir;
 use std::cell::RefCell;
-use std::fs::{create_dir_all, File};
+use std::fs::{create_dir, create_dir_all, File, remove_dir_all};
 use std::io::Write;
+use std::path::Path;
 use std::process::{exit, Command};
 use std::rc::Rc;
 
@@ -53,12 +54,15 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
     let mut dir = home_dir.to_str().unwrap().to_string();
     dir.push_str("/.loop/tmp/");
 
-    let result = create_dir_all(dir.clone());
-    if let Err(result) = result {
-        return (Err(result.to_string()), None);
+    if !Path::new(&*dir.clone()).exists() {
+        let result = create_dir(dir.clone());
+        if let Err(result) = result {
+            return (Err(result.to_string()), None);
+        }
     }
 
-    let file = File::create(format!("{}main.d", dir));
+    let filename = format!("{}", Local::now().format("loop_%Y%m%d%H%M%S%f"));
+    let file = File::create(format!("{}{}.d", dir, filename));
     let result = file.unwrap().write_all(code.as_bytes());
 
     if let Err(result) = result {
@@ -75,30 +79,38 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
 
     // Compile it & execute (only on macos and arm)
     let output = if cfg!(all(target_os = "macos")) {
-        Command::new("ldc2")
-            .args([format!("{}main.d", dir), format!("--of={}main", dir)])
+        let result = Command::new("ldc2")
+            .args([format!("{}{}.d", dir, filename), format!("--of={}{}", dir, filename)])
             .output()
             .expect("failed to run D compiler! (ldc2)");
 
-        Command::new(format!("{}main", dir))
-            .output()
-            .expect("unable to run Loop program!")
+        if !result.status.success() {
+            result
+        } else {
+            Command::new(format!("{}{}", dir, filename))
+                .output()
+                .expect(&*format!("Unable to run Loop program at: {}{}", dir, filename))
+        }
     } else {
-        Command::new("dmd")
+        let result = Command::new("dmd")
             .args([format!("{}main.d", dir), format!("-of={}main", dir)])
             .output()
             .expect("failed to run D compiler! (dmd)");
 
-        Command::new(format!("{}main", dir))
-            .output()
-            .expect("unable to run Loop program!")
+        if !result.status.success() {
+            result
+        } else {
+            Command::new(format!("{}{}", dir, filename))
+                .output()
+                .expect(&*format!("Unable to run Loop program at: {}{}", dir, filename))
+        }
     };
 
     if !output.status.success() {
         println!("{}", String::from_utf8_lossy(&*output.stderr));
         exit(output.status.code().unwrap());
     } else {
-        println!("{}", String::from_utf8_lossy(&*output.stdout));
+        print!("{}", String::from_utf8_lossy(&*output.stdout));
     }
 
     let duration = Utc::now().signed_duration_since(started);

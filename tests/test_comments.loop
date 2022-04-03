@@ -1,10 +1,12 @@
 // Hello these are comments, this is to test comments in a real file
 
+var test = 10
 if /< Another comment >/ true /< Another comment >/ {
     // Hopefully it works
-    3
+    test = 3
     /< We do a little trolling
     return 4
     >/
 }
+test
 // And the final comment

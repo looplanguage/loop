@@ -1,6 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Function;
-use crate::parser::expression::Expression;
+use crate::parser::expression::{Expression, integer};
+use crate::parser::expression::Expression::Integer;
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> CompilerResult {
     // Named function ^.^
@@ -19,15 +20,15 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
 
     let mut index = 0;
     for parameter in &func.parameters {
-        let symbol = *compiler
-            .symbol_table
+        let symbol = compiler
+            .variable_scope
             .borrow_mut()
-            .define(parameter.identifier.value.as_str(), 0);
+            .define(compiler.variable_count, parameter.identifier.value.clone(), Expression::Integer(integer::Integer { value: 0 }));
 
         compiler.add_to_current_function(format!(
-            "{} local_{}",
+            "{} {}",
             parameter.get_type(),
-            symbol.index
+            symbol.transpile()
         ));
 
         index += 1;

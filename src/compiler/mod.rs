@@ -129,8 +129,27 @@ impl Compiler {
 
         self.functions.insert(String::from("main"), main_function);
 
+        let mut index = 0;
+        let length = program.statements.len();
         for statement in program.statements {
-            let err = self.compile_statement(statement);
+            index += 1;
+
+            let mut is_expression = false;
+
+            if index == length {
+                if let Statement::Expression(_) = statement {
+                    is_expression = true;
+
+                    self.add_import("std".to_string());
+                    self.add_to_current_function("writeln(".to_string());
+                }
+            }
+
+            let err = self.compile_statement(statement, is_expression);
+
+            if index == length && is_expression {
+                self.add_to_current_function(");".to_string());
+            }
 
             #[allow(clippy::single_match)]
             match err {
@@ -187,7 +206,7 @@ impl Compiler {
             Scope::Global => {}
             // Free "variables" in the scope of closures (D "lambdas") probably unused
             Scope::Free => {
-                self.add_to_current_function(format!("free_{}", symbol.index));
+                self.add_to_current_function(format!("local_{}", symbol.index));
             }
             // Builtin symbols, currently this is "std" related symbols and should be replaced by such in the future
             Scope::Builtin => {
@@ -230,6 +249,7 @@ impl Compiler {
     pub fn enter_scope(&mut self) {
         self.symbol_table.as_ref().borrow_mut().push();
     }
+    pub fn exit_scope(&mut self) { self.symbol_table.as_ref().borrow_mut().pop(); }
 
     pub fn get_bytecode(&self) -> Bytecode {
         Bytecode {
@@ -269,7 +289,7 @@ impl Compiler {
         self.enter_variable_scope();
 
         for statement in block.statements {
-            let err = self.compile_statement(statement);
+            let err = self.compile_statement(statement, false);
 
             #[allow(clippy::single_match)]
             match &err {
@@ -289,7 +309,7 @@ impl Compiler {
         self.add_to_current_function("{".to_string());
 
         for statement in block.statements {
-            let err = self.compile_statement(statement.clone());
+            let err = self.compile_statement(statement.clone(), false);
 
             #[allow(clippy::single_match)]
             match &err {
@@ -306,7 +326,7 @@ impl Compiler {
         CompilerResult::Success
     }
 
-    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
+    fn compile_statement(&mut self, stmt: Statement, no_semicolon: bool) -> CompilerResult {
         let result = match stmt.clone() {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
@@ -340,7 +360,7 @@ impl Compiler {
             Statement::Break(_) => true,
         };
 
-        if add_semicolon {
+        if add_semicolon && no_semicolon == false {
             self.add_to_current_function(";".to_string());
         }
 
