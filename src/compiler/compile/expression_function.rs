@@ -39,11 +39,11 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
 
     compiler.add_to_current_function(") ".to_string());
 
-    compiler.compile_block(func.body);
+    let result = compiler.compile_block(func.body);
 
     if !func.name.is_empty() {
         compiler.exit_function();
     }
 
-    CompilerResult::Success
+    result
 }

@@ -131,11 +131,6 @@ impl Compiler {
 
         for statement in program.statements {
             let err = self.compile_statement(statement);
-            // if let Some(err) = err {
-            //     err.emit();
-            //
-            //     return Result::Err(err);
-            // }
 
             #[allow(clippy::single_match)]
             match err {
@@ -222,11 +217,13 @@ impl Compiler {
 
     pub fn enter_variable_scope(&mut self) {
         let scope = build_deeper_variable_scope(Option::from(self.variable_scope.clone()));
+        self.scope_index += 1;
         self.variable_scope = Rc::new(RefCell::new(scope));
     }
 
     pub fn exit_variable_scope(&mut self) {
         let outer = self.variable_scope.as_ref().borrow_mut().outer.clone();
+        self.scope_index -= 1;
         self.variable_scope = outer.unwrap();
     }
 
@@ -243,7 +240,7 @@ impl Compiler {
     }
 
     fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
-        match expr {
+        let result = match expr.clone() {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
             Expression::Suffix(suffix) => compile_expression_suffix(self, *suffix),
@@ -263,7 +260,9 @@ impl Compiler {
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
             Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
             Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
-        }
+        };
+
+        result
     }
 
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
@@ -290,14 +289,15 @@ impl Compiler {
         self.add_to_current_function("{".to_string());
 
         for statement in block.statements {
-            let err = self.compile_statement(statement);
+            let err = self.compile_statement(statement.clone());
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => return err,
+                CompilerResult::Exception(_exception) => { return err; },
                 _ => (),
             }
         }
+
 
         self.add_to_current_function("}".to_string());
 
