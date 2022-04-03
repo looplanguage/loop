@@ -5,7 +5,14 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
     _compiler.add_to_current_function("(".to_string());
     _compiler.compile_expression(_suffix.left);
 
-    _compiler.add_to_current_function(_suffix.operator);
+    match _suffix.operator.as_str() {
+        "^" => {
+            _compiler.add_to_current_function("^^".to_string());
+        }
+        _ => {
+            _compiler.add_to_current_function(_suffix.operator);
+        }
+    }
 
     _compiler.compile_expression(_suffix.right);
     _compiler.add_to_current_function(")".to_string());

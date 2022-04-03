@@ -10,7 +10,7 @@ def main():
     add_test("test_function.loop", "9")
     add_test("test_string.loop", "\"Hello,\n1234\"")
     add_test("test_expression.loop", "1.5")
-    add_test("test_expression_precedence.loop", "1.851")
+    add_test("test_expression_precedence.loop", "-29.616")
     add_test("test_variable_declaration.loop",  "250")
     add_test("test_conditional_true.loop", "100")           # Some conditionals have parenthesis others do not
     add_test("test_conditional_false.loop", "300")          # Some conditionals have parenthesis others do not
