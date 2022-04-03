@@ -125,9 +125,11 @@ fn empty_state() -> CompilerState {
 impl Compiler {
     pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
         // Insert main function
-        let main_function = String::from("void main() {");
+        if self.location.is_empty() {
+            let main_function = String::from("void main() {");
 
-        self.functions.insert(String::from("main"), main_function);
+            self.functions.insert(String::from("main"), main_function);
+        }
 
         let mut index = 0;
         let length = program.statements.len();
@@ -158,7 +160,9 @@ impl Compiler {
             }
         }
 
-        self.functions.get_mut("main").unwrap().push('}');
+        if self.location.is_empty() {
+            self.functions.get_mut("main").unwrap().push('}');
+        }
 
         Result::Ok(self.get_bytecode())
     }
@@ -249,7 +253,9 @@ impl Compiler {
     pub fn enter_scope(&mut self) {
         self.symbol_table.as_ref().borrow_mut().push();
     }
-    pub fn exit_scope(&mut self) { self.symbol_table.as_ref().borrow_mut().pop(); }
+    pub fn exit_scope(&mut self) {
+        self.symbol_table.as_ref().borrow_mut().pop();
+    }
 
     pub fn get_bytecode(&self) -> Bytecode {
         Bytecode {
@@ -313,11 +319,12 @@ impl Compiler {
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => { return err; },
+                CompilerResult::Exception(_exception) => {
+                    return err;
+                }
                 _ => (),
             }
         }
-
 
         self.add_to_current_function("}".to_string());
 
@@ -356,7 +363,7 @@ impl Compiler {
             Statement::VariableAssign(_) => true,
             Statement::Return(_) => true,
             Statement::Import(_) => false,
-            Statement::Export(_) => false,
+            Statement::Export(_) => true,
             Statement::Break(_) => true,
         };
 

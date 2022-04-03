@@ -8,7 +8,7 @@ use chrono::{Local, Utc};
 use colored::Colorize;
 use dirs::home_dir;
 use std::cell::RefCell;
-use std::fs::{create_dir, create_dir_all, File, remove_dir_all};
+use std::fs::{create_dir, create_dir_all, remove_dir_all, File};
 use std::io::Write;
 use std::path::Path;
 use std::process::{exit, Command};
@@ -80,7 +80,10 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
     // Compile it & execute (only on macos and arm)
     let output = if cfg!(all(target_os = "macos")) {
         let result = Command::new("ldc2")
-            .args([format!("{}{}.d", dir, filename), format!("--of={}{}", dir, filename)])
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("--of={}{}", dir, filename),
+            ])
             .output()
             .expect("failed to run D compiler! (ldc2)");
 
@@ -89,11 +92,36 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
         } else {
             Command::new(format!("{}{}", dir, filename))
                 .output()
-                .expect(&*format!("Unable to run Loop program at: {}{}", dir, filename))
+                .expect(&*format!(
+                    "Unable to run Loop program at: {}{}",
+                    dir, filename
+                ))
+        }
+    } else if cfg!(all(target_os = "windows")) {
+        let result = Command::new("dmd")
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}.exe", dir, filename),
+            ])
+            .output()
+            .expect("failed to run D compiler! (dmd)");
+
+        if !result.status.success() {
+            result
+        } else {
+            Command::new(format!("{}{}.exe", dir, filename))
+                .output()
+                .expect(&*format!(
+                    "Unable to run Loop program at: {}{}",
+                    dir, filename
+                ))
         }
     } else {
         let result = Command::new("dmd")
-            .args([format!("{}main.d", dir), format!("-of={}main", dir)])
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}", dir, filename),
+            ])
             .output()
             .expect("failed to run D compiler! (dmd)");
 
@@ -102,7 +130,10 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
         } else {
             Command::new(format!("{}{}", dir, filename))
                 .output()
-                .expect(&*format!("Unable to run Loop program at: {}{}", dir, filename))
+                .expect(&*format!(
+                    "Unable to run Loop program at: {}{}",
+                    dir, filename
+                ))
         }
     };
 

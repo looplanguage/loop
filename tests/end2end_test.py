@@ -27,8 +27,9 @@ def main():
     add_test("test_array_3d_assign_index.loop", "[[[0, 200, 2]], []]")
     add_test("test_arrays.loop", "[][1, 2, 3]")
     add_test("test_logical_operators.loop", "false")
-    add_test("test_hashmaps.loop", "30") # order of things change
-    add_test("test_hashmaps_nested_assign.loop", "true")
+    # Dont test hashmaps yet, as they need to be reimplemented first
+    # add_test("test_hashmaps.loop", "30") # order of things change
+    # add_test("test_hashmaps_nested_assign.loop", "true")
     # Does twice, one with parenthesis other time without, than adds them
     add_test("test_loop_while.loop", "20")
     add_test("test_loop_iterator.loop", "20")

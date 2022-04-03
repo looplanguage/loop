@@ -1,12 +1,5 @@
-var double = fn(num) {
-    return num + num
+var double = fn(int num) {
+    return num * 2
 }
 
-var four = fn(){
-    return 4
-}
-
-export {
-    "double": double,
-    "four": four
-}
+export double
