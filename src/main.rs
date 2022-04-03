@@ -15,21 +15,6 @@ mod lib;
 pub mod parser;
 
 fn main() {
-    match load_config() {
-        LoadType::FirstRun(cfg) => {
-            println!("This is your first time running Loop! (Or your config was re-generated)");
-            println!("Configuration file is at: ");
-            println!(
-                "{}\\.loop\\config.toml",
-                home_dir().unwrap().to_str().unwrap()
-            );
-
-            cfg
-        }
-
-        LoadType::Normal(cfg) => cfg,
-    };
-
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 2 && args[1] == "version" {
@@ -39,6 +24,23 @@ fn main() {
     }
 
     let flags = get_flags();
+
+    match load_config() {
+        LoadType::FirstRun(cfg) => {
+            if flags.file.is_none() {
+                println!("This is your first time running Loop! (Or your config was re-generated)");
+                println!("Configuration file is at: ");
+                println!(
+                    "{}\\.loop\\config.toml",
+                    home_dir().unwrap().to_str().unwrap()
+                );
+            }
+
+            cfg
+        }
+
+        LoadType::Normal(cfg) => cfg,
+    };
 
     if let Some(file) = flags.file {
         run_file(file);
