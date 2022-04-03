@@ -103,24 +103,6 @@ impl Expression {
         }
     }
 
-    pub fn get_value(&self, compiler: &Compiler) -> Option<String> {
-        match self {
-            Expression::Integer(integer) => Some(integer.value.to_string()),
-            Expression::String(string) => Some(format!("\"{}\"", string.value)),
-            Expression::Identifier(identifier) => {
-                let var = compiler.variable_scope.borrow().resolve(identifier.clone().value);
-
-                if var.is_some() {
-                    Some(var.unwrap().transpile())
-                } else {
-                    None
-                }
-            },
-            Expression::Suffix(suffix) => Some(format!("{} {} {}", suffix.left.clone().get_value(compiler).unwrap(), suffix.operator, suffix.right.clone().get_value(compiler).unwrap())),
-            _ => None
-        }
-    }
-
     pub fn get_type(&self) -> Option<String> {
         Some(String::from("int"))
     }
