@@ -1,0 +1,12 @@
+// answer = 60
+var newClosure = fn(a) { 
+    return fn(b) 
+    { 
+        return fn(c) 
+        { 
+            return a + b + c 
+        } 
+    } 
+}; 
+
+newClosure(30)(20)(10)
