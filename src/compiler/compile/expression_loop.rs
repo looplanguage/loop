@@ -1,6 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::{array, integer, Expression};
+use crate::parser::types::{BaseTypes, Types};
 
 /// Compiles (/transpiles) the "while" loop of Loop
 ///
@@ -25,16 +26,21 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     compiler.enter_variable_scope();
 
     // Condition
-    compiler.add_to_current_function("while (".to_string());
+    compiler.add_to_current_function("() { while (".to_string());
     let result = compiler.compile_expression(*lp.condition);
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
     }
 
-    compiler.add_to_current_function(") ".to_string());
+
+    compiler.add_to_current_function(")".to_string());
 
     // Body
-    compiler.compile_block(lp.body)
+    let result = compiler.compile_block(lp.body);
+
+    compiler.add_to_current_function("}()".to_string());
+
+    result
 }
 
 /// Compiles (/transpiles) the "iterator" loop of Loop
@@ -67,7 +73,7 @@ pub fn compile_loop_iterator_expression(
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
         lp.identifier.value,
-        Expression::Integer(integer::Integer { value: 0 }),
+        Types::Basic(BaseTypes::Integer),
     );
     compiler.variable_count += 1;
 
@@ -123,7 +129,7 @@ pub fn compile_loop_array_iterator_expression(
     let array = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
         "_iterator_array".to_string(),
-        Expression::Array(Box::from(array::Array { values: vec![] })),
+        Types::Array(BaseTypes::Integer),
     );
     compiler.variable_count += 1;
 
@@ -136,14 +142,14 @@ pub fn compile_loop_array_iterator_expression(
     let var = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
         lp.identifier.value,
-        Expression::Integer(integer::Integer { value: 0 }),
+        Types::Basic(BaseTypes::Integer),
     );
     compiler.variable_count += 1;
 
     let index = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
         "_iterator_index".to_string(),
-        Expression::Integer(integer::Integer { value: 0 }),
+        Types::Basic(BaseTypes::Integer),
     );
     compiler.variable_count += 1;
 

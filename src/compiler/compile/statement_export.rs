@@ -1,6 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
+use crate::parser::types::Types;
 
 pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> CompilerResult {
     if _compiler.export_name.is_empty() {
@@ -15,7 +16,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
             _compiler.prev_location,
             _compiler.export_name.clone()
         ),
-        export.expression.clone(),
+        Types::Auto
     );
 
     _compiler.variable_count += 1;

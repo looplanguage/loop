@@ -1,0 +1,8 @@
+// answer = 110
+var x = if true { 10 } else { 20 }
+
+var y = for true { 100 }
+
+var z = if false { x * y } else { x + y }
+
+z

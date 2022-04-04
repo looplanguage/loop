@@ -307,6 +307,27 @@ impl Compiler {
         CompilerResult::Success
     }
 
+    fn does_block_return(block: Block) -> bool {
+        if !block.statements.is_empty() {
+            return match block.statements.last().unwrap() {
+                Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
+                Statement::Return(_) => true,
+                _ => false,
+            };
+        }
+
+        false
+    }
+
+    fn should_add_return(expression: Expression) -> bool {
+        match expression {
+            Expression::Conditional(conditional) => {
+                Compiler::does_block_return(conditional.body)
+            },
+            _ => true
+        }
+    }
+
     fn compile_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
@@ -316,13 +337,27 @@ impl Compiler {
         for statement in block.statements.clone() {
             index += 1;
 
-            if let Statement::Expression(exp) = statement.clone() {
-                if index == block.statements.len() {
-                    self.add_to_current_function("return ".to_string());
-                }
-            }
+            let err = {
+                if let Statement::Expression(exp) = statement.clone() {
+                    if Compiler::should_add_return(*exp.expression.clone()) {
+                        if index == block.statements.len() {
+                            self.add_to_current_function(format!("Variant block_return = ", ));
+                        }
 
-            let err = self.compile_statement(statement.clone(), false);
+                        let result = self.compile_statement(statement.clone(), false);
+
+                        if index == block.statements.len() {
+                            self.add_to_current_function("return block_return;".to_string());
+                        }
+
+                        result
+                    } else {
+                        self.compile_statement(statement.clone(), false)
+                    }
+                } else {
+                    self.compile_statement(statement.clone(), false)
+                }
+            };
 
             #[allow(clippy::single_match)]
             match &err {
@@ -359,11 +394,11 @@ impl Compiler {
         let add_semicolon = match stmt {
             Statement::VariableDeclaration(_) => true,
             Statement::Expression(expr) => match *expr.expression {
-                Expression::Conditional(_) => false,
-                Expression::Loop(_) => false,
+                Expression::Conditional(_) => true,
+                Expression::Loop(_) => true,
                 Expression::LoopIterator(_) => false,
                 Expression::LoopArrayIterator(_) => false,
-                Expression::Function(func) => !func.name.is_empty(),
+                Expression::Function(func) => func.name.is_empty(),
                 _ => true,
             },
             Statement::Block(_) => false,

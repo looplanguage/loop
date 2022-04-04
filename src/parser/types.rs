@@ -10,6 +10,8 @@ pub enum BaseTypes {
 pub enum Types {
     Basic(BaseTypes),
     Array(BaseTypes),
+    Function,
+    Auto
 }
 
 impl Types {
@@ -27,6 +29,8 @@ impl Types {
                 BaseTypes::Boolean => "bool[]".to_string(),
                 BaseTypes::Float => "float[]".to_string(),
             },
+            Types::Auto => "auto".to_string(),
+            Types::Function => "()".to_string(),
         }
     }
 }
