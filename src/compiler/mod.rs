@@ -312,7 +312,16 @@ impl Compiler {
 
         self.add_to_current_function("{".to_string());
 
-        for statement in block.statements {
+        let mut index = 0;
+        for statement in block.statements.clone() {
+            index += 1;
+
+            if let Statement::Expression(exp) = statement.clone() {
+                if index == block.statements.len() {
+                    self.add_to_current_function("return ".to_string());
+                }
+            }
+
             let err = self.compile_statement(statement.clone(), false);
 
             #[allow(clippy::single_match)]

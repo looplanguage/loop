@@ -18,7 +18,7 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    compiler.add_to_current_function("if (".to_string());
+    compiler.add_to_current_function("() { if (".to_string());
     let result = compiler.compile_expression(*conditional.condition);
     compiler.add_to_current_function(")".to_string());
 
@@ -50,6 +50,8 @@ pub fn compile_expression_conditional(
             }
         }
     }
+
+    compiler.add_to_current_function("}()".to_string());
 
     CompilerResult::Success
 }

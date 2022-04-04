@@ -62,11 +62,16 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
     }
 
     let filename = format!("{}", Local::now().format("loop_%Y%m%d%H%M%S%f"));
-    let file = File::create(format!("{}{}.d", dir, filename));
-    let result = file.unwrap().write_all(code.as_bytes());
 
-    if let Err(result) = result {
-        return (Err(result.to_string()), None);
+    if !CONFIG.debug_mode {
+        let file = File::create(format!("{}{}.d", dir, filename));
+        let result = file.unwrap().write_all(code.as_bytes());
+
+        if let Err(result) = result {
+            return (Err(result.to_string()), None);
+        }
+    } else {
+        println!("{}", code);
     }
 
     if error.is_err() {
@@ -78,70 +83,72 @@ pub fn execute_code(code: &str, compiler_state: Option<&CompilerState>) -> Execu
     let started = Utc::now();
 
     // Compile it & execute (only on macos and arm)
-    let output = if cfg!(all(target_os = "macos")) {
-        let result = Command::new("ldc2")
-            .args([
-                format!("{}{}.d", dir, filename),
-                format!("--of={}{}", dir, filename),
-            ])
-            .output()
-            .expect("failed to run D compiler! (ldc2)");
-
-        if !result.status.success() {
-            result
-        } else {
-            Command::new(format!("{}{}", dir, filename))
+    if !CONFIG.debug_mode {
+        let output = if cfg!(all(target_os = "macos")) {
+            let result = Command::new("ldc2")
+                .args([
+                    format!("{}{}.d", dir, filename),
+                    format!("--of={}{}", dir, filename),
+                ])
                 .output()
-                .expect(&*format!(
-                    "Unable to run Loop program at: {}{}",
-                    dir, filename
-                ))
-        }
-    } else if cfg!(all(target_os = "windows")) {
-        let result = Command::new("dmd")
-            .args([
-                format!("{}{}.d", dir, filename),
-                format!("-of={}{}.exe", dir, filename),
-            ])
-            .output()
-            .expect("failed to run D compiler! (dmd)");
+                .expect("failed to run D compiler! (ldc2)");
 
-        if !result.status.success() {
-            result
-        } else {
-            Command::new(format!("{}{}.exe", dir, filename))
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        } else if cfg!(all(target_os = "windows")) {
+            let result = Command::new("dmd")
+                .args([
+                    format!("{}{}.d", dir, filename),
+                    format!("-of={}{}.exe", dir, filename),
+                ])
                 .output()
-                .expect(&*format!(
-                    "Unable to run Loop program at: {}{}",
-                    dir, filename
-                ))
-        }
-    } else {
-        let result = Command::new("dmd")
-            .args([
-                format!("{}{}.d", dir, filename),
-                format!("-of={}{}", dir, filename),
-            ])
-            .output()
-            .expect("failed to run D compiler! (dmd)");
+                .expect("failed to run D compiler! (dmd)");
 
-        if !result.status.success() {
-            result
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}.exe", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
         } else {
-            Command::new(format!("{}{}", dir, filename))
+            let result = Command::new("dmd")
+                .args([
+                    format!("{}{}.d", dir, filename),
+                    format!("-of={}{}", dir, filename),
+                ])
                 .output()
-                .expect(&*format!(
-                    "Unable to run Loop program at: {}{}",
-                    dir, filename
-                ))
-        }
-    };
+                .expect("failed to run D compiler! (dmd)");
 
-    if !output.status.success() {
-        println!("{}", String::from_utf8_lossy(&*output.stderr));
-        exit(output.status.code().unwrap());
-    } else {
-        print!("{}", String::from_utf8_lossy(&*output.stdout));
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        };
+
+        if !output.status.success() {
+            println!("{}", String::from_utf8_lossy(&*output.stderr));
+            exit(output.status.code().unwrap());
+        } else {
+            print!("{}", String::from_utf8_lossy(&*output.stdout));
+        }
     }
 
     let duration = Utc::now().signed_duration_since(started);
