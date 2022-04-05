@@ -28,6 +28,7 @@ pub mod test_helper {
                 value: identifier.to_string(),
             },
             value: Box::new(expression),
+            data_type: Types::Function
         })
     }
 

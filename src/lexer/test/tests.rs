@@ -53,6 +53,44 @@ mod tests {
     }
 
     #[test]
+    fn constant_declaration() {
+        let input = "const int i = 13; const string s = \"hello\"; const bool b = true; const float f = 1.4;";
+
+        let expected = vec![
+            // Statement 1
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("int", TokenType::Identifier),
+            test_helper::generate_token("i", TokenType::Identifier),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("13", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 2
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("string", TokenType::Identifier),
+            test_helper::generate_token("s", TokenType::Identifier),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("hello", TokenType::String),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 3
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("bool", TokenType::Identifier),
+            test_helper::generate_token("b", TokenType::Identifier),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("true", TokenType::True),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 4
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("float", TokenType::Identifier),
+            test_helper::generate_token("f", TokenType::Identifier),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("1.4", TokenType::Float),
+            test_helper::generate_token(";", TokenType::Semicolon),
+        ];
+
+        do_test(input, expected);
+    }
+
+    #[test]
     fn escape_sequences() {
         let input = "\"x\\yx\" \"x\\ny\" \"x\\ty\" \"x\\ry\" \"x\\'y\" \"x\\\"y\" \"x\\\\y\"";
         let expected = vec![
