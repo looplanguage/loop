@@ -96,6 +96,7 @@ pub mod test_helper {
         })
     }
 
+    #[allow(dead_code)]
     pub fn generate_identifier_v3(name: &str) -> Identifier {
         Identifier {
             value: name.to_string(),

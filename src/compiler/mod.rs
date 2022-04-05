@@ -177,13 +177,13 @@ impl Compiler {
     pub fn is_print(&self, stat: Statement) -> bool {
         if let Statement::Expression(expr) = stat {
             if let Expression::Call(call) = *expr.expression {
-                if let Expression::Identifier(s) = *call.identifier.clone() {
+                if let Expression::Identifier(s) = *call.identifier {
                     return s.value == "print" || s.value == "println";
                 }
             }
         }
 
-        return false;
+        false
     }
 
     pub fn get_state(&self) -> CompilerState {

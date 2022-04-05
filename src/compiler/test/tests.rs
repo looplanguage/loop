@@ -5,7 +5,6 @@ mod tests {
     use crate::lib::exception::Exception;
     use crate::lib::object::Object;
     use crate::{compiler, lexer, parser};
-    use std::borrow::Borrow;
 
     // Commented out due to the compiler not generating instructions anymore. Instead it generates D code.
     //     #[test]
@@ -397,7 +396,7 @@ mod tests {
             assert_eq!(expected.unwrap(), err.err().unwrap())
         }
     }
-
+    #[allow(dead_code)]
     fn compiler_test_constants(input: &str, expected: Vec<&str>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l);
