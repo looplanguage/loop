@@ -1,3 +1,4 @@
+import platform
 # Imports the test library
 from testlib import run_tests, add_test
 
@@ -8,7 +9,10 @@ def main():
     add_test("test_comments.loop", "3")
     add_test("test_import_export.loop", "8")
     add_test("test_function.loop", "9")
-    add_test("test_string.loop", "123Hello\nWorld!")
+    if platform.system() == "Windows": # Windows handles "new_lines" different then Unix
+        add_test("test_string.loop", "123Hello\r\nWorld!")
+    else:
+        add_test("test_string.loop", "123Hello\nWorld!")
     add_test("test_expression.loop", "1.5")
     add_test("test_expression_precedence.loop", "-29.616")
     add_test("test_variable_declaration.loop",  "250")
@@ -35,6 +39,7 @@ def main():
     add_test("test_loop_iterator.loop", "20")
     add_test("test_loop_iterator_array.loop", "46")
     add_test("test_everything_is_an_expression.loop", "110")
+    add_test("test_constant.loop", "22")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:
