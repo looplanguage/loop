@@ -2,7 +2,7 @@ use crate::lexer::token::{create_token, TokenType};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
-use crate::parser::types::{BaseTypes, Types};
+use crate::parser::types::Types;
 use crate::parser::Parser;
 
 use super::Statement;

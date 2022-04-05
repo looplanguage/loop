@@ -20,7 +20,7 @@ pub fn compile_statement_constant_declaration(
 
     compiler.add_to_current_function(format!("const {} {} = ", _type, var.transpile()));
 
-    compiler.compile_expression(*constant.value.clone());
+    compiler.compile_expression(*constant.value);
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
