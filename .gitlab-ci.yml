@@ -95,6 +95,9 @@ test windows x86_64:
     - rustup override set 1.58.1
     - choco install -y python --version=3.10
     - choco install -y dmd
+    - $env:Path += ";C:\D\dmd2\windows\bin64"
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    - refreshenv
   script:
     - cargo build --release
     - $Env:TEST_JIT="0"
@@ -131,6 +134,9 @@ deploy windows x86_64:
     - python -m pip install boto3
     - python -m pip install requests
     - python -m pip install toml
+    - choco install -y dmd
+    - $env:Path += ";C:\D\dmd2\windows\bin64"
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
   script:
     - cargo build --release
     - py scripts/prerelease.py
