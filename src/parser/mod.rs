@@ -13,11 +13,11 @@ use crate::parser::expression::index::parse_index_expression;
 use crate::parser::expression::loops::parse_loop;
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
-use crate::parser::statement::constant::parse_constant_declaration;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
+use crate::parser::statement::constant::parse_constant_declaration;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
@@ -117,11 +117,9 @@ impl Parser {
                     } else {
                         Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
                     }
-                },
+                }
             },
-            TokenType::VariableDeclaration => {
-                Some(Types::Auto)
-            }
+            TokenType::VariableDeclaration => Some(Types::Auto),
             _ => None,
         }
     }
@@ -135,11 +133,11 @@ impl Parser {
                     parse_variable_assignment(self)
                 } else if self.peek_token_is(TokenType::Identifier) {
                     // Means use defined a custom type
-                    let types = self.parse_type(self.lexer.get_current_token().unwrap().clone())
+                    let types = self
+                        .parse_type(self.lexer.get_current_token().unwrap().clone())
                         .unwrap();
                     parse_variable_declaration(self, Some(types))
-                }
-                else {
+                } else {
                     parse_expression_statement(self)
                 }
             }

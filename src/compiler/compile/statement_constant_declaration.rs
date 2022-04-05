@@ -1,7 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::constant::ConstantDeclaration;
 
-pub fn  compile_statement_constant_declaration(
+pub fn compile_statement_constant_declaration(
     compiler: &mut Compiler,
     constant: ConstantDeclaration,
 ) -> CompilerResult {

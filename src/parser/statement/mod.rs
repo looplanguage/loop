@@ -10,12 +10,12 @@ use crate::parser::statement::return_statement::ReturnStatement;
 pub mod assign;
 pub mod block;
 pub mod break_statement;
+pub mod constant;
 pub mod export;
 pub mod expression;
 pub mod import;
 pub mod return_statement;
 pub mod variable;
-pub mod constant;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {

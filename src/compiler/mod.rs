@@ -26,6 +26,7 @@ use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_break::compile_break_statement;
+use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
@@ -45,7 +46,6 @@ use crate::parser::statement::Statement;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]

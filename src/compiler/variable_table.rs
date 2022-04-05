@@ -35,7 +35,13 @@ impl Variable {
 }
 
 impl VariableScope {
-    pub fn define(&mut self, index: u32, name: String, _type: Types, is_constant: bool) -> Variable {
+    pub fn define(
+        &mut self,
+        index: u32,
+        name: String,
+        _type: Types,
+        is_constant: bool,
+    ) -> Variable {
         self.variables.push(Variable {
             index,
             name,
@@ -60,7 +66,7 @@ impl VariableScope {
                     index: variable.index,
                     name,
                     _type: variable._type.clone(),
-                    is_constant: variable.is_constant
+                    is_constant: variable.is_constant,
                 });
             }
         }
