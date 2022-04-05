@@ -94,6 +94,7 @@ test windows x86_64:
     - rustup install 1.58.1
     - rustup override set 1.58.1
     - choco install -y python --version=3.10
+    - choco install -y dmd
   script:
     - cargo build --release
     - $Env:TEST_JIT="0"
