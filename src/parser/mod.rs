@@ -13,6 +13,7 @@ use crate::parser::expression::index::parse_index_expression;
 use crate::parser::expression::loops::parse_loop;
 use crate::parser::expression::null::parse_expression_null;
 use crate::parser::expression::string::parse_string_literal;
+use crate::parser::statement::constant::parse_constant_declaration;
 use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_expression};
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
@@ -110,19 +111,35 @@ impl Parser {
                         Some(Types::Basic(BaseTypes::Float))
                     }
                 }
-                _ => None,
+                _ => {
+                    if self.peek_is_array() {
+                        Some(Types::Array(BaseTypes::UserDefined(token.literal)))
+                    } else {
+                        Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
+                    }
+                },
             },
+            TokenType::VariableDeclaration => {
+                Some(Types::Auto)
+            }
             _ => None,
         }
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
-            TokenType::VariableDeclaration => parse_variable_declaration(self),
+            TokenType::VariableDeclaration => parse_variable_declaration(self, None),
+            TokenType::ConstantDeclaration => parse_constant_declaration(self),
             TokenType::Identifier => {
                 if self.peek_token_is(TokenType::Assign) {
                     parse_variable_assignment(self)
-                } else {
+                } else if self.peek_token_is(TokenType::Identifier) {
+                    // Means use defined a custom type
+                    let types = self.parse_type(self.lexer.get_current_token().unwrap().clone())
+                        .unwrap();
+                    parse_variable_declaration(self, Some(types))
+                }
+                else {
                     parse_expression_statement(self)
                 }
             }
