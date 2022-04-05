@@ -1,4 +1,4 @@
 const int x = 12
-const int y = 10
+const var y = 10
 
 x + y

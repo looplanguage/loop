@@ -22,7 +22,7 @@ pub struct ConstantDeclaration {
 /// `const int i = 13 + 4`
 pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
     // This "identifier" is for the datatype
-    if !p.next_token_is(TokenType::Identifier) {
+    if !p.next_token_is(TokenType::Identifier) && !p.next_token_is(TokenType::VariableDeclaration) {
         let message = "Syntax  -> const <datatype> <identifier> = <expression>\nExample -> const int i = 99\n\nLoop has optional static typing, explanation:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
         p.throw_exception(
             create_token(TokenType::Identifier, "var".to_string()),
