@@ -1,6 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Function;
-use crate::parser::expression::{integer, Expression};
 use crate::parser::types::Types;
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> CompilerResult {
@@ -9,7 +8,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
         let var = compiler.variable_scope.borrow_mut().define(
             compiler.variable_count,
             format!("{}{}", compiler.location, func.name),
-            Types::Function
+            Types::Function,
         );
 
         compiler.new_function(var.transpile());
@@ -27,7 +26,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
                 compiler.location,
                 parameter.identifier.value.clone()
             ),
-            parameter._type.clone()
+            parameter._type.clone(),
         );
 
         compiler.add_to_current_function(format!(

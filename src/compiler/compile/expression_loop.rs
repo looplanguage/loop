@@ -1,6 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
-use crate::parser::expression::{array, integer, Expression};
 use crate::parser::types::{BaseTypes, Types};
 
 /// Compiles (/transpiles) the "while" loop of Loop
@@ -31,7 +30,6 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
     }
-
 
     compiler.add_to_current_function(")".to_string());
 

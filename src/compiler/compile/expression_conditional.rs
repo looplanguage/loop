@@ -42,7 +42,6 @@ pub fn compile_expression_conditional(
 
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
-
             compiler.add_to_current_function("{ ".to_string());
             compiler.compile_expression(exp.clone());
             compiler.add_to_current_function("; }".to_string());

@@ -1,7 +1,6 @@
-use crate::parser::expression::Expression;
+use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::parser::types::Types;
 
 pub struct Variable {
     pub index: u32,

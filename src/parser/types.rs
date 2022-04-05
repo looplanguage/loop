@@ -11,7 +11,7 @@ pub enum Types {
     Basic(BaseTypes),
     Array(BaseTypes),
     Function,
-    Auto
+    Auto,
 }
 
 impl Types {

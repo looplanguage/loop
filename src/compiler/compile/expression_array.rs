@@ -2,7 +2,7 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::array::Array;
 
 pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> CompilerResult {
-    if arr.values.len() > 0 {
+    if !arr.values.is_empty() {
         compiler.add_to_current_function("[".to_string());
 
         let mut index = 0;

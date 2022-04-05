@@ -321,10 +321,8 @@ impl Compiler {
 
     fn should_add_return(expression: Expression) -> bool {
         match expression {
-            Expression::Conditional(conditional) => {
-                Compiler::does_block_return(conditional.body)
-            },
-            _ => true
+            Expression::Conditional(conditional) => Compiler::does_block_return(conditional.body),
+            _ => true,
         }
     }
 
@@ -341,7 +339,7 @@ impl Compiler {
                 if let Statement::Expression(exp) = statement.clone() {
                     if Compiler::should_add_return(*exp.expression.clone()) {
                         if index == block.statements.len() {
-                            self.add_to_current_function(format!("Variant block_return = ", ));
+                            self.add_to_current_function("Variant block_return = ".to_string());
                         }
 
                         let result = self.compile_statement(statement.clone(), false);

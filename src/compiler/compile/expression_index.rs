@@ -21,7 +21,11 @@ pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
 ) -> CompilerResult {
-    let var = compiler.variable_scope.borrow_mut().define(compiler.variable_count, "ptr_to_array".to_string(), Types::Auto);
+    let var = compiler.variable_scope.borrow_mut().define(
+        compiler.variable_count,
+        "ptr_to_array".to_string(),
+        Types::Auto,
+    );
     compiler.variable_count += 1;
 
     compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
@@ -88,7 +92,11 @@ pub fn compile_expression_extension_method(
 /// to!string(500)
 /// ```
 fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.variable_scope.borrow_mut().define(compiler.variable_count, "tmp_to_convert".to_string(), Types::Auto);
+    let var = compiler.variable_scope.borrow_mut().define(
+        compiler.variable_count,
+        "tmp_to_convert".to_string(),
+        Types::Auto,
+    );
     compiler.variable_count += 1;
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
@@ -96,7 +104,6 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
     let result = compiler.compile_expression(left);
 
     compiler.add_to_current_function(";".to_string());
-
 
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
@@ -119,7 +126,11 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
 /// to!int("500")
 /// ```
 fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.variable_scope.borrow_mut().define(compiler.variable_count, "tmp_to_convert".to_string(), Types::Auto);
+    let var = compiler.variable_scope.borrow_mut().define(
+        compiler.variable_count,
+        "tmp_to_convert".to_string(),
+        Types::Auto,
+    );
     compiler.variable_count += 1;
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
@@ -127,7 +138,6 @@ fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> Comp
     let result = compiler.compile_expression(left);
 
     compiler.add_to_current_function(".to!string;".to_string());
-
 
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
