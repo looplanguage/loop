@@ -10,6 +10,7 @@ pub fn compile_statement_variable_declaration(
         compiler.variable_count,
         format!("{}{}", compiler.location, variable.ident.value),
         Types::Auto,
+        false,
     );
 
     compiler.variable_count += 1;
@@ -17,6 +18,13 @@ pub fn compile_statement_variable_declaration(
 
     // TODO: Make this not auto
     let mut _type = "Variant";
+    // This code is for explicit typing, but there need to be checks for the assigned value;
+    // let _type = if let Types::Auto = variable.data_type {
+    //     "Variant"
+    // }
+    // else {
+    //     variable.data_type.transpile();
+    // };
 
     compiler.add_to_current_function(format!("{} {} = ", _type, var.transpile()));
 

@@ -17,6 +17,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
             _compiler.export_name.clone()
         ),
         Types::Auto,
+        false,
     );
 
     _compiler.variable_count += 1;

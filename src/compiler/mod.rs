@@ -45,6 +45,7 @@ use crate::parser::statement::Statement;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
@@ -378,6 +379,9 @@ impl Compiler {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
+            Statement::ConstantDeclaration(con) => {
+                compile_statement_constant_declaration(self, con)
+            }
             Statement::Expression(expr) => self.compile_expression(*expr.expression),
             Statement::Block(block) => self.compile_block(block),
             Statement::VariableAssign(variable) => {
@@ -391,6 +395,7 @@ impl Compiler {
 
         let add_semicolon = match stmt {
             Statement::VariableDeclaration(_) => true,
+            Statement::ConstantDeclaration(_) => true,
             Statement::Expression(expr) => match *expr.expression {
                 Expression::Conditional(_) => true,
                 Expression::Loop(_) => true,

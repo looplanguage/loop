@@ -32,7 +32,7 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Optio
     // }
     // p.lexer.next_token();
 
-    let datatype = types.unwrap_or(Types::Basic(BaseTypes::Var));
+    let datatype = types.unwrap_or(Types::Auto);
     // This "identifier" is for the actual identifier of the variable
     if !p.next_token_is(TokenType::Identifier) {
         let message = "Syntax  -> <datatype> <identifier> = <expression>\nExample -> int i = 99\n\nThe identifiers can contain: letters, numbers and underscores.".to_string();

@@ -18,3 +18,4 @@ pub mod statement_import;
 pub mod statement_return;
 pub mod statement_variable_assign;
 pub mod statement_variable_declaration;
+pub mod statement_constant_declaration;

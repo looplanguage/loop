@@ -6,6 +6,7 @@ pub struct Variable {
     pub index: u32,
     pub name: String,
     pub _type: Types,
+    pub is_constant: bool,
 }
 
 pub struct VariableScope {
@@ -33,11 +34,12 @@ impl Variable {
 }
 
 impl VariableScope {
-    pub fn define(&mut self, index: u32, name: String, _type: Types) -> Variable {
+    pub fn define(&mut self, index: u32, name: String, _type: Types, is_constant: bool) -> Variable {
         self.variables.push(Variable {
             index,
             name,
             _type: _type.clone(),
+            is_constant,
         });
 
         let var = self.variables.last().expect("inserted");
@@ -46,6 +48,7 @@ impl VariableScope {
             name: var.name.clone(),
             index: var.index,
             _type,
+            is_constant,
         }
     }
 
@@ -56,6 +59,7 @@ impl VariableScope {
                     index: variable.index,
                     name,
                     _type: variable._type.clone(),
+                    is_constant: variable.is_constant
                 });
             }
         }

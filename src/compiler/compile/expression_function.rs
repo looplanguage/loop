@@ -9,6 +9,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             compiler.variable_count,
             format!("{}{}", compiler.location, func.name),
             Types::Function,
+            false,
         );
 
         compiler.new_function(var.transpile());
@@ -24,9 +25,10 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             format!(
                 "{}{}",
                 compiler.location,
-                parameter.identifier.value.clone()
+                parameter.identifier.value.clone(),
             ),
             parameter._type.clone(),
+            false,
         );
 
         compiler.add_to_current_function(format!(
