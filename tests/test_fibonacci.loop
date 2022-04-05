@@ -1,5 +1,5 @@
 // answer = 178
-var x = fn(i) {
+fn x(int i) {
     if i < 2 {
         return 1
     } else {
@@ -7,7 +7,7 @@ var x = fn(i) {
     }
 }
 
-var y = fn(i) {
+fn y(int i) {
     if (i < 2) {
         return 1
     } else {

@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Call;
 
@@ -29,7 +28,6 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             compiler.add_to_current_function(String::from(","));
         }
     }
-
 
     compiler.add_to_current_function(String::from(")"));
 

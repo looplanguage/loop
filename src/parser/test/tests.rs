@@ -5,7 +5,7 @@ mod tests {
     use crate::parser;
     use crate::parser::expression::array::Array;
     use crate::parser::expression::boolean::Boolean;
-    use crate::parser::expression::function::{Call, Function};
+    use crate::parser::expression::function::{Call, Function, Parameter};
     use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
@@ -21,6 +21,7 @@ mod tests {
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
     use crate::parser::test::test_helper::test_helper;
+    use crate::parser::types::{BaseTypes, Types};
     use std::collections::HashMap;
 
     #[test]
@@ -41,6 +42,7 @@ mod tests {
                         })),
                     })],
                 },
+                name: "".to_string(),
             })),
         })));
 
@@ -352,12 +354,12 @@ mod tests {
     fn functions() {
         let input = "
     fn() {}\
-    fn(a) {}\
-    fn(a, b, c, d) {}\
+    fn(int a) {}\
+    fn(int a, int b, int c, int d) {}\
     fn() {\
         1\
     }\
-    var functionWithParameters = fn(a, b, c, d) {\
+    var functionWithParameters = fn(int a, int b, int c, int d) {\
         a + b;\
         var e = c + d;\
     }\
@@ -366,25 +368,28 @@ mod tests {
         let mut expected: Vec<Statement> = Vec::new();
 
         // Test #1
-        let parameters: Vec<Identifier> = vec![];
+        let parameters: Vec<Parameter> = vec![];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
         })));
 
         // Test #2
-        let parameters: Vec<Identifier> = vec![test_helper::generate_identifier_v3("a")];
+        let parameters: Vec<Parameter> = vec![test_helper::generate_parameter_v3(
+            "a",
+            Types::Basic(BaseTypes::Integer),
+        )];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
             expression: test_helper::generate_function_v3_box(parameters, statements),
         })));
 
         // Test #3
-        let parameters: Vec<Identifier> = vec![
-            test_helper::generate_identifier_v3("a"),
-            test_helper::generate_identifier_v3("b"),
-            test_helper::generate_identifier_v3("c"),
-            test_helper::generate_identifier_v3("d"),
+        let parameters: Vec<Parameter> = vec![
+            test_helper::generate_parameter_v3("a", Types::Basic(BaseTypes::Integer)),
+            test_helper::generate_parameter_v3("b", Types::Basic(BaseTypes::Integer)),
+            test_helper::generate_parameter_v3("c", Types::Basic(BaseTypes::Integer)),
+            test_helper::generate_parameter_v3("d", Types::Basic(BaseTypes::Integer)),
         ];
         let statements: Vec<Statement> = vec![];
         expected.push(Statement::Expression(Box::new(Expression {
@@ -392,7 +397,7 @@ mod tests {
         })));
 
         // Test #4
-        let parameters: Vec<Identifier> = vec![];
+        let parameters: Vec<Parameter> = vec![];
         let statements: Vec<Statement> = vec![test_helper::generate_expression_statement_v3(
             test_helper::generate_integer_expression(1),
         )];
@@ -401,11 +406,11 @@ mod tests {
         })));
 
         // Test #5
-        let parameters: Vec<Identifier> = vec![
-            test_helper::generate_identifier_v3("a"),
-            test_helper::generate_identifier_v3("b"),
-            test_helper::generate_identifier_v3("c"),
-            test_helper::generate_identifier_v3("d"),
+        let parameters: Vec<Parameter> = vec![
+            test_helper::generate_parameter_v3("a", Types::Basic(BaseTypes::Integer)),
+            test_helper::generate_parameter_v3("b", Types::Basic(BaseTypes::Integer)),
+            test_helper::generate_parameter_v3("c", Types::Basic(BaseTypes::Integer)),
+            test_helper::generate_parameter_v3("d", Types::Basic(BaseTypes::Integer)),
         ];
         let left = test_helper::generate_identifier_expression_v3("a");
         let right = test_helper::generate_identifier_expression_v3("b");

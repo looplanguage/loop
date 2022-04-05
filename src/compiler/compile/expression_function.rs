@@ -1,40 +1,41 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::config::CONFIG;
-use crate::lib::exception::compiler::CompilerException;
-use crate::lib::object::function;
-use crate::lib::object::Object::CompiledFunction;
-use crate::parser::expression::Expression;
 use crate::parser::expression::function::Function;
+use crate::parser::types::Types;
 
 pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> CompilerResult {
     // Named function ^.^
-    if func.name.len() > 0 {
+    if !func.name.is_empty() {
         let var = compiler.variable_scope.borrow_mut().define(
             compiler.variable_count,
-            format!("{}{}", compiler.location, func.name.clone()),
-            Expression::Function(func.clone()),
+            format!("{}{}", compiler.location, func.name),
+            Types::Function,
         );
 
         compiler.new_function(var.transpile());
-        compiler.add_to_current_function(format!("auto {}", var.transpile()));
+        compiler.add_to_current_function(format!("Variant {}", var.transpile()));
     }
-
-    let num_params = func.parameters.len() as u32;
-
-    compiler.enter_scope();
 
     compiler.add_to_current_function(" (".to_string());
 
     let mut index = 0;
     for parameter in &func.parameters {
+        let symbol = compiler.variable_scope.borrow_mut().define(
+            compiler.variable_count,
+            format!(
+                "{}{}",
+                compiler.location,
+                parameter.identifier.value.clone()
+            ),
+            parameter._type.clone(),
+        );
 
-        let symbol = compiler
-            .symbol_table
-            .borrow_mut()
-            .define(parameter.identifier.value.as_str(), 0).clone();
+        compiler.add_to_current_function(format!(
+            "{} {}",
+            parameter.get_type(),
+            symbol.transpile()
+        ));
 
-        compiler.add_to_current_function(format!("{} local_{}", parameter.get_type(), symbol.index));
+        index += 1;
 
         if func.parameters.len() > 1 && index != func.parameters.len() {
             compiler.add_to_current_function(", ".to_string());
@@ -43,11 +44,11 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
 
     compiler.add_to_current_function(") ".to_string());
 
-    compiler.compile_block(func.body);
+    let result = compiler.compile_block(func.body);
 
-    if func.name.len() > 0 {
+    if !func.name.is_empty() {
         compiler.exit_function();
     }
 
-    CompilerResult::Success
+    result
 }

@@ -20,6 +20,7 @@ def has_succeeded(stdout, stderr, answer):
     error = stderr.decode(ENCODER)
     if error:
         return False
+
     return output.strip() == answer
 
 def run_tests():
@@ -36,7 +37,7 @@ def run_tests():
             if has_succeeded(stdout, stderr, test.answer):
                 output += "    > {}   -->   SUCCESS\n".format(test.file_loc.split('/')[-1])
             else:
-                output += "    > {}   -->   FAILED\n".format(test.file_loc.split('/')[-1])
+                output += "{}    > {}   -->   FAILED\n".format(stdout, test.file_loc.split('/')[-1])
                 have_failed += 1
         except subprocess.TimeoutExpired:
             process.kill()

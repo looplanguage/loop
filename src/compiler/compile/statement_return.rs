@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
@@ -10,9 +9,10 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
         );
     }
 
-    _compiler.add_to_current_function("return ".to_string());
+    _compiler.add_to_current_function("return (".to_string());
 
     let result = _compiler.compile_expression(*rt.expression);
+    _compiler.add_to_current_function(").to!Variant".to_string());
 
     #[allow(clippy::single_match)]
     match &result {

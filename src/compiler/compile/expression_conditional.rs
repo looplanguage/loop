@@ -1,5 +1,3 @@
-use crate::compiler::compile::expression_null::compile_expression_null;
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
@@ -20,7 +18,7 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    compiler.add_to_current_function("if (".to_string());
+    compiler.add_to_current_function("() { if (".to_string());
     let result = compiler.compile_expression(*conditional.condition);
     compiler.add_to_current_function(")".to_string());
 
@@ -29,7 +27,6 @@ pub fn compile_expression_conditional(
         CompilerResult::Exception(_exception) => return result,
         _ => (),
     }
-
 
     let result = compiler.compile_block(conditional.body);
 
@@ -45,7 +42,9 @@ pub fn compile_expression_conditional(
 
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
+            compiler.add_to_current_function("{ ".to_string());
             compiler.compile_expression(exp.clone());
+            compiler.add_to_current_function("; }".to_string());
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {
@@ -53,6 +52,8 @@ pub fn compile_expression_conditional(
             }
         }
     }
+
+    compiler.add_to_current_function("}()".to_string());
 
     CompilerResult::Success
 }

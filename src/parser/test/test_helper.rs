@@ -4,7 +4,7 @@ pub mod test_helper {
     use crate::parser::expression::boolean::Boolean;
     use crate::parser::expression::conditional::Conditional;
     use crate::parser::expression::float::Float;
-    use crate::parser::expression::function::Function;
+    use crate::parser::expression::function::{Function, Parameter};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
     use crate::parser::expression::suffix::Suffix;
@@ -13,6 +13,7 @@ pub mod test_helper {
     use crate::parser::statement::expression::Expression;
     use crate::parser::statement::variable::VariableDeclaration;
     use crate::parser::statement::Statement;
+    use crate::parser::types::Types;
 
     // ========================================================================
     // Everything with "v3" behind the identifier are newer functions for the refactor
@@ -57,22 +58,24 @@ pub mod test_helper {
     }
 
     pub fn generate_function_v3_box(
-        parameters: Vec<Identifier>,
+        parameters: Vec<Parameter>,
         statements: Vec<Statement>,
     ) -> Box<crate::parser::expression::Expression> {
         Box::new(parser::expression::Expression::Function(Function {
             parameters,
             body: Block { statements },
+            name: "".to_string(),
         }))
     }
 
     pub fn generate_function_v3(
-        parameters: Vec<Identifier>,
+        parameters: Vec<Parameter>,
         statements: Vec<Statement>,
     ) -> crate::parser::expression::Expression {
         parser::expression::Expression::Function(Function {
             parameters,
             body: Block { statements },
+            name: "".to_string(),
         })
     }
 
@@ -95,6 +98,15 @@ pub mod test_helper {
     pub fn generate_identifier_v3(name: &str) -> Identifier {
         Identifier {
             value: name.to_string(),
+        }
+    }
+
+    pub fn generate_parameter_v3(name: &str, _type: Types) -> Parameter {
+        Parameter {
+            identifier: Identifier {
+                value: name.to_string(),
+            },
+            _type,
         }
     }
 

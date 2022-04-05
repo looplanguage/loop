@@ -1,11 +1,11 @@
-use crate::parser::expression::Expression;
+use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 pub struct Variable {
     pub index: u32,
     pub name: String,
-    pub _type: Expression,
+    pub _type: Types,
 }
 
 pub struct VariableScope {
@@ -33,7 +33,7 @@ impl Variable {
 }
 
 impl VariableScope {
-    pub fn define(&mut self, index: u32, name: String, _type: Expression) -> Variable {
+    pub fn define(&mut self, index: u32, name: String, _type: Types) -> Variable {
         self.variables.push(Variable {
             index,
             name,

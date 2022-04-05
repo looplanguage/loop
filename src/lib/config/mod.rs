@@ -24,7 +24,6 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     let mut config: Config = Config {
         // Currently no telemetry in Loop, kind of redundant
         enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
-        jit_enabled: false,
         debug_mode: false,
         enable_benchmark: false,
         enable_optimize: false,
@@ -33,12 +32,6 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     // The flags go over the config file.
     // If config has: "jit_enabled = true" and flag has: "jit_enabled = false",
     // Than the config will disable JIT
-
-    if flags.flags.jit_enabled.is_some() {
-        config.jit_enabled = flags.flags.jit_enabled.unwrap();
-    } else if cfg.jit_enabled.is_some() {
-        config.jit_enabled = cfg.jit_enabled.unwrap();
-    }
 
     if flags.flags.debug_mode.is_some() {
         config.debug_mode = flags.flags.debug_mode.unwrap();
@@ -58,21 +51,11 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         config.enable_optimize = cfg.enable_optimize.unwrap();
     }
 
-    #[cfg(test)]
-    {
-        if let Ok(e) = env::var("TEST_JIT") {
-            config.jit_enabled = e == "1";
-        } else {
-            config.jit_enabled = false;
-        }
-    }
-
     config
 });
 
 pub struct Config {
     pub enable_telemetry: bool,
-    pub jit_enabled: bool,
     pub debug_mode: bool,
     pub enable_benchmark: bool,
     pub enable_optimize: bool,
@@ -81,7 +64,6 @@ pub struct Config {
 #[derive(Deserialize, Serialize)]
 pub struct ConfigInternal {
     pub enable_telemetry: Option<bool>,
-    pub jit_enabled: Option<bool>,
     pub debug_mode: Option<bool>,
     pub enable_benchmark: Option<bool>,
     pub enable_optimize: Option<bool>,
@@ -91,7 +73,6 @@ impl Default for ConfigInternal {
     fn default() -> Self {
         ConfigInternal {
             enable_telemetry: Some(false),
-            jit_enabled: Some(false),
             debug_mode: Some(false),
             enable_benchmark: Some(false),
             enable_optimize: Some(false),

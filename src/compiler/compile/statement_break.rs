@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::break_statement::BreakStatement;
 

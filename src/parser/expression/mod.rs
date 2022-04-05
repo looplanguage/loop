@@ -1,4 +1,3 @@
-use crate::compiler::Compiler;
 use crate::lexer::token::TokenType;
 use crate::parser::expression::array::Array;
 use crate::parser::expression::assign_index::AssignIndex;

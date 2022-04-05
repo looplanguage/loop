@@ -22,9 +22,10 @@ stages:
     - DEBIAN_FRONTEND=noninteractive apt-get update
     - apt-get install curl build-essential wget lsb-release software-properties-common libz-dev -y
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - wget https://apt.llvm.org/llvm.sh
-    - chmod +x llvm.sh
-    - ./llvm.sh 12
+    - D_VERSION=$(wget -qO - http://downloads.dlang.org/releases/LATEST)
+    - wget -O dmd.deb http://downloads.dlang.org/releases/2.x/${D_VERSION}/dmd_${D_VERSION}-0_amd64.deb
+    - apt-get update
+    - apt-get install -y ./dmd.deb
     - source $HOME/.cargo/env
     - apt-get install python3 python3-pip python3-distutils -y
   cache:
@@ -38,16 +39,8 @@ stages:
     - windows
     - windows-1809
   before_script:
-    - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
-    - |
-      [Environment]::SetEnvironmentVariable("LLVM_SYS_120_PREFIX", $env:LLVM_SYS_120_PREFIX, [System.EnvironmentVariableTarget]::Machine)
-    - cd ${CI_PROJECT_DIR}
-  variables:
-    LLVM_SYS_120_PREFIX: "${CI_PROJECT_DIR}\\llvm-12.0.1"
+    - choco install dmd
   cache:
-    - key: "llvm12.0.1"
-      paths:
-        - llvm-12.0.1
     - key: "rust"
       paths:
         - target
@@ -76,24 +69,6 @@ stages:
     - main
 
 # Windows
-# Runs on main branch and merge requests
-setup windows x86_64:
-  stage: setup
-  only:
-    refs:
-      - main
-      - merge_requests
-  extends:
-    - .windows
-  script:
-    - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
-    - |
-      if(-Not (Test-Path -Path $Env:LLVM_SYS_120_PREFIX)) {
-        iwr -useb cdn.looplang.org/llvm/install.ps1 | iex
-        Move-Item -Path C:\llvm\llvm-12.0.1-windows-x64 -Destination ${CI_PROJECT_DIR}/llvm-12.0.1
-        $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
-        ls $Env:LLVM_SYS_120_PREFIX
-      }
 
 # Runs on merge requests
 check windows x86_64:
@@ -119,6 +94,10 @@ test windows x86_64:
     - rustup install 1.58.1
     - rustup override set 1.58.1
     - choco install -y python --version=3.10
+    - choco install -y dmd
+    - $env:Path += ";C:\D\dmd2\windows\bin64"
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    - refreshenv
   script:
     - cargo build --release
     - $Env:TEST_JIT="0"
@@ -155,6 +134,9 @@ deploy windows x86_64:
     - python -m pip install boto3
     - python -m pip install requests
     - python -m pip install toml
+    - choco install -y dmd
+    - $env:Path += ";C:\D\dmd2\windows\bin64"
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
   script:
     - cargo build --release
     - py scripts/prerelease.py
