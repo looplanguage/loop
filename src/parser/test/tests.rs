@@ -237,7 +237,7 @@ mod tests {
             value: Box::new(parser::expression::Expression::Integer(Integer {
                 value: 0,
             })),
-            data_type: Types::Auto
+            data_type: Types::Auto,
         }));
 
         expected.push(Statement::VariableDeclaration(VariableDeclaration {
@@ -247,7 +247,7 @@ mod tests {
             value: Box::new(parser::expression::Expression::Integer(Integer {
                 value: 500,
             })),
-            data_type: Types::Auto
+            data_type: Types::Auto,
         }));
 
         expected.push(Statement::VariableAssign(VariableAssign {
