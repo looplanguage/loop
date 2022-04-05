@@ -2,6 +2,7 @@ use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[derive(Clone)]
 pub struct Variable {
     pub index: u32,
     pub name: String,
