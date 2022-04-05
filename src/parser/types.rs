@@ -4,6 +4,7 @@ pub enum BaseTypes {
     String,
     Boolean,
     Float,
+    UserDefined(String),
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -22,12 +23,14 @@ impl Types {
                 BaseTypes::String => "string".to_string(),
                 BaseTypes::Boolean => "bool".to_string(),
                 BaseTypes::Float => "float".to_string(),
+                BaseTypes::UserDefined(s) => s.to_string(),
             },
             Types::Array(array) => match array {
                 BaseTypes::Integer => "int[]".to_string(),
                 BaseTypes::String => "string[]".to_string(),
                 BaseTypes::Boolean => "bool[]".to_string(),
                 BaseTypes::Float => "float[]".to_string(),
+                BaseTypes::UserDefined(s) => s.to_string(),
             },
             Types::Auto => "auto".to_string(),
             Types::Function => "()".to_string(),
