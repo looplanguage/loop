@@ -137,21 +137,26 @@ impl Compiler {
         for statement in program.statements {
             index += 1;
 
+            let mut is_print = false;
             let mut is_expression = false;
-
             if index == length {
-                if let Statement::Expression(_) = statement {
+                is_print = self.is_print(statement.clone());
+                if let Statement::Expression(_) = statement.clone() {
                     is_expression = true;
-
-                    self.add_import("std".to_string());
-                    self.add_to_current_function("writeln(".to_string());
+                    // The last expression always gets printed, but when it is a print functions it doesnt
+                    if !is_print {
+                        self.add_import("std".to_string());
+                        self.add_to_current_function("writeln(".to_string());
+                    }
                 }
             }
 
             let err = self.compile_statement(statement, is_expression);
 
-            if index == length && is_expression {
+            if index == length && is_expression && !is_print {
                 self.add_to_current_function(");".to_string());
+            } else if is_print {
+                self.add_to_current_function(";".to_string());
             }
 
             #[allow(clippy::single_match)]
@@ -166,6 +171,19 @@ impl Compiler {
         }
 
         Result::Ok(self.get_bytecode())
+    }
+
+    /// To check whether a statement is the builtin functions: `print` or `println`.
+    pub fn is_print(&self, stat: Statement) -> bool {
+        if let Statement::Expression(expr) = stat {
+            if let Expression::Call(call) = *expr.expression {
+                if let Expression::Identifier(s) = *call.identifier.clone() {
+                    return s.value == "print" || s.value == "println";
+                }
+            }
+        }
+
+        return false;
     }
 
     pub fn get_state(&self) -> CompilerState {
