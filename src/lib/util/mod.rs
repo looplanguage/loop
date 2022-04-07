@@ -4,7 +4,6 @@ use crate::{compiler, lexer, parser};
 use chrono::{Local, Utc};
 use colored::Colorize;
 use dirs::home_dir;
-use std::fs;
 use std::fs::{create_dir, File};
 use std::io::Write;
 use std::path::Path;
@@ -94,7 +93,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         let file = {
             use std::os::unix::fs::OpenOptionsExt;
 
-            fs::OpenOptions::new()
+            std::fs::OpenOptions::new()
                 .create(true)
                 .write(true)
                 .mode(0o0777)
