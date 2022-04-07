@@ -1,7 +1,5 @@
+//! Responsible for transpiling Loop to D
 mod compile;
-pub mod definition;
-pub mod instructions;
-pub mod opcode;
 mod symbol_table;
 mod test;
 mod variable_table;
@@ -36,8 +34,6 @@ use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, VariableScope,
 };
 use crate::lib::exception::compiler::CompilerException;
-use crate::lib::object::null::Null;
-use crate::lib::object::Object;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
@@ -45,7 +41,9 @@ use crate::parser::statement::Statement;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::parser::expression::integer::Integer;
 
+/// Instance of CompilerResult which contains information on how the compiler handled input
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum CompilerResult {
@@ -54,15 +52,15 @@ pub enum CompilerResult {
     Exception(CompilerException),
 }
 
+/// The result of the transpiler, which will be passed to the D compiler [crate::lib::util::execute_code]
 pub struct Bytecode {
-    pub constants: Vec<Rc<RefCell<Object>>>,
     pub imports: Vec<String>,
     pub functions: HashMap<String, String>,
 }
 
+/// The compiler itself containing global metadata needed during compilation and methods
 pub struct Compiler {
     pub scope_index: i32,
-    pub constants: Vec<Rc<RefCell<Object>>>,
     pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
@@ -78,31 +76,44 @@ pub struct Compiler {
     pub current_function: String,
 }
 
-fn build_compiler_internal() -> Compiler {
-    Compiler {
-        scope_index: 0,
-        constants: vec![],
-        symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
-        variable_count: 0,
-        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
-        last_extension_type: None,
-        location: String::new(),
-        export_name: String::new(),
-        prev_location: String::new(),
-        breaks: Vec::new(),
+impl Default for Compiler {
+    fn default() -> Self {
+        Compiler {
+            scope_index: 0,
+            symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
+            variable_count: 0,
+            variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+            last_extension_type: None,
+            location: String::new(),
+            export_name: String::new(),
+            prev_location: String::new(),
+            breaks: Vec::new(),
 
-        imports: Vec::new(),
-        functions: HashMap::new(),
-        function_stack: Vec::new(),
-        current_function: String::from("main"),
+            imports: Vec::new(),
+            functions: HashMap::new(),
+            function_stack: Vec::new(),
+            current_function: String::from("main"),
+        }
     }
 }
 
-pub fn build_compiler() -> Compiler {
-    build_compiler_internal()
-}
-
 impl Compiler {
+    /// Main compilation function which compiles a syntax tree from the parser into D
+    ///
+    /// # Example
+    /// ```
+    /// let lexer = lexer::build_lexer("var x = 100");
+    /// let mut parser = parser::build_parser(lexer);
+    /// let program = parser.parse();
+    ///
+    /// let compiler = Compiler::default();
+    ///
+    /// let result = compiler.compile(program);
+    ///
+    /// if result.is_err() {
+    ///     // Handle error
+    /// }
+    /// ```
     pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
         // Insert main function
         if self.location.is_empty() {
@@ -147,22 +158,27 @@ impl Compiler {
         Result::Ok(self.get_bytecode())
     }
 
+    /// Defines a new named function and sets it as the compilation scope
     pub fn new_function(&mut self, name: String) {
         self.function_stack.push(self.current_function.clone());
         self.functions.insert(name.clone(), String::new());
         self.current_function = name;
     }
 
+    /// Exits the current function compilation scope
     pub fn exit_function(&mut self) {
         self.current_function = self.function_stack.pop().unwrap();
     }
 
+    /// Adds code to the current function compilation scope
     pub fn add_to_current_function(&mut self, code: String) {
         let func = self.functions.get_mut(&*self.current_function);
 
         func.unwrap().push_str(code.as_str());
     }
 
+    /// Adds an import needed by D This function can be called with the same import as many times
+    /// as you would like, it will only add imports if it doesn't already exist
     pub fn add_import(&mut self, import: String) {
         let found = self.imports.iter().find(|&imp| *imp == import);
 
@@ -171,6 +187,7 @@ impl Compiler {
         }
     }
 
+    /// Loads an internal Loop symbol and adds it to the current function
     pub fn load_symbol(&mut self, symbol: Symbol) {
         match symbol.scope {
             // Parameters in functions
@@ -209,33 +226,36 @@ impl Compiler {
         };
     }
 
+    /// Enter a deeper variable scope
     pub fn enter_variable_scope(&mut self) {
         let scope = build_deeper_variable_scope(Option::from(self.variable_scope.clone()));
         self.scope_index += 1;
         self.variable_scope = Rc::new(RefCell::new(scope));
     }
 
+    /// Exit a variable scope and go one shallower
     pub fn exit_variable_scope(&mut self) {
         let outer = self.variable_scope.as_ref().borrow_mut().outer.clone();
         self.scope_index -= 1;
         self.variable_scope = outer.unwrap();
     }
 
-    pub fn enter_scope(&mut self) {
-        self.symbol_table.as_ref().borrow_mut().push();
-    }
-    pub fn exit_scope(&mut self) {
-        self.symbol_table.as_ref().borrow_mut().pop();
-    }
-
     pub fn get_bytecode(&self) -> Bytecode {
         Bytecode {
-            constants: self.constants.clone(),
             functions: self.functions.clone(),
             imports: self.imports.clone(),
         }
     }
 
+    /// Compiles the [Expression] [Node](crate::parser::program::Node)
+    ///
+    /// # Examples
+    /// ```
+    /// let mut compiler = Compiler::default();
+    /// let exp = Expression::Integer(Integer { value: 10 });
+    ///
+    /// let result = compiler.compile_expression(exp);
+    /// ```
     fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
         match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
@@ -260,6 +280,7 @@ impl Compiler {
         }
     }
 
+    /// Compiles a loop [Block], this differs from [Compiler::compile_block] in that it wont add curly braces
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
@@ -278,6 +299,7 @@ impl Compiler {
         CompilerResult::Success
     }
 
+    /// Recursively search through a block to find if it returns anything
     fn does_block_return(block: Block) -> bool {
         if !block.statements.is_empty() {
             return match block.statements.last().unwrap() {
@@ -290,6 +312,7 @@ impl Compiler {
         false
     }
 
+    /// Checks an expression if it doesn't already have a return (as expressions always evalaute to a value)
     fn should_add_return(expression: Expression) -> bool {
         match expression {
             Expression::Conditional(conditional) => Compiler::does_block_return(conditional.body),
@@ -297,6 +320,7 @@ impl Compiler {
         }
     }
 
+    /// Compiles a deeper [Block] adding curly braces
     fn compile_block(&mut self, block: Block) -> CompilerResult {
         self.enter_variable_scope();
 
@@ -344,6 +368,16 @@ impl Compiler {
         CompilerResult::Success
     }
 
+    /// Compiles the [Statement] [Node](crate::parser::program::Node)
+    ///
+    /// # Example
+    /// ```
+    /// let mut compiler = Compiler::default();
+    /// let exp = Expression::Integer(Integer { value: 10 });
+    /// let stmt = Statement::Expression(exp);
+    ///
+    /// let result = compiler.compile_statement(stmt);
+    /// ```
     fn compile_statement(&mut self, stmt: Statement, no_semicolon: bool) -> CompilerResult {
         let result = match stmt.clone() {
             Statement::VariableDeclaration(var) => {
@@ -383,11 +417,5 @@ impl Compiler {
         }
 
         result
-    }
-
-    fn add_constant(&mut self, obj: Object) -> u32 {
-        self.constants.push(Rc::from(RefCell::from(obj)));
-
-        (self.constants.len() - 1) as u32
     }
 }

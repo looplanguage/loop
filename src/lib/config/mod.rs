@@ -1,3 +1,4 @@
+//! Persistent configuration library that is for Loop itself
 use crate::get_flags;
 use crate::lib::config::LoadType::{FirstRun, Normal};
 use crate::lib::exception::runtime::RuntimeException;

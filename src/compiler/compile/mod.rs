@@ -1,3 +1,4 @@
+//! Contains compilation functions for all nodes
 pub mod expression_array;
 pub mod expression_bool;
 pub mod expression_call;

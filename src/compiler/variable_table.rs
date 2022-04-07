@@ -1,3 +1,4 @@
+//! Helper for symbols defined by the user
 use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::rc::Rc;

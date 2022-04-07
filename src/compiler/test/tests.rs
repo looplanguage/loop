@@ -1,11 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::compiler::instructions::pretty_print_instructions;
     use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
     use crate::lib::exception::Exception;
-    use crate::lib::object::Object;
     use crate::{compiler, lexer, parser};
-    use std::borrow::Borrow;
 
     // Commented out due to the compiler not generating instructions anymore. Instead it generates D code.
     //     #[test]
@@ -386,7 +383,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler();
+        let mut comp = compiler::Compiler::default();
         let err = comp.compile(program);
 
         if expected.is_some() && err.is_ok() {
@@ -395,39 +392,6 @@ mod tests {
 
         if expected.is_some() && err.is_err() {
             assert_eq!(expected.unwrap(), err.err().unwrap())
-        }
-    }
-
-    fn compiler_test_constants(input: &str, expected: Vec<&str>) {
-        let l = lexer::build_lexer(input);
-        let mut parser = parser::build_parser(l);
-
-        let program = parser.parse();
-
-        if !parser.errors.is_empty() {
-            for err in parser.errors {
-                if let Exception::Syntax(err) = err {
-                    println!("ParserException: {}", err);
-                }
-            }
-
-            panic!("Parser exceptions occurred!")
-        }
-
-        let mut comp = compiler::build_compiler();
-        let _ = comp.compile(program);
-
-        let mut i = 0;
-        for constant in comp.constants {
-            if let Object::CompiledFunction(func) = &*constant.as_ref().borrow() {
-                let ins = func.instructions.clone();
-
-                assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));
-                i = i + 1 as usize;
-            } else {
-                i = i + 1;
-                continue;
-            }
         }
     }
 

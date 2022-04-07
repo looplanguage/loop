@@ -1,18 +1,14 @@
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
-use crate::lib::object::integer::Integer;
-use crate::lib::object::Object;
 use crate::{compiler, lexer, parser};
 use chrono::{Local, Utc};
 use colored::Colorize;
 use dirs::home_dir;
-use std::cell::RefCell;
 use std::fs;
 use std::fs::{create_dir, File};
 use std::io::Write;
 use std::path::Path;
 use std::process::{exit, Command};
-use std::rc::Rc;
 
 type ExecuteCodeReturn = Result<String, String>;
 
@@ -49,7 +45,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         panic!("Parser exceptions occurred!")
     }
 
-    let mut comp = compiler::build_compiler();
+    let mut comp = compiler::Compiler::default();
     let error = comp.compile(program);
 
     let mut imports = String::new();
