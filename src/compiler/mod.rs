@@ -41,7 +41,6 @@ use crate::parser::statement::Statement;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::parser::expression::integer::Integer;
 
 /// Instance of CompilerResult which contains information on how the compiler handled input
 #[allow(dead_code)]

@@ -50,11 +50,7 @@ pub struct SymbolTable {
     outers: Vec<SymbolLayer>,
 }
 
-const BUILTINS: &'static [&'static str] = &[
-    "len",
-    "print",
-    "println"
-];
+const BUILTINS: &[&str] = &["len", "print", "println"];
 
 impl SymbolTable {
     pub fn new() -> Self {

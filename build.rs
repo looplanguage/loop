@@ -12,9 +12,13 @@ fn main() {
     let location = location.to_str().unwrap();
 
     // Add .exe if on Windows
-    if cfg!(any(target_os = "linux", target_os = "macos")) {
-        std::fs::copy(location, "./d_compiler");
-    } else if cfg!(target_os = "windows") {
-        std::fs::copy(location, "./d_compiler.exe");
+    let result = if cfg!(target_os = "windows") {
+        std::fs::copy(location, "./d_compiler.exe")
+    } else {
+        std::fs::copy(location, "./d_compiler")
+    };
+
+    if result.is_err() {
+        panic!("{}", result.unwrap_err());
     }
 }

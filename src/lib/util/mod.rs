@@ -85,10 +85,14 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     // Check if compiler already exists in Loop directory
     if !Path::new(format!("{}ldc2", loop_dir).as_str()).exists() {
         let file = if cfg!(any(target_os = "linux", target_os = "macos")) {
-                use std::os::unix::fs::OpenOptionsExt;
+            use std::os::unix::fs::OpenOptionsExt;
 
-                fs::OpenOptions::new().create(true).write(true).mode(0o0777).open(format!("{}ldc2", loop_dir).as_str())
-            } else {
+            fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .mode(0o0777)
+                .open(format!("{}ldc2", loop_dir).as_str())
+        } else {
             File::create(format!("{}ldc2", loop_dir))
         };
 
@@ -106,7 +110,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         let result = file.unwrap().write_all(code.as_bytes());
 
         if let Err(result) = result {
-            return Err(result.to_string())
+            return Err(result.to_string());
         }
     } else {
         println!("{}", code);

@@ -12,9 +12,7 @@ pub struct Repl {
 pub fn build_repl() -> Repl {
     #[cfg(target_os = "windows")]
     control::set_virtual_terminal(true).unwrap();
-    Repl {
-        line: 0,
-    }
+    Repl { line: 0 }
 }
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");

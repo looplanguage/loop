@@ -52,22 +52,15 @@ fn compile_expression_index_internal(
 }
 
 /*
-    extension!(to_string),
-    extension!(to_int),
-    extension!(add),
-    extension!(remove),
-    extension!(slice),
-    extension!(length),
- */
+   extension!(to_string),
+   extension!(to_int),
+   extension!(add),
+   extension!(remove),
+   extension!(slice),
+   extension!(length),
+*/
 
-const EXTENSION_METHODS: &'static [&'static str] = &[
-    "to_string",
-    "to_int",
-    "add",
-    "remove",
-    "slice",
-    "length"
-];
+const EXTENSION_METHODS: &[&str] = &["to_string", "to_int", "add", "remove", "slice", "length"];
 
 pub fn compile_expression_extension_method(
     compiler: &mut Compiler,
