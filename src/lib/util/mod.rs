@@ -82,6 +82,9 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     let bytes = include_bytes!("../../../d_compiler");
 
+    #[cfg(any(target_os = "windows"))]
+    let bytes = include_bytes!("../../../d_compiler.exe");
+
     // Check if compiler already exists in Loop directory
     if !Path::new(format!("{}ldc2", loop_dir).as_str()).exists() {
         #[cfg(target_os = "windows")]
