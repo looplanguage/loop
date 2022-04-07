@@ -1,3 +1,4 @@
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Function;
 use crate::parser::types::Types;
@@ -9,7 +10,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             compiler.variable_count,
             format!("{}{}", compiler.location, func.name),
             Types::Function,
-            false,
+            Modifiers::default(),
         );
 
         compiler.new_function(var.transpile());
@@ -28,7 +29,7 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
                 parameter.identifier.value.clone(),
             ),
             parameter._type.clone(),
-            false,
+            Modifiers::default(),
         );
 
         compiler.add_to_current_function(format!(

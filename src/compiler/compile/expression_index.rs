@@ -1,3 +1,4 @@
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::assign_index::AssignIndex;
@@ -24,7 +25,7 @@ pub fn compile_expression_assign_index(
         compiler.variable_count,
         "ptr_to_array".to_string(),
         Types::Auto,
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 
@@ -107,7 +108,7 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
         compiler.variable_count,
         "tmp_to_convert".to_string(),
         Types::Auto,
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 
@@ -142,7 +143,7 @@ fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> Comp
         compiler.variable_count,
         "tmp_to_convert".to_string(),
         Types::Auto,
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 

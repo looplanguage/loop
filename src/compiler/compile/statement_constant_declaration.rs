@@ -1,3 +1,4 @@
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::constant::ConstantDeclaration;
 
@@ -9,7 +10,7 @@ pub fn compile_statement_constant_declaration(
         compiler.variable_count,
         format!("{}{}", compiler.location, constant.ident.value),
         constant.data_type.clone(),
-        true,
+        Modifiers::new(true),
     );
 
     compiler.variable_count += 1;

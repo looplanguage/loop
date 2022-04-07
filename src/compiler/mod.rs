@@ -1,5 +1,6 @@
 //! Responsible for transpiling Loop to D
 mod compile;
+mod modifiers;
 mod symbol_table;
 mod test;
 mod variable_table;

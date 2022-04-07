@@ -395,39 +395,39 @@ mod tests {
         }
     }
 
-    #[allow(dead_code)]
-    fn compiler_test_constants(input: &str, expected: Vec<&str>) {
-        let l = lexer::build_lexer(input);
-        let mut parser = parser::build_parser(l);
-
-        let program = parser.parse();
-
-        if !parser.errors.is_empty() {
-            for err in parser.errors {
-                if let Exception::Syntax(err) = err {
-                    println!("ParserException: {}", err);
-                }
-            }
-
-            panic!("Parser exceptions occurred!")
-        }
-
-        let mut comp = compiler::build_compiler(None);
-        let _ = comp.compile(program);
-
-        let mut i = 0;
-        for constant in comp.constants {
-            if let Object::CompiledFunction(func) = &*constant.as_ref().borrow() {
-                let ins = func.instructions.clone();
-
-                assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));
-                i = i + 1 as usize;
-            } else {
-                i = i + 1;
-                continue;
-            }
-        }
-    }
+    // #[allow(dead_code)]
+    // fn compiler_test_constants(input: &str, expected: Vec<&str>) {
+    //     let l = lexer::build_lexer(input);
+    //     let mut parser = parser::build_parser(l);
+    //
+    //     let program = parser.parse();
+    //
+    //     if !parser.errors.is_empty() {
+    //         for err in parser.errors {
+    //             if let Exception::Syntax(err) = err {
+    //                 println!("ParserException: {}", err);
+    //             }
+    //         }
+    //
+    //         panic!("Parser exceptions occurred!")
+    //     }
+    //
+    //     let mut comp = compiler::build_compiler(None);
+    //     let _ = comp.compile(program);
+    //
+    //     let mut i = 0;
+    //     for constant in comp.constants {
+    //         if let Object::CompiledFunction(func) = &*constant.as_ref().borrow() {
+    //             let ins = func.instructions.clone();
+    //
+    //             assert_eq!(expected[i - 1].to_string(), pretty_print_instructions(ins));
+    //             i = i + 1 as usize;
+    //         } else {
+    //             i = i + 1;
+    //             continue;
+    //         }
+    //     }
+    // }
 
     // fn compiler_test(input: &str, expected: &str) {
     //     let l = lexer::build_lexer(input);

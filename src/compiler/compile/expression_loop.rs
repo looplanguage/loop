@@ -1,3 +1,4 @@
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::types::{BaseTypes, Types};
@@ -72,7 +73,7 @@ pub fn compile_loop_iterator_expression(
         compiler.variable_count,
         lp.identifier.value,
         Types::Basic(BaseTypes::Integer),
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 
@@ -129,7 +130,7 @@ pub fn compile_loop_array_iterator_expression(
         compiler.variable_count,
         "_iterator_array".to_string(),
         Types::Array(BaseTypes::Integer),
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 
@@ -143,7 +144,7 @@ pub fn compile_loop_array_iterator_expression(
         compiler.variable_count,
         lp.identifier.value,
         Types::Basic(BaseTypes::Integer),
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 
@@ -151,7 +152,7 @@ pub fn compile_loop_array_iterator_expression(
         compiler.variable_count,
         "_iterator_index".to_string(),
         Types::Basic(BaseTypes::Integer),
-        false,
+        Modifiers::default(),
     );
     compiler.variable_count += 1;
 

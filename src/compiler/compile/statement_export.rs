@@ -1,3 +1,4 @@
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
@@ -17,7 +18,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
             _compiler.export_name.clone()
         ),
         Types::Auto,
-        false,
+        Modifiers::default(),
     );
 
     _compiler.variable_count += 1;

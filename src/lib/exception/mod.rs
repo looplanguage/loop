@@ -4,11 +4,11 @@ use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::vm::VMException;
 
 pub mod compiler;
+pub mod compiler_new;
 pub mod flag;
 pub mod runtime;
 pub mod syntax;
 pub mod vm;
-pub mod compiler_new;
 
 #[allow(dead_code)]
 pub enum Exception {

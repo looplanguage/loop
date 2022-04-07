@@ -25,7 +25,7 @@ pub fn compile_statement_variable_assign(
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
         if var.is_some() {
-            if var.clone().unwrap().is_constant {
+            if var.clone().unwrap().modifiers.constant {
                 // Program will stop here.
                 compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }

@@ -1,3 +1,4 @@
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
@@ -10,7 +11,7 @@ pub fn compile_statement_variable_declaration(
         compiler.variable_count,
         format!("{}{}", compiler.location, variable.ident.value),
         Types::Auto,
-        false,
+        Modifiers::default(),
     );
 
     compiler.variable_count += 1;
