@@ -25,9 +25,9 @@ pub fn compile_statement_variable_assign(
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
         if var.is_some() {
-            // ToDo: Implement error for reassigning of constant
             if var.clone().unwrap().is_constant {
-                panic!("[IMPLEMENT ERROR] Constant cannot be reassigned");
+                // Program will stop here.
+                compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }
             compiler.add_to_current_function(format!("{} = ", var.unwrap().transpile()));
 

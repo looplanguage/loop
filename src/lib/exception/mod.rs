@@ -8,6 +8,7 @@ pub mod flag;
 pub mod runtime;
 pub mod syntax;
 pub mod vm;
+pub mod compiler_new;
 
 #[allow(dead_code)]
 pub enum Exception {

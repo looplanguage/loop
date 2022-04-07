@@ -286,9 +286,7 @@ impl Parser {
         get_precedence(self.lexer.get_current_token().unwrap().token)
     }
 
-    /// Exits program with code 0, which is successful.
-    /// Code one would mean that the Loop compiler itself had crashed. But in this case,
-    /// the code from the user is bad, thus 0.
+    /// Exists program with code: '1', which means application failure.
     pub fn throw_exception(&mut self, expected: Token, message: Option<String>) {
         let mut e = SyntaxError {
             error_line: self.lexer.get_line(self.lexer.current_line - 1),

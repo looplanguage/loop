@@ -35,6 +35,7 @@ use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, VariableScope,
 };
 use crate::lib::exception::compiler::CompilerException;
+use crate::lib::exception::compiler_new::CompilerError;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
@@ -427,5 +428,14 @@ impl Compiler {
         }
 
         result
+    }
+
+    /// Throws an [CompilerError](crate::lib::exception::compiler_new::CompilerError;) and exists with code '1'.
+    fn throw_exception(&self, message: String, extra_message: Option<String>) {
+        let mut err = CompilerError {
+            error_message: message,
+            extra_message,
+        };
+        err.throw_exception();
     }
 }
