@@ -82,7 +82,7 @@ fn build_compiler_internal() -> Compiler {
     Compiler {
         scope_index: 0,
         constants: vec![],
-        symbol_table: Rc::new(RefCell::new(SymbolTable::new())),
+        symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
         variable_count: 0,
         variable_scope: Rc::new(RefCell::new(build_variable_scope())),
         last_extension_type: None,
