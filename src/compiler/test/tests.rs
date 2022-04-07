@@ -1,9 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::compiler::instructions::pretty_print_instructions;
     use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
     use crate::lib::exception::Exception;
-    use crate::lib::object::Object;
     use crate::{compiler, lexer, parser};
 
     // Commented out due to the compiler not generating instructions anymore. Instead it generates D code.
@@ -385,7 +383,7 @@ mod tests {
             panic!("Parser exceptions occurred!")
         }
 
-        let mut comp = compiler::build_compiler(None);
+        let mut comp = compiler::Compiler::default();
         let err = comp.compile(program);
 
         if expected.is_some() && err.is_ok() {
@@ -396,6 +394,7 @@ mod tests {
             assert_eq!(expected.unwrap(), err.err().unwrap())
         }
     }
+<<<<<<< HEAD
     #[allow(dead_code)]
     fn compiler_test_constants(input: &str, expected: Vec<&str>) {
         let l = lexer::build_lexer(input);
@@ -429,6 +428,8 @@ mod tests {
             }
         }
     }
+=======
+>>>>>>> 8cac426beeffcc3c55982a29267caa27a25d04b6
 
     // fn compiler_test(input: &str, expected: &str) {
     //     let l = lexer::build_lexer(input);

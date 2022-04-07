@@ -1,6 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
-use crate::lib::object::extension_method::lookup;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
@@ -53,6 +52,17 @@ fn compile_expression_index_internal(
     CompilerResult::Success
 }
 
+/*
+   extension!(to_string),
+   extension!(to_int),
+   extension!(add),
+   extension!(remove),
+   extension!(slice),
+   extension!(length),
+*/
+
+const EXTENSION_METHODS: &[&str] = &["to_string", "to_int", "add", "remove", "slice", "length"];
+
 pub fn compile_expression_extension_method(
     compiler: &mut Compiler,
     call: Call,
@@ -64,7 +74,7 @@ pub fn compile_expression_extension_method(
     };
 
     // Search extension id
-    let method_id = lookup(method.as_str());
+    let method_id = EXTENSION_METHODS.iter().position(|&m| m == method.as_str());
 
     if method_id.is_none() {
         return CompilerResult::Exception(CompilerException::UnknownExtensionMethod(method));

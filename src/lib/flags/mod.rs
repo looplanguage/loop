@@ -1,3 +1,4 @@
+//! Flag library for CLI arguments passed to Loop
 use crate::lib::config::ConfigInternal;
 use crate::lib::exception::flag;
 use std::ffi::OsStr;

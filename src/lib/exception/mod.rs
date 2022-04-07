@@ -1,3 +1,4 @@
+//! Exceptions that can be thrown by Loop
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::exception::runtime::RuntimeException;
 use crate::lib::exception::vm::VMException;

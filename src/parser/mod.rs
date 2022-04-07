@@ -1,3 +1,4 @@
+//! Responsible for parsing tokens into an abstract syntax tree
 use std::collections::HashMap;
 
 use crate::lexer::token::{Token, TokenType};
@@ -39,6 +40,7 @@ pub mod types;
 type PrefixParseFn = fn(parser: &mut Parser) -> Option<Node>;
 type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Option<Node>;
 
+// The parser itself, containing metadata needed during the parsing process
 pub struct Parser {
     lexer: Lexer,
     prefix_parser: HashMap<TokenType, PrefixParseFn>,
