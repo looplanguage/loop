@@ -132,12 +132,17 @@ impl Compiler {
             let mut has_return_value = false;
             let mut is_expression = false;
             if index == length {
-                if let Statement::Expression(e) = statement.clone() {
-                    // Checks whether
-                    has_return_value = !Compiler::should_add_return(*e.expression);
+                if let Statement::Expression(_) = statement.clone() {
+                    // This is not very good code, the problem is that a user could define a function that returns nothing.
+                    // In that case the function will also automatically be printed which will result in an error.
+                    // The solution is to recursively walk through the statement to check whether it returns something.
+                    // However, currently the print function in stolen from the D STD, which we cannot walk recursively through
+                    // because we call it.
+                    // TODO: implement a STD with a Loop abstraction so you can walk through the statements
+                    has_return_value = !self.is_blacklisted_function_call(statement.clone());
                     is_expression = true;
                     // The last expression always gets printed, but when it is a print functions it doesnt
-                    if !has_return_value {
+                    if has_return_value {
                         self.add_import("std".to_string());
                         self.add_to_current_function("writeln(".to_string());
                     }
@@ -146,9 +151,9 @@ impl Compiler {
 
             let err = self.compile_statement(statement, is_expression);
 
-            if index == length && is_expression && !has_return_value {
+            if index == length && is_expression && has_return_value {
                 self.add_to_current_function(");".to_string());
-            } else if has_return_value {
+            } else if !has_return_value {
                 self.add_to_current_function(";".to_string());
             }
 
@@ -305,6 +310,21 @@ impl Compiler {
         self.exit_variable_scope();
 
         CompilerResult::Success
+    }
+
+    /// To check whether a statement is the builtin functions: `print` or `println`.
+    /// This code is not very good, because it looks for hardcoded function calls,
+    /// should recursively walk through statement to check for returns
+    fn is_blacklisted_function_call(&self, stat: Statement) -> bool {
+        if let Statement::Expression(expr) = stat {
+            if let Expression::Call(call) = *expr.expression {
+                if let Expression::Identifier(s) = *call.identifier {
+                    return s.value == "print" || s.value == "println";
+                }
+            }
+        }
+
+        false
     }
 
     /// Recursively search through a block to find if it returns anything

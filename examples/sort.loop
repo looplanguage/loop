@@ -1,4 +1,4 @@
-var Sort = fn(numbers){
+var Sort = fn(int[] numbers){
     var sorted = []
     for (len(numbers) > 0) {
         var i = 0
