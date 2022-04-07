@@ -52,7 +52,7 @@ fn main() {
 fn run_file(file: String) {
     let content = read_to_string(file);
 
-    let _last = execute_code(content.ok().unwrap().as_str(), None);
+    let _last = execute_code(content.ok().unwrap().as_str());
 }
 
 fn get_flags() -> flags::Flags {

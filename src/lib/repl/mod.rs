@@ -1,4 +1,3 @@
-use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::util::execute_code;
 use colored::*;
@@ -8,7 +7,6 @@ use std::process::exit;
 
 pub struct Repl {
     line: i32,
-    compiler_state: Option<CompilerState>,
 }
 
 pub fn build_repl() -> Repl {
@@ -16,7 +14,6 @@ pub fn build_repl() -> Repl {
     control::set_virtual_terminal(true).unwrap();
     Repl {
         line: 0,
-        compiler_state: None,
     }
 }
 
@@ -52,10 +49,10 @@ impl Repl {
     }
 
     fn run_code(&mut self, s: String) {
-        let result = execute_code(s.as_str(), self.compiler_state.as_ref());
+        let result = execute_code(s.as_str());
 
-        if result.0.is_err() {
-            println!("{}", result.0.unwrap_err());
+        if result.is_err() {
+            println!("{}", result.unwrap_err());
             exit(1);
         }
     }

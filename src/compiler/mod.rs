@@ -78,20 +78,13 @@ pub struct Compiler {
     pub current_function: String,
 }
 
-pub struct CompilerState {
-    constants: Vec<Rc<RefCell<Object>>>,
-    symbol_table: Rc<RefCell<SymbolTable>>,
-    variable_scope: Rc<RefCell<VariableScope>>,
-    variable_count: u32,
-}
-
-fn build_compiler_internal(state: &CompilerState) -> Compiler {
+fn build_compiler_internal() -> Compiler {
     Compiler {
         scope_index: 0,
-        constants: state.constants.clone(),
-        symbol_table: state.symbol_table.clone(),
-        variable_count: state.variable_count,
-        variable_scope: state.variable_scope.clone(),
+        constants: vec![],
+        symbol_table: Rc::new(RefCell::new(SymbolTable::new())),
+        variable_count: 0,
+        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
         last_extension_type: None,
         location: String::new(),
         export_name: String::new(),
@@ -105,21 +98,8 @@ fn build_compiler_internal(state: &CompilerState) -> Compiler {
     }
 }
 
-pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
-    if let Some(cmp) = state {
-        return build_compiler_internal(cmp);
-    }
-
-    build_compiler_internal(&empty_state())
-}
-
-fn empty_state() -> CompilerState {
-    CompilerState {
-        constants: vec![Rc::from(RefCell::from(Object::Null(Null {})))],
-        symbol_table: Rc::from(RefCell::new(symbol_table::SymbolTable::new_with_builtins())),
-        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
-        variable_count: 0,
-    }
+pub fn build_compiler() -> Compiler {
+    build_compiler_internal()
 }
 
 impl Compiler {
@@ -165,15 +145,6 @@ impl Compiler {
         }
 
         Result::Ok(self.get_bytecode())
-    }
-
-    pub fn get_state(&self) -> CompilerState {
-        CompilerState {
-            constants: self.constants.clone(),
-            symbol_table: self.symbol_table.clone(),
-            variable_count: self.variable_count,
-            variable_scope: self.variable_scope.clone(),
-        }
     }
 
     pub fn new_function(&mut self, name: String) {
