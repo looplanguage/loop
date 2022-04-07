@@ -7,7 +7,6 @@ fn main() {
     let mut location = which::which("dmd");
 
     // If DMD wasn't found, try LDC2
-
     if location.is_err() {
         location = which::which("ldc2");
     }
