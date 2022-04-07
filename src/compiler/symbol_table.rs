@@ -1,4 +1,4 @@
-use crate::lib::object::builtin::BUILTINS;
+//! Helper for symbols defined by Loop itself
 use std::collections::HashMap;
 use std::mem;
 
@@ -50,6 +50,8 @@ pub struct SymbolTable {
     outers: Vec<SymbolLayer>,
 }
 
+const BUILTINS: &[&str] = &["len", "print", "println"];
+
 impl SymbolTable {
     pub fn new() -> Self {
         Default::default()
@@ -59,7 +61,7 @@ impl SymbolTable {
         let mut symbol_table = SymbolTable::new();
 
         for (i, b) in BUILTINS.iter().enumerate() {
-            symbol_table.define_builtin(i as u16, b.name);
+            symbol_table.define_builtin(i as u16, b);
         }
 
         symbol_table
