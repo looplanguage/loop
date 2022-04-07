@@ -1,4 +1,3 @@
-use crate::lexer::token::Token;
 use colored::*;
 use std::process;
 
@@ -30,14 +29,14 @@ impl CompilerError {
     ///
     /// # Examples
     /// ```(rust)
-    /// let foo = SyntaxError { /*Instantiate SyntaxError Struct*/ };
+    /// let foo = CompilerError { /*Instantiate SyntaxError Struct*/ };
     /// foo.throw_exception();
     /// ```
     #[rustfmt::skip]
     #[allow(dead_code)]
     pub fn throw_exception(&mut self) {
         println!("==========================================================");
-        println!("{}", format!("CompilerError -->").bright_red());
+        println!("{}", "CompilerError -->".bright_red());
         println!("    {}: {}", "Message".bright_blue(), format!("{}\n", self.error_message).bright_white());
 
         if self.extra_message.is_none() {
