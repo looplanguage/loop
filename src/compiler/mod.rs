@@ -53,7 +53,7 @@ pub enum CompilerResult {
 }
 
 /// The result of the transpiler, which will be passed to the D compiler [crate::lib::util::execute_code]
-pub struct Bytecode {
+pub struct DCode {
     pub imports: Vec<String>,
     pub functions: HashMap<String, String>,
 }
@@ -114,7 +114,7 @@ impl Compiler {
     ///     // Handle error
     /// }
     /// ```
-    pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
+    pub fn compile(&mut self, program: Program) -> Result<DCode, CompilerException> {
         // Insert main function
         if self.location.is_empty() {
             let main_function = String::from("void main() {");
@@ -127,14 +127,15 @@ impl Compiler {
         for statement in program.statements {
             index += 1;
 
-            let mut is_print = false;
+            let mut has_return_value = false;
             let mut is_expression = false;
             if index == length {
-                is_print = self.is_print(statement.clone());
-                if let Statement::Expression(_) = statement.clone() {
+                if let Statement::Expression(e) = statement.clone() {
+                    // Checks whether
+                    has_return_value = !Compiler::should_add_return(*e.expression);
                     is_expression = true;
                     // The last expression always gets printed, but when it is a print functions it doesnt
-                    if !is_print {
+                    if !has_return_value {
                         self.add_import("std".to_string());
                         self.add_to_current_function("writeln(".to_string());
                     }
@@ -143,9 +144,9 @@ impl Compiler {
 
             let err = self.compile_statement(statement, is_expression);
 
-            if index == length && is_expression && !is_print {
+            if index == length && is_expression && !has_return_value {
                 self.add_to_current_function(");".to_string());
-            } else if is_print {
+            } else if has_return_value {
                 self.add_to_current_function(";".to_string());
             }
 
@@ -160,35 +161,10 @@ impl Compiler {
             self.functions.get_mut("main").unwrap().push('}');
         }
 
-        Result::Ok(self.get_bytecode())
+        Result::Ok(self.get_d_code())
     }
 
-<<<<<<< HEAD
-    /// To check whether a statement is the builtin functions: `print` or `println`.
-    pub fn is_print(&self, stat: Statement) -> bool {
-        if let Statement::Expression(expr) = stat {
-            if let Expression::Call(call) = *expr.expression {
-                if let Expression::Identifier(s) = *call.identifier {
-                    return s.value == "print" || s.value == "println";
-                }
-            }
-        }
-
-        false
-    }
-
-    pub fn get_state(&self) -> CompilerState {
-        CompilerState {
-            constants: self.constants.clone(),
-            symbol_table: self.symbol_table.clone(),
-            variable_count: self.variable_count,
-            variable_scope: self.variable_scope.clone(),
-        }
-    }
-
-=======
     /// Defines a new named function and sets it as the compilation scope
->>>>>>> 8cac426beeffcc3c55982a29267caa27a25d04b6
     pub fn new_function(&mut self, name: String) {
         self.function_stack.push(self.current_function.clone());
         self.functions.insert(name.clone(), String::new());
@@ -270,8 +246,8 @@ impl Compiler {
         self.variable_scope = outer.unwrap();
     }
 
-    pub fn get_bytecode(&self) -> Bytecode {
-        Bytecode {
+    pub fn get_d_code(&self) -> DCode {
+        DCode {
             functions: self.functions.clone(),
             imports: self.imports.clone(),
         }

@@ -394,7 +394,7 @@ mod tests {
             assert_eq!(expected.unwrap(), err.err().unwrap())
         }
     }
-<<<<<<< HEAD
+
     #[allow(dead_code)]
     fn compiler_test_constants(input: &str, expected: Vec<&str>) {
         let l = lexer::build_lexer(input);
@@ -428,8 +428,6 @@ mod tests {
             }
         }
     }
-=======
->>>>>>> 8cac426beeffcc3c55982a29267caa27a25d04b6
 
     // fn compiler_test(input: &str, expected: &str) {
     //     let l = lexer::build_lexer(input);
