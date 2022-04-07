@@ -1,4 +1,8 @@
 fn main() {
+    // Will rerun if d_compiler was not found or build.rs has changed
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=d_compiler");
+
     // Moves found D compiler to the build directory
     let mut location = which::which("dmd");
 

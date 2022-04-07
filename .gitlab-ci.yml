@@ -39,7 +39,10 @@ stages:
     - windows
     - windows-1809
   before_script:
-    - choco install dmd
+    - choco install -y dmd
+    - $env:Path += ";C:\D\dmd2\windows\bin64"
+    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    - refreshenv
   cache:
     - key: "rust"
       paths:
