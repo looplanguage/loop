@@ -38,6 +38,8 @@ can be written in Loop; These are the developments we will be working on:
 
 Go to our [Jira](https://looplang.atlassian.net/jira/software/c/projects/LOOP/issues) board to see all the issues and tasks to work on.
 
+To see code documentation, run the command: `cargo doc --open`. A browser tab will open with generated documentation from code comments.
+
 ### Compiler Walkthrough
 
 > **Note:** We are currently working on a technical document that is way more detailed and comprehensive than the one below.
@@ -49,7 +51,7 @@ compiler runs through the AST and generates [DLang](https://github.com/dlang) co
 
 ### Folder structure
 
-The Loop compiler is fully contained in the `/src` folder
+The Loop compiler is fully contained in the `./src` folder
 
 ```
 loop
@@ -104,4 +106,4 @@ To read our code of conduct, go to the [website](https://looplang.org/conduct).
 
 ##
 
-<p align="center">Go to the website for more information.</p>
+<p align="center">Go to the <a href="https://looplang.org/">website</a> for more information.</p>
