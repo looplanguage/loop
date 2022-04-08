@@ -1,19 +1,11 @@
-var x = if true {
-    10
-} else {
-    20
-}
+const i := 3
+println(i)
 
-fn double(int y) {
-    return y + y
-}
+x := 4
+println(4)
 
-fn fib(int n) {
-    if n < 2 {
-        return 1
-    }
+const int y := 5
+println(y)
 
-    return fib(n - 1) + fib(n - 2)
-}
-
-fib(double(x))
+int z := 6
+println(z)

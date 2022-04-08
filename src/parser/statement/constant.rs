@@ -16,10 +16,11 @@ pub struct ConstantDeclaration {
 /// A constant looks like this:
 ///
 /// **Syntax:**
-/// `const <datatype> <identifier> = <expression>`
+/// `const <datatype> <identifier> := <expression>`
 ///
 /// **Example:**
-/// `const int i = 13 + 4`
+/// `const i := 13 + 4`
+#[allow(clippy::all)]
 pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
     // This "identifier" is for the actual identifier of the constant
     if !p.next_token_is(TokenType::Identifier) {
@@ -29,17 +30,15 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
             Some(message),
         );
     }
-    p.lexer.next_token();   // Skipping the identifier
-    // Depending on if the user has excpliciely typed the type, the current token is a identifier or a type
+    p.lexer.next_token(); // Skipping the identifier
+                          // Depending on if the user has excpliciely typed the type, the current token is a identifier or a type
     let ident_or_type = p.lexer.get_current_token().unwrap().clone();
 
     // Is user has typed a type, this will be the identifier, otherwise it will be a null
     let ident = if p.next_token_is(TokenType::Identifier) {
         p.lexer.next_token();
-        let x = Some(p.lexer.current_token.clone().unwrap().clone());
-        x
-    }
-    else {
+        Some(p.lexer.current_token.clone().unwrap())
+    } else {
         None
     };
     // Parsing of the ":" in the declaration
@@ -52,7 +51,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
             Some(message),
         );
     }
-    p.lexer.next_token();   // Skipping the ":'
+    p.lexer.next_token(); // Skipping the ":'
 
     // Parsing of the "=" in the declaration
     if !p.next_token_is(TokenType::Assign) {
@@ -63,8 +62,8 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
         );
     }
 
-    p.lexer.next_token();   // Skips the '='
-    p.lexer.next_token();   // Skips the expression
+    p.lexer.next_token(); // Skips the '='
+    p.lexer.next_token(); // Skips the expression
 
     // Parsing of the expresion, this is the value of the constant
     let expr = p.parse_expression(Precedence::Lowest);
@@ -73,7 +72,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
     if ident.is_none() {
         // Node being created here is for:
         // const i := 3
-        if let Node::Expression(expression) = expr.unwrap() {
+        if let Node::Expression(expression) = expr.clone().unwrap() {
             return Some(Node::Statement(Statement::ConstantDeclaration(
                 ConstantDeclaration {
                     ident: Identifier {
@@ -84,27 +83,21 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
                 },
             )));
         }
-
-        // This needs to throw a good error
-        None
     }
-    else {
-        // Node being created here is for:
-        // const int i := 3
-        if let Node::Expression(expression) = expr.unwrap() {
-            return Some(Node::Statement(Statement::ConstantDeclaration(
-                ConstantDeclaration {
-                    ident: Identifier {
-                        value: ident.unwrap().literal,
-                    },
-                    value: Box::new(expression),
-                    data_type: p.parse_type(ident_or_type).unwrap(),
+    // Node being created here is for:
+    // const int i := 3
+    if let Node::Expression(expression) = expr.unwrap() {
+        return Some(Node::Statement(Statement::ConstantDeclaration(
+            ConstantDeclaration {
+                ident: Identifier {
+                    value: ident.unwrap().literal,
                 },
-            )));
-        }
-
-        // This needs to throw a good error
-        None
+                value: Box::new(expression),
+                data_type: p.parse_type(ident_or_type).unwrap(),
+            },
+        )));
     }
 
+    // This needs to throw a good error
+    None
 }

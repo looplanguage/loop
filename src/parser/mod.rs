@@ -128,9 +128,7 @@ impl Parser {
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
-            TokenType::ConstantDeclaration => {
-                parse_constant_declaration(self)
-            },
+            TokenType::ConstantDeclaration => parse_constant_declaration(self),
             TokenType::Identifier => {
                 if self.peek_token_is(TokenType::Assign) {
                     parse_variable_assignment(self)
@@ -141,6 +139,7 @@ impl Parser {
                     let types = self
                         .parse_type(self.lexer.get_current_token().unwrap().clone())
                         .unwrap();
+                    self.lexer.next_token();
                     parse_variable_declaration(self, Some(types))
                 } else {
                     parse_expression_statement(self)

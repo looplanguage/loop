@@ -252,10 +252,13 @@ mod tests {
 
     #[test]
     fn scoping_rules_4() {
-        compiler_test_error("test := 100; if(true) { test2 := 300; if(true) { test3 := test2 } test2; }; test3", Some(CompilerException::UnknownSymbol(UnknownSymbol {
-            name: "test3".to_string(),
-            scope_depth: 0
-        })),);
+        compiler_test_error(
+            "test := 100; if(true) { test2 := 300; if(true) { test3 := test2 } test2; }; test3",
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "test3".to_string(),
+                scope_depth: 0,
+            })),
+        );
     }
 
     #[test]
