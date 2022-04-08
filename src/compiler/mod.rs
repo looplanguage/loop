@@ -160,10 +160,10 @@ impl Compiler {
 
             let err = self.compile_statement(statement, is_expression);
 
-            if index == length {
-                if is_expression && has_return_value {
+            if index == length && is_expression {
+                if has_return_value {
                     self.add_to_current_function(");".to_string());
-                } else if !has_return_value {
+                } else {
                     self.add_to_current_function(";".to_string());
                 }
             }
