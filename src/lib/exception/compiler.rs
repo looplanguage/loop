@@ -18,6 +18,7 @@ pub enum CompilerException {
     DoubleParameterName(String),
     CallingNonFunction(String),
     WrongType(String, String),
+    ValueDifferentFromType(String, String),
     Unknown,
 }
 
@@ -53,7 +54,13 @@ impl CompilerException {
             }
             CompilerException::WrongType(got, expected) => {
                 format!(
-                    "type mismatch, can not assign different type. got=\"{}\". expected\"{}\"",
+                    "type mismatch, can not assign different type. got=\"{}\". expected=\"{}\"",
+                    got, expected
+                )
+            }
+            CompilerException::ValueDifferentFromType(got, expected) => {
+                format!(
+                    "type mismatch, can not declare variable with static type to different typed value. got=\"{}\". expected\"{}\"",
                     got, expected
                 )
             }

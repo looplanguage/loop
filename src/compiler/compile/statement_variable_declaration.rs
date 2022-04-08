@@ -1,5 +1,6 @@
 use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
+use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
 use std::ops::DerefMut;
@@ -12,7 +13,7 @@ pub fn compile_statement_variable_declaration(
         compiler.variable_scope.borrow_mut().define(
             compiler.variable_count,
             format!("{}{}", compiler.location, variable.ident.value),
-            Types::Auto,
+            variable.data_type.clone(),
             Modifiers::default(),
         )
     };
@@ -42,6 +43,13 @@ pub fn compile_statement_variable_declaration(
     let result = compiler.compile_expression(*variable.value, false);
 
     let result = if let CompilerResult::Success(_type) = result {
+        if variable.data_type.clone() != Types::Auto && _type != variable.data_type {
+            return CompilerResult::Exception(CompilerException::WrongType(
+                _type.transpile(),
+                variable.data_type.transpile(),
+            ));
+        }
+
         _type
     } else {
         return result;
