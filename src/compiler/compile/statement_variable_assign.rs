@@ -12,7 +12,7 @@ pub fn compile_statement_variable_assign(
         .resolve(format!("{}{}", compiler.location, variable.ident.value).as_str());
 
     if symbol.is_some() {
-        let result = compiler.compile_expression(*variable.value);
+        let result = compiler.compile_expression(*variable.value, false);
 
         return match &result {
             CompilerResult::Exception(_exception) => result,
@@ -31,7 +31,7 @@ pub fn compile_statement_variable_assign(
             }
             compiler.add_to_current_function(format!("{} = ", var.unwrap().transpile()));
 
-            let result = compiler.compile_expression(*variable.value);
+            let result = compiler.compile_expression(*variable.value, false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,

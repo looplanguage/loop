@@ -27,7 +27,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
 
     // Condition
     compiler.add_to_current_function("() { while (".to_string());
-    let result = compiler.compile_expression(*lp.condition);
+    let result = compiler.compile_expression(*lp.condition, false);
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
     }
@@ -136,7 +136,7 @@ pub fn compile_loop_array_iterator_expression(
 
     // Array
     compiler.add_to_current_function(format!("auto {} = ", array.transpile()));
-    compiler.compile_expression(*lp.array);
+    compiler.compile_expression(*lp.array, false);
     compiler.add_to_current_function(";".to_string());
 
     // Define the identifier variable, with the starting value of the array

@@ -172,6 +172,7 @@ impl Compiler {
     }
 
     /// Defines a new named function and sets it as the compilation scope
+    // TODO: Function should have a hashmap of what type each parameter needs to be
     pub fn new_function(&mut self, name: String) {
         self.function_stack.push(self.current_function.clone());
         self.functions.insert(name.clone(), String::new());
@@ -269,7 +270,7 @@ impl Compiler {
     ///
     /// let result = compiler.compile_expression(exp);
     /// ```
-    fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
+    fn compile_expression(&mut self, expr: Expression, is_statement: bool) -> CompilerResult {
         match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
@@ -277,7 +278,7 @@ impl Compiler {
             Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
             Expression::Function(func) => compile_expression_function(self, func),
             Expression::Conditional(conditional) => {
-                compile_expression_conditional(self, *conditional)
+                compile_expression_conditional(self, *conditional, is_statement)
             }
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
@@ -328,7 +329,7 @@ impl Compiler {
     }
 
     /// Recursively search through a block to find if it returns anything
-    fn does_block_return(block: Block) -> bool {
+    fn _does_block_return(block: Block) -> bool {
         if !block.statements.is_empty() {
             return match block.statements.last().unwrap() {
                 Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
@@ -342,10 +343,8 @@ impl Compiler {
 
     /// Checks an expression if it doesn't already have a return (as expressions always evalaute to a value)
     fn should_add_return(expression: Expression) -> bool {
-        match expression {
-            Expression::Conditional(conditional) => Compiler::does_block_return(conditional.body),
-            _ => true,
-        }
+        // Right now this is a macro, but can be expanded using a matches expression
+        !matches!(expression, Expression::Conditional(_))
     }
 
     /// Compiles a deeper [Block] adding curly braces
@@ -407,6 +406,8 @@ impl Compiler {
     /// let result = compiler.compile_statement(stmt);
     /// ```
     fn compile_statement(&mut self, stmt: Statement, no_semicolon: bool) -> CompilerResult {
+        let mut expression_statement = false;
+
         let result = match stmt.clone() {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
@@ -414,7 +415,10 @@ impl Compiler {
             Statement::ConstantDeclaration(con) => {
                 compile_statement_constant_declaration(self, con)
             }
-            Statement::Expression(expr) => self.compile_expression(*expr.expression),
+            Statement::Expression(expr) => {
+                expression_statement = true;
+                self.compile_expression(*expr.expression, true)
+            }
             Statement::Block(block) => self.compile_block(block),
             Statement::VariableAssign(variable) => {
                 compile_statement_variable_assign(self, variable)
@@ -429,7 +433,7 @@ impl Compiler {
             Statement::VariableDeclaration(_) => true,
             Statement::ConstantDeclaration(_) => true,
             Statement::Expression(expr) => match *expr.expression {
-                Expression::Conditional(_) => true,
+                Expression::Conditional(_) => !expression_statement,
                 Expression::Loop(_) => true,
                 Expression::LoopIterator(_) => false,
                 Expression::LoopArrayIterator(_) => false,

@@ -6,10 +6,11 @@ use crate::parser::statement::Statement;
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
+    is_statement: bool,
 ) -> CompilerResult {
     // User needs to enable optimization, for Loop to optimize code.
     // Right now only does hardcoded "true" and "false" values
-    // ToDo: Is is commented because it does not work yet
+    // TODO: Is is commented because it does not work yet
     // if CONFIG.enable_optimize {
     //     let result = compile_expression_conditional_optimize(compiler, conditional.clone());
     //     // "true" means that optimization is successful.
@@ -18,8 +19,10 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    compiler.add_to_current_function("() { if (".to_string());
-    let result = compiler.compile_expression(*conditional.condition);
+    let signature = if is_statement { "if (" } else { "() { if (" };
+
+    compiler.add_to_current_function(signature.to_string());
+    let result = compiler.compile_expression(*conditional.condition, false);
     compiler.add_to_current_function(")".to_string());
 
     #[allow(clippy::single_match)]
@@ -43,7 +46,7 @@ pub fn compile_expression_conditional(
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
             compiler.add_to_current_function("{ ".to_string());
-            compiler.compile_expression(exp.clone());
+            compiler.compile_expression(exp.clone(), false);
             compiler.add_to_current_function("; }".to_string());
         }
         if let Node::Statement(stmt) = node {
@@ -53,7 +56,9 @@ pub fn compile_expression_conditional(
         }
     }
 
-    compiler.add_to_current_function("}()".to_string());
+    let signature = if is_statement { "" } else { "}()" };
+
+    compiler.add_to_current_function(signature.to_string());
 
     CompilerResult::Success
 }

@@ -32,11 +32,15 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             Modifiers::default(),
         );
 
-        compiler.add_to_current_function(format!(
-            "{} {}",
-            parameter.get_type(),
-            symbol.transpile()
-        ));
+        let mut _type = "Variant".to_string();
+
+        if func.name.is_empty() {
+            _type = parameter.get_type()
+        }
+
+        // This currently defines every parameter type to be a Variant, we should do compile time
+        // checks to ensure type safety.
+        compiler.add_to_current_function(format!("{} {}", _type, symbol.transpile()));
 
         index += 1;
 

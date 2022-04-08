@@ -41,6 +41,7 @@ def main():
     add_test("test_everything_is_an_expression.loop", "110")
     add_test("test_constant.loop", "22")
     add_test("test_println.loop", "123")
+    add_test("test_expression_statements.loop", "10946")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:

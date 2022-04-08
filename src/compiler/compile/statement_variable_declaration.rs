@@ -29,5 +29,5 @@ pub fn compile_statement_variable_declaration(
 
     compiler.add_to_current_function(format!("{} {} = ", _type, var.transpile()));
 
-    compiler.compile_expression(*variable.value)
+    compiler.compile_expression(*variable.value, false)
 }

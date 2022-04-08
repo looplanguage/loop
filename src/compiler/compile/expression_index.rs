@@ -30,12 +30,12 @@ pub fn compile_expression_assign_index(
     compiler.variable_count += 1;
 
     compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
-    compiler.compile_expression(assign.left);
+    compiler.compile_expression(assign.left, false);
 
     compiler.add_to_current_function(format!(".get!(Variant[]); {}[", var.transpile()));
-    compiler.compile_expression(assign.index);
+    compiler.compile_expression(assign.index, false);
     compiler.add_to_current_function("] = ".to_string());
-    compiler.compile_expression(assign.value);
+    compiler.compile_expression(assign.value, false);
 
     CompilerResult::Success
 }
@@ -45,9 +45,9 @@ fn compile_expression_index_internal(
     left: Expression,
     index: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left);
+    compiler.compile_expression(left, false);
     compiler.add_to_current_function("[".to_string());
-    compiler.compile_expression(index);
+    compiler.compile_expression(index, false);
     compiler.add_to_current_function("]".to_string());
 
     CompilerResult::Success
@@ -114,7 +114,7 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
 
-    let result = compiler.compile_expression(left);
+    let result = compiler.compile_expression(left, false);
 
     compiler.add_to_current_function(";".to_string());
 
@@ -149,7 +149,7 @@ fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> Comp
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
 
-    let result = compiler.compile_expression(left);
+    let result = compiler.compile_expression(left, false);
 
     compiler.add_to_current_function(".to!string;".to_string());
 
@@ -180,14 +180,14 @@ fn transpile_extension_add(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left);
+    compiler.compile_expression(left, false);
 
     compiler.add_to_current_function(" ~= [".to_string());
 
     let mut index = 0;
 
     for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter);
+        let result = compiler.compile_expression(parameter, false);
 
         #[allow(clippy::single_match)]
         match &result {
@@ -225,17 +225,17 @@ fn transpile_extension_remove(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left.clone());
+    compiler.compile_expression(left.clone(), false);
 
     compiler.add_to_current_function(" = ".to_string());
 
-    compiler.compile_expression(left);
+    compiler.compile_expression(left, false);
 
     compiler.add_to_current_function(".get!(Variant[]).remove(".to_string());
 
     let mut index = 0;
     for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter);
+        let result = compiler.compile_expression(parameter, false);
 
         #[allow(clippy::single_match)]
         match &result {
@@ -273,18 +273,18 @@ fn transpile_extension_slice(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left);
+    compiler.compile_expression(left, false);
 
     compiler.add_to_current_function(".get!(Variant[])[".to_string());
 
     let start = call.parameters[0].clone();
     let end = call.parameters[1].clone();
 
-    compiler.compile_expression(start);
+    compiler.compile_expression(start, false);
 
     compiler.add_to_current_function("..".to_string());
 
-    compiler.compile_expression(end);
+    compiler.compile_expression(end, false);
 
     compiler.add_to_current_function("]".to_string());
 
@@ -307,7 +307,7 @@ fn transpile_extension_slice(
 fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
     compiler.add_to_current_function("to!int(".to_string());
 
-    compiler.compile_expression(left);
+    compiler.compile_expression(left, false);
 
     compiler.add_to_current_function(".length)".to_string());
 

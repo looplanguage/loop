@@ -25,7 +25,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
 
     _compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
 
-    _compiler.compile_expression(export.expression);
+    _compiler.compile_expression(export.expression, false);
 
     CompilerResult::Success
 }
