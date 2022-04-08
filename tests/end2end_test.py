@@ -35,6 +35,7 @@ def main():
     add_test("test_loop_iterator.loop", "20")
     add_test("test_loop_iterator_array.loop", "46")
     add_test("test_everything_is_an_expression.loop", "110")
+    add_test("test_expression_statements.loop", "10946")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:

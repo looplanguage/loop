@@ -6,7 +6,7 @@ use crate::parser::statement::Statement;
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
-    is_statement: bool
+    is_statement: bool,
 ) -> CompilerResult {
     // User needs to enable optimization, for Loop to optimize code.
     // Right now only does hardcoded "true" and "false" values
@@ -19,11 +19,7 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    let signature = if is_statement {
-        "if ("
-    } else {
-        "() { if ("
-    };
+    let signature = if is_statement { "if (" } else { "() { if (" };
 
     compiler.add_to_current_function(signature.to_string());
     let result = compiler.compile_expression(*conditional.condition, false);
@@ -60,11 +56,7 @@ pub fn compile_expression_conditional(
         }
     }
 
-    let signature = if is_statement {
-        ""
-    } else {
-        "}()"
-    };
+    let signature = if is_statement { "" } else { "}()" };
 
     compiler.add_to_current_function(signature.to_string());
 

@@ -300,7 +300,7 @@ impl Compiler {
     }
 
     /// Recursively search through a block to find if it returns anything
-    fn does_block_return(block: Block) -> bool {
+    fn _does_block_return(block: Block) -> bool {
         if !block.statements.is_empty() {
             return match block.statements.last().unwrap() {
                 Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
@@ -314,10 +314,8 @@ impl Compiler {
 
     /// Checks an expression if it doesn't already have a return (as expressions always evalaute to a value)
     fn should_add_return(expression: Expression) -> bool {
-        match expression {
-            Expression::Conditional(conditional) => false,
-            _ => true,
-        }
+        // Right now this is a macro, but can be expanded using a matches expression
+        !matches!(expression, Expression::Conditional(_))
     }
 
     /// Compiles a deeper [Block] adding curly braces
