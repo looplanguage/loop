@@ -15,6 +15,7 @@ pub enum CompilerException {
     UnknownExtensionMethod(String),
     CanOnlyAssignToVariableArray,
     CanNotReadFile(String),
+    DoubleParameterName(String),
     Unknown,
 }
 
@@ -41,6 +42,9 @@ impl CompilerException {
             }
             CompilerException::CanNotReadFile(error) => {
                 format!("unable to read file. got=\"{}\"", error)
+            }
+            CompilerException::DoubleParameterName(param) => {
+                format!("parameter name already in use. got=\"{}\"", param)
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }

@@ -12,6 +12,7 @@ pub enum Types {
     Basic(BaseTypes),
     Array(BaseTypes),
     Function,
+    Void,
     Auto,
 }
 
@@ -34,6 +35,7 @@ impl Types {
             },
             Types::Auto => "auto".to_string(),
             Types::Function => "()".to_string(),
+            Types::Void => "void".to_string(),
         }
     }
 }

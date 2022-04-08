@@ -1,9 +1,22 @@
 use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::parser::expression::function::Function;
+use crate::lib::exception::compiler::CompilerException;
+use crate::parser::expression;
 use crate::parser::types::Types;
+use std::collections::HashMap;
 
-pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> CompilerResult {
+#[derive(Clone)]
+pub struct Function {
+    pub name: String,
+    pub code: String,
+    pub parameters: HashMap<String, Types>,
+    pub return_type: Types,
+}
+
+pub fn compile_expression_function(
+    compiler: &mut Compiler,
+    func: expression::function::Function,
+) -> CompilerResult {
     // Named function ^.^
     if !func.name.is_empty() {
         let var = compiler.variable_scope.borrow_mut().define(
@@ -13,7 +26,30 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             Modifiers::default(),
         );
 
-        compiler.new_function(var.transpile());
+        let mut parameters: HashMap<String, Types> = HashMap::new();
+
+        for parameter in &func.parameters {
+            if parameters
+                .iter()
+                .find(|&p| p.0 == &parameter.identifier.value)
+                .is_some()
+            {
+                return CompilerResult::Exception(CompilerException::DoubleParameterName(
+                    parameter.identifier.value.clone(),
+                ));
+            }
+
+            parameters.insert(parameter.identifier.value.clone(), parameter._type.clone());
+        }
+
+        let function = Function {
+            name: var.transpile(),
+            code: "".to_string(),
+            return_type: Types::Auto,
+            parameters,
+        };
+
+        compiler.new_function(function);
         compiler.add_to_current_function(format!("Variant {}", var.transpile()));
     }
 

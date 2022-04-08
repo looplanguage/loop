@@ -10,7 +10,7 @@ use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_float::compile_expression_float;
-use crate::compiler::compile::expression_function::compile_expression_function;
+use crate::compiler::compile::expression_function::{compile_expression_function, Function};
 use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_index::{
@@ -41,6 +41,7 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
+use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -57,7 +58,7 @@ pub enum CompilerResult {
 /// The result of the transpiler, which will be passed to the D compiler [crate::lib::util::execute_code]
 pub struct DCode {
     pub imports: Vec<String>,
-    pub functions: HashMap<String, String>,
+    pub functions: HashMap<String, Function>,
 }
 
 /// The compiler itself containing global metadata needed during compilation and methods
@@ -73,7 +74,7 @@ pub struct Compiler {
     pub breaks: Vec<u32>,
 
     pub imports: Vec<String>,
-    pub functions: HashMap<String, String>,
+    pub functions: HashMap<String, Function>,
     pub function_stack: Vec<String>,
     pub current_function: String,
 }
@@ -119,7 +120,12 @@ impl Compiler {
     pub fn compile(&mut self, program: Program) -> Result<DCode, CompilerException> {
         // Insert main function
         if self.location.is_empty() {
-            let main_function = String::from("void main() {");
+            let main_function = Function {
+                name: "main".to_string(),
+                code: String::from("void main() {"),
+                parameters: HashMap::new(),
+                return_type: Types::Void,
+            };
 
             self.functions.insert(String::from("main"), main_function);
         }
@@ -165,7 +171,7 @@ impl Compiler {
         }
 
         if self.location.is_empty() {
-            self.functions.get_mut("main").unwrap().push('}');
+            self.functions.get_mut("main").unwrap().code.push('}');
         }
 
         Result::Ok(self.get_d_code())
@@ -173,10 +179,10 @@ impl Compiler {
 
     /// Defines a new named function and sets it as the compilation scope
     // TODO: Function should have a hashmap of what type each parameter needs to be
-    pub fn new_function(&mut self, name: String) {
+    pub fn new_function(&mut self, func: Function) {
         self.function_stack.push(self.current_function.clone());
-        self.functions.insert(name.clone(), String::new());
-        self.current_function = name;
+        self.current_function = func.name.clone();
+        self.functions.insert(func.name.clone(), func);
     }
 
     /// Exits the current function compilation scope
@@ -188,7 +194,7 @@ impl Compiler {
     pub fn add_to_current_function(&mut self, code: String) {
         let func = self.functions.get_mut(&*self.current_function);
 
-        func.unwrap().push_str(code.as_str());
+        func.unwrap().code.push_str(code.as_str());
     }
 
     /// Adds an import needed by D This function can be called with the same import as many times
