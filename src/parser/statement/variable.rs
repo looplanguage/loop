@@ -7,6 +7,7 @@ use crate::parser::Parser;
 
 use super::Statement;
 
+/// The struct for a variable declaration, which has an [Identifier], [expression](value) and a [type](Types)
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableDeclaration {
     pub ident: Identifier,
@@ -22,39 +23,38 @@ pub struct VariableDeclaration {
 /// **Example:**
 /// `int i = 13 + 4`
 pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Option<Node> {
-    // This "identifier" is for the datatype
-    // if !p.next_token_is(TokenType::Identifier) {
-    //     let message = "Syntax  -> <datatype> <identifier> = <expression>\nExample -> int i = 99\n\nLoop has optional static typing, explanation:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-    //     p.throw_exception(
-    //         create_token(TokenType::Identifier, "var".to_string()),
-    //         Some(message),
-    //     );
-    // }
-    // p.lexer.next_token();
-
+    let ident = p.lexer.get_current_token().unwrap().clone(); // Identifier of variabele.
     let datatype = types.unwrap_or(Types::Auto);
-    // This "identifier" is for the actual identifier of the variable
-    if !p.next_token_is(TokenType::Identifier) {
-        let message = "Syntax  -> <datatype> <identifier> = <expression>\nExample -> int i = 99\n\nThe identifiers can contain: letters, numbers and underscores.".to_string();
+
+    // Parsing of the ":" in the declaration
+    if !p.next_token_is(TokenType::Colon) {
+        let message = "Syntax  -> <identifier> := <expression>\nExample -> i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
+
+        //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
         p.throw_exception(
-            create_token(TokenType::Identifier, "identifier".to_string()),
+            create_token(TokenType::Colon, ":".to_string()),
             Some(message),
         );
     }
-    p.lexer.next_token();
-    let ident = p.lexer.get_current_token().unwrap().clone();
+    p.lexer.next_token(); // Skipping the ":'
 
     // Parsing of the "=" in the declaration
     if !p.next_token_is(TokenType::Assign) {
-        let message = "Syntax  -> <datatype> <identifier> = <expression>\nExample -> int i = 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
+        let message = if datatype == Types::Auto {
+            "Syntax  -> <identifier> := <expression>\nExample -> int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string()
+        } else {
+            format!("Syntax  ->  <datatype> <identifier> := <expression>\nExample -> {} i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives", datatype.transpile())
+        };
         p.throw_exception(
             create_token(TokenType::Assign, "=".to_string()),
             Some(message),
         );
     }
-    p.lexer.next_token();
-    p.lexer.next_token();
 
+    p.lexer.next_token(); // Skips the: '='
+    p.lexer.next_token(); // Skips the: expression
+
+    // Parsing of the expresion, this is the value of the constant
     let expr = p.parse_expression(Precedence::Lowest);
     expr.as_ref()?;
 
@@ -71,6 +71,5 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Optio
     }
 
     // This needs to throw a good error
-    println!("{}", 1);
     None
 }

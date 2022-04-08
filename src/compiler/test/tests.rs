@@ -225,13 +225,13 @@ mod tests {
 
     #[test]
     fn scoping_rules_1() {
-        compiler_test_error("var test = 100; if(true) { test }", None);
+        compiler_test_error("test := 100; if(true) { test }", None);
     }
 
     #[test]
     fn scoping_rules_2() {
         compiler_test_error(
-            "var test = 100; if(true) { var test2 = test }; test2",
+            "test := 100; if(true) { test2 := test }; test2",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "test2".to_string(),
                 scope_depth: 0,
@@ -242,7 +242,7 @@ mod tests {
     #[test]
     fn scoping_rules_3() {
         compiler_test_error(
-            "var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test3; };",
+            "test := 100; if(true) { test2 := 300; if(true) { test3 := test2 } test3; };",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "test3".to_string(),
                 scope_depth: 1,
@@ -252,19 +252,22 @@ mod tests {
 
     #[test]
     fn scoping_rules_4() {
-        compiler_test_error("var test = 100; if(true) { var test2 = 300; if(true) { var test3 = test2 } test2; }; test3", Some(CompilerException::UnknownSymbol(UnknownSymbol {
-            name: "test3".to_string(),
-            scope_depth: 0
-        })),);
+        compiler_test_error(
+            "test := 100; if(true) { test2 := 300; if(true) { test3 := test2 } test2; }; test3",
+            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+                name: "test3".to_string(),
+                scope_depth: 0,
+            })),
+        );
     }
 
     #[test]
     fn scoping_rules_functions_1() {
         compiler_test_error(
             "\
-        var test = 300;
-        var func = fn() {\
-        var hello = test + 3;\
+        test := 300;
+        func := fn() {\
+        hello := test + 3;\
         }\
         hello;
         ",
@@ -279,11 +282,11 @@ mod tests {
     fn scoping_rules_functions_2() {
         compiler_test_error(
             "\
-        var test = 300;
-        var func = fn() {\
-            var hello = test + 3;\
-            var func2 = fn() {
-                var hello2 = hello + 200;
+        test := 300;
+        func := fn() {\
+            hello := test + 3;\
+            func2 := fn() {
+                hello2 := hello + 200;
             };
             hello2;
         }\
@@ -299,11 +302,11 @@ mod tests {
     fn scoping_rules_functions_2_1() {
         compiler_test_error(
             "\
-        var test = 300;
-        var func = fn() {\
-            var hello = test + 3;\
-            var func2 = fn() {
-                var hello2 = hello + 200;
+        test := 300;
+        func := fn() {\
+            hello := test + 3;\
+            func2 := fn() {
+                hello2 := hello + 200;
                 hello2;
             };
         }\
@@ -316,11 +319,11 @@ mod tests {
     fn scoping_rules_functions_3() {
         compiler_test_error(
             "\
-        var test = 300;
-        var func = fn() {\
-            var hello = test + 3;\
+        test := 300;
+        func := fn() {\
+            hello := test + 3;\
             if(true) {
-                var hello2 = hello + 200;
+                hello2 := hello + 200;
             };
             hello2;
         }\
@@ -336,11 +339,11 @@ mod tests {
     fn scoping_rules_functions_3_1() {
         compiler_test_error(
             "\
-        var test = 300;
-        var func = fn() {\
-            var hello = test + 3;\
+        test := 300;
+        func := fn() {\
+            hello := test + 3;\
             if(true) {
-                var hello2 = hello + 200;
+                hello2 := hello + 200;
                 hello2;
             };
         }\

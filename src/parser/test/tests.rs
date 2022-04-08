@@ -222,8 +222,8 @@ mod tests {
     #[test]
     fn variable_assignment() {
         let input = "\
-        var test = 0;\
-        var yeet = 500;\
+        test := 0;\
+        yeet := 500;\
         test = 1000;\
         foo = 2 ^ 3;\
         yeet = test * 2;";
@@ -361,9 +361,9 @@ mod tests {
     fn() {\
         1\
     }\
-    var functionWithParameters = fn(int a, int b, int c, int d) {\
+    functionWithParameters := fn(int a, int b, int c, int d) {\
         a + b;\
-        var e = c + d;\
+        e := c + d;\
     }\
     ";
 
@@ -521,14 +521,15 @@ mod tests {
 
     #[test]
     fn variable_declaration() {
-        let input = "var test = 1;
-        var test2 = 40;
-        var test3 = 10 * 2;
-        var test4 = 1.1;
-        var test5 = -1;
-        var test6 = -1.1;
-        var test7 = 1.1 + 1.1;
-        var test8 = 1.1 + 1;
+        let input = "
+        test := 1;
+        test2 := 40;
+        test3 := 10 * 2;
+        test4 := 1.1;
+        test5 := -1;
+        test6 := -1.1;
+        test7 := 1.1 + 1.1;
+        test8 := 1.1 + 1;
         ";
 
         let mut expected: Vec<Statement> = Vec::new();

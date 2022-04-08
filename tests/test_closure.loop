@@ -1,5 +1,5 @@
 // answer = 60
-var newClosure = fn(int a) {
+newClosure := fn(int a) {
     return fn(int b)
     { 
         return fn(int c)

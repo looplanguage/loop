@@ -1,6 +1,6 @@
 // Hello these are comments, this is to test comments in a real file
 
-var test = 10
+test := 10
 if /< Another comment >/ true /< Another comment >/ {
     // Hopefully it works
     test = 3

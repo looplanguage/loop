@@ -128,16 +128,18 @@ impl Parser {
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
-            TokenType::VariableDeclaration => parse_variable_declaration(self, None),
             TokenType::ConstantDeclaration => parse_constant_declaration(self),
             TokenType::Identifier => {
                 if self.peek_token_is(TokenType::Assign) {
                     parse_variable_assignment(self)
+                } else if self.peek_token_is(TokenType::Colon) {
+                    parse_variable_declaration(self, None)
                 } else if self.peek_token_is(TokenType::Identifier) {
-                    // Means use defined a custom type
+                    // User has explicitly typed a variable.
                     let types = self
                         .parse_type(self.lexer.get_current_token().unwrap().clone())
                         .unwrap();
+                    self.lexer.next_token();
                     parse_variable_declaration(self, Some(types))
                 } else {
                     parse_expression_statement(self)

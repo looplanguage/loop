@@ -1,5 +1,5 @@
 // answer = 20
-var array = [1, 2, 3]
+array := [1, 2, 3]
 array.remove(2)
 array.add(array.length() * 3)
 array = array.slice(1, 3)
