@@ -106,13 +106,9 @@ test windows x86_64:
     - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
     - refreshenv
   script:
+    - cargo test
     - cargo build --release
-    - $Env:TEST_JIT="0"
-    - cargo test
     - py tests/end2end_test.py
-    - $Env:TEST_JIT="1"
-    - cargo test
-    # - py tests/end2end_test.py
 
 # Runs on main branch
 deploy windows x86_64:
@@ -176,11 +172,9 @@ test linux x86_64:
     - .linux
     - .ci
   script:
+    - cargo test
     - cargo build --release
-    - export TEST_JIT=0 && cargo test
     - python3 tests/end2end_test.py
-    - export TEST_JIT=1 && cargo test
-    # - python3 tests/end2end_test.py
 
 # Runs on main branch
 deploy linux x86_64:
