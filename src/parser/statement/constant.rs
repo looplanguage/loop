@@ -21,10 +21,6 @@ pub struct ConstantDeclaration {
 /// **Example:**
 /// `const int i = 13 + 4`
 pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
-    // Skips the const
-    //p.lexer.next_token();
-    println!("{}", p.lexer.get_current_token().unwrap().literal);
-
     // This "identifier" is for the actual identifier of the constant
     if !p.next_token_is(TokenType::Identifier) {
         let message = "Syntax  -> const <datatype> <identifier> = <expression>\nExample -> const int i = 99\n\nThe identifiers can contain: letters, numbers and underscores.".to_string();
@@ -33,29 +29,30 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
             Some(message),
         );
     }
-    p.lexer.next_token();
+    p.lexer.next_token();   // Skipping the identifier
+    // Depending on if the user has excpliciely typed the type, the current token is a identifier or a type
     let ident_or_type = p.lexer.get_current_token().unwrap().clone();
 
+    // Is user has typed a type, this will be the identifier, otherwise it will be a null
     let ident = if p.next_token_is(TokenType::Identifier) {
-        let x = Some(p.lexer.current_token.clone().unwrap().clone());
         p.lexer.next_token();
+        let x = Some(p.lexer.current_token.clone().unwrap().clone());
         x
     }
     else {
         None
     };
-
-    // Parsing of the "=" in the declaration
+    // Parsing of the ":" in the declaration
     if !p.next_token_is(TokenType::Colon) {
         let message = "Syntax  -> const <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
         p.throw_exception(
-            create_token(TokenType::Assign, "=".to_string()),
+            create_token(TokenType::Colon, ":".to_string()),
             Some(message),
         );
     }
-    p.lexer.next_token();
+    p.lexer.next_token();   // Skipping the ":'
 
     // Parsing of the "=" in the declaration
     if !p.next_token_is(TokenType::Assign) {
@@ -65,14 +62,17 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
             Some(message),
         );
     }
-    // Skips the '='
-    p.lexer.next_token();
-    // Skips the expression
-    p.lexer.next_token();
+
+    p.lexer.next_token();   // Skips the '='
+    p.lexer.next_token();   // Skips the expression
+
     // Parsing of the expresion, this is the value of the constant
     let expr = p.parse_expression(Precedence::Lowest);
     expr.as_ref()?;
+
     if ident.is_none() {
+        // Node being created here is for:
+        // const i := 3
         if let Node::Expression(expression) = expr.unwrap() {
             return Some(Node::Statement(Statement::ConstantDeclaration(
                 ConstantDeclaration {
@@ -89,6 +89,8 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
         None
     }
     else {
+        // Node being created here is for:
+        // const int i := 3
         if let Node::Expression(expression) = expr.unwrap() {
             return Some(Node::Statement(Statement::ConstantDeclaration(
                 ConstantDeclaration {
