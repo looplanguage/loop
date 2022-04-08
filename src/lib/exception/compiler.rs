@@ -17,6 +17,7 @@ pub enum CompilerException {
     CanNotReadFile(String),
     DoubleParameterName(String),
     CallingNonFunction(String),
+    WrongType(String, String),
     Unknown,
 }
 
@@ -49,6 +50,12 @@ impl CompilerException {
             }
             CompilerException::CallingNonFunction(f) => {
                 format!("you are attempting to call a non function. got=\"{}\". expected=\"Function(...)\"", f)
+            }
+            CompilerException::WrongType(got, expected) => {
+                format!(
+                    "type mismatch, can not assign different type. got=\"{}\". expected\"{}\"",
+                    got, expected
+                )
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }

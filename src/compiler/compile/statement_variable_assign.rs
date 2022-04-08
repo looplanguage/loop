@@ -26,13 +26,26 @@ pub fn compile_statement_variable_assign(
                 // Program will stop here.
                 compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }
+
             compiler.add_to_current_function(format!("{} = ", var.clone().unwrap().transpile()));
 
             let result = compiler.compile_expression(*variable.value, false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,
-                _ => CompilerResult::Success(var.unwrap()._type),
+                CompilerResult::Success(result_type) => {
+                    let _type = var.unwrap()._type;
+
+                    if *result_type != _type {
+                        CompilerResult::Exception(CompilerException::WrongType(
+                            result_type.transpile(),
+                            _type.transpile(),
+                        ))
+                    } else {
+                        CompilerResult::Success(_type)
+                    }
+                }
+                _ => CompilerResult::Exception(CompilerException::Unknown),
             };
         }
     }

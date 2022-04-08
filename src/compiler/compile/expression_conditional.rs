@@ -65,8 +65,6 @@ pub fn compile_expression_conditional(
 
     compiler.add_to_current_function(signature.to_string());
 
-    println!("IF_TYPE: {:?}", if_type);
-
     CompilerResult::Success(if_type)
 }
 
