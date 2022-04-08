@@ -1,14 +1,25 @@
 use crate::compiler::{Compiler, CompilerResult};
+use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::function::Call;
+use crate::parser::types::Types;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     let result = compiler.compile_expression(*call.identifier.clone(), false);
 
     #[allow(clippy::single_match)]
-    match &result {
+    let func_signature = match &result {
         CompilerResult::Exception(_exception) => return result,
-        _ => (),
-    }
+        CompilerResult::Success(_type) => {
+            if let Types::Function(func) = _type {
+                func
+            } else {
+                return CompilerResult::Exception(CompilerException::CallingNonFunction(
+                    _type.transpile(),
+                ));
+            }
+        }
+        _ => return CompilerResult::Exception(CompilerException::Unknown),
+    };
 
     compiler.add_to_current_function(String::from("("));
 
@@ -17,6 +28,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         current += 1;
 
         let result = compiler.compile_expression(parameter, false);
+        // Get proper type or cast to Variant if inferring type
         compiler.add_to_current_function(".to!Variant".to_string());
 
         #[allow(clippy::single_match)]
@@ -32,5 +44,5 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
     compiler.add_to_current_function(String::from(")"));
 
-    CompilerResult::Success
+    CompilerResult::Success(*func_signature.return_type.clone())
 }

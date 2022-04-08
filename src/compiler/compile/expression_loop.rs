@@ -82,14 +82,14 @@ pub fn compile_loop_iterator_expression(
     compiler.add_to_current_function(format!("while({} < {}) {{", var.transpile(), lp.till));
 
     // Compile the body that is executed
-    compiler.compile_loop_block(lp.body);
+    let result = compiler.compile_loop_block(lp.body);
 
     compiler.exit_variable_scope();
 
     // Increase it
     compiler.add_to_current_function(format!("{} += 1; }}", var.transpile()));
 
-    CompilerResult::Success
+    result
 }
 
 /// Compiles (/transpiles) the "while" loop of Loop
@@ -170,7 +170,7 @@ pub fn compile_loop_array_iterator_expression(
     ));
 
     // Compile body and then increase the index
-    compiler.compile_loop_block(lp.body);
+    let result = compiler.compile_loop_block(lp.body);
 
     compiler.add_to_current_function(format!("{} += 1;", index.transpile()));
     compiler.add_to_current_function(format!(
@@ -182,5 +182,5 @@ pub fn compile_loop_array_iterator_expression(
         index.transpile()
     ));
 
-    CompilerResult::Success
+    result
 }

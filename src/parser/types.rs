@@ -8,10 +8,17 @@ pub enum BaseTypes {
 }
 
 #[derive(Clone, PartialEq, Debug)]
+pub struct FunctionType {
+    pub return_type: Box<Types>,
+    pub parameter_types: Vec<Box<Types>>,
+}
+
+#[derive(Clone, PartialEq, Debug)]
 pub enum Types {
     Basic(BaseTypes),
     Array(BaseTypes),
-    Function,
+    // Return type & Parameter Types (for compile time)
+    Function(FunctionType),
     Void,
     Auto,
 }
@@ -33,8 +40,9 @@ impl Types {
                 BaseTypes::Float => "float[]".to_string(),
                 BaseTypes::UserDefined(s) => s.to_string(),
             },
-            Types::Auto => "auto".to_string(),
-            Types::Function => "()".to_string(),
+            Types::Auto => "Variant".to_string(),
+            // TODO: Should probably be different now we know types
+            Types::Function(_) => "()".to_string(),
             Types::Void => "void".to_string(),
         }
     }

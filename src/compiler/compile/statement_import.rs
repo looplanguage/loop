@@ -4,6 +4,7 @@ use crate::lib::exception::compiler::CompilerException;
 use crate::lib::exception::Exception;
 use crate::parser::build_parser;
 use crate::parser::statement::import::Import;
+use crate::parser::types::Types;
 use std::fs;
 use std::path::Path;
 
@@ -72,5 +73,5 @@ pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> Com
     _compiler.location = last_location;
     _compiler.export_name = last_import_location;
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }

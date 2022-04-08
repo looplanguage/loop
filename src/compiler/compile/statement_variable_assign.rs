@@ -14,10 +14,7 @@ pub fn compile_statement_variable_assign(
     if symbol.is_some() {
         let result = compiler.compile_expression(*variable.value, false);
 
-        return match &result {
-            CompilerResult::Exception(_exception) => result,
-            _ => CompilerResult::Success,
-        };
+        return result;
     } else {
         let var = compiler
             .variable_scope
@@ -29,13 +26,13 @@ pub fn compile_statement_variable_assign(
                 // Program will stop here.
                 compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }
-            compiler.add_to_current_function(format!("{} = ", var.unwrap().transpile()));
+            compiler.add_to_current_function(format!("{} = ", var.clone().unwrap().transpile()));
 
             let result = compiler.compile_expression(*variable.value, false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,
-                _ => CompilerResult::Success,
+                _ => CompilerResult::Success(var.unwrap()._type),
             };
         }
     }

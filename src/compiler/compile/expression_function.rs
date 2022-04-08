@@ -2,15 +2,21 @@ use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression;
-use crate::parser::types::Types;
+use crate::parser::types::{FunctionType, Types};
 use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Function {
     pub name: String,
     pub code: String,
-    pub parameters: HashMap<String, Types>,
+    pub parameters: Vec<Parameter>,
     pub return_type: Types,
+}
+
+#[derive(Clone)]
+pub struct Parameter {
+    pub name: String,
+    pub parameter_type: Types,
 }
 
 pub fn compile_expression_function(
@@ -19,19 +25,12 @@ pub fn compile_expression_function(
 ) -> CompilerResult {
     // Named function ^.^
     if !func.name.is_empty() {
-        let var = compiler.variable_scope.borrow_mut().define(
-            compiler.variable_count,
-            format!("{}{}", compiler.location, func.name),
-            Types::Function,
-            Modifiers::default(),
-        );
-
-        let mut parameters: HashMap<String, Types> = HashMap::new();
+        let mut parameters: Vec<Parameter> = Vec::new();
 
         for parameter in &func.parameters {
             if parameters
                 .iter()
-                .find(|&p| p.0 == &parameter.identifier.value)
+                .find(|&p| p.name == parameter.identifier.value)
                 .is_some()
             {
                 return CompilerResult::Exception(CompilerException::DoubleParameterName(
@@ -39,8 +38,32 @@ pub fn compile_expression_function(
                 ));
             }
 
-            parameters.insert(parameter.identifier.value.clone(), parameter._type.clone());
+            let parameter = Parameter {
+                name: parameter.identifier.value.clone(),
+                parameter_type: parameter._type.clone(),
+            };
+
+            parameters.push(parameter);
         }
+
+        let mut type_parameters: Vec<Box<Types>> = Vec::new();
+
+        for parameter in &parameters {
+            type_parameters.push(Box::from(parameter.parameter_type.clone()))
+        }
+
+        // TODO: Return type is auto for now, but types for parameters is et
+        let _type = Types::Function(FunctionType {
+            return_type: Box::from(Types::Auto),
+            parameter_types: type_parameters,
+        });
+
+        let var = compiler.variable_scope.borrow_mut().define(
+            compiler.variable_count,
+            format!("{}{}", compiler.location, func.name),
+            _type,
+            Modifiers::default(),
+        );
 
         let function = Function {
             name: var.transpile(),
@@ -50,7 +73,7 @@ pub fn compile_expression_function(
         };
 
         compiler.new_function(function);
-        compiler.add_to_current_function(format!("Variant {}", var.transpile()));
+        compiler.add_to_current_function(format!("{} {}", var._type.transpile(), var.transpile()));
     }
 
     compiler.add_to_current_function(" (".to_string());

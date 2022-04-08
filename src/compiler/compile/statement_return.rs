@@ -1,6 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
+use crate::parser::types::Types;
 
 pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -> CompilerResult {
     if _compiler.scope_index == 0 {
@@ -15,10 +16,11 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
     _compiler.add_to_current_function(").to!Variant".to_string());
 
     #[allow(clippy::single_match)]
-    match &result {
+    let _type = match &result {
         CompilerResult::Exception(_exception) => return result,
-        _ => (),
-    }
+        CompilerResult::Success(_tp) => _tp.clone(),
+        _ => return CompilerResult::Exception(CompilerException::Unknown),
+    };
 
-    CompilerResult::Success
+    CompilerResult::Success(_type)
 }

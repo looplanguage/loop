@@ -48,9 +48,10 @@ use std::rc::Rc;
 
 /// Instance of CompilerResult which contains information on how the compiler handled input
 #[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CompilerResult {
-    Success,
+    // Success can return an optional type if the result was an expression
+    Success(Types),
     Optimize,
     Exception(CompilerException),
 }
@@ -123,7 +124,7 @@ impl Compiler {
             let main_function = Function {
                 name: "main".to_string(),
                 code: String::from("void main() {"),
-                parameters: HashMap::new(),
+                parameters: Vec::new(),
                 return_type: Types::Void,
             };
 
@@ -302,21 +303,42 @@ impl Compiler {
 
     /// Compiles a loop [Block], this differs from [Compiler::compile_block] in that it wont add curly braces
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
+        let mut return_type = Types::Void;
         self.enter_variable_scope();
 
-        for statement in block.statements {
-            let err = self.compile_statement(statement, false);
+        let mut index = 0;
+        for statement in block.statements.clone() {
+            index += 1;
+
+            let err = self.compile_statement(statement.clone(), false);
+
+            // If its either a return statement, or the last statement is an expression than that is the return type of this block
+            if let Statement::Return(_) = statement {
+                if let CompilerResult::Success(_type) = err.clone() {
+                    return_type = _type;
+                }
+            }
+
+            if index == block.statements.len() {
+                if let Statement::Expression(_) = statement {
+                    if let CompilerResult::Success(_type) = err.clone() {
+                        return_type = _type;
+                    }
+                }
+            }
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => return err,
+                CompilerResult::Exception(_exception) => {
+                    return CompilerResult::Exception(_exception.clone())
+                }
                 _ => (),
             }
         }
 
         self.exit_variable_scope();
 
-        CompilerResult::Success
+        CompilerResult::Success(return_type)
     }
 
     /// To check whether a statement is the builtin functions: `print` or `println`.
@@ -335,7 +357,7 @@ impl Compiler {
     }
 
     /// Recursively search through a block to find if it returns anything
-    fn _does_block_return(block: Block) -> bool {
+    fn block_get_return_type(block: Block) -> bool {
         if !block.statements.is_empty() {
             return match block.statements.last().unwrap() {
                 Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
@@ -355,6 +377,7 @@ impl Compiler {
 
     /// Compiles a deeper [Block] adding curly braces
     fn compile_block(&mut self, block: Block) -> CompilerResult {
+        let mut block_type: Types = Types::Void;
         self.enter_variable_scope();
 
         self.add_to_current_function("{".to_string());
@@ -373,15 +396,44 @@ impl Compiler {
                         let result = self.compile_statement(statement.clone(), false);
 
                         if index == block.statements.len() {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+
                             self.add_to_current_function("return block_return;".to_string());
                         }
 
                         result
                     } else {
-                        self.compile_statement(statement.clone(), false)
+                        let result = self.compile_statement(statement.clone(), false);
+
+                        // Find first "return" as that is the only way to return
+                        if let Statement::Return(_) = statement.clone() {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+                        }
+
+                        // Or if its the last expression
+                        if index == block.statements.len() {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+                        }
+
+                        result
                     }
                 } else {
-                    self.compile_statement(statement.clone(), false)
+                    let result = self.compile_statement(statement.clone(), false);
+
+                    // Find first "return" as that is the only way to return
+                    if let Statement::Return(ret) = statement.clone() {
+                        if let CompilerResult::Success(_type) = &result {
+                            block_type = _type.clone();
+                        }
+                    }
+
+                    result
                 }
             };
 
@@ -398,7 +450,7 @@ impl Compiler {
 
         self.exit_variable_scope();
 
-        CompilerResult::Success
+        CompilerResult::Success(block_type)
     }
 
     /// Compiles the [Statement] [Node](crate::parser::program::Node)

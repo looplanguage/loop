@@ -27,5 +27,5 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
 
     _compiler.compile_expression(export.expression, false);
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }

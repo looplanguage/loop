@@ -1,10 +1,10 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct UnknownSymbol {
     pub name: String,
     pub scope_depth: u16,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CompilerException {
     UnknownSymbol(UnknownSymbol),
     DivideByZero,
@@ -16,6 +16,7 @@ pub enum CompilerException {
     CanOnlyAssignToVariableArray,
     CanNotReadFile(String),
     DoubleParameterName(String),
+    CallingNonFunction(String),
     Unknown,
 }
 
@@ -45,6 +46,9 @@ impl CompilerException {
             }
             CompilerException::DoubleParameterName(param) => {
                 format!("parameter name already in use. got=\"{}\"", param)
+            }
+            CompilerException::CallingNonFunction(f) => {
+                format!("you are attempting to call a non function. got=\"{}\". expected=\"Function(...)\"", f)
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }

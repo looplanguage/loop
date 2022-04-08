@@ -1,6 +1,7 @@
 use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::constant::ConstantDeclaration;
+use crate::parser::types::Types;
 
 pub fn compile_statement_constant_declaration(
     compiler: &mut Compiler,
@@ -25,5 +26,5 @@ pub fn compile_statement_constant_declaration(
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }

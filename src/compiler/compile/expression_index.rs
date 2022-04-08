@@ -5,7 +5,7 @@ use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::Types;
+use crate::parser::types::{BaseTypes, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -15,6 +15,16 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
         Expression::Call(call) => compile_expression_extension_method(_compiler, call, _index.left),
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
     }
+}
+
+fn get_array_value_type(result: CompilerResult) -> Types {
+    if let CompilerResult::Success(array_type) = result {
+        if let Types::Array(value_type) = array_type {
+            return Types::Basic(value_type);
+        }
+    }
+
+    Types::Auto
 }
 
 pub fn compile_expression_assign_index(
@@ -37,7 +47,7 @@ pub fn compile_expression_assign_index(
     compiler.add_to_current_function("] = ".to_string());
     compiler.compile_expression(assign.value, false);
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }
 
 fn compile_expression_index_internal(
@@ -45,12 +55,19 @@ fn compile_expression_index_internal(
     left: Expression,
     index: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left, false);
     compiler.add_to_current_function("[".to_string());
     compiler.compile_expression(index, false);
     compiler.add_to_current_function("]".to_string());
 
-    CompilerResult::Success
+    if let CompilerResult::Success(array_type) = result {
+        if let Types::Array(value_type) = array_type {
+            return CompilerResult::Success(Types::Basic(value_type));
+        }
+    }
+
+    // TODO: Proper error
+    CompilerResult::Exception(CompilerException::Unknown)
 }
 
 /*
@@ -124,7 +141,7 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
 
     compiler.add_to_current_function(format!("return to!string({}); }}()", var.transpile()));
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Basic(BaseTypes::String))
 }
 
 /// Transpiles the extension method 'to_int'
@@ -159,7 +176,7 @@ fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> Comp
 
     compiler.add_to_current_function(format!("return to!int({}); }}()", var.transpile()));
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }
 
 /// Transpiles the extension method 'add'
@@ -204,7 +221,7 @@ fn transpile_extension_add(
 
     compiler.add_to_current_function("].to!(Variant[])".to_string());
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }
 
 /// Transpiles the extension method 'remove'
@@ -252,7 +269,7 @@ fn transpile_extension_remove(
 
     compiler.add_to_current_function(")".to_string());
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }
 
 /// Transpiles the extension method 'slice'
@@ -273,7 +290,18 @@ fn transpile_extension_slice(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left, false);
+
+    let mut slice_type = Types::Void;
+
+    if let CompilerResult::Success(array_type) = result {
+        if let Types::Array(_type) = array_type {
+            slice_type = Types::Basic(_type);
+        } else {
+            // TODO: Return better error
+            return CompilerResult::Exception(CompilerException::Unknown);
+        }
+    };
 
     compiler.add_to_current_function(".get!(Variant[])[".to_string());
 
@@ -288,7 +316,7 @@ fn transpile_extension_slice(
 
     compiler.add_to_current_function("]".to_string());
 
-    CompilerResult::Success
+    CompilerResult::Success(slice_type)
 }
 
 /// Transpiles the extension method 'length'
@@ -311,5 +339,5 @@ fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> Comp
 
     compiler.add_to_current_function(".length)".to_string());
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }
