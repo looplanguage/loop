@@ -158,6 +158,7 @@ impl Compiler {
     }
 
     /// Defines a new named function and sets it as the compilation scope
+    // TODO: Function should have a hashmap of what type each parameter needs to be
     pub fn new_function(&mut self, name: String) {
         self.function_stack.push(self.current_function.clone());
         self.functions.insert(name.clone(), String::new());

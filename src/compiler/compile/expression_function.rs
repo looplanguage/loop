@@ -29,9 +29,10 @@ pub fn compile_expression_function(compiler: &mut Compiler, func: Function) -> C
             parameter._type.clone(),
         );
 
+        // This currently defines every parameter type to be a Variant, we should do compile time
+        // checks to ensure type safety.
         compiler.add_to_current_function(format!(
-            "{} {}",
-            parameter.get_type(),
+            "Variant {}",
             symbol.transpile()
         ));
 
