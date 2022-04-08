@@ -9,7 +9,7 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
         for value in arr.values.clone() {
             index += 1;
 
-            compiler.compile_expression(*value.expression);
+            compiler.compile_expression(*value.expression, false);
 
             if arr.values.len() > 1 && arr.values.len() != index {
                 compiler.add_to_current_function(", ".to_string());

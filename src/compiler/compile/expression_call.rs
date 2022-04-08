@@ -2,7 +2,7 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Call;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
-    let result = compiler.compile_expression(*call.identifier.clone());
+    let result = compiler.compile_expression(*call.identifier.clone(), false);
 
     #[allow(clippy::single_match)]
     match &result {
@@ -16,7 +16,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     for parameter in call.parameters.clone() {
         current += 1;
 
-        let result = compiler.compile_expression(parameter);
+        let result = compiler.compile_expression(parameter, false);
+        compiler.add_to_current_function(".to!Variant".to_string());
 
         #[allow(clippy::single_match)]
         match &result {

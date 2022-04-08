@@ -3,7 +3,7 @@ use crate::parser::expression::suffix::Suffix;
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> CompilerResult {
     _compiler.add_to_current_function("(".to_string());
-    _compiler.compile_expression(_suffix.left);
+    _compiler.compile_expression(_suffix.left, false);
 
     match _suffix.operator.as_str() {
         "^" => {
@@ -20,7 +20,7 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
         }
     }
 
-    _compiler.compile_expression(_suffix.right);
+    _compiler.compile_expression(_suffix.right, false);
     _compiler.add_to_current_function(")".to_string());
 
     /*let right = _suffix.right.clone();
