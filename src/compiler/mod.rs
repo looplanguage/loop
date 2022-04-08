@@ -1,5 +1,6 @@
 //! Responsible for transpiling Loop to D
 mod compile;
+mod modifiers;
 mod symbol_table;
 mod test;
 mod variable_table;
@@ -24,6 +25,7 @@ use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_break::compile_break_statement;
+use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
@@ -34,6 +36,7 @@ use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, VariableScope,
 };
 use crate::lib::exception::compiler::CompilerException;
+use crate::lib::exception::compiler_new::CompilerError;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
@@ -52,7 +55,7 @@ pub enum CompilerResult {
 }
 
 /// The result of the transpiler, which will be passed to the D compiler [crate::lib::util::execute_code]
-pub struct Bytecode {
+pub struct DCode {
     pub imports: Vec<String>,
     pub functions: HashMap<String, String>,
 }
@@ -113,7 +116,7 @@ impl Compiler {
     ///     // Handle error
     /// }
     /// ```
-    pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
+    pub fn compile(&mut self, program: Program) -> Result<DCode, CompilerException> {
         // Insert main function
         if self.location.is_empty() {
             let main_function = String::from("void main() {");
@@ -126,21 +129,32 @@ impl Compiler {
         for statement in program.statements {
             index += 1;
 
+            let mut has_return_value = false;
             let mut is_expression = false;
-
             if index == length {
-                if let Statement::Expression(_) = statement {
+                if let Statement::Expression(_) = statement.clone() {
+                    // This is not very good code, the problem is that a user could define a function that returns nothing.
+                    // In that case the function will also automatically be printed which will result in an error.
+                    // The solution is to recursively walk through the statement to check whether it returns something.
+                    // However, currently the print function in stolen from the D STD, which we cannot walk recursively through
+                    // because we call it.
+                    // TODO: implement a STD with a Loop abstraction so you can walk through the statements
+                    has_return_value = !self.is_blacklisted_function_call(statement.clone());
                     is_expression = true;
-
-                    self.add_import("std".to_string());
-                    self.add_to_current_function("writeln(".to_string());
+                    // The last expression always gets printed, but when it is a print functions it doesnt
+                    if has_return_value {
+                        self.add_import("std".to_string());
+                        self.add_to_current_function("writeln(".to_string());
+                    }
                 }
             }
 
             let err = self.compile_statement(statement, is_expression);
 
-            if index == length && is_expression {
+            if index == length && is_expression && has_return_value {
                 self.add_to_current_function(");".to_string());
+            } else if !has_return_value {
+                self.add_to_current_function(";".to_string());
             }
 
             #[allow(clippy::single_match)]
@@ -154,7 +168,7 @@ impl Compiler {
             self.functions.get_mut("main").unwrap().push('}');
         }
 
-        Result::Ok(self.get_bytecode())
+        Result::Ok(self.get_d_code())
     }
 
     /// Defines a new named function and sets it as the compilation scope
@@ -240,8 +254,8 @@ impl Compiler {
         self.variable_scope = outer.unwrap();
     }
 
-    pub fn get_bytecode(&self) -> Bytecode {
-        Bytecode {
+    pub fn get_d_code(&self) -> DCode {
+        DCode {
             functions: self.functions.clone(),
             imports: self.imports.clone(),
         }
@@ -297,6 +311,21 @@ impl Compiler {
         self.exit_variable_scope();
 
         CompilerResult::Success
+    }
+
+    /// To check whether a statement is the builtin functions: `print` or `println`.
+    /// This code is not very good, because it looks for hardcoded function calls,
+    /// should recursively walk through statement to check for returns
+    fn is_blacklisted_function_call(&self, stat: Statement) -> bool {
+        if let Statement::Expression(expr) = stat {
+            if let Expression::Call(call) = *expr.expression {
+                if let Expression::Identifier(s) = *call.identifier {
+                    return s.value == "print" || s.value == "println";
+                }
+            }
+        }
+
+        false
     }
 
     /// Recursively search through a block to find if it returns anything
@@ -383,6 +412,9 @@ impl Compiler {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
+            Statement::ConstantDeclaration(con) => {
+                compile_statement_constant_declaration(self, con)
+            }
             Statement::Expression(expr) => {
                 expression_statement = true;
                 self.compile_expression(*expr.expression, true)
@@ -399,6 +431,7 @@ impl Compiler {
 
         let add_semicolon = match stmt {
             Statement::VariableDeclaration(_) => true,
+            Statement::ConstantDeclaration(_) => true,
             Statement::Expression(expr) => match *expr.expression {
                 Expression::Conditional(_) => !expression_statement,
                 Expression::Loop(_) => true,
@@ -420,5 +453,14 @@ impl Compiler {
         }
 
         result
+    }
+
+    /// Throws an [CompilerError](crate::lib::exception::compiler_new::CompilerError;) and exists with code '1'.
+    fn throw_exception(&self, message: String, extra_message: Option<String>) {
+        let mut err = CompilerError {
+            error_message: message,
+            extra_message,
+        };
+        err.throw_exception();
     }
 }

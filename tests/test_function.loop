@@ -1,5 +1,5 @@
 // answer = 9
-var f = fn(int x, int y) {
+fn f(int x, int y) {
     return x + y
 }
 f(3, 6)

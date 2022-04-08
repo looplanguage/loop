@@ -364,6 +364,7 @@ impl Lexer {
     fn lookup_keyword(&self, keyword: &str) -> TokenType {
         match keyword {
             "var" => TokenType::VariableDeclaration,
+            "const" => TokenType::ConstantDeclaration,
             "true" => TokenType::True,
             "false" => TokenType::False,
             "fn" => TokenType::Function,

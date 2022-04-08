@@ -1,9 +1,9 @@
 // answer = 46
-var array = [3, 4, 6, 10] 
-var x = 0 
+array := [3, 4, 6, 10]
+x := 0
 for (var i in array) { x = x + i }
 
-var y = 0 
+y := 0
 for (var i in array) { y = y + i }
 
 x + y

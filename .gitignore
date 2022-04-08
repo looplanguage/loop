@@ -7,3 +7,4 @@ loop-pipeline.ps1
 
 # Build script copies a D compiler
 d_compiler
+d_compiler.exe

@@ -1,12 +1,15 @@
 //! Helper for symbols defined by the user
+use crate::compiler::modifiers::Modifiers;
 use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[derive(Clone)]
 pub struct Variable {
     pub index: u32,
     pub name: String,
     pub _type: Types,
+    pub modifiers: Modifiers,
 }
 
 pub struct VariableScope {
@@ -34,11 +37,18 @@ impl Variable {
 }
 
 impl VariableScope {
-    pub fn define(&mut self, index: u32, name: String, _type: Types) -> Variable {
+    pub fn define(
+        &mut self,
+        index: u32,
+        name: String,
+        _type: Types,
+        modifiers: Modifiers,
+    ) -> Variable {
         self.variables.push(Variable {
             index,
             name,
             _type: _type.clone(),
+            modifiers: modifiers.clone(),
         });
 
         let var = self.variables.last().expect("inserted");
@@ -47,6 +57,7 @@ impl VariableScope {
             name: var.name.clone(),
             index: var.index,
             _type,
+            modifiers,
         }
     }
 
@@ -57,6 +68,7 @@ impl VariableScope {
                     index: variable.index,
                     name,
                     _type: variable._type.clone(),
+                    modifiers: variable.modifiers.clone(),
                 });
             }
         }

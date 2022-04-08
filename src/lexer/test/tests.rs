@@ -7,45 +7,94 @@ mod tests {
     #[test]
     fn variable_declaration_numbers() {
         let input =
-            "var test = 1; var _foo = 1; var bar = -1; var yeet = 1; var yeet2 = 0; var hello_world_2 = 3;";
+            "test := 1; _foo := 1.1; bar := -1; yeet := 1.1; yeet2 := -0.0002; hello_world_2 := 3;";
         let expected = vec![
             // Statement 1
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("test", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
             test_helper::generate_token("=", TokenType::Assign),
             test_helper::generate_token("1", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 2
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("_foo", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("1", TokenType::Integer), // CHANGE THIS BACK LATER (to 1.1 and Float)
+            test_helper::generate_token("1.1", TokenType::Float),
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 3
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("bar", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
             test_helper::generate_token("=", TokenType::Assign),
             test_helper::generate_token("-", TokenType::Minus),
             test_helper::generate_token("1", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 4
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("yeet", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
             test_helper::generate_token("=", TokenType::Assign),
-            test_helper::generate_token("1", TokenType::Integer), // CHANGE THIS BACK LATER (to 1.1 and Float)
+            test_helper::generate_token("1.1", TokenType::Float),
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 5
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("yeet2", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
             test_helper::generate_token("=", TokenType::Assign),
-            //test_helper::generate_token("-", TokenType::Minus),
-            test_helper::generate_token("0", TokenType::Integer), // CHANGE THIS BACK LATER (to -0.0001 and Float)
+            test_helper::generate_token("-", TokenType::Minus),
+            test_helper::generate_token("0.0002", TokenType::Float),
             test_helper::generate_token(";", TokenType::Semicolon),
             // Statement 6
-            test_helper::generate_token("var", TokenType::VariableDeclaration),
             test_helper::generate_token("hello_world_2", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
             test_helper::generate_token("=", TokenType::Assign),
             test_helper::generate_token("3", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+        ];
+
+        do_test(input, expected);
+    }
+
+    #[test]
+    fn constant_declaration() {
+        let input = "const int i := 13; const string s := \"hello\"; const bool b := true; const float f := 1.4; const v := 420;";
+
+        let expected = vec![
+            // Statement 1
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("int", TokenType::Identifier),
+            test_helper::generate_token("i", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("13", TokenType::Integer),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 2
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("string", TokenType::Identifier),
+            test_helper::generate_token("s", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("hello", TokenType::String),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 3
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("bool", TokenType::Identifier),
+            test_helper::generate_token("b", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("true", TokenType::True),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 4
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("float", TokenType::Identifier),
+            test_helper::generate_token("f", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("1.4", TokenType::Float),
+            test_helper::generate_token(";", TokenType::Semicolon),
+            // Statement 5
+            test_helper::generate_token("const", TokenType::ConstantDeclaration),
+            test_helper::generate_token("v", TokenType::Identifier),
+            test_helper::generate_token(":", TokenType::Colon),
+            test_helper::generate_token("=", TokenType::Assign),
+            test_helper::generate_token("420", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
         ];
 

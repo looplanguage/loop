@@ -1,5 +1,5 @@
 // answer = true
-var x = { 
+x := {
     true: { 
         0: { 
             "hello": {

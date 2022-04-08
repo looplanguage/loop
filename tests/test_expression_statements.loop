@@ -1,4 +1,4 @@
-var x = if true {
+x := if true {
     10
 } else {
     20

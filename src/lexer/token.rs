@@ -21,6 +21,8 @@ pub enum TokenType {
     Identifier,
     /// Example: 'var'
     VariableDeclaration,
+    /// Example: 'const'
+    ConstantDeclaration,
     /// Example: Positive and negative number without decimal
     Integer,
     /// Example: Positive number with decimal

@@ -18,6 +18,7 @@ use crate::parser::expression::suffix::{parse_grouped_expression, parse_suffix_e
 use crate::parser::expression::{get_precedence, Expression, Precedence};
 use crate::parser::program::{Node, Program};
 use crate::parser::statement::assign::parse_variable_assignment;
+use crate::parser::statement::constant::parse_constant_declaration;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
@@ -112,18 +113,34 @@ impl Parser {
                         Some(Types::Basic(BaseTypes::Float))
                     }
                 }
-                _ => None,
+                _ => {
+                    if self.peek_is_array() {
+                        Some(Types::Array(BaseTypes::UserDefined(token.literal)))
+                    } else {
+                        Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
+                    }
+                }
             },
+            TokenType::VariableDeclaration => Some(Types::Auto),
             _ => None,
         }
     }
 
     fn parse_statement(&mut self, token: Token) -> Option<Node> {
         let r = match token.token {
-            TokenType::VariableDeclaration => parse_variable_declaration(self),
+            TokenType::ConstantDeclaration => parse_constant_declaration(self),
             TokenType::Identifier => {
                 if self.peek_token_is(TokenType::Assign) {
                     parse_variable_assignment(self)
+                } else if self.peek_token_is(TokenType::Colon) {
+                    parse_variable_declaration(self, None)
+                } else if self.peek_token_is(TokenType::Identifier) {
+                    // User has explicitly typed a variable.
+                    let types = self
+                        .parse_type(self.lexer.get_current_token().unwrap().clone())
+                        .unwrap();
+                    self.lexer.next_token();
+                    parse_variable_declaration(self, Some(types))
                 } else {
                     parse_expression_statement(self)
                 }
@@ -271,9 +288,7 @@ impl Parser {
         get_precedence(self.lexer.get_current_token().unwrap().token)
     }
 
-    /// Exits program with code 0, which is successful.
-    /// Code one would mean that the Loop compiler itself had crashed. But in this case,
-    /// the code from the user is bad, thus 0.
+    /// Exists program with code: '1', which means application failure.
     pub fn throw_exception(&mut self, expected: Token, message: Option<String>) {
         let mut e = SyntaxError {
             error_line: self.lexer.get_line(self.lexer.current_line - 1),

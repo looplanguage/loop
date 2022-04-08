@@ -7,8 +7,6 @@ use dirs::home_dir;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use serde::Serialize;
-#[cfg(test)]
-use std::env;
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
