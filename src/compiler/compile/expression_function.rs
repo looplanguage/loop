@@ -3,7 +3,6 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{FunctionType, Types};
-use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Function {
@@ -23,7 +22,7 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
-    let mut function_type = Types::Auto;
+    let mut function_type: Types;
 
     // Named function ^.^
     if !func.name.is_empty() {

@@ -138,7 +138,6 @@ impl Compiler {
 
             let mut has_return_value = false;
             let mut is_expression = false;
-            let mut added_writeline = false;
             if index == length {
                 if let Statement::Expression(_) = statement.clone() {
                     // This is not very good code, the problem is that a user could define a function that returns nothing.
@@ -153,7 +152,6 @@ impl Compiler {
                     if has_return_value {
                         self.add_import("std".to_string());
                         self.add_to_current_function("writeln(".to_string());
-                        added_writeline = true;
                     }
                 }
             }
@@ -453,7 +451,7 @@ impl Compiler {
                     let result = self.compile_statement(statement.clone(), false);
 
                     // Find first "return" as that is the only way to return
-                    if let Statement::Return(ret) = statement.clone() {
+                    if let Statement::Return(_) = statement.clone() {
                         if let CompilerResult::Success(_type) = &result {
                             block_type = _type.clone();
                         }

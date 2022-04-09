@@ -3,7 +3,6 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
-use std::ops::DerefMut;
 
 pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,

@@ -1,9 +1,7 @@
 //! Helper for symbols defined by the user
 use crate::compiler::modifiers::Modifiers;
 use crate::parser::types::Types;
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
-use std::env::var;
 use std::rc::Rc;
 
 #[derive(Clone, Debug)]

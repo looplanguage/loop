@@ -1,7 +1,6 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
-use crate::parser::types::Types;
 
 pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -> CompilerResult {
     if _compiler.scope_index == 0 {
