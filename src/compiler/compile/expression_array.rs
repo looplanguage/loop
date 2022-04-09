@@ -28,13 +28,11 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
         }
 
         compiler.add_to_current_function("]".to_string());
-    } else {
-        if let Types::Array(value_type) = array_type.clone() {
-            if let Types::Basic(BaseTypes::Null) = *value_type {
-                compiler.add_to_current_function("(cast(Variant[])[])".to_string());
-            } else {
-                compiler.add_to_current_function("[]".to_string());
-            }
+    } else if let Types::Array(value_type) = array_type.clone() {
+        if let Types::Basic(BaseTypes::Null) = *value_type {
+            compiler.add_to_current_function("(cast(Variant[])[])".to_string());
+        } else {
+            compiler.add_to_current_function("[]".to_string());
         }
     }
 

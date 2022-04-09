@@ -28,9 +28,8 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
     let variable_borrowed = _compiler
         .variable_scope
         .borrow_mut()
-        .get_variable_mutable(var.index, var.name.clone())
-        .unwrap()
-        .clone();
+        .get_variable_mutable(var.index, var.name)
+        .unwrap();
 
     let result = _compiler.compile_expression(export.expression, false);
 

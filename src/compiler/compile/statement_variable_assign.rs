@@ -21,28 +21,26 @@ pub fn compile_statement_variable_assign(
             .borrow_mut()
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
-        if var.is_some() {
-            if var.clone().unwrap().modifiers.constant {
+        if let Some(var_type) = var {
+            if var_type.modifiers.constant {
                 // Program will stop here.
                 compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }
 
-            compiler.add_to_current_function(format!("{} = ", var.clone().unwrap().transpile()));
+            compiler.add_to_current_function(format!("{} = ", var_type._type.transpile()));
 
             let result = compiler.compile_expression(*variable.value.clone(), false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,
                 CompilerResult::Success(result_type) => {
-                    let _type = var.unwrap()._type;
-
-                    if *result_type != _type {
+                    if *result_type != var_type._type {
                         CompilerResult::Exception(CompilerException::WrongType(
                             result_type.transpile(),
-                            _type.transpile(),
+                            var_type._type.transpile(),
                         ))
                     } else {
-                        CompilerResult::Success(_type)
+                        CompilerResult::Success(var_type._type)
                     }
                 }
                 _ => CompilerResult::Exception(CompilerException::Unknown),

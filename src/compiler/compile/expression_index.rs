@@ -18,10 +18,8 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
 }
 
 fn _get_array_value_type(result: CompilerResult) -> Types {
-    if let CompilerResult::Success(array_type) = result {
-        if let Types::Array(value_type) = array_type {
-            return *value_type.clone();
-        }
+    if let CompilerResult::Success(Types::Array(value_type)) = result {
+        return *value_type;
     }
 
     Types::Auto
@@ -60,10 +58,8 @@ fn compile_expression_index_internal(
     compiler.compile_expression(index, false);
     compiler.add_to_current_function("]".to_string());
 
-    if let CompilerResult::Success(array_type) = result {
-        if let Types::Array(value_type) = array_type {
-            return CompilerResult::Success(*value_type);
-        }
+    if let CompilerResult::Success(Types::Array(value_type)) = result {
+        return CompilerResult::Success(*value_type);
     }
 
     // TODO: Proper error

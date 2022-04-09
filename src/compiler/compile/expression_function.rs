@@ -31,8 +31,7 @@ pub fn compile_expression_function(
         for parameter in &func.parameters {
             if parameters
                 .iter()
-                .find(|&p| p.name == parameter.identifier.value)
-                .is_some()
+                .any(|p| p.name == parameter.identifier.value)
             {
                 return CompilerResult::Exception(CompilerException::DoubleParameterName(
                     parameter.identifier.value.clone(),

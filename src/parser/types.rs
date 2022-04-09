@@ -53,17 +53,11 @@ impl Types {
                     format!("{}[]", basic.transpile())
                 }
                 Types::Array(array) => {
-                    format!("{}[][]", array.clone().transpile())
+                    format!("{}[][]", array.transpile())
                 }
-                Types::Function(_) => {
-                    format!("()[]")
-                }
-                Types::Void => {
-                    format!("void[]")
-                }
-                Types::Auto => {
-                    format!("Variant[]")
-                }
+                Types::Function(_) => "()[]".to_string(),
+                Types::Void => "void[]".to_string(),
+                Types::Auto => "Variant[]".to_string(),
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
