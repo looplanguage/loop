@@ -23,6 +23,11 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
+    let mut function_type = Types::Function(FunctionType {
+        return_type: Box::from(Types::Auto),
+        parameter_types: Vec::new(),
+    });
+
     // Named function ^.^
     if !func.name.is_empty() {
         let mut parameters: Vec<Parameter> = Vec::new();
@@ -53,7 +58,7 @@ pub fn compile_expression_function(
         }
 
         // TODO: Return type is auto for now, but types for parameters is et
-        let _type = Types::Function(FunctionType {
+        function_type = Types::Function(FunctionType {
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
         });
@@ -61,7 +66,7 @@ pub fn compile_expression_function(
         let var = compiler.variable_scope.borrow_mut().define(
             compiler.variable_count,
             format!("{}{}", compiler.location, func.name),
-            _type,
+            function_type.clone(),
             Modifiers::default(),
         );
 
@@ -73,7 +78,20 @@ pub fn compile_expression_function(
         };
 
         compiler.new_function(function);
-        compiler.add_to_current_function(format!("{} {}", var._type.transpile(), var.transpile()));
+
+        let return_type = {
+            if let Types::Function(f) = function_type.clone() {
+                f
+            } else {
+                return CompilerResult::Exception(CompilerException::Unknown);
+            }
+        };
+
+        compiler.add_to_current_function(format!(
+            "{} {}",
+            return_type.return_type.transpile(),
+            var.transpile()
+        ));
     }
 
     compiler.add_to_current_function(" (".to_string());
@@ -130,10 +148,12 @@ pub fn compile_expression_function(
     };
 
     // TODO: Return type is auto for now, but types for parameters is et
-    let anonymous_function_type = Types::Function(FunctionType {
+    function_type = Types::Function(FunctionType {
         return_type: Box::from(return_type),
         parameter_types,
     });
 
-    CompilerResult::Success(anonymous_function_type)
+    println!("{:?}", function_type);
+
+    CompilerResult::Success(function_type)
 }
