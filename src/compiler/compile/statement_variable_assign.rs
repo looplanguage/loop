@@ -29,7 +29,7 @@ pub fn compile_statement_variable_assign(
 
             compiler.add_to_current_function(format!("{} = ", var.clone().unwrap().transpile()));
 
-            let result = compiler.compile_expression(*variable.value, false);
+            let result = compiler.compile_expression(*variable.value.clone(), false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,

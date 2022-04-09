@@ -296,7 +296,7 @@ fn transpile_extension_slice(
 
     if let CompilerResult::Success(array_type) = result {
         if let Types::Array(_type) = array_type {
-            slice_type = Types::Basic(_type);
+            slice_type = Types::Array(_type);
         } else {
             // TODO: Return better error
             return CompilerResult::Exception(CompilerException::Unknown);
