@@ -1,4 +1,3 @@
-use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
@@ -8,16 +7,8 @@ pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
 ) -> CompilerResult {
-    let var = {
-        compiler.variable_scope.borrow_mut().define(
-            compiler.variable_count,
-            format!("{}{}", compiler.location, variable.ident.value),
-            variable.data_type.clone(),
-            Modifiers::default(),
-        )
-    };
+    let var = compiler.define_variable(variable.ident.value, variable.data_type.clone());
 
-    compiler.variable_count += 1;
     // let result = compiler.compile_expression(*variable.value);
 
     // TODO: Make this not auto

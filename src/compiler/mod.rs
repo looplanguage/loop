@@ -31,9 +31,10 @@ use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
 use crate::compiler::variable_table::{
-    build_deeper_variable_scope, build_variable_scope, VariableScope,
+    build_deeper_variable_scope, build_variable_scope, Variable, VariableScope,
 };
 use crate::lib::exception::compiler::CompilerException;
 use crate::lib::exception::compiler_new::CompilerError;
@@ -181,7 +182,6 @@ impl Compiler {
     }
 
     /// Defines a new named function and sets it as the compilation scope
-    // TODO: Function should have a hashmap of what type each parameter needs to be
     pub fn new_function(&mut self, func: Function) {
         self.function_stack.push(self.current_function.clone());
         self.current_function = func.name.clone();
@@ -381,6 +381,22 @@ impl Compiler {
         false
     }
 
+    /// Defines a new variable and increases the amount of variables that exist
+    fn define_variable(&mut self, name: String, var_type: Types) -> Variable {
+        let var = {
+            self.variable_scope.borrow_mut().define(
+                self.variable_count,
+                format!("{}{}", self.location, name),
+                var_type,
+                Modifiers::default(),
+            )
+        };
+
+        self.variable_count += 1;
+
+        var
+    }
+
     /// Checks an expression if it doesn't already have a return (as expressions always evalaute to a value)
     fn should_add_return(expression: Expression) -> bool {
         // Right now this is a macro, but can be expanded using a matches expression
@@ -401,23 +417,46 @@ impl Compiler {
             let err = {
                 if let Statement::Expression(exp) = statement.clone() {
                     if Compiler::should_add_return(*exp.expression.clone()) {
-                        if index == block.statements.len() && !anonymous {
-                            self.add_to_current_function("Variant block_return = ".to_string());
-                        }
+                        /*
+                        let block_return =
+                            self.define_variable("block_return".to_string(), Types::Auto);
 
-                        if index == block.statements.len() && anonymous {
+                        if index == block.statements.len() && !anonymous {
+                            self.add_to_current_function(format!(
+                                "Variant {} = ",
+                                block_return.transpile()
+                            ));
+                        }*/
+
+                        if index == block.statements.len()
+                        /*&& anonymous*/
+                        {
                             self.add_to_current_function("return ".to_string());
                         }
 
                         let result = self.compile_statement(statement.clone(), false);
 
-                        if index == block.statements.len() && !anonymous {
+                        if index == block.statements.len()
+                        /*&& !anonymous*/
+                        {
                             if let CompilerResult::Success(_type) = &result {
                                 block_type = _type.clone();
                             }
-
-                            self.add_to_current_function("return block_return;".to_string());
                         }
+                        /*
+                        if let CompilerResult::Success(_type) = &result {
+                            if *_type == Types::Void {
+                                self.replace_at_current_function(
+                                    format!("Variant {} = ", block_return.transpile()),
+                                    "".to_string(),
+                                )
+                            } /*else if index == block.statements.len() && !anonymous {
+                                  self.add_to_current_function(format!(
+                                      "return {};",
+                                      block_return.transpile()
+                                  ));
+                              }*/
+                        }*/
 
                         if index == block.statements.len() && anonymous {
                             if let CompilerResult::Success(_type) = &result {

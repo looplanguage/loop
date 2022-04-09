@@ -1,4 +1,3 @@
-use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::types::{BaseTypes, Types};
@@ -69,13 +68,7 @@ pub fn compile_loop_iterator_expression(
 ) -> CompilerResult {
     compiler.enter_variable_scope();
     // Define the identifier variable, with the starting integer
-    let var = compiler.variable_scope.as_ref().borrow_mut().define(
-        compiler.variable_count,
-        lp.identifier.value,
-        Types::Basic(BaseTypes::Integer),
-        Modifiers::default(),
-    );
-    compiler.variable_count += 1;
+    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer));
 
     compiler.add_to_current_function(format!("int {} = {};", var.transpile(), lp.from));
 
@@ -126,35 +119,23 @@ pub fn compile_loop_array_iterator_expression(
     compiler.enter_variable_scope();
 
     // Put the array on the stack and assign it to a cache variable
-    let array = compiler.variable_scope.as_ref().borrow_mut().define(
-        compiler.variable_count,
+    let array = compiler.define_variable(
         "_iterator_array".to_string(),
         Types::Array(Box::from(Types::Basic(BaseTypes::Integer))),
-        Modifiers::default(),
     );
-    compiler.variable_count += 1;
 
     // Array
-    compiler.add_to_current_function(format!("auto {} = ", array.transpile()));
+    compiler.add_to_current_function(format!("() {{ auto {} = ", array.transpile()));
     compiler.compile_expression(*lp.array, false);
     compiler.add_to_current_function(";".to_string());
 
     // Define the identifier variable, with the starting value of the array
-    let var = compiler.variable_scope.as_ref().borrow_mut().define(
-        compiler.variable_count,
-        lp.identifier.value,
-        Types::Basic(BaseTypes::Integer),
-        Modifiers::default(),
-    );
-    compiler.variable_count += 1;
+    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer));
 
-    let index = compiler.variable_scope.as_ref().borrow_mut().define(
-        compiler.variable_count,
+    let index = compiler.define_variable(
         "_iterator_index".to_string(),
         Types::Basic(BaseTypes::Integer),
-        Modifiers::default(),
     );
-    compiler.variable_count += 1;
 
     compiler.add_to_current_function(format!("int {} = 0;", index.transpile()));
     compiler.add_to_current_function(format!(
@@ -174,7 +155,7 @@ pub fn compile_loop_array_iterator_expression(
 
     compiler.add_to_current_function(format!("{} += 1;", index.transpile()));
     compiler.add_to_current_function(format!(
-        "if({} < {}.length) {{ {} = {}[{}]; }} }}",
+        "if({} < {}.length) {{ {} = {}[{}]; }} }} }}();",
         index.transpile(),
         array.transpile(),
         var.transpile(),

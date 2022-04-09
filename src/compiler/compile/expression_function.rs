@@ -1,4 +1,3 @@
-use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression;
@@ -23,6 +22,7 @@ pub fn compile_expression_function(
     func: expression::function::Function,
 ) -> CompilerResult {
     let mut function_type: Types;
+    let mut named_function: Option<String> = None;
 
     // Named function ^.^
     if !func.name.is_empty() {
@@ -58,12 +58,12 @@ pub fn compile_expression_function(
             parameter_types: type_parameters,
         });
 
-        let var = compiler.variable_scope.borrow_mut().define(
-            compiler.variable_count,
+        let var = compiler.define_variable(
             format!("{}{}", compiler.location, func.name),
             function_type.clone(),
-            Modifiers::default(),
         );
+
+        named_function = Option::from(var.transpile());
 
         let function = Function {
             name: var.transpile(),
@@ -95,22 +95,16 @@ pub fn compile_expression_function(
 
     let mut index = 0;
     for parameter in &func.parameters {
-        let symbol = compiler.variable_scope.borrow_mut().define(
-            compiler.variable_count,
+        let symbol = compiler.define_variable(
             format!(
                 "{}{}",
                 compiler.location,
                 parameter.identifier.value.clone(),
             ),
             parameter._type.clone(),
-            Modifiers::default(),
         );
 
-        let mut _type = "Variant".to_string();
-
-        if func.name.is_empty() {
-            _type = parameter.get_type()
-        }
+        let _type = parameter.get_type();
 
         parameter_types.push(Box::from(parameter._type.clone()));
 
@@ -129,10 +123,6 @@ pub fn compile_expression_function(
 
     let result = compiler.compile_block(func.body, func.name.is_empty());
 
-    if !func.name.is_empty() {
-        compiler.exit_function();
-    }
-
     // Currently infer and dont allow manually setting type
     let return_type = {
         if let CompilerResult::Success(_type) = result {
@@ -146,9 +136,25 @@ pub fn compile_expression_function(
 
     // TODO: Return type is auto for now, but types for parameters is et
     function_type = Types::Function(FunctionType {
-        return_type: Box::from(return_type),
+        return_type: Box::from(return_type.clone()),
         parameter_types,
     });
+
+    // Set return type of named function, if it exists
+    if let Some(named_function) = named_function {
+        let function = compiler.functions.get_mut(&*named_function);
+        let unwrapped = function.unwrap();
+        unwrapped.return_type = return_type.clone();
+
+        compiler.replace_at_current_function(
+            format!("Variant {}", named_function),
+            format!("{} {}", return_type.transpile(), named_function),
+        )
+    }
+
+    if !func.name.is_empty() {
+        compiler.exit_function();
+    }
 
     CompilerResult::Success(function_type)
 }

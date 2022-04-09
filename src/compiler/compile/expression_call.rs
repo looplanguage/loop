@@ -29,10 +29,12 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
         let result = compiler.compile_expression(parameter, false);
         // Get proper type or cast to Variant if inferring type
-
+        /*
         if *func_signature.return_type == Types::Auto {
             compiler.add_to_current_function(".to!Variant".to_string());
         }
+
+         */
 
         #[allow(clippy::single_match)]
         match &result {

@@ -1,4 +1,3 @@
-use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
@@ -10,18 +9,14 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
         return CompilerResult::Exception(CompilerException::Unknown);
     }
 
-    let var = _compiler.variable_scope.borrow_mut().define(
-        _compiler.variable_count,
+    let var = _compiler.define_variable(
         format!(
             "{}{}",
             _compiler.prev_location,
             _compiler.export_name.clone()
         ),
         Types::Auto,
-        Modifiers::default(),
     );
-
-    _compiler.variable_count += 1;
 
     _compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
 

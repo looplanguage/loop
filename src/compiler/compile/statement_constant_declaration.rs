@@ -1,4 +1,3 @@
-use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::constant::ConstantDeclaration;
 use crate::parser::types::Types;
@@ -7,14 +6,10 @@ pub fn compile_statement_constant_declaration(
     compiler: &mut Compiler,
     constant: ConstantDeclaration,
 ) -> CompilerResult {
-    let var = compiler.variable_scope.borrow_mut().define(
-        compiler.variable_count,
+    let var = compiler.define_variable(
         format!("{}{}", compiler.location, constant.ident.value),
         constant.data_type.clone(),
-        Modifiers::new(true),
     );
-
-    compiler.variable_count += 1;
     // let result = compiler.compile_expression(*variable.value);
 
     // ToDo: Check whether value has the same type as the type, otherwise there will be a D error
