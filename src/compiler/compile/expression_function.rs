@@ -137,6 +137,8 @@ pub fn compile_expression_function(
     let return_type = {
         if let CompilerResult::Success(_type) = result {
             _type
+        } else if let CompilerResult::Exception(exception) = result {
+            return CompilerResult::Exception(exception);
         } else {
             Types::Void
         }
