@@ -6,21 +6,6 @@ use std::cell::RefCell;
 use std::env::var;
 use std::rc::Rc;
 
-pub struct Person {
-    name: String,
-    age: i32,
-}
-
-impl Person {
-    pub fn random_shout(x: i32) {
-        println!("Dasdasd");
-    }
-
-    pub fn not_random_shout(&self) {
-        println!("{}", self.name);
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct Variable {
     pub index: u32,

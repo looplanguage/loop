@@ -23,10 +23,7 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
-    let mut function_type = Types::Function(FunctionType {
-        return_type: Box::from(Types::Auto),
-        parameter_types: Vec::new(),
-    });
+    let mut function_type = Types::Auto;
 
     // Named function ^.^
     if !func.name.is_empty() {

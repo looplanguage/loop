@@ -3,7 +3,7 @@ use crate::parser::expression::array::Array;
 use crate::parser::types::{BaseTypes, Types};
 
 pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> CompilerResult {
-    let mut array_type: Types = Types::Array(BaseTypes::Integer);
+    let mut array_type: Types = Types::Array(Box::from(Types::Basic(BaseTypes::Integer)));
 
     if !arr.values.is_empty() {
         compiler.add_to_current_function("[".to_string());
@@ -16,9 +16,7 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
 
             if let CompilerResult::Success(_type) = result {
                 if index == 1 {
-                    if let Types::Basic(basic) = _type {
-                        array_type = Types::Array(basic);
-                    }
+                    array_type = Types::Array(Box::from(_type.clone()));
                 }
 
                 if arr.values.len() > 1 && arr.values.len() != index {
@@ -31,7 +29,13 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
 
         compiler.add_to_current_function("]".to_string());
     } else {
-        compiler.add_to_current_function("(cast(Variant[])[])".to_string());
+        if let Types::Array(value_type) = array_type.clone() {
+            if let Types::Basic(BaseTypes::Null) = *value_type {
+                compiler.add_to_current_function("(cast(Variant[])[])".to_string());
+            } else {
+                compiler.add_to_current_function("[]".to_string());
+            }
+        }
     }
 
     CompilerResult::Success(array_type)

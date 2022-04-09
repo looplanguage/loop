@@ -129,7 +129,7 @@ pub fn compile_loop_array_iterator_expression(
     let array = compiler.variable_scope.as_ref().borrow_mut().define(
         compiler.variable_count,
         "_iterator_array".to_string(),
-        Types::Array(BaseTypes::Integer),
+        Types::Array(Box::from(Types::Basic(BaseTypes::Integer))),
         Modifiers::default(),
     );
     compiler.variable_count += 1;

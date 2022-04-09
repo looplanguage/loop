@@ -87,35 +87,37 @@ impl Parser {
             TokenType::Identifier => match token.literal.as_str() {
                 "int" => {
                     if self.peek_is_array() {
-                        Some(Types::Array(BaseTypes::Integer))
+                        Some(Types::Array(Box::from(Types::Basic(BaseTypes::Integer))))
                     } else {
                         Some(Types::Basic(BaseTypes::Integer))
                     }
                 }
                 "bool" => {
                     if self.peek_is_array() {
-                        Some(Types::Array(BaseTypes::Boolean))
+                        Some(Types::Array(Box::from(Types::Basic(BaseTypes::Boolean))))
                     } else {
                         Some(Types::Basic(BaseTypes::Boolean))
                     }
                 }
                 "string" => {
                     if self.peek_is_array() {
-                        Some(Types::Array(BaseTypes::String))
+                        Some(Types::Array(Box::from(Types::Basic(BaseTypes::String))))
                     } else {
                         Some(Types::Basic(BaseTypes::String))
                     }
                 }
                 "float" => {
                     if self.peek_is_array() {
-                        Some(Types::Array(BaseTypes::Float))
+                        Some(Types::Array(Box::from(Types::Basic(BaseTypes::Float))))
                     } else {
                         Some(Types::Basic(BaseTypes::Float))
                     }
                 }
                 _ => {
                     if self.peek_is_array() {
-                        Some(Types::Array(BaseTypes::UserDefined(token.literal)))
+                        Some(Types::Array(Box::from(Types::Basic(
+                            BaseTypes::UserDefined(token.literal),
+                        ))))
                     } else {
                         Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
                     }

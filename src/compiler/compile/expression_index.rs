@@ -17,10 +17,10 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
     }
 }
 
-fn get_array_value_type(result: CompilerResult) -> Types {
+fn _get_array_value_type(result: CompilerResult) -> Types {
     if let CompilerResult::Success(array_type) = result {
         if let Types::Array(value_type) = array_type {
-            return Types::Basic(value_type);
+            return *value_type.clone();
         }
     }
 
@@ -42,7 +42,7 @@ pub fn compile_expression_assign_index(
     compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
     compiler.compile_expression(assign.left, false);
 
-    compiler.add_to_current_function(format!(".get!(Variant[]); {}[", var.transpile()));
+    compiler.add_to_current_function(format!("; {}[", var.transpile()));
     compiler.compile_expression(assign.index, false);
     compiler.add_to_current_function("] = ".to_string());
     compiler.compile_expression(assign.value, false);
@@ -62,7 +62,7 @@ fn compile_expression_index_internal(
 
     if let CompilerResult::Success(array_type) = result {
         if let Types::Array(value_type) = array_type {
-            return CompilerResult::Success(Types::Basic(value_type));
+            return CompilerResult::Success(*value_type);
         }
     }
 

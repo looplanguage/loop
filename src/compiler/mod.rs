@@ -371,7 +371,7 @@ impl Compiler {
     }
 
     /// Recursively search through a block to find if it returns anything
-    fn block_get_return_type(block: Block) -> bool {
+    fn _block_get_return_type(block: Block) -> bool {
         if !block.statements.is_empty() {
             return match block.statements.last().unwrap() {
                 Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
