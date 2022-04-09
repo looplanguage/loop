@@ -219,7 +219,8 @@ fn transpile_extension_add(
         }
     }
 
-    compiler.add_to_current_function("].to!(Variant[])".to_string());
+    // Maybe add .to!(Variant[]) if auto?
+    compiler.add_to_current_function("]".to_string());
 
     CompilerResult::Success(Types::Void)
 }
@@ -248,7 +249,8 @@ fn transpile_extension_remove(
 
     compiler.compile_expression(left, false);
 
-    compiler.add_to_current_function(".get!(Variant[]).remove(".to_string());
+    // Maybe add .get!Variant for auto types?
+    compiler.add_to_current_function(".remove(".to_string());
 
     let mut index = 0;
     for parameter in call.parameters.clone() {
@@ -303,7 +305,8 @@ fn transpile_extension_slice(
         }
     };
 
-    compiler.add_to_current_function(".get!(Variant[])[".to_string());
+    // Maybe add .get!(Variant[]) if auto?
+    compiler.add_to_current_function("[".to_string());
 
     let start = call.parameters[0].clone();
     let end = call.parameters[1].clone();
