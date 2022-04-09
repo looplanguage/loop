@@ -25,7 +25,18 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
 
     _compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
 
-    _compiler.compile_expression(export.expression, false);
+    let variable_borrowed = _compiler
+        .variable_scope
+        .borrow_mut()
+        .get_variable_mutable(var.index, var.name.clone())
+        .unwrap()
+        .clone();
+
+    let result = _compiler.compile_expression(export.expression, false);
+
+    if let CompilerResult::Success(_type) = result {
+        variable_borrowed.as_ref().borrow_mut()._type = _type;
+    }
 
     CompilerResult::Success(Types::Void)
 }
