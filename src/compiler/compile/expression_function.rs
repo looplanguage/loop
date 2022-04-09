@@ -78,6 +78,8 @@ pub fn compile_expression_function(
 
     compiler.add_to_current_function(" (".to_string());
 
+    let mut parameter_types: Vec<Box<Types>> = Vec::new();
+
     let mut index = 0;
     for parameter in &func.parameters {
         let symbol = compiler.variable_scope.borrow_mut().define(
@@ -96,6 +98,8 @@ pub fn compile_expression_function(
         if func.name.is_empty() {
             _type = parameter.get_type()
         }
+
+        parameter_types.push(Box::from(parameter._type.clone()));
 
         // This currently defines every parameter type to be a Variant, we should do compile time
         // checks to ensure type safety.
@@ -116,5 +120,20 @@ pub fn compile_expression_function(
         compiler.exit_function();
     }
 
-    result
+    // Currently infer and dont allow manually setting type
+    let return_type = {
+        if let CompilerResult::Success(_type) = result {
+            _type
+        } else {
+            Types::Void
+        }
+    };
+
+    // TODO: Return type is auto for now, but types for parameters is et
+    let anonymous_function_type = Types::Function(FunctionType {
+        return_type: Box::from(return_type),
+        parameter_types,
+    });
+
+    CompilerResult::Success(anonymous_function_type)
 }
