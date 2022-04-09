@@ -132,7 +132,7 @@ pub fn compile_expression_function(
 
     compiler.add_to_current_function(") ".to_string());
 
-    let result = compiler.compile_block(func.body);
+    let result = compiler.compile_block(func.body, func.name.is_empty());
 
     if !func.name.is_empty() {
         compiler.exit_function();
@@ -152,8 +152,6 @@ pub fn compile_expression_function(
         return_type: Box::from(return_type),
         parameter_types,
     });
-
-    println!("{:?}", function_type);
 
     CompilerResult::Success(function_type)
 }

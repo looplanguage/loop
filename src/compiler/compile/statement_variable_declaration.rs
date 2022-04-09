@@ -24,12 +24,11 @@ pub fn compile_statement_variable_declaration(
     // TODO: Make this not auto
     let mut _type = "Variant";
     // This code is for explicit typing, but there need to be checks for the assigned value;
-    // let _type = if let Types::Auto = variable.data_type {
-    //     "Variant"
-    // }
-    // else {
-    //     variable.data_type.transpile();
-    // };
+    let _type = if let Types::Auto = variable.data_type {
+        "Variant".to_string()
+    } else {
+        variable.data_type.transpile()
+    };
 
     compiler.add_to_current_function(format!("{} {} = ", _type, var.transpile()));
 
@@ -42,15 +41,24 @@ pub fn compile_statement_variable_declaration(
 
     let result = compiler.compile_expression(*variable.value, false);
 
-    let result = if let CompilerResult::Success(_type) = result {
-        if variable.data_type.clone() != Types::Auto && _type != variable.data_type {
+    let result = if let CompilerResult::Success(_suc_type) = result.clone() {
+        if variable.data_type.clone() != Types::Auto && _suc_type != variable.data_type {
             return CompilerResult::Exception(CompilerException::WrongType(
-                _type.transpile(),
+                _suc_type.transpile(),
                 variable.data_type.transpile(),
             ));
         }
 
-        _type
+        if variable.data_type.clone() == Types::Auto {
+            if let CompilerResult::Success(inferred_type) = result.clone() {
+                compiler.replace_at_current_function(
+                    format!("{} {} = ", _type, var.transpile()),
+                    format!("{} {} = ", inferred_type.transpile(), var.transpile()),
+                );
+            }
+        }
+
+        _suc_type
     } else {
         return result;
     };

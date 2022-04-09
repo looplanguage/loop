@@ -202,6 +202,16 @@ impl Compiler {
         func.unwrap().code.push_str(code.as_str());
     }
 
+    /// Allows replacing context
+    pub fn replace_at_current_function(&mut self, replace: String, with: String) {
+        let func = self.functions.get_mut(&*self.current_function);
+
+        let unwrapped = func.unwrap();
+        let replaced = unwrapped.code.replace(replace.as_str(), &*with);
+
+        unwrapped.code = replaced;
+    }
+
     /// Adds an import needed by D This function can be called with the same import as many times
     /// as you would like, it will only add imports if it doesn't already exist
     pub fn add_import(&mut self, import: String) {
@@ -380,7 +390,7 @@ impl Compiler {
     }
 
     /// Compiles a deeper [Block] adding curly braces
-    fn compile_block(&mut self, block: Block) -> CompilerResult {
+    fn compile_block(&mut self, block: Block, anonymous: bool) -> CompilerResult {
         let mut block_type: Types = Types::Void;
         self.enter_variable_scope();
 
@@ -393,18 +403,30 @@ impl Compiler {
             let err = {
                 if let Statement::Expression(exp) = statement.clone() {
                     if Compiler::should_add_return(*exp.expression.clone()) {
-                        if index == block.statements.len() {
+                        if index == block.statements.len() && !anonymous {
                             self.add_to_current_function("Variant block_return = ".to_string());
+                        }
+
+                        if index == block.statements.len() && anonymous {
+                            self.add_to_current_function("return ".to_string());
                         }
 
                         let result = self.compile_statement(statement.clone(), false);
 
-                        if index == block.statements.len() {
+                        if index == block.statements.len() && !anonymous {
                             if let CompilerResult::Success(_type) = &result {
                                 block_type = _type.clone();
                             }
 
                             self.add_to_current_function("return block_return;".to_string());
+                        }
+
+                        if index == block.statements.len() && anonymous {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+
+                            self.add_to_current_function("".to_string());
                         }
 
                         result
@@ -481,7 +503,7 @@ impl Compiler {
                 expression_statement = true;
                 self.compile_expression(*expr.expression, true)
             }
-            Statement::Block(block) => self.compile_block(block),
+            Statement::Block(block) => self.compile_block(block, false),
             Statement::VariableAssign(variable) => {
                 compile_statement_variable_assign(self, variable)
             }

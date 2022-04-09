@@ -33,7 +33,7 @@ pub fn compile_expression_conditional(
         _ => (),
     }
 
-    let result = compiler.compile_block(conditional.body);
+    let result = compiler.compile_block(conditional.body, true);
 
     #[allow(clippy::single_match)]
     match &result {
@@ -56,7 +56,7 @@ pub fn compile_expression_conditional(
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {
-                compiler.compile_block(block);
+                compiler.compile_block(block, true);
             }
         }
     }

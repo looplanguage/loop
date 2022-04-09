@@ -29,7 +29,7 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
             }
         }
 
-        compiler.add_to_current_function("].to!(Variant[])".to_string());
+        compiler.add_to_current_function("]".to_string());
     } else {
         compiler.add_to_current_function("(cast(Variant[])[])".to_string());
     }

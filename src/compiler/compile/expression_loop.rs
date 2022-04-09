@@ -35,7 +35,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     compiler.add_to_current_function(")".to_string());
 
     // Body
-    let result = compiler.compile_block(lp.body);
+    let result = compiler.compile_block(lp.body, true);
 
     compiler.add_to_current_function("}()".to_string());
 

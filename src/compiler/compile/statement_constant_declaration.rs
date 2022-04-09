@@ -22,7 +22,14 @@ pub fn compile_statement_constant_declaration(
 
     compiler.add_to_current_function(format!("const {} {} = ", _type, var.transpile()));
 
-    compiler.compile_expression(*constant.value, false);
+    let result = compiler.compile_expression(*constant.value, false);
+
+    if let CompilerResult::Success(inferred_type) = result.clone() {
+        compiler.replace_at_current_function(
+            format!("const {} {} = ", _type, var.transpile()),
+            format!("const {} {} = ", inferred_type.transpile(), var.transpile()),
+        );
+    }
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
