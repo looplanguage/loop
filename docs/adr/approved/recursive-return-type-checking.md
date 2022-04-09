@@ -3,6 +3,7 @@
 - Status: solved
 - Deciders: Kane Petra, Wouter Pennings
 - Date: 08-04-2022
+- Loop version: 0.2.0
 
 Issue: https://looplang.atlassian.net/browse/LOOP-145
 
