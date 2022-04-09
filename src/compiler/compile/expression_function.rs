@@ -2,7 +2,6 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{FunctionType, Types};
-use std::borrow::{Borrow, BorrowMut};
 
 #[derive(Clone)]
 pub struct Function {
