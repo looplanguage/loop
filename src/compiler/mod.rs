@@ -183,6 +183,7 @@ impl Compiler {
 
     /// Defines a new named function and sets it as the compilation scope
     pub fn new_function(&mut self, func: Function) {
+        self.enter_variable_scope();
         self.function_stack.push(self.current_function.clone());
         self.current_function = func.name.clone();
         self.functions.insert(func.name.clone(), func);
@@ -190,6 +191,7 @@ impl Compiler {
 
     /// Exits the current function compilation scope
     pub fn exit_function(&mut self) {
+        self.exit_variable_scope();
         self.current_function = self.function_stack.pop().unwrap();
     }
 
@@ -383,14 +385,12 @@ impl Compiler {
 
     /// Defines a new variable and increases the amount of variables that exist
     fn define_variable(&mut self, name: String, var_type: Types) -> Variable {
-        let var = {
-            self.variable_scope.borrow_mut().define(
-                self.variable_count,
-                format!("{}{}", self.location, name),
-                var_type,
-                Modifiers::default(),
-            )
-        };
+        let var = self.variable_scope.borrow_mut().define(
+            self.variable_count,
+            format!("{}{}", self.location, name),
+            var_type,
+            Modifiers::default(),
+        );
 
         self.variable_count += 1;
 

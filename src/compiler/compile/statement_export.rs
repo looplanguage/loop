@@ -1,10 +1,9 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::export::Export;
-use crate::parser::types::Types;
 
-pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> CompilerResult {
-    if _compiler.export_name.is_empty() {
+pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> CompilerResult {
+    /*if _compiler.export_name.is_empty() {
         // TODO: Return error
         return CompilerResult::Exception(CompilerException::Unknown);
     }
@@ -18,6 +17,8 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
         Types::Auto,
     );
 
+    println!("Setting variable in: \"{}\"", _compiler.prev_location);
+
     _compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
 
     let variable_borrowed = _compiler
@@ -30,7 +31,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, export: Export) -> Com
 
     if let CompilerResult::Success(_type) = result {
         variable_borrowed.as_ref().borrow_mut()._type = _type;
-    }
+    }*/
 
-    CompilerResult::Success(Types::Void)
+    CompilerResult::Exception(CompilerException::Unknown)
 }

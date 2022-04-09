@@ -149,7 +149,7 @@ pub fn compile_expression_function(
         compiler.replace_at_current_function(
             format!("Variant {}", named_function),
             format!("{} {}", return_type.transpile(), named_function),
-        )
+        );
     }
 
     if !func.name.is_empty() {

@@ -1,14 +1,9 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lexer::build_lexer;
 use crate::lib::exception::compiler::CompilerException;
-use crate::lib::exception::Exception;
-use crate::parser::build_parser;
 use crate::parser::statement::import::Import;
-use crate::parser::types::Types;
-use std::fs;
-use std::path::Path;
 
-pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> CompilerResult {
+pub fn compile_import_statement(_compiler: &mut Compiler, _import: Import) -> CompilerResult {
+    /*
     // Keep hold of last_location
     let before_last_location = _compiler.prev_location.clone();
     let last_location = _compiler.location.clone();
@@ -73,5 +68,6 @@ pub fn compile_import_statement(_compiler: &mut Compiler, import: Import) -> Com
     _compiler.location = last_location;
     _compiler.export_name = last_import_location;
 
-    CompilerResult::Success(Types::Void)
+    CompilerResult::Success(Types::Void)*/
+    CompilerResult::Exception(CompilerException::Unknown)
 }
