@@ -49,5 +49,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
     compiler.add_to_current_function(String::from(")"));
 
+    println!("SIGNATURE: {:?}", func_signature);
+
     CompilerResult::Success(*func_signature.return_type.clone())
 }

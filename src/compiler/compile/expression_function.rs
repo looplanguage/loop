@@ -2,6 +2,7 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{FunctionType, Types};
+use std::borrow::{Borrow, BorrowMut};
 
 #[derive(Clone)]
 pub struct Function {
@@ -22,7 +23,8 @@ pub fn compile_expression_function(
     func: expression::function::Function,
 ) -> CompilerResult {
     let mut function_type: Types;
-    let mut named_function: Option<String> = None;
+    // (Transpiled, Named, Index)
+    let mut named_function: Option<(String, String, u32)> = None;
 
     // Named function ^.^
     if !func.name.is_empty() {
@@ -63,7 +65,7 @@ pub fn compile_expression_function(
             function_type.clone(),
         );
 
-        named_function = Option::from(var.transpile());
+        named_function = Option::from((var.transpile(), var.name.clone(), var.index));
 
         let function = Function {
             name: var.transpile(),
@@ -141,19 +143,28 @@ pub fn compile_expression_function(
     });
 
     // Set return type of named function, if it exists
-    if let Some(named_function) = named_function {
-        let function = compiler.functions.get_mut(&*named_function);
-        let unwrapped = function.unwrap();
-        unwrapped.return_type = return_type.clone();
+    if let Some(named_function) = named_function.clone() {
+        let function = compiler.functions.get_mut(&*named_function.0);
+        function.unwrap().return_type = return_type.clone();
 
         compiler.replace_at_current_function(
-            format!("Variant {}", named_function),
-            format!("{} {}", return_type.transpile(), named_function),
+            format!("Variant {}", named_function.0),
+            format!("{} {}", return_type.transpile(), named_function.0),
         );
     }
 
     if !func.name.is_empty() {
         compiler.exit_function();
+
+        let named_function = named_function.unwrap();
+
+        let variable = compiler
+            .variable_scope
+            .as_ref()
+            .borrow_mut()
+            .get_variable_mutable(named_function.2, named_function.1);
+
+        variable.unwrap().as_ref().borrow_mut()._type = function_type.clone();
     }
 
     CompilerResult::Success(function_type)

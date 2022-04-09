@@ -7,8 +7,6 @@ pub fn compile_expression_identifier(
     compiler: &mut Compiler,
     identifier: Identifier,
 ) -> CompilerResult {
-    println!("Getting variable from: \"{}\"", compiler.location);
-
     let symbol = compiler
         .symbol_table
         .borrow_mut()
@@ -28,8 +26,6 @@ pub fn compile_expression_identifier(
             .variable_scope
             .borrow_mut()
             .resolve(format!("{}{}", compiler.location, identifier.value));
-
-        println!("Found: {:?}", var);
 
         if let Some(var) = var {
             compiler.add_to_current_function(var.transpile());
