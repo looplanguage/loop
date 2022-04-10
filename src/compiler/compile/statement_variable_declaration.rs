@@ -39,7 +39,7 @@ pub fn compile_statement_variable_declaration(
         }
 
         if variable.data_type == Types::Auto {
-            if let CompilerResult::Success(inferred_type) = result.clone() {
+            if let CompilerResult::Success(inferred_type) = result {
                 compiler.replace_at_current_function(
                     format!("{} {} = ", _type, var.transpile()),
                     format!("{} {} = ", inferred_type.transpile(), var.transpile()),
