@@ -201,6 +201,10 @@ deploy linux x86_64:
     - pip install boto3
     - pip install requests
     - pip install toml
+    - D_VERSION=$(wget -qO - http://downloads.dlang.org/releases/LATEST)
+    - wget -O dmd.deb http://downloads.dlang.org/releases/2.x/${D_VERSION}/dmd_${D_VERSION}-0_amd64.deb
+    - apt-get update
+    - apt-get install -y ./dmd.deb
   script:
     - cargo build --release
     - python3 scripts/prerelease.py
