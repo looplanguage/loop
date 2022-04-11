@@ -85,7 +85,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     let bytes = include_bytes!("../../../d_compiler.exe");
 
     // Check if compiler already exists in Loop directory
-    if !Path::new(format!("{}ldc2", loop_dir).as_str()).exists() {
+    if !Path::new(format!("{}d_compiler", loop_dir).as_str()).exists() {
         #[cfg(target_os = "windows")]
         let file = File::create(format!("{}d_compiler.exe", loop_dir));
 
@@ -97,7 +97,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                 .create(true)
                 .write(true)
                 .mode(0o0777)
-                .open(format!("{}ldc2", loop_dir).as_str())
+                .open(format!("{}d_compiler", loop_dir).as_str())
         };
 
         let result = file.unwrap().write_all(bytes);
@@ -131,13 +131,13 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     // Compile it & execute (only on macos and arm)
     if !CONFIG.debug_mode {
         let output = if cfg!(all(target_os = "macos")) {
-            let result = Command::new("ldc2")
+            let result = Command::new(format!("{}d_compiler", loop_dir).as_str())
                 .args([
                     format!("{}{}.d", dir, filename),
-                    format!("--of={}{}", dir, filename),
+                    format!("-of={}{}", dir, filename),
                 ])
                 .output()
-                .expect("failed to run D compiler! (ldc2)");
+                .expect(&*format!("failed to run D compiler! ({}d_compiler)", loop_dir));
 
             if !result.status.success() {
                 result
@@ -150,7 +150,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                     ))
             }
         } else if cfg!(all(target_os = "windows")) {
-            let result = Command::new("dmd")
+            let result = Command::new(format!("{}d_compiler.exe", loop_dir).as_str())
                 .args([
                     format!("{}{}.d", dir, filename),
                     format!("-of={}{}.exe", dir, filename),
