@@ -57,8 +57,8 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
 
     code.push_str(imports.as_str());
 
-    for function in comp.functions.clone() {
-        code.push_str(function.1.as_str());
+    for function in comp.functions {
+        code.push_str(function.1.code.as_str());
     }
 
     // Write output to temp directory in Loop home directory

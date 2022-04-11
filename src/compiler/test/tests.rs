@@ -299,6 +299,67 @@ mod tests {
     }
 
     #[test]
+    fn static_typing_1() {
+        compiler_test_error(
+            "\
+        int test := \"Hello World!\"",
+            Some(CompilerException::WrongType(
+                "string".to_string(),
+                "int".to_string(),
+            )),
+        );
+    }
+
+    #[test]
+    fn static_typing_2() {
+        compiler_test_error(
+            "\
+        string test := \"Hello World!\"",
+            None,
+        );
+    }
+
+    #[test]
+    fn static_typing_3() {
+        compiler_test_error(
+            "\n
+        int test := 100\n
+        test = \"Hello World!\"",
+            Some(CompilerException::WrongType(
+                "string".to_string(),
+                "int".to_string(),
+            )),
+        );
+    }
+
+    #[test]
+    fn static_typing_4() {
+        compiler_test_error(
+            "\n
+        test := if true { if true { 20 } }\n
+        test = \"Hello World!\"",
+            Some(CompilerException::WrongType(
+                "string".to_string(),
+                "int".to_string(),
+            )),
+        );
+    }
+
+    #[test]
+    fn static_typing_5() {
+        compiler_test_error(
+            "\n
+        fn func() { if true { return 100 } 50 };
+        test := func()\n
+        test = \"Hello World!\"",
+            Some(CompilerException::WrongType(
+                "string".to_string(),
+                "int".to_string(),
+            )),
+        );
+    }
+
+    #[test]
     fn scoping_rules_functions_2_1() {
         compiler_test_error(
             "\

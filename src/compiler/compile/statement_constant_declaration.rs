@@ -1,19 +1,15 @@
-use crate::compiler::modifiers::Modifiers;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::constant::ConstantDeclaration;
+use crate::parser::types::Types;
 
 pub fn compile_statement_constant_declaration(
     compiler: &mut Compiler,
     constant: ConstantDeclaration,
 ) -> CompilerResult {
-    let var = compiler.variable_scope.borrow_mut().define(
-        compiler.variable_count,
+    let var = compiler.define_variable(
         format!("{}{}", compiler.location, constant.ident.value),
         constant.data_type.clone(),
-        Modifiers::new(true),
     );
-
-    compiler.variable_count += 1;
     // let result = compiler.compile_expression(*variable.value);
 
     // ToDo: Check whether value has the same type as the type, otherwise there will be a D error
@@ -21,9 +17,16 @@ pub fn compile_statement_constant_declaration(
 
     compiler.add_to_current_function(format!("const {} {} = ", _type, var.transpile()));
 
-    compiler.compile_expression(*constant.value, false);
+    let result = compiler.compile_expression(*constant.value, false);
+
+    if let CompilerResult::Success(inferred_type) = result {
+        compiler.replace_at_current_function(
+            format!("const {} {} = ", _type, var.transpile()),
+            format!("const {} {} = ", inferred_type.transpile(), var.transpile()),
+        );
+    }
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
-    CompilerResult::Success
+    CompilerResult::Success(Types::Void)
 }

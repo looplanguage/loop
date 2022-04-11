@@ -2,6 +2,7 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
+use crate::parser::types::Types;
 
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
@@ -19,6 +20,7 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
+    let mut if_type: Types = Types::Void;
     let signature = if is_statement { "if (" } else { "() { if (" };
 
     compiler.add_to_current_function(signature.to_string());
@@ -31,11 +33,14 @@ pub fn compile_expression_conditional(
         _ => (),
     }
 
-    let result = compiler.compile_block(conditional.body);
+    let result = compiler.compile_block(conditional.body, true);
 
     #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
+        CompilerResult::Success(if_type_result) => {
+            if_type = if_type_result.clone();
+        }
         _ => (),
     }
 
@@ -51,7 +56,7 @@ pub fn compile_expression_conditional(
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {
-                compiler.compile_block(block);
+                compiler.compile_block(block, true);
             }
         }
     }
@@ -60,7 +65,7 @@ pub fn compile_expression_conditional(
 
     compiler.add_to_current_function(signature.to_string());
 
-    CompilerResult::Success
+    CompilerResult::Success(if_type)
 }
 
 // ToDo: This does not work yet. Hence it is commented

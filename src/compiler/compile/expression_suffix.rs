@@ -1,5 +1,6 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::suffix::Suffix;
+use crate::parser::types::{BaseTypes, Types};
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> CompilerResult {
     _compiler.add_to_current_function("(".to_string());
@@ -92,5 +93,6 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
 
      */
 
-    CompilerResult::Success
+    // Suffix expressions are currently only for integers
+    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }

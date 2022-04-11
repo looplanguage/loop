@@ -23,5 +23,5 @@ pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) ->
         _compiler.compile_expression(value.1, false);
     }
 
-    CompilerResult::Success
+    CompilerResult::Optimize
 }

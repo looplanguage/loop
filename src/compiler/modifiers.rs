@@ -1,5 +1,5 @@
 /// Modifiers of a variable, examples: `const`, `pub`
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Modifiers {
     /// Syntax: `const`
     ///

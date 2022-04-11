@@ -5,6 +5,7 @@ use crate::parser::statement::expression::Expression;
 use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
+// TODO: Add type
 pub struct Array {
     pub(crate) values: Vec<Expression>,
 }

@@ -14,28 +14,36 @@ pub fn compile_statement_variable_assign(
     if symbol.is_some() {
         let result = compiler.compile_expression(*variable.value, false);
 
-        return match &result {
-            CompilerResult::Exception(_exception) => result,
-            _ => CompilerResult::Success,
-        };
+        return result;
     } else {
         let var = compiler
             .variable_scope
             .borrow_mut()
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
-        if var.is_some() {
-            if var.clone().unwrap().modifiers.constant {
+        if let Some(var_type) = var {
+            if var_type.modifiers.constant {
                 // Program will stop here.
                 compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }
-            compiler.add_to_current_function(format!("{} = ", var.unwrap().transpile()));
 
-            let result = compiler.compile_expression(*variable.value, false);
+            compiler.add_to_current_function(format!("{} = ", var_type.transpile()));
+
+            let result = compiler.compile_expression(*variable.value.clone(), false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,
-                _ => CompilerResult::Success,
+                CompilerResult::Success(result_type) => {
+                    if *result_type != var_type._type {
+                        CompilerResult::Exception(CompilerException::WrongType(
+                            result_type.transpile(),
+                            var_type._type.transpile(),
+                        ))
+                    } else {
+                        CompilerResult::Success(var_type._type)
+                    }
+                }
+                _ => CompilerResult::Exception(CompilerException::Unknown),
             };
         }
     }
