@@ -137,7 +137,10 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                     format!("-of={}{}", dir, filename),
                 ])
                 .output()
-                .expect(&*format!("failed to run D compiler! ({}d_compiler)", loop_dir));
+                .expect(&*format!(
+                    "failed to run D compiler! ({}d_compiler)",
+                    loop_dir
+                ));
 
             if !result.status.success() {
                 result

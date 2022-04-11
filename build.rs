@@ -1,3 +1,5 @@
+use std::path::Path;
+
 fn main() {
     // Will rerun if d_compiler was not found or build.rs has changed
     println!("cargo:rerun-if-changed=build.rs");
@@ -13,6 +15,11 @@ fn main() {
 
     let location = location.unwrap();
     let location = location.to_str().unwrap();
+
+    // If it already exists in this directory, just ignore and stop
+    if Path::new("./d_compiler").exists() || Path::new("./d_compiler.exe").exists() {
+        return;
+    }
 
     // Add .exe if on Windows
     let result = if cfg!(target_os = "windows") {
