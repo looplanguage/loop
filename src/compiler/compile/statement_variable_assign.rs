@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::statement::assign::VariableAssign;
@@ -13,28 +12,38 @@ pub fn compile_statement_variable_assign(
         .resolve(format!("{}{}", compiler.location, variable.ident.value).as_str());
 
     if symbol.is_some() {
-        let result = compiler.compile_expression(*variable.value);
+        let result = compiler.compile_expression(*variable.value, false);
 
-        compiler.emit(OpCode::SetVar, vec![symbol.unwrap().index as u32]);
-
-        return match &result {
-            CompilerResult::Exception(_exception) => result,
-            _ => CompilerResult::Success,
-        };
+        return result;
     } else {
         let var = compiler
             .variable_scope
             .borrow_mut()
             .resolve(format!("{}{}", compiler.location, variable.ident.value));
 
-        if var.is_some() {
-            let result = compiler.compile_expression(*variable.value);
+        if let Some(var_type) = var {
+            if var_type.modifiers.constant {
+                // Program will stop here.
+                compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
+            }
 
-            compiler.emit(OpCode::SetVar, vec![var.unwrap().index]);
+            compiler.add_to_current_function(format!("{} = ", var_type.transpile()));
+
+            let result = compiler.compile_expression(*variable.value.clone(), false);
 
             return match &result {
                 CompilerResult::Exception(_exception) => result,
-                _ => CompilerResult::Success,
+                CompilerResult::Success(result_type) => {
+                    if *result_type != var_type._type {
+                        CompilerResult::Exception(CompilerException::WrongType(
+                            result_type.transpile(),
+                            var_type._type.transpile(),
+                        ))
+                    } else {
+                        CompilerResult::Success(var_type._type)
+                    }
+                }
+                _ => CompilerResult::Exception(CompilerException::Unknown),
             };
         }
     }

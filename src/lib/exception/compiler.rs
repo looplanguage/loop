@@ -1,10 +1,10 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct UnknownSymbol {
     pub name: String,
     pub scope_depth: u16,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CompilerException {
     UnknownSymbol(UnknownSymbol),
     DivideByZero,
@@ -15,6 +15,10 @@ pub enum CompilerException {
     UnknownExtensionMethod(String),
     CanOnlyAssignToVariableArray,
     CanNotReadFile(String),
+    DoubleParameterName(String),
+    CallingNonFunction(String),
+    WrongType(String, String),
+    ValueDifferentFromType(String, String),
     Unknown,
 }
 
@@ -41,6 +45,24 @@ impl CompilerException {
             }
             CompilerException::CanNotReadFile(error) => {
                 format!("unable to read file. got=\"{}\"", error)
+            }
+            CompilerException::DoubleParameterName(param) => {
+                format!("parameter name already in use. got=\"{}\"", param)
+            }
+            CompilerException::CallingNonFunction(f) => {
+                format!("you are attempting to call a non function. got=\"{}\". expected=\"Function(...)\"", f)
+            }
+            CompilerException::WrongType(got, expected) => {
+                format!(
+                    "type mismatch, can not assign different type. got=\"{}\". expected=\"{}\"",
+                    got, expected
+                )
+            }
+            CompilerException::ValueDifferentFromType(got, expected) => {
+                format!(
+                    "type mismatch, can not declare variable with static type to different typed value. got=\"{}\". expected\"{}\"",
+                    got, expected
+                )
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }

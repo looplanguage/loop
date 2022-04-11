@@ -1,7 +1,6 @@
+//! Responsible for transpiling Loop to D
 mod compile;
-pub mod definition;
-pub mod instructions;
-pub mod opcode;
+mod modifiers;
 mod symbol_table;
 mod test;
 mod variable_table;
@@ -11,7 +10,7 @@ use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_conditional::compile_expression_conditional;
 use crate::compiler::compile::expression_float::compile_expression_float;
-use crate::compiler::compile::expression_function::compile_expression_function;
+use crate::compiler::compile::expression_function::{compile_expression_function, Function};
 use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_index::{
@@ -26,58 +25,47 @@ use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_break::compile_break_statement;
+use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
-use crate::compiler::definition::lookup_op;
-use crate::compiler::instructions::{make_instruction, Instructions};
-use crate::compiler::opcode::OpCode;
+use crate::compiler::modifiers::Modifiers;
 use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
 use crate::compiler::variable_table::{
-    build_deeper_variable_scope, build_variable_scope, VariableScope,
+    build_deeper_variable_scope, build_variable_scope, Variable, VariableScope,
 };
 use crate::lib::exception::compiler::CompilerException;
-use crate::lib::object::null::Null;
-use crate::lib::object::Object;
+use crate::lib::exception::compiler_new::CompilerError;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
-use std::borrow::BorrowMut;
+use crate::parser::types::Types;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
+/// Instance of CompilerResult which contains information on how the compiler handled input
 #[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CompilerResult {
-    Success,
+    // Success can return an optional type if the result was an expression
+    Success(Types),
     Optimize,
     Exception(CompilerException),
 }
 
-pub struct Bytecode {
-    pub instructions: Instructions,
-    pub constants: Vec<Rc<RefCell<Object>>>,
+/// The result of the transpiler, which will be passed to the D compiler [crate::lib::util::execute_code]
+pub struct DCode {
+    pub imports: Vec<String>,
+    pub functions: HashMap<String, Function>,
 }
 
-#[derive(Copy, Clone)]
-pub struct EmittedInstruction {
-    position: i64,
-    op: OpCode,
-}
-
-pub struct CompilationScope {
-    pub instructions: Instructions,
-    pub last_instruction: EmittedInstruction,
-    pub previous_instruction: EmittedInstruction,
-}
-
+/// The compiler itself containing global metadata needed during compilation and methods
 pub struct Compiler {
-    pub scopes: Vec<CompilationScope>,
     pub scope_index: i32,
-    pub constants: Vec<Rc<RefCell<Object>>>,
     pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
@@ -86,67 +74,98 @@ pub struct Compiler {
     pub export_name: String,
     pub prev_location: String,
     pub breaks: Vec<u32>,
+
+    pub imports: Vec<String>,
+    pub functions: HashMap<String, Function>,
+    pub function_stack: Vec<String>,
+    pub current_function: String,
 }
 
-pub struct CompilerState {
-    constants: Vec<Rc<RefCell<Object>>>,
-    symbol_table: Rc<RefCell<SymbolTable>>,
-    variable_scope: Rc<RefCell<VariableScope>>,
-    variable_count: u32,
-}
+impl Default for Compiler {
+    fn default() -> Self {
+        Compiler {
+            scope_index: 0,
+            symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
+            variable_count: 0,
+            variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+            last_extension_type: None,
+            location: String::new(),
+            export_name: String::new(),
+            prev_location: String::new(),
+            breaks: Vec::new(),
 
-fn build_compiler_internal(state: &CompilerState) -> Compiler {
-    Compiler {
-        scopes: vec![CompilationScope {
-            instructions: vec![],
-            last_instruction: EmittedInstruction {
-                position: -1,
-                op: OpCode::Constant,
-            },
-            previous_instruction: EmittedInstruction {
-                position: -1,
-                op: OpCode::Constant,
-            },
-        }],
-        scope_index: 0,
-        constants: state.constants.clone(),
-        symbol_table: state.symbol_table.clone(),
-        variable_count: state.variable_count,
-        variable_scope: state.variable_scope.clone(),
-        last_extension_type: None,
-        location: String::new(),
-        export_name: String::new(),
-        prev_location: String::new(),
-        breaks: Vec::new(),
-    }
-}
-
-pub fn build_compiler(state: Option<&CompilerState>) -> Compiler {
-    if let Some(cmp) = state {
-        return build_compiler_internal(cmp);
-    }
-
-    build_compiler_internal(&empty_state())
-}
-
-fn empty_state() -> CompilerState {
-    CompilerState {
-        constants: vec![Rc::from(RefCell::from(Object::Null(Null {})))],
-        symbol_table: Rc::from(RefCell::new(symbol_table::SymbolTable::new_with_builtins())),
-        variable_scope: Rc::new(RefCell::new(build_variable_scope())),
-        variable_count: 0,
+            imports: Vec::new(),
+            functions: HashMap::new(),
+            function_stack: Vec::new(),
+            current_function: String::from("main"),
+        }
     }
 }
 
 impl Compiler {
-    pub fn compile(&mut self, program: Program) -> Result<Bytecode, CompilerException> {
+    /// Main compilation function which compiles a syntax tree from the parser into D
+    ///
+    /// # Example
+    /// ```
+    /// let lexer = lexer::build_lexer("var x = 100");
+    /// let mut parser = parser::build_parser(lexer);
+    /// let program = parser.parse();
+    ///
+    /// let compiler = Compiler::default();
+    ///
+    /// let result = compiler.compile(program);
+    ///
+    /// if result.is_err() {
+    ///     // Handle error
+    /// }
+    /// ```
+    pub fn compile(&mut self, program: Program) -> Result<DCode, CompilerException> {
+        // Insert main function
+        if self.location.is_empty() {
+            let main_function = Function {
+                name: "main".to_string(),
+                code: String::from("void main() {"),
+                parameters: Vec::new(),
+                return_type: Types::Void,
+            };
+
+            self.functions.insert(String::from("main"), main_function);
+        }
+
+        let mut index = 0;
+        let length = program.statements.len();
         for statement in program.statements {
-            let err = self.compile_statement(statement);
-            // if let Some(err) = err {
-            //     err.emit();
-            //
-            //     return Result::Err(err);
-            // }
+            index += 1;
+
+            let mut has_return_value = false;
+            let mut is_expression = false;
+            if index == length {
+                if let Statement::Expression(_) = statement.clone() {
+                    // This is not very good code, the problem is that a user could define a function that returns nothing.
+                    // In that case the function will also automatically be printed which will result in an error.
+                    // The solution is to recursively walk through the statement to check whether it returns something.
+                    // However, currently the print function in stolen from the D STD, which we cannot walk recursively through
+                    // because we call it.
+                    // TODO: implement a STD with a Loop abstraction so you can walk through the statements
+                    has_return_value = !self.is_blacklisted_function_call(statement.clone());
+                    is_expression = true;
+                    // The last expression always gets printed, but when it is a print functions it doesnt
+                    if has_return_value {
+                        self.add_import("std".to_string());
+                        self.add_to_current_function("writeln(".to_string());
+                    }
+                }
+            }
+
+            let err = self.compile_statement(statement, is_expression);
+
+            if index == length && is_expression {
+                if has_return_value {
+                    self.add_to_current_function(");".to_string());
+                } else {
+                    self.add_to_current_function(";".to_string());
+                }
+            }
 
             #[allow(clippy::single_match)]
             match err {
@@ -155,84 +174,124 @@ impl Compiler {
             }
         }
 
-        Result::Ok(self.get_bytecode())
+        if self.location.is_empty() {
+            self.functions.get_mut("main").unwrap().code.push('}');
+        }
+
+        Result::Ok(self.get_d_code())
     }
 
-    pub fn get_state(&self) -> CompilerState {
-        CompilerState {
-            constants: self.constants.clone(),
-            symbol_table: self.symbol_table.clone(),
-            variable_count: self.variable_count,
-            variable_scope: self.variable_scope.clone(),
+    /// Defines a new named function and sets it as the compilation scope
+    pub fn new_function(&mut self, func: Function) {
+        self.enter_variable_scope();
+        self.function_stack.push(self.current_function.clone());
+        self.current_function = func.name.clone();
+        self.functions.insert(func.name.clone(), func);
+    }
+
+    /// Exits the current function compilation scope
+    pub fn exit_function(&mut self) {
+        self.exit_variable_scope();
+        self.current_function = self.function_stack.pop().unwrap();
+    }
+
+    /// Adds code to the current function compilation scope
+    pub fn add_to_current_function(&mut self, code: String) {
+        let func = self.functions.get_mut(&*self.current_function);
+
+        func.unwrap().code.push_str(code.as_str());
+    }
+
+    /// Allows replacing context
+    pub fn replace_at_current_function(&mut self, replace: String, with: String) {
+        let func = self.functions.get_mut(&*self.current_function);
+
+        let unwrapped = func.unwrap();
+        let replaced = unwrapped.code.replace(replace.as_str(), &*with);
+
+        unwrapped.code = replaced;
+    }
+
+    /// Adds an import needed by D This function can be called with the same import as many times
+    /// as you would like, it will only add imports if it doesn't already exist
+    pub fn add_import(&mut self, import: String) {
+        let found = self.imports.iter().find(|&imp| *imp == import);
+
+        if found.is_none() {
+            self.imports.push(import);
         }
     }
 
-    pub fn scope(&self) -> &CompilationScope {
-        &self.scopes[self.scope_index as usize]
-    }
-
-    pub fn scope_mut(&mut self) -> &mut CompilationScope {
-        self.scopes[self.scope_index as usize].borrow_mut()
-    }
-
+    /// Loads an internal Loop symbol and adds it to the current function
     pub fn load_symbol(&mut self, symbol: Symbol) {
         match symbol.scope {
-            Scope::Local => self.emit(OpCode::GetLocal, vec![symbol.index]),
-            Scope::Global => self.emit(OpCode::GetVar, vec![symbol.index]),
-            Scope::Free => self.emit(OpCode::GetFree, vec![symbol.index]),
-            Scope::Builtin => self.emit(OpCode::GetBuiltin, vec![symbol.index]),
+            // Parameters in functions
+            Scope::Local => {
+                self.add_to_current_function(format!("local_{}", symbol.index));
+            }
+            // Globally defined functions (TODO: should be removed due to transpiling)
+            Scope::Global => {}
+            // Free "variables" in the scope of closures (D "lambdas") probably unused
+            Scope::Free => {
+                self.add_to_current_function(format!("local_{}", symbol.index));
+            }
+            // Builtin symbols, currently this is "std" related symbols and should be replaced by such in the future
+            Scope::Builtin => {
+                // Temporary
+                /*
+                   builtin!(len),
+                   builtin!(print),
+                   builtin!(println),
+                   builtin!(format),
+                */
+                match symbol.index {
+                    1 => {
+                        self.add_import(String::from("std"));
+                        self.add_to_current_function(String::from("write"));
+                    }
+                    2 => {
+                        self.add_import(String::from("std"));
+                        self.add_to_current_function(String::from("writeln"));
+                    }
+                    _ => {
+                        println!("Unknown symbol!");
+                    }
+                };
+            }
         };
     }
 
+    /// Enter a deeper variable scope
     pub fn enter_variable_scope(&mut self) {
         let scope = build_deeper_variable_scope(Option::from(self.variable_scope.clone()));
+        self.scope_index += 1;
         self.variable_scope = Rc::new(RefCell::new(scope));
     }
 
+    /// Exit a variable scope and go one shallower
     pub fn exit_variable_scope(&mut self) {
         let outer = self.variable_scope.as_ref().borrow_mut().outer.clone();
+        self.scope_index -= 1;
         self.variable_scope = outer.unwrap();
     }
 
-    pub fn enter_scope(&mut self) {
-        let scope = CompilationScope {
-            instructions: vec![],
-            last_instruction: EmittedInstruction {
-                position: -1,
-                op: OpCode::Constant,
-            },
-            previous_instruction: EmittedInstruction {
-                position: -1,
-                op: OpCode::Constant,
-            },
-        };
-
-        self.scopes.push(scope);
-        self.scope_index += 1;
-
-        self.symbol_table.as_ref().borrow_mut().push();
-    }
-
-    pub fn exit_scope(&mut self) -> (Instructions, Vec<Symbol>) {
-        let current_scope = self.scope();
-        let ins = current_scope.instructions.clone();
-
-        self.scopes.pop();
-        self.scope_index -= 1;
-
-        let free = self.symbol_table.as_ref().borrow_mut().pop();
-
-        (ins, free)
-    }
-
-    pub fn get_bytecode(&self) -> Bytecode {
-        Bytecode {
-            instructions: self.scope().instructions.clone(),
-            constants: self.constants.clone(),
+    pub fn get_d_code(&self) -> DCode {
+        DCode {
+            functions: self.functions.clone(),
+            imports: self.imports.clone(),
         }
     }
 
-    fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
+    /// Compiles the [Expression] [Node](crate::parser::program::Node)
+    ///
+    /// # Examples
+    /// ```
+    /// let mut compiler = Compiler::default();
+    /// let exp = Expression::Integer(Integer { value: 10 });
+    ///
+    /// let result = compiler.compile_expression(exp);
+    /// ```
+    fn compile_expression(&mut self, expr: Expression, is_statement: bool) -> CompilerResult {
         match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
@@ -240,7 +299,7 @@ impl Compiler {
             Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
             Expression::Function(func) => compile_expression_function(self, func),
             Expression::Conditional(conditional) => {
-                compile_expression_conditional(self, *conditional)
+                compile_expression_conditional(self, *conditional, is_statement)
             }
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
@@ -256,59 +315,232 @@ impl Compiler {
         }
     }
 
+    /// Compiles a loop [Block], this differs from [Compiler::compile_block] in that it wont add curly braces
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
+        let mut return_type = Types::Void;
         self.enter_variable_scope();
 
-        for statement in block.statements {
-            let err = self.compile_statement(statement);
+        let mut index = 0;
+        for statement in block.statements.clone() {
+            index += 1;
+
+            let err = self.compile_statement(statement.clone(), false);
+
+            // If its either a return statement, or the last statement is an expression than that is the return type of this block
+            if let Statement::Return(_) = statement {
+                if let CompilerResult::Success(_type) = err.clone() {
+                    return_type = _type;
+                }
+            }
+
+            if index == block.statements.len() {
+                if let Statement::Expression(_) = statement {
+                    if let CompilerResult::Success(_type) = err.clone() {
+                        return_type = _type;
+                    }
+                }
+            }
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => return err,
+                CompilerResult::Exception(_exception) => {
+                    return CompilerResult::Exception(_exception.clone())
+                }
                 _ => (),
             }
         }
 
         self.exit_variable_scope();
 
-        CompilerResult::Success
+        CompilerResult::Success(return_type)
     }
 
-    fn compile_block(&mut self, block: Block) -> CompilerResult {
-        self.enter_variable_scope();
-
-        if block.statements.is_empty() {
-            compile_expression_null(self);
+    /// To check whether a statement is the builtin functions: `print` or `println`.
+    /// This code is not very good, because it looks for hardcoded function calls,
+    /// should recursively walk through statement to check for returns
+    fn is_blacklisted_function_call(&self, stat: Statement) -> bool {
+        if let Statement::Expression(expr) = stat {
+            if let Expression::Call(call) = *expr.expression {
+                if let Expression::Identifier(s) = *call.identifier {
+                    return s.value == "print" || s.value == "println";
+                }
+            }
         }
 
-        for statement in block.statements {
-            let err = self.compile_statement(statement);
+        false
+    }
+
+    /// Recursively search through a block to find if it returns anything
+    fn _block_get_return_type(block: Block) -> bool {
+        if !block.statements.is_empty() {
+            return match block.statements.last().unwrap() {
+                Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
+                Statement::Return(_) => true,
+                _ => false,
+            };
+        }
+
+        false
+    }
+
+    /// Defines a new variable and increases the amount of variables that exist
+    fn define_variable(&mut self, name: String, var_type: Types) -> Variable {
+        let var = self.variable_scope.borrow_mut().define(
+            self.variable_count,
+            format!("{}{}", self.location, name),
+            var_type,
+            Modifiers::default(),
+        );
+
+        self.variable_count += 1;
+
+        var
+    }
+
+    /// Checks an expression if it doesn't already have a return (as expressions always evalaute to a value)
+    fn should_add_return(expression: Expression) -> bool {
+        // Right now this is a macro, but can be expanded using a matches expression
+        !matches!(expression, Expression::Conditional(_))
+    }
+
+    /// Compiles a deeper [Block] adding curly braces
+    fn compile_block(&mut self, block: Block, anonymous: bool) -> CompilerResult {
+        let mut block_type: Types = Types::Void;
+        self.enter_variable_scope();
+
+        self.add_to_current_function("{".to_string());
+
+        let mut index = 0;
+        for statement in block.statements.clone() {
+            index += 1;
+
+            let err = {
+                if let Statement::Expression(exp) = statement.clone() {
+                    if Compiler::should_add_return(*exp.expression.clone()) {
+                        /*
+                        let block_return =
+                            self.define_variable("block_return".to_string(), Types::Auto);
+
+                        if index == block.statements.len() && !anonymous {
+                            self.add_to_current_function(format!(
+                                "Variant {} = ",
+                                block_return.transpile()
+                            ));
+                        }*/
+
+                        if index == block.statements.len()
+                        /*&& anonymous*/
+                        {
+                            self.add_to_current_function("return ".to_string());
+                        }
+
+                        let result = self.compile_statement(statement.clone(), false);
+
+                        if index == block.statements.len()
+                        /*&& !anonymous*/
+                        {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+                        }
+                        /*
+                        if let CompilerResult::Success(_type) = &result {
+                            if *_type == Types::Void {
+                                self.replace_at_current_function(
+                                    format!("Variant {} = ", block_return.transpile()),
+                                    "".to_string(),
+                                )
+                            } /*else if index == block.statements.len() && !anonymous {
+                                  self.add_to_current_function(format!(
+                                      "return {};",
+                                      block_return.transpile()
+                                  ));
+                              }*/
+                        }*/
+
+                        if index == block.statements.len() && anonymous {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+
+                            self.add_to_current_function("".to_string());
+                        }
+
+                        result
+                    } else {
+                        let result = self.compile_statement(statement.clone(), false);
+
+                        // Find first "return" as that is the only way to return
+                        if let Statement::Return(_) = statement.clone() {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+                        }
+
+                        // Or if its the last expression
+                        if index == block.statements.len() {
+                            if let CompilerResult::Success(_type) = &result {
+                                block_type = _type.clone();
+                            }
+                        }
+
+                        result
+                    }
+                } else {
+                    let result = self.compile_statement(statement.clone(), false);
+
+                    // Find first "return" as that is the only way to return
+                    if let Statement::Return(_) = statement.clone() {
+                        if let CompilerResult::Success(_type) = &result {
+                            block_type = _type.clone();
+                        }
+                    }
+
+                    result
+                }
+            };
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => return err,
+                CompilerResult::Exception(_exception) => {
+                    return err;
+                }
                 _ => (),
             }
         }
 
+        self.add_to_current_function("}".to_string());
+
         self.exit_variable_scope();
 
-        CompilerResult::Success
+        CompilerResult::Success(block_type)
     }
 
-    fn compile_statement(&mut self, stmt: Statement) -> CompilerResult {
-        match stmt {
+    /// Compiles the [Statement] [Node](crate::parser::program::Node)
+    ///
+    /// # Example
+    /// ```
+    /// let mut compiler = Compiler::default();
+    /// let exp = Expression::Integer(Integer { value: 10 });
+    /// let stmt = Statement::Expression(exp);
+    ///
+    /// let result = compiler.compile_statement(stmt);
+    /// ```
+    fn compile_statement(&mut self, stmt: Statement, no_semicolon: bool) -> CompilerResult {
+        let mut expression_statement = false;
+
+        let result = match stmt.clone() {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
-            Statement::Expression(expr) => {
-                let err = self.compile_expression(*expr.expression);
-
-                self.emit(OpCode::Pop, vec![]);
-
-                err
+            Statement::ConstantDeclaration(con) => {
+                compile_statement_constant_declaration(self, con)
             }
-            Statement::Block(block) => self.compile_block(block),
+            Statement::Expression(expr) => {
+                expression_statement = true;
+                self.compile_expression(*expr.expression, true)
+            }
+            Statement::Block(block) => self.compile_block(block, false),
             Statement::VariableAssign(variable) => {
                 compile_statement_variable_assign(self, variable)
             }
@@ -316,84 +548,40 @@ impl Compiler {
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
             Statement::Break(br) => compile_break_statement(self, br),
-        }
-    }
-
-    fn add_constant(&mut self, obj: Object) -> u32 {
-        self.constants.push(Rc::from(RefCell::from(obj)));
-
-        (self.constants.len() - 1) as u32
-    }
-
-    fn last_is(&mut self, op: OpCode) -> bool {
-        if self.scope().last_instruction.op == op {
-            return true;
-        }
-
-        false
-    }
-
-    fn remove_last(&mut self, op: OpCode) -> bool {
-        if self.scope().last_instruction.op == op {
-            let old_ins = self.scope().instructions.clone();
-            let ins = &old_ins[..self.scope().last_instruction.position as usize];
-            let prev_ins = self.scope().previous_instruction;
-
-            let mut s = self.scope_mut();
-            s.instructions = Instructions::from(ins);
-
-            s.last_instruction = prev_ins;
-
-            return true;
-        }
-
-        false
-    }
-
-    fn add_instruction(&mut self, instruction: Vec<u8>) -> usize {
-        let position_new_ins = self.scope().instructions.len();
-
-        for ins in instruction {
-            let scope = self.scope_mut();
-            scope.instructions.push(ins)
-        }
-
-        position_new_ins
-    }
-
-    fn replace_instruction(&mut self, pos: u32, instruction: Vec<u8>) {
-        let scope = self.scope_mut();
-        let instructions: &mut Instructions = scope.instructions.as_mut();
-
-        let mut i = 0;
-        while i < instruction.len() {
-            instructions[pos as usize + i] = instruction[i];
-            i += 1;
-        }
-    }
-
-    fn change_operand(&mut self, pos: u32, operands: Vec<u32>) {
-        let op = self.scope().instructions[pos as usize];
-        let opc = lookup_op(op);
-
-        if let Some(opcode) = opc {
-            let new_instruction = make_instruction(opcode, operands);
-            self.replace_instruction(pos, new_instruction)
-        }
-    }
-
-    fn emit(&mut self, op: OpCode, operands: Vec<u32>) -> usize {
-        let ins = make_instruction(op, operands);
-
-        let pos = self.add_instruction(ins);
-
-        let scope = self.scope_mut();
-        scope.previous_instruction = scope.last_instruction;
-        scope.last_instruction = EmittedInstruction {
-            position: pos as i64,
-            op,
         };
 
-        pos
+        let add_semicolon = match stmt {
+            Statement::VariableDeclaration(_) => true,
+            Statement::ConstantDeclaration(_) => true,
+            Statement::Expression(expr) => match *expr.expression {
+                Expression::Conditional(_) => !expression_statement,
+                Expression::Loop(_) => true,
+                Expression::LoopIterator(_) => false,
+                Expression::LoopArrayIterator(_) => false,
+                Expression::Function(func) => func.name.is_empty(),
+                _ => true,
+            },
+            Statement::Block(_) => false,
+            Statement::VariableAssign(_) => true,
+            Statement::Return(_) => true,
+            Statement::Import(_) => false,
+            Statement::Export(_) => true,
+            Statement::Break(_) => true,
+        };
+
+        if add_semicolon && !no_semicolon {
+            self.add_to_current_function(";".to_string());
+        }
+
+        result
+    }
+
+    /// Throws an [CompilerError](crate::lib::exception::compiler_new::CompilerError;) and exists with code '1'.
+    fn throw_exception(&self, message: String, extra_message: Option<String>) {
+        let mut err = CompilerError {
+            error_message: message,
+            extra_message,
+        };
+        err.throw_exception();
     }
 }

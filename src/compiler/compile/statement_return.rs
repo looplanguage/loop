@@ -1,4 +1,3 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
@@ -10,15 +9,17 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
         );
     }
 
-    let result = _compiler.compile_expression(*rt.expression);
+    _compiler.add_to_current_function("return ".to_string());
+
+    let result = _compiler.compile_expression(*rt.expression, false);
+    _compiler.add_to_current_function("".to_string());
 
     #[allow(clippy::single_match)]
-    match &result {
+    let _type = match &result {
         CompilerResult::Exception(_exception) => return result,
-        _ => (),
-    }
+        CompilerResult::Success(_tp) => _tp.clone(),
+        _ => return CompilerResult::Exception(CompilerException::Unknown),
+    };
 
-    _compiler.emit(OpCode::Return, vec![]);
-
-    CompilerResult::Success
+    CompilerResult::Success(_type)
 }

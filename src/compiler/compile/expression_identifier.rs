@@ -1,7 +1,7 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::expression::identifier::Identifier;
+use crate::parser::types::{FunctionType, Types};
 
 pub fn compile_expression_identifier(
     compiler: &mut Compiler,
@@ -13,17 +13,24 @@ pub fn compile_expression_identifier(
         .resolve(identifier.value.as_str());
 
     if let Some(unwrapped_symbol) = symbol {
+        // Only used for compiler defined functions (currently just translated to D std)
         compiler.load_symbol(unwrapped_symbol);
-        return CompilerResult::Success;
+
+        // Right now we're just saying this is a random function
+        return CompilerResult::Success(Types::Function(FunctionType {
+            return_type: Box::new(Types::Void),
+            parameter_types: vec![],
+        }));
     } else {
         let var = compiler
             .variable_scope
             .borrow_mut()
             .resolve(format!("{}{}", compiler.location, identifier.value));
 
-        if var.is_some() {
-            compiler.emit(OpCode::GetVar, vec![var.unwrap().index]);
-            return CompilerResult::Success;
+        if let Some(var) = var {
+            compiler.add_to_current_function(var.transpile());
+
+            return CompilerResult::Success(var._type);
         }
     }
 

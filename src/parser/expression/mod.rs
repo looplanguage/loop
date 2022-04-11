@@ -101,4 +101,8 @@ impl Expression {
             _ => None,
         }
     }
+
+    pub fn get_type(&self) -> Option<String> {
+        Some(String::from("int"))
+    }
 }

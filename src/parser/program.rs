@@ -7,6 +7,7 @@ pub enum Node {
     Statement(Statement),
 }
 
+/// The final program is just a list of statements
 pub struct Program {
     pub statements: Vec<Statement>,
 }

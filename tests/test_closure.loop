@@ -1,8 +1,8 @@
 // answer = 60
-var newClosure = fn(a) { 
-    return fn(b) 
+newClosure := fn(int a) {
+    return fn(int b)
     { 
-        return fn(c) 
+        return fn(int c)
         { 
             return a + b + c 
         } 

@@ -1,3 +1,4 @@
+//! Responsible for lexing input string into tokens
 mod test;
 pub mod token;
 
@@ -6,6 +7,7 @@ use crate::lib::exception::syntax::throw_syntax_error;
 use token::Token;
 use token::TokenType;
 
+/// The Lexer itself, containing metadata needed during the lexing process
 pub struct Lexer {
     current: i32,
     input: String,
@@ -362,6 +364,7 @@ impl Lexer {
     fn lookup_keyword(&self, keyword: &str) -> TokenType {
         match keyword {
             "var" => TokenType::VariableDeclaration,
+            "const" => TokenType::ConstantDeclaration,
             "true" => TokenType::True,
             "false" => TokenType::False,
             "fn" => TokenType::Function,
@@ -401,6 +404,12 @@ impl Lexer {
     }
 }
 
+/// Creates a new instance of the Lexer with the input string provided
+///
+/// # Examples
+/// ```
+/// let new_lexer = build_lexer("var x = 100");
+/// ```
 pub fn build_lexer(input: &str) -> Lexer {
     let mut l = Lexer {
         current: 0,

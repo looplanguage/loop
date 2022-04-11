@@ -1,17 +1,17 @@
-use crate::compiler::compile::expression_null::compile_expression_null;
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
+use crate::parser::types::Types;
 
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
+    is_statement: bool,
 ) -> CompilerResult {
     // User needs to enable optimization, for Loop to optimize code.
     // Right now only does hardcoded "true" and "false" values
-    // ToDo: Is is commented because it does not work yet
+    // TODO: Is is commented because it does not work yet
     // if CONFIG.enable_optimize {
     //     let result = compile_expression_conditional_optimize(compiler, conditional.clone());
     //     // "true" means that optimization is successful.
@@ -20,7 +20,12 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    let result = compiler.compile_expression(*conditional.condition);
+    let mut if_type: Types = Types::Void;
+    let signature = if is_statement { "if (" } else { "() { if (" };
+
+    compiler.add_to_current_function(signature.to_string());
+    let result = compiler.compile_expression(*conditional.condition, false);
+    compiler.add_to_current_function(")".to_string());
 
     #[allow(clippy::single_match)]
     match &result {
@@ -28,62 +33,39 @@ pub fn compile_expression_conditional(
         _ => (),
     }
 
-    let position_false = compiler.emit(OpCode::JumpIfFalse, vec![0]);
-
-    let result = compiler.compile_block(conditional.body);
+    let result = compiler.compile_block(conditional.body, true);
 
     #[allow(clippy::single_match)]
     match &result {
         CompilerResult::Exception(_exception) => return result,
+        CompilerResult::Success(if_type_result) => {
+            if_type = if_type_result.clone();
+        }
         _ => (),
     }
-
-    compiler.remove_last(OpCode::Pop);
-
-    // TODO: Improve this somehow
-    if !compiler.last_is(OpCode::Return)
-        && !compiler.last_is(OpCode::Constant)
-        && !compiler.last_is(OpCode::GetVar)
-        && !compiler.last_is(OpCode::Multiply)
-        && !compiler.last_is(OpCode::Add)
-        && !compiler.last_is(OpCode::Minus)
-        && !compiler.last_is(OpCode::Divide)
-        && !compiler.last_is(OpCode::Modulo)
-    {
-        compiler.emit(OpCode::Constant, vec![0]); // adds NULL to the stack
-    }
-
-    let jump_to_end = compiler.emit(OpCode::Jump, vec![0]);
-
-    if conditional.else_condition.is_none() {
-        let len = compiler.scope().instructions.len() as u32;
-        compiler.change_operand(position_false as u32, vec![len]);
-    }
-
-    compile_expression_null(compiler);
 
     if conditional.else_condition.is_some() {
-        let len = compiler.scope().instructions.len() as u32;
-        compiler.change_operand(position_false as u32, vec![len]);
+        compiler.add_to_current_function(" else ".to_string());
     }
 
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
-            compiler.compile_expression(exp.clone());
+            compiler.add_to_current_function("{ ".to_string());
+            compiler.compile_expression(exp.clone(), false);
+            compiler.add_to_current_function("; }".to_string());
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {
-                compiler.compile_block(block);
-
-                compiler.remove_last(OpCode::Pop);
+                compiler.compile_block(block, true);
             }
         }
     }
 
-    let len = compiler.scope().instructions.len() as u32;
-    compiler.change_operand(jump_to_end as u32, vec![len]);
+    let signature = if is_statement { "" } else { "}()" };
 
-    CompilerResult::Success
+    compiler.add_to_current_function(signature.to_string());
+
+    CompilerResult::Success(if_type)
 }
 
 // ToDo: This does not work yet. Hence it is commented

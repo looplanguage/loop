@@ -1,3 +1,4 @@
+//! Flag library for CLI arguments passed to Loop
 use crate::lib::config::ConfigInternal;
 use crate::lib::exception::flag;
 use std::ffi::OsStr;
@@ -7,7 +8,6 @@ use std::process;
 mod benchmark;
 mod debug;
 mod help;
-mod jit;
 mod optimize;
 
 /// Value: `true` -> is enabled<br>
@@ -20,7 +20,6 @@ pub enum FlagTypes {
     File(String),
     Debug(Option<bool>),
     Benchmark(Option<bool>),
-    Jit(Option<bool>),
     Optimize(Option<bool>), // There are no optimizations yet, this is for the near future
 }
 
@@ -28,7 +27,6 @@ pub fn build_flags() -> Flags {
     Flags {
         flags: ConfigInternal {
             enable_telemetry: None,
-            jit_enabled: None,
             debug_mode: None,
             enable_benchmark: None,
             enable_optimize: None,
@@ -49,7 +47,6 @@ impl Flags {
             let flag = Flags::get_flag(self, arg.as_str(), arg.eq(args.last().unwrap()));
             if let Ok(e) = flag {
                 match e {
-                    FlagTypes::Jit(b) => self.flags.jit_enabled = b,
                     FlagTypes::Optimize(b) => self.flags.enable_optimize = b,
                     FlagTypes::Debug(b) => self.flags.debug_mode = b,
                     FlagTypes::Benchmark(b) => self.flags.enable_benchmark = b,
@@ -78,7 +75,6 @@ impl Flags {
             return match flag_arguments[0] {
                 "--debug" | "-d" => debug::debug_flag_with_param(flag_arguments[1]),
                 "--benchmark" | "-b" => benchmark::benchmark_flag_with_param(flag_arguments[1]),
-                "--jit" | "-j" => jit::jit_flag_with_param(flag_arguments[1]),
                 "--optimize" | "-o" => optimize::optimize_flag_with_param(flag_arguments[1]),
                 _ => self.handle_unknown_flag(string.to_string(), is_last),
             };
@@ -86,7 +82,6 @@ impl Flags {
         match flag_arguments[0] {
             "--debug" | "-d" => debug::debug_flag(),
             "--benchmark" | "-b" => benchmark::benchmark_flag(),
-            "--jit" | "-j" => jit::jit_flag(),
             "--optimize" | "-o" => optimize::optimize_flag(),
             "--help" => {
                 if let Ok(e) = help::generate_help_text() {

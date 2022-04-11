@@ -1,11 +1,32 @@
-use crate::compiler::opcode::OpCode;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
 use crate::parser::expression::suffix::Suffix;
-use crate::parser::expression::Expression;
+use crate::parser::types::{BaseTypes, Types};
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> CompilerResult {
-    let right = _suffix.right.clone();
+    _compiler.add_to_current_function("(".to_string());
+    _compiler.compile_expression(_suffix.left, false);
+
+    match _suffix.operator.as_str() {
+        "^" => {
+            _compiler.add_to_current_function("^^".to_string());
+        }
+        "and" => {
+            _compiler.add_to_current_function("&&".to_string());
+        }
+        "or" => {
+            _compiler.add_to_current_function("||".to_string());
+        }
+        _ => {
+            _compiler.add_to_current_function(_suffix.operator);
+        }
+    }
+
+    _compiler.compile_expression(_suffix.right, false);
+    _compiler.add_to_current_function(")".to_string());
+
+    /*let right = _suffix.right.clone();
+
+    _compiler.add_to_current_function(_suffix.)
 
     if _suffix.operator.as_str() == "<" {
         _compiler.compile_expression(_suffix.right);
@@ -70,5 +91,8 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
         }
     }
 
-    CompilerResult::Success
+     */
+
+    // Suffix expressions are currently only for integers
+    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }

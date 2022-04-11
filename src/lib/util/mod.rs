@@ -1,30 +1,34 @@
-use crate::compiler::instructions::print_instructions;
-use crate::compiler::CompilerState;
 use crate::lib::config::CONFIG;
 use crate::lib::exception::Exception;
-use crate::lib::jit::CodeGen;
-use crate::lib::object::Object;
-use crate::vm::VMState;
-use crate::{compiler, lexer, parser, vm};
-use chrono::Utc;
+use crate::{compiler, lexer, parser};
+use chrono::{Local, Utc};
 use colored::Colorize;
-use inkwell::context::Context;
-use inkwell::passes::PassManager;
-use inkwell::OptimizationLevel;
-use std::cell::RefCell;
-use std::rc::Rc;
+use dirs::home_dir;
+use std::fs::{create_dir, File};
+use std::io::Write;
+use std::path::Path;
+use std::process::{exit, Command};
 
-type ExecuteCodeReturn = (
-    Result<Rc<RefCell<Object>>, String>,
-    Option<CompilerState>,
-    Option<VMState>,
-);
+type ExecuteCodeReturn = Result<String, String>;
 
-pub fn execute_code(
-    code: &str,
-    compiler_state: Option<&CompilerState>,
-    vm_state: Option<&VMState>,
-) -> ExecuteCodeReturn {
+/// Executes Loop code, the process is as follows:
+/// - Lex input string
+/// - Parse lexed tokens
+/// - Transpile to D
+/// - Call D compiler or if not found copy it to the Loop tmp directory
+/// - Execute D compiler
+/// - Run executable
+/// - Return stdout (or stderr) to the user
+///
+/// Usage:
+/// ```
+/// let executed = execute_code("println(\"Hello World!\"");
+///
+/// if executed.is_err() {
+///     // Handle error
+/// }
+/// ```
+pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     let l = lexer::build_lexer(code);
     let mut parser = parser::build_parser(l);
 
@@ -40,73 +44,165 @@ pub fn execute_code(
         panic!("Parser exceptions occurred!")
     }
 
-    let mut comp = compiler::build_compiler(compiler_state);
+    let mut comp = compiler::Compiler::default();
     let error = comp.compile(program);
+
+    let mut imports = String::new();
+
+    for import in comp.imports.clone() {
+        imports.push_str(&*format!("import {};", import));
+    }
+
+    let mut code = String::new();
+
+    code.push_str(imports.as_str());
+
+    for function in comp.functions {
+        code.push_str(function.1.code.as_str());
+    }
+
+    // Write output to temp directory in Loop home directory
+    let home_dir = home_dir().unwrap();
+    let mut dir = home_dir.to_str().unwrap().to_string();
+    let loop_dir: String = format!("{}/.loop/", home_dir.to_str().unwrap());
+    dir.push_str("/.loop/tmp/");
+
+    if !Path::new(&*dir.clone()).exists() {
+        let result = create_dir(dir.clone());
+        if let Err(result) = result {
+            return Err(result.to_string());
+        }
+    }
+
+    // Embed D compiler based on operating system
+    // Please note that that the include_bytes macro requires a constant
+    // This is because its executed at compile time, if we changed folder structure this needs to be
+    // Changed to
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    let bytes = include_bytes!("../../../d_compiler");
+
+    #[cfg(any(target_os = "windows"))]
+    let bytes = include_bytes!("../../../d_compiler.exe");
+
+    // Check if compiler already exists in Loop directory
+    if !Path::new(format!("{}ldc2", loop_dir).as_str()).exists() {
+        #[cfg(target_os = "windows")]
+        let file = File::create(format!("{}d_compiler.exe", loop_dir));
+
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        let file = {
+            use std::os::unix::fs::OpenOptionsExt;
+
+            std::fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .mode(0o0777)
+                .open(format!("{}ldc2", loop_dir).as_str())
+        };
+
+        let result = file.unwrap().write_all(bytes);
+
+        if let Err(result) = result {
+            return Err(result.to_string());
+        }
+    }
+
+    let filename = format!("{}", Local::now().format("loop_%Y%m%d%H%M%S%f"));
+
+    if !CONFIG.debug_mode {
+        let file = File::create(format!("{}{}.d", dir, filename));
+        let result = file.unwrap().write_all(code.as_bytes());
+
+        if let Err(result) = result {
+            return Err(result.to_string());
+        }
+    } else {
+        println!("{}", code);
+    }
 
     if error.is_err() {
         let message = format!("CompilerError: {}", error.err().unwrap().pretty_print());
         println!("{}", message.as_str().red());
-        return (Err(message), None, None);
+        return Err(message);
     }
-
-    if CONFIG.debug_mode {
-        print_instructions(comp.scope().instructions.clone());
-    }
-
-    let mut vm = vm::build_vm(comp.get_bytecode(), vm_state, "MAIN".to_string());
 
     let started = Utc::now();
 
-    let context = Context::create();
-    let module = context.create_module("program");
-    let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None);
+    // Compile it & execute (only on macos and arm)
+    if !CONFIG.debug_mode {
+        let output = if cfg!(all(target_os = "macos")) {
+            let result = Command::new("ldc2")
+                .args([
+                    format!("{}{}.d", dir, filename),
+                    format!("--of={}{}", dir, filename),
+                ])
+                .output()
+                .expect("failed to run D compiler! (ldc2)");
 
-    if execution_engine.is_err() {
-        println!("Error during start of JIT engine!");
-        return (Err(execution_engine.err().unwrap().to_string()), None, None);
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        } else if cfg!(all(target_os = "windows")) {
+            let result = Command::new("dmd")
+                .args([
+                    format!("{}{}.d", dir, filename),
+                    format!("-of={}{}.exe", dir, filename),
+                ])
+                .output()
+                .expect("failed to run D compiler! (dmd)");
+
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}.exe", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        } else {
+            let result = Command::new("dmd")
+                .args([
+                    format!("{}{}.d", dir, filename),
+                    format!("-of={}{}", dir, filename),
+                ])
+                .output()
+                .expect("failed to run D compiler! (dmd)");
+
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        };
+
+        if !output.status.success() {
+            println!("{}", String::from_utf8_lossy(&*output.stderr));
+            exit(output.status.code().unwrap());
+        } else {
+            print!("{}", String::from_utf8_lossy(&*output.stdout));
+        }
     }
-
-    let execution_engine = execution_engine.ok().unwrap();
-
-    let fpm = PassManager::create(&module);
-
-    fpm.add_instruction_combining_pass();
-    fpm.add_reassociate_pass();
-    fpm.add_gvn_pass();
-    fpm.add_cfg_simplification_pass();
-    fpm.add_basic_alias_analysis_pass();
-    fpm.add_promote_memory_to_register_pass();
-    fpm.add_instruction_combining_pass();
-    fpm.add_reassociate_pass();
-
-    fpm.initialize();
-
-    let mut codegen: Option<CodeGen> = None;
-
-    if CONFIG.jit_enabled {
-        codegen = Option::from(CodeGen {
-            context: &context,
-            module: &module,
-            builder: context.create_builder(),
-            execution_engine,
-            fpm: &fpm,
-            last_popped: None,
-            section_depth: Vec::new(),
-        });
-    }
-
-    let ran = vm.run(codegen);
 
     let duration = Utc::now().signed_duration_since(started);
-
-    if ran.is_err() {
-        panic!("{}", ran.err().unwrap());
-    }
 
     if CONFIG.enable_benchmark {
         let formatted = duration.to_string().replace("PT", "");
         println!("Execution Took: {}", formatted);
     }
 
-    (ran, Some(comp.get_state()), Some(vm.get_state()))
+    Ok(String::from(""))
 }
