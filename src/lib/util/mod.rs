@@ -107,7 +107,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         }
 
         #[cfg(unix)]
-        let result = Command::new(path.as_str())
+        Command::new(path.as_str())
             .args([
                 format!("{}{}.d", dir, filename),
                 format!("-of={}{}", dir, filename),
