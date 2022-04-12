@@ -6,4 +6,5 @@ __pycache__/
 loop-pipeline.ps1
 
 # Build script copies a D compiler
-d_compiler*
+ldc2-latest*
+dmd-latest*

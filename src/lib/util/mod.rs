@@ -74,38 +74,8 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         }
     }
 
-    // Embed D compiler based on operating system
-    // Please note that that the include_bytes macro requires a constant
-    // This is because its executed at compile time, if we changed folder structure this needs to be
-    // Changed to
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    let bytes = include_bytes!("../../../d_compiler");
-
-    #[cfg(any(target_os = "windows"))]
-    let bytes = include_bytes!("../../../d_compiler.exe");
-
-    // Check if compiler already exists in Loop directory
-    if !Path::new(format!("{}d_compiler", loop_dir).as_str()).exists() {
-        #[cfg(target_os = "windows")]
-        let file = File::create(format!("{}d_compiler.exe", loop_dir));
-
-        #[cfg(any(target_os = "macos", target_os = "linux"))]
-        let file = {
-            use std::os::unix::fs::OpenOptionsExt;
-
-            std::fs::OpenOptions::new()
-                .create(true)
-                .write(true)
-                .mode(0o0777)
-                .open(format!("{}d_compiler", loop_dir).as_str())
-        };
-
-        let result = file.unwrap().write_all(bytes);
-
-        if let Err(result) = result {
-            return Err(result.to_string());
-        }
-    }
+    let loop_path = std::env::current_exe().unwrap();
+    let loop_path = loop_path.parent().unwrap().to_str().unwrap();
 
     let filename = format!("{}", Local::now().format("loop_%Y%m%d%H%M%S%f"));
 
@@ -130,16 +100,16 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
 
     // Compile it & execute (only on macos and arm)
     if !CONFIG.debug_mode {
-        let output = if cfg!(all(target_os = "macos")) {
-            let result = Command::new(format!("{}d_compiler", loop_dir).as_str())
+        let output = if cfg!(all(target_os = "macos", target_arch = "arm")) {
+            let result = Command::new(format!("{}ldc2-latest-macarm/bin/ldc2", loop_path).as_str())
                 .args([
                     format!("{}{}.d", dir, filename),
                     format!("-of={}{}", dir, filename),
                 ])
                 .output()
                 .expect(&*format!(
-                    "failed to run D compiler! ({}d_compiler)",
-                    loop_dir
+                    "failed to run D compiler! ({}ldc2-latest/bin/ldc2)",
+                    loop_path
                 ));
 
             if !result.status.success() {
@@ -153,13 +123,36 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                     ))
             }
         } else if cfg!(all(target_os = "windows")) {
-            let result = Command::new(format!("{}d_compiler.exe", loop_dir).as_str())
-                .args([
-                    format!("{}{}.d", dir, filename),
-                    format!("-of={}{}.exe", dir, filename),
-                ])
-                .output()
-                .expect("failed to run D compiler! (dmd)");
+            let result = Command::new(
+                format!("{}dmd-latest-win64/dmd2/windows/bin64/dmd.exe", loop_path).as_str(),
+            )
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}.exe", dir, filename),
+            ])
+            .output()
+            .expect("failed to run D compiler! (dmd)");
+
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}.exe", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        } else if cfg!(unix) {
+            let result = Command::new(
+                format!("{}dmd-latest-linux/dmd2/linux/bin64/dmd", loop_path).as_str(),
+            )
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}.exe", dir, filename),
+            ])
+            .output()
+            .expect("failed to run D compiler! (dmd)");
 
             if !result.status.success() {
                 result
@@ -172,24 +165,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                     ))
             }
         } else {
-            let result = Command::new("dmd")
-                .args([
-                    format!("{}{}.d", dir, filename),
-                    format!("-of={}{}", dir, filename),
-                ])
-                .output()
-                .expect("failed to run D compiler! (dmd)");
-
-            if !result.status.success() {
-                result
-            } else {
-                Command::new(format!("{}{}", dir, filename))
-                    .output()
-                    .expect(&*format!(
-                        "Unable to run Loop program at: {}{}",
-                        dir, filename
-                    ))
-            }
+            panic!("Unsupported platform!");
         };
 
         if !output.status.success() {
