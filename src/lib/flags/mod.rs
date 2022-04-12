@@ -6,6 +6,7 @@ use std::path::Path;
 use std::process;
 
 mod benchmark;
+mod dcompiler;
 mod debug;
 mod help;
 mod optimize;
@@ -21,6 +22,7 @@ pub enum FlagTypes {
     Debug(Option<bool>),
     Benchmark(Option<bool>),
     Optimize(Option<bool>), // There are no optimizations yet, this is for the near future
+    DCompiler(Option<String>), // If empty (but still used) it will try to find dmd in path
 }
 
 pub fn build_flags() -> Flags {
@@ -30,6 +32,7 @@ pub fn build_flags() -> Flags {
             debug_mode: None,
             enable_benchmark: None,
             enable_optimize: None,
+            dcompiler: None,
         },
         file: None,
     }
@@ -56,6 +59,7 @@ impl Flags {
                         println!("{}", h);
                         process::exit(0);
                     }
+                    FlagTypes::DCompiler(d) => self.flags.dcompiler = d,
                 }
             }
             i += 1;
@@ -76,6 +80,7 @@ impl Flags {
                 "--debug" | "-d" => debug::debug_flag_with_param(flag_arguments[1]),
                 "--benchmark" | "-b" => benchmark::benchmark_flag_with_param(flag_arguments[1]),
                 "--optimize" | "-o" => optimize::optimize_flag_with_param(flag_arguments[1]),
+                "--dcompiler" | "-dc" => dcompiler::dcompiler_flag_with_param(flag_arguments[1]),
                 _ => self.handle_unknown_flag(string.to_string(), is_last),
             };
         }
@@ -83,6 +88,7 @@ impl Flags {
             "--debug" | "-d" => debug::debug_flag(),
             "--benchmark" | "-b" => benchmark::benchmark_flag(),
             "--optimize" | "-o" => optimize::optimize_flag(),
+            "--dcompiler" | "-dc" => dcompiler::dcompiler_flag(),
             "--help" => {
                 if let Ok(e) = help::generate_help_text() {
                     return Ok(FlagTypes::Help(e));

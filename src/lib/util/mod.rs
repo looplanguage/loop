@@ -7,7 +7,7 @@ use dirs::home_dir;
 use std::fs::{create_dir, File};
 use std::io::Write;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::{exit, Command, Output};
 
 type ExecuteCodeReturn = Result<String, String>;
 
@@ -64,7 +64,6 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     // Write output to temp directory in Loop home directory
     let home_dir = home_dir().unwrap();
     let mut dir = home_dir.to_str().unwrap().to_string();
-    let loop_dir: String = format!("{}/.loop/", home_dir.to_str().unwrap());
     dir.push_str("/.loop/tmp/");
 
     if !Path::new(&*dir.clone()).exists() {
@@ -98,9 +97,48 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
 
     let started = Utc::now();
 
+    let mut output: Option<Output> = None;
+
+    if let Some(dpath) = CONFIG.dcompiler.clone() {
+        let mut path = dpath.clone();
+
+        if dpath.is_empty() {
+            path = "dmd".to_string();
+        }
+
+        #[cfg(all(target_os = "macos", target_arch = "arm"))]
+        let result = Command::new(path.as_str())
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}", dir, filename),
+            ])
+            .output()
+            .expect(&*format!("failed to run D compiler! ({})", path.as_str()));
+
+        #[cfg(windows)]
+        Command::new(path.as_str())
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}.exe", dir, filename),
+            ])
+            .output()
+            .expect(&*format!("failed to run D compiler! ({})", path.as_str()));
+
+        #[cfg(windows)]
+        let name = format!("{}{}.exe", dir, filename);
+
+        #[cfg(unix)]
+        let name = format!("{}{}.exe", dir, filename);
+
+        output = Some(Command::new(name.as_str()).output().expect(&*format!(
+            "Unable to run Loop program at: {}{}",
+            dir, filename
+        )));
+    };
+
     // Compile it & execute (only on macos and arm)
-    if !CONFIG.debug_mode {
-        let output = if cfg!(all(target_os = "macos", target_arch = "arm")) {
+    if !CONFIG.debug_mode && CONFIG.dcompiler.is_none() {
+        output = Option::from(if cfg!(all(target_os = "macos", target_arch = "arm")) {
             let result = Command::new(format!("{}ldc2-latest-macarm/bin/ldc2", loop_path).as_str())
                 .args([
                     format!("{}{}.d", dir, filename),
@@ -166,8 +204,10 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
             }
         } else {
             panic!("Unsupported platform!");
-        };
+        });
+    }
 
+    if let Some(output) = output {
         if !output.status.success() {
             println!("{}", String::from_utf8_lossy(&*output.stderr));
             exit(output.status.code().unwrap());
