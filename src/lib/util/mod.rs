@@ -106,7 +106,7 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
             path = "dmd".to_string();
         }
 
-        #[cfg(all(target_os = "macos", target_arch = "arm"))]
+        #[cfg(unix)]
         let result = Command::new(path.as_str())
             .args([
                 format!("{}{}.d", dir, filename),
