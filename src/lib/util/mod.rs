@@ -138,17 +138,18 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
 
     // Compile it & execute (only on macos and arm)
     if !CONFIG.debug_mode && CONFIG.dcompiler.is_none() {
-        output = Option::from(if cfg!(all(target_os = "macos", target_arch = "arm")) {
-            let result = Command::new(format!("{}ldc2-latest-macarm/bin/ldc2", loop_path).as_str())
-                .args([
-                    format!("{}{}.d", dir, filename),
-                    format!("-of={}{}", dir, filename),
-                ])
-                .output()
-                .expect(&*format!(
-                    "failed to run D compiler! ({}ldc2-latest/bin/ldc2)",
-                    loop_path
-                ));
+        output = Option::from(if cfg!(all(target_os = "macos")) {
+            let result =
+                Command::new(format!("{}dmd-latest-mac/dmd2/osx/bin/dmd", loop_path).as_str())
+                    .args([
+                        format!("{}{}.d", dir, filename),
+                        format!("-of={}{}", dir, filename),
+                    ])
+                    .output()
+                    .expect(&*format!(
+                        "failed to run D compiler! ({}dmd-latest-mac/dmd2/osx/bin/dmd)",
+                        loop_path
+                    ));
 
             if !result.status.success() {
                 result
