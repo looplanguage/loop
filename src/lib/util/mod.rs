@@ -103,37 +103,55 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         let mut path = dpath.clone();
 
         if dpath.is_empty() {
-            path = "dmd".to_string();
+            #[cfg(not(target_os = "macos"))]
+            {
+                path = "dmd".to_string();
+            }
+
+            #[cfg(target_os = "macos")]
+            {
+                path = "ldc2".to_string();
+            }
         }
 
         #[cfg(unix)]
-        Command::new(path.as_str())
-            .args([
-                format!("{}{}.d", dir, filename),
-                format!("-of={}{}", dir, filename),
-            ])
-            .output()
-            .expect(&*format!("failed to run D compiler! ({})", path.as_str()));
+        {
+            output = Some(
+                Command::new(path.as_str())
+                    .args([
+                        format!("{}{}.d", dir, filename),
+                        format!("-of={}{}", dir, filename),
+                    ])
+                    .output()
+                    .expect(&*format!("failed to run D compiler! ({})", path.as_str())),
+            );
+        }
 
         #[cfg(windows)]
-        Command::new(path.as_str())
-            .args([
-                format!("{}{}.d", dir, filename),
-                format!("-of={}{}.exe", dir, filename),
-            ])
-            .output()
-            .expect(&*format!("failed to run D compiler! ({})", path.as_str()));
+        {
+            output = Some(
+                Command::new(path.as_str())
+                    .args([
+                        format!("{}{}.d", dir, filename),
+                        format!("-of={}{}.exe", dir, filename),
+                    ])
+                    .output()
+                    .expect(&*format!("failed to run D compiler! ({})", path.as_str())),
+            );
+        }
 
-        #[cfg(windows)]
-        let name = format!("{}{}.exe", dir, filename);
+        if output.is_some() && output.clone().unwrap().status.success() {
+            #[cfg(windows)]
+            let name = format!("{}{}.exe", dir, filename);
 
-        #[cfg(unix)]
-        let name = format!("{}{}.exe", dir, filename);
+            #[cfg(unix)]
+            let name = format!("{}{}", dir, filename);
 
-        output = Some(Command::new(name.as_str()).output().expect(&*format!(
-            "Unable to run Loop program at: {}{}",
-            dir, filename
-        )));
+            output = Some(Command::new(name.as_str()).output().expect(&*format!(
+                "Unable to run Loop program at: {}{}",
+                dir, filename
+            )));
+        }
     };
 
     // Compile it & execute (only on macos and arm)
