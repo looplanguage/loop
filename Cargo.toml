@@ -7,7 +7,6 @@ rust-version = "1.58.1"
 [dependencies]
 strum_macros = "0.21.1"
 strum = "0.21.0"
-byteorder = "1.4.3"
 rustyline = "9.0.0"
 colored = "2"
 toml = "0.5.8"
