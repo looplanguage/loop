@@ -158,14 +158,14 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     if !CONFIG.debug_mode && CONFIG.dcompiler.is_none() {
         output = Option::from(if cfg!(all(target_os = "macos")) {
             let result =
-                Command::new(format!("{}dmd-latest-mac/dmd2/osx/bin/dmd", loop_path).as_str())
+                Command::new(format!("{}/dmd-latest-mac/dmd2/osx/bin/dmd", loop_path).as_str())
                     .args([
                         format!("{}{}.d", dir, filename),
                         format!("-of={}{}", dir, filename),
                     ])
                     .output()
                     .expect(&*format!(
-                        "failed to run D compiler! ({}dmd-latest-mac/dmd2/osx/bin/dmd)",
+                        "failed to run dmd at: ({}dmd-latest-mac/dmd2/osx/bin/dmd)",
                         loop_path
                     ));
 
@@ -181,14 +181,19 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
             }
         } else if cfg!(all(target_os = "windows")) {
             let result = Command::new(
-                format!("{}dmd-latest-win64/dmd2/windows/bin64/dmd.exe", loop_path).as_str(),
+                format!("{}/dmd-latest-win64/dmd2/windows/bin64/dmd.exe", loop_path).as_str(),
             )
             .args([
                 format!("{}{}.d", dir, filename),
                 format!("-of={}{}.exe", dir, filename),
             ])
             .output()
-            .expect("failed to run D compiler! (dmd)");
+            .unwrap_or_else(|_| {
+                panic!(
+                    "failed to run dmd at: {}/dmd-latest-win64/dmd2/windows/bin64/dmd.exe",
+                    loop_path
+                )
+            });
 
             if !result.status.success() {
                 result
@@ -202,14 +207,19 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
             }
         } else if cfg!(unix) {
             let result = Command::new(
-                format!("{}dmd-latest-linux/dmd2/linux/bin64/dmd", loop_path).as_str(),
+                format!("{}/dmd-latest-linux/dmd2/linux/bin64/dmd", loop_path).as_str(),
             )
             .args([
                 format!("{}{}.d", dir, filename),
                 format!("-of={}{}.exe", dir, filename),
             ])
             .output()
-            .expect("failed to run D compiler! (dmd)");
+            .unwrap_or_else(|_| {
+                panic!(
+                    "failed to run dmd at: {}/dmd-latest-linux/dmd2/linux/bin64/dmd",
+                    loop_path
+                )
+            });
 
             if !result.status.success() {
                 result
