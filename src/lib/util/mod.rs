@@ -7,7 +7,7 @@ use dirs::home_dir;
 use std::fs::{create_dir, File};
 use std::io::Write;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::{exit, Command, Output};
 
 type ExecuteCodeReturn = Result<String, String>;
 
@@ -64,7 +64,6 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
     // Write output to temp directory in Loop home directory
     let home_dir = home_dir().unwrap();
     let mut dir = home_dir.to_str().unwrap().to_string();
-    let loop_dir: String = format!("{}/.loop/", home_dir.to_str().unwrap());
     dir.push_str("/.loop/tmp/");
 
     if !Path::new(&*dir.clone()).exists() {
@@ -74,38 +73,8 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
         }
     }
 
-    // Embed D compiler based on operating system
-    // Please note that that the include_bytes macro requires a constant
-    // This is because its executed at compile time, if we changed folder structure this needs to be
-    // Changed to
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    let bytes = include_bytes!("../../../d_compiler");
-
-    #[cfg(any(target_os = "windows"))]
-    let bytes = include_bytes!("../../../d_compiler.exe");
-
-    // Check if compiler already exists in Loop directory
-    if !Path::new(format!("{}ldc2", loop_dir).as_str()).exists() {
-        #[cfg(target_os = "windows")]
-        let file = File::create(format!("{}d_compiler.exe", loop_dir));
-
-        #[cfg(any(target_os = "macos", target_os = "linux"))]
-        let file = {
-            use std::os::unix::fs::OpenOptionsExt;
-
-            std::fs::OpenOptions::new()
-                .create(true)
-                .write(true)
-                .mode(0o0777)
-                .open(format!("{}ldc2", loop_dir).as_str())
-        };
-
-        let result = file.unwrap().write_all(bytes);
-
-        if let Err(result) = result {
-            return Err(result.to_string());
-        }
-    }
+    let loop_path = std::env::current_exe().unwrap();
+    let loop_path = loop_path.parent().unwrap().to_str().unwrap();
 
     let filename = format!("{}", Local::now().format("loop_%Y%m%d%H%M%S%f"));
 
@@ -128,16 +97,77 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
 
     let started = Utc::now();
 
+    let mut output: Option<Output> = None;
+
+    if let Some(dpath) = CONFIG.dcompiler.clone() {
+        let mut path = dpath.clone();
+
+        if dpath.is_empty() {
+            #[cfg(not(target_os = "macos"))]
+            {
+                path = "dmd".to_string();
+            }
+
+            #[cfg(target_os = "macos")]
+            {
+                path = "ldc2".to_string();
+            }
+        }
+
+        #[cfg(unix)]
+        {
+            output = Some(
+                Command::new(path.as_str())
+                    .args([
+                        format!("{}{}.d", dir, filename),
+                        format!("-of={}{}", dir, filename),
+                    ])
+                    .output()
+                    .expect(&*format!("failed to run D compiler! ({})", path.as_str())),
+            );
+        }
+
+        #[cfg(windows)]
+        {
+            output = Some(
+                Command::new(path.as_str())
+                    .args([
+                        format!("{}{}.d", dir, filename),
+                        format!("-of={}{}.exe", dir, filename),
+                    ])
+                    .output()
+                    .expect(&*format!("failed to run D compiler! ({})", path.as_str())),
+            );
+        }
+
+        if output.is_some() && output.clone().unwrap().status.success() {
+            #[cfg(windows)]
+            let name = format!("{}{}.exe", dir, filename);
+
+            #[cfg(unix)]
+            let name = format!("{}{}", dir, filename);
+
+            output = Some(Command::new(name.as_str()).output().expect(&*format!(
+                "Unable to run Loop program at: {}{}",
+                dir, filename
+            )));
+        }
+    };
+
     // Compile it & execute (only on macos and arm)
-    if !CONFIG.debug_mode {
-        let output = if cfg!(all(target_os = "macos")) {
-            let result = Command::new("ldc2")
-                .args([
-                    format!("{}{}.d", dir, filename),
-                    format!("--of={}{}", dir, filename),
-                ])
-                .output()
-                .expect("failed to run D compiler! (ldc2)");
+    if !CONFIG.debug_mode && CONFIG.dcompiler.is_none() {
+        output = Option::from(if cfg!(all(target_os = "macos")) {
+            let result =
+                Command::new(format!("{}/dmd-latest-mac/dmd2/osx/bin/dmd", loop_path).as_str())
+                    .args([
+                        format!("{}{}.d", dir, filename),
+                        format!("-of={}{}", dir, filename),
+                    ])
+                    .output()
+                    .expect(&*format!(
+                        "failed to run dmd at: ({}dmd-latest-mac/dmd2/osx/bin/dmd)",
+                        loop_path
+                    ));
 
             if !result.status.success() {
                 result
@@ -150,13 +180,46 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                     ))
             }
         } else if cfg!(all(target_os = "windows")) {
-            let result = Command::new("dmd")
-                .args([
-                    format!("{}{}.d", dir, filename),
-                    format!("-of={}{}.exe", dir, filename),
-                ])
-                .output()
-                .expect("failed to run D compiler! (dmd)");
+            let result = Command::new(
+                format!("{}/dmd-latest-win64/dmd2/windows/bin64/dmd.exe", loop_path).as_str(),
+            )
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}.exe", dir, filename),
+            ])
+            .output()
+            .unwrap_or_else(|_| {
+                panic!(
+                    "failed to run dmd at: {}/dmd-latest-win64/dmd2/windows/bin64/dmd.exe",
+                    loop_path
+                )
+            });
+
+            if !result.status.success() {
+                result
+            } else {
+                Command::new(format!("{}{}.exe", dir, filename))
+                    .output()
+                    .expect(&*format!(
+                        "Unable to run Loop program at: {}{}",
+                        dir, filename
+                    ))
+            }
+        } else if cfg!(unix) {
+            let result = Command::new(
+                format!("{}/dmd-latest-linux/dmd2/linux/bin64/dmd", loop_path).as_str(),
+            )
+            .args([
+                format!("{}{}.d", dir, filename),
+                format!("-of={}{}.exe", dir, filename),
+            ])
+            .output()
+            .unwrap_or_else(|_| {
+                panic!(
+                    "failed to run dmd at: {}/dmd-latest-linux/dmd2/linux/bin64/dmd",
+                    loop_path
+                )
+            });
 
             if !result.status.success() {
                 result
@@ -169,26 +232,11 @@ pub fn execute_code(code: &str) -> ExecuteCodeReturn {
                     ))
             }
         } else {
-            let result = Command::new("dmd")
-                .args([
-                    format!("{}{}.d", dir, filename),
-                    format!("-of={}{}", dir, filename),
-                ])
-                .output()
-                .expect("failed to run D compiler! (dmd)");
+            panic!("Unsupported platform!");
+        });
+    }
 
-            if !result.status.success() {
-                result
-            } else {
-                Command::new(format!("{}{}", dir, filename))
-                    .output()
-                    .expect(&*format!(
-                        "Unable to run Loop program at: {}{}",
-                        dir, filename
-                    ))
-            }
-        };
-
+    if let Some(output) = output {
         if !output.status.success() {
             println!("{}", String::from_utf8_lossy(&*output.stderr));
             exit(output.status.code().unwrap());

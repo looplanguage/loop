@@ -31,7 +31,7 @@ def run_tests():
     test_count = 0
     for test in tests:
         try:
-            process = subprocess.Popen([exe, test.file_loc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen([exe, "-dc", test.file_loc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # After 3 minutes (180 seconds) the program will crash, to prevent eternal loops
             stdout, stderr = process.communicate(timeout=180) 
             if has_succeeded(stdout, stderr, test.answer):

@@ -26,6 +26,7 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         debug_mode: false,
         enable_benchmark: false,
         enable_optimize: false,
+        dcompiler: flags.flags.dcompiler,
     };
 
     // The flags go over the config file.
@@ -58,6 +59,7 @@ pub struct Config {
     pub debug_mode: bool,
     pub enable_benchmark: bool,
     pub enable_optimize: bool,
+    pub dcompiler: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -66,6 +68,7 @@ pub struct ConfigInternal {
     pub debug_mode: Option<bool>,
     pub enable_benchmark: Option<bool>,
     pub enable_optimize: Option<bool>,
+    pub dcompiler: Option<String>,
 }
 
 impl Default for ConfigInternal {
@@ -75,6 +78,7 @@ impl Default for ConfigInternal {
             debug_mode: Some(false),
             enable_benchmark: Some(false),
             enable_optimize: Some(false),
+            dcompiler: None,
         }
     }
 }
