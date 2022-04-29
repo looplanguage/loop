@@ -1,5 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
+use crate::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::statement::assign::VariableAssign;
 
 pub fn compile_statement_variable_assign(

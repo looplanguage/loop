@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
-    use crate::lib::exception::Exception;
+    use crate::exception::compiler::{CompilerException, UnknownSymbol};
+    use crate::exception::Exception;
     use crate::{compiler, lexer, parser};
 
     // Commented out due to the compiler not generating instructions anymore. Instead it generates D code.

@@ -1,5 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
+use crate::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
 
 pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -> CompilerResult {

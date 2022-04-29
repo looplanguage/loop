@@ -19,10 +19,6 @@ impl Modifiers {
     /// returns: Modifiers
     ///
     /// # Examples
-    ///
-    /// ```
-    /// let mod: Modifiers = Modifiers::new(true);
-    /// ```
     pub fn new(constant: bool) -> Modifiers {
         Modifiers { constant }
     }

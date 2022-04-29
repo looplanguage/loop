@@ -21,11 +21,9 @@ pub fn compile_expression_conditional(
     // }
 
     let mut if_type: Types = Types::Void;
-    let signature = if is_statement { "if (" } else { "() { if (" };
-
-    compiler.add_to_current_function(signature.to_string());
+    compiler.add_to_current_function(".IF CONDITION { ".to_string());
     let result = compiler.compile_expression(*conditional.condition, false);
-    compiler.add_to_current_function(")".to_string());
+    compiler.add_to_current_function(" } THEN ".to_string());
 
     #[allow(clippy::single_match)]
     match &result {
@@ -44,26 +42,22 @@ pub fn compile_expression_conditional(
         _ => (),
     }
 
-    if conditional.else_condition.is_some() {
-        compiler.add_to_current_function(" else ".to_string());
-    }
+    compiler.add_to_current_function(" ELSE ".to_string());
 
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
-            compiler.add_to_current_function("{ ".to_string());
             compiler.compile_expression(exp.clone(), false);
-            compiler.add_to_current_function("; }".to_string());
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {
                 compiler.compile_block(block, true);
             }
         }
+    } else {
+        compiler.add_to_current_function("{ }".to_string());
     }
 
-    let signature = if is_statement { "" } else { "}()" };
-
-    compiler.add_to_current_function(signature.to_string());
+    compiler.add_to_current_function(";".to_string());
 
     CompilerResult::Success(if_type)
 }

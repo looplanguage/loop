@@ -1,5 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
+use crate::exception::compiler::CompilerException;
 use crate::parser::statement::import::Import;
 
 pub fn compile_import_statement(_compiler: &mut Compiler, _import: Import) -> CompilerResult {

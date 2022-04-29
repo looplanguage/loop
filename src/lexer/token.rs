@@ -15,7 +15,7 @@ impl Token {
     }
 }
 
-#[derive(PartialEq, Clone, Debug, AsRefStr, Copy, Eq, Hash)]
+#[derive(PartialEq, Clone, Debug, Copy, Eq, Hash)]
 pub enum TokenType {
     /// Variable name
     Identifier,

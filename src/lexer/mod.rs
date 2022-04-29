@@ -3,7 +3,7 @@ mod test;
 pub mod token;
 
 use crate::lexer::token::create_token;
-use crate::lib::exception::syntax::throw_syntax_error;
+use crate::exception::syntax::throw_syntax_error;
 use token::Token;
 use token::TokenType;
 

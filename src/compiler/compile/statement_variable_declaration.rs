@@ -1,5 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
+use crate::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
 
@@ -20,7 +20,7 @@ pub fn compile_statement_variable_declaration(
         variable.data_type.transpile()
     };
 
-    compiler.add_to_current_function(format!("{} {} = ", _type, var.transpile()));
+    compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
     let variable_borrowed = compiler
         .variable_scope
@@ -31,21 +31,7 @@ pub fn compile_statement_variable_declaration(
     let result = compiler.compile_expression(*variable.value, false);
 
     let result = if let CompilerResult::Success(_suc_type) = result.clone() {
-        if variable.data_type != Types::Auto && _suc_type != variable.data_type {
-            return CompilerResult::Exception(CompilerException::WrongType(
-                _suc_type.transpile(),
-                variable.data_type.transpile(),
-            ));
-        }
-
-        if variable.data_type == Types::Auto {
-            if let CompilerResult::Success(inferred_type) = result {
-                compiler.replace_at_current_function(
-                    format!("{} {} = ", _type, var.transpile()),
-                    format!("{} {} = ", inferred_type.transpile(), var.transpile()),
-                );
-            }
-        }
+        compiler.add_to_current_function("};".to_string());
 
         _suc_type
     } else {

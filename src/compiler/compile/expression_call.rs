@@ -1,5 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::CompilerException;
+use crate::exception::compiler::CompilerException;
 use crate::parser::expression::function::Call;
 use crate::parser::types::Types;
 

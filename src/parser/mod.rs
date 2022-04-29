@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
-use crate::lib::exception::Exception;
+use crate::exception::Exception;
 use crate::parser::expression::array::parse_expression_array;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
@@ -24,7 +24,7 @@ use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
-use crate::lib::exception::syntax::{throw_syntax_error, SyntaxError};
+use crate::exception::syntax::{throw_syntax_error, SyntaxError};
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::export::parse_export_statement;

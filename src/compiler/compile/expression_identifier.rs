@@ -1,5 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::lib::exception::compiler::{CompilerException, UnknownSymbol};
+use crate::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::types::{FunctionType, Types};
 
@@ -28,7 +28,7 @@ pub fn compile_expression_identifier(
             .resolve(format!("{}{}", compiler.location, identifier.value));
 
         if let Some(var) = var {
-            compiler.add_to_current_function(var.transpile());
+            compiler.add_to_current_function(format!(".LOAD VARIABLE {};", var.index));
 
             return CompilerResult::Success(var._type);
         }

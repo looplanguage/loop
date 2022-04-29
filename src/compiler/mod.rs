@@ -36,8 +36,6 @@ use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
 use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, Variable, VariableScope,
 };
-use crate::lib::exception::compiler::CompilerException;
-use crate::lib::exception::compiler_new::CompilerError;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
@@ -46,6 +44,8 @@ use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::exception::compiler::CompilerException;
+use crate::exception::compiler_new::CompilerError;
 
 /// Instance of CompilerResult which contains information on how the compiler handled input
 #[allow(dead_code)]
@@ -57,10 +57,24 @@ pub enum CompilerResult {
     Exception(CompilerException),
 }
 
-/// The result of the transpiler, which will be passed to the D compiler [crate::lib::util::execute_code]
+/// The result of the transpiler, which will be passed to the D compiler [crate::util::execute_code]
 pub struct DCode {
     pub imports: Vec<String>,
     pub functions: HashMap<String, Function>,
+}
+
+impl DCode {
+    pub fn get_arc(&self) -> String {
+        let mut code = String::new();
+
+        for function in &self.functions {
+            if function.0.as_str() == "main" {
+                code.push_str(function.1.code.as_str());
+            }
+        }
+
+        code
+    }
 }
 
 /// The compiler itself containing global metadata needed during compilation and methods
@@ -124,7 +138,7 @@ impl Compiler {
         if self.location.is_empty() {
             let main_function = Function {
                 name: "main".to_string(),
-                code: String::from("void main() {"),
+                code: String::from(""),
                 parameters: Vec::new(),
                 return_type: Types::Void,
             };
@@ -141,41 +155,18 @@ impl Compiler {
             let mut is_expression = false;
             if index == length {
                 if let Statement::Expression(_) = statement.clone() {
-                    // This is not very good code, the problem is that a user could define a function that returns nothing.
-                    // In that case the function will also automatically be printed which will result in an error.
-                    // The solution is to recursively walk through the statement to check whether it returns something.
-                    // However, currently the print function in stolen from the D STD, which we cannot walk recursively through
-                    // because we call it.
-                    // TODO: implement a STD with a Loop abstraction so you can walk through the statements
                     has_return_value = !self.is_blacklisted_function_call(statement.clone());
                     is_expression = true;
-                    // The last expression always gets printed, but when it is a print functions it doesnt
-                    if has_return_value {
-                        self.add_import("std".to_string());
-                        self.add_to_current_function("writeln(".to_string());
-                    }
                 }
             }
 
             let err = self.compile_statement(statement, is_expression);
-
-            if index == length && is_expression {
-                if has_return_value {
-                    self.add_to_current_function(");".to_string());
-                } else {
-                    self.add_to_current_function(";".to_string());
-                }
-            }
 
             #[allow(clippy::single_match)]
             match err {
                 CompilerResult::Exception(exception) => return Result::Err(exception),
                 _ => (),
             }
-        }
-
-        if self.location.is_empty() {
-            self.functions.get_mut("main").unwrap().code.push('}');
         }
 
         Result::Ok(self.get_d_code())
@@ -428,12 +419,6 @@ impl Compiler {
                             ));
                         }*/
 
-                        if index == block.statements.len()
-                        /*&& anonymous*/
-                        {
-                            self.add_to_current_function("return ".to_string());
-                        }
-
                         let result = self.compile_statement(statement.clone(), false);
 
                         if index == block.statements.len()
@@ -570,13 +555,13 @@ impl Compiler {
         };
 
         if add_semicolon && !no_semicolon {
-            self.add_to_current_function(";".to_string());
+            //self.add_to_current_function(";".to_string());
         }
 
         result
     }
 
-    /// Throws an [CompilerError](crate::lib::exception::compiler_new::CompilerError;) and exists with code '1'.
+    /// Throws an [CompilerError](crate::exception::compiler_new::CompilerError;) and exists with code '1'.
     fn throw_exception(&self, message: String, extra_message: Option<String>) {
         let mut err = CompilerError {
             error_message: message,
