@@ -3,26 +3,36 @@ use crate::parser::expression::suffix::Suffix;
 use crate::parser::types::{BaseTypes, Types};
 
 pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> CompilerResult {
-    _compiler.add_to_current_function("(".to_string());
-    _compiler.compile_expression(_suffix.left, false);
-
     match _suffix.operator.as_str() {
         "^" => {
-            _compiler.add_to_current_function("^^".to_string());
+            _compiler.add_to_current_function(".POWER {".to_string());
         }
         "and" => {
-            _compiler.add_to_current_function("&&".to_string());
+            _compiler.add_to_current_function(".IF {".to_string());
         }
         "or" => {
-            _compiler.add_to_current_function("||".to_string());
+            _compiler.add_to_current_function(".OR {".to_string());
+        }
+        "+" => {
+            _compiler.add_to_current_function(".ADD {".to_string());
+        }
+        "-" => {
+            _compiler.add_to_current_function(".SUBTRACT {".to_string());
+        }
+        "*" => {
+            _compiler.add_to_current_function(".MULTIPLY {".to_string());
+        }
+        "/" => {
+            _compiler.add_to_current_function(".DIVIDE {".to_string());
         }
         _ => {
             _compiler.add_to_current_function(_suffix.operator);
         }
     }
 
+    _compiler.compile_expression(_suffix.left, false);
     _compiler.compile_expression(_suffix.right, false);
-    _compiler.add_to_current_function(")".to_string());
+    _compiler.add_to_current_function("};".to_string());
 
     /*let right = _suffix.right.clone();
 
