@@ -174,9 +174,12 @@ fn transpile_extension_add(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left, false);
+    compiler.add_to_current_function(".PUSH { ".to_string());
+    let result = compiler.compile_expression(left, false);
 
-    compiler.add_to_current_function(" ~= [".to_string());
+    compiler.replace_at_current_function("{INSERT}".to_string(), ".STORE {".to_string());
+
+    compiler.add_to_current_function("} { ".to_string());
 
     let mut index = 0;
 
@@ -196,10 +199,9 @@ fn transpile_extension_add(
         }
     }
 
-    // Maybe add .to!(Variant[]) if auto?
-    compiler.add_to_current_function("]".to_string());
+    compiler.add_to_current_function("};".to_string());
 
-    CompilerResult::Success(Types::Void)
+    result
 }
 
 /// Transpiles the extension method 'remove'
@@ -220,14 +222,7 @@ fn transpile_extension_remove(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.compile_expression(left.clone(), false);
-
-    compiler.add_to_current_function(" = ".to_string());
-
-    compiler.compile_expression(left, false);
-
-    // Maybe add .get!Variant for auto types?
-    compiler.add_to_current_function(".remove(".to_string());
+    compiler.add_to_current_function(".SLICE { ".to_string());
 
     let mut index = 0;
     for parameter in call.parameters.clone() {
@@ -246,9 +241,32 @@ fn transpile_extension_remove(
         }
     }
 
-    compiler.add_to_current_function(")".to_string());
+    compiler.add_to_current_function("} { .ADD { ".to_string());
 
-    CompilerResult::Success(Types::Void)
+    let mut index = 0;
+    for parameter in call.parameters.clone() {
+        let result = compiler.compile_expression(parameter, false);
+
+        #[allow(clippy::single_match)]
+        match &result {
+            CompilerResult::Exception(_exception) => return result,
+            _ => (),
+        }
+
+        index += 1;
+
+        if call.parameters.len() > 1 && call.parameters.len() != index {
+            compiler.add_to_current_function(", ".to_string());
+        }
+    }
+
+
+    compiler.add_to_current_function(" .CONSTANT INT 1;}; } {".to_string());
+
+    let result = compiler.compile_expression(left.clone(), false);
+    compiler.add_to_current_function("}".to_string());
+
+    result
 }
 
 /// Transpiles the extension method 'slice'

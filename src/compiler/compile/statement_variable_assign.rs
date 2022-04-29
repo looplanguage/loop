@@ -27,10 +27,11 @@ pub fn compile_statement_variable_assign(
                 compiler.throw_exception(String::from("a constant cannot be reassigned"), None);
             }
 
-            compiler.add_to_current_function(format!("{} = ", var_type.transpile()));
+            compiler.add_to_current_function(format!(".STORE {} {{", var_type.index));
 
             let result = compiler.compile_expression(*variable.value.clone(), false);
 
+            compiler.add_to_current_function("};".to_string());
             return match &result {
                 CompilerResult::Exception(_exception) => result,
                 CompilerResult::Success(result_type) => {

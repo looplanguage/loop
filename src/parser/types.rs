@@ -11,12 +11,12 @@ pub enum BaseTypes {
 impl BaseTypes {
     pub fn transpile(&self) -> String {
         match self {
-            BaseTypes::Integer => "int".to_string(),
-            BaseTypes::String => "string".to_string(),
-            BaseTypes::Boolean => "bool".to_string(),
-            BaseTypes::Float => "float".to_string(),
+            BaseTypes::Integer => "INT".to_string(),
+            BaseTypes::String => "STRING".to_string(),
+            BaseTypes::Boolean => "BOOL".to_string(),
+            BaseTypes::Float => "FLOAT".to_string(),
             BaseTypes::UserDefined(a) => a.clone(),
-            BaseTypes::Null => "null".to_string(),
+            BaseTypes::Null => "VOID".to_string(),
         }
     }
 }
@@ -41,12 +41,12 @@ impl Types {
     pub fn transpile(&self) -> String {
         match self {
             Types::Basic(basic) => match basic {
-                BaseTypes::Integer => "int".to_string(),
-                BaseTypes::String => "string".to_string(),
-                BaseTypes::Boolean => "bool".to_string(),
-                BaseTypes::Float => "float".to_string(),
+                BaseTypes::Integer => "INT".to_string(),
+                BaseTypes::String => "CHAR[]".to_string(),
+                BaseTypes::Boolean => "BOOL".to_string(),
+                BaseTypes::Float => "FLOAT".to_string(),
                 BaseTypes::UserDefined(s) => s.to_string(),
-                BaseTypes::Null => "null".to_string(),
+                BaseTypes::Null => "VOID".to_string(),
             },
             Types::Array(array) => match *array.clone() {
                 Types::Basic(basic) => {
@@ -56,8 +56,8 @@ impl Types {
                     format!("{}[][]", array.transpile())
                 }
                 Types::Function(_) => "()[]".to_string(),
-                Types::Void => "void[]".to_string(),
-                Types::Auto => "Variant[]".to_string(),
+                Types::Void => "VOID[]".to_string(),
+                Types::Auto => "VOID[]".to_string(),
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
