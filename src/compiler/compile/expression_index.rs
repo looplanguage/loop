@@ -224,6 +224,9 @@ fn transpile_extension_remove(
 ) -> CompilerResult {
     compiler.add_to_current_function(".SLICE { ".to_string());
 
+    let result = compiler.compile_expression(left.clone(), false);
+    compiler.add_to_current_function("} { ".to_string());
+
     let mut index = 0;
     for parameter in call.parameters.clone() {
         let result = compiler.compile_expression(parameter, false);
@@ -261,10 +264,7 @@ fn transpile_extension_remove(
     }
 
 
-    compiler.add_to_current_function(" .CONSTANT INT 1;}; } {".to_string());
-
-    let result = compiler.compile_expression(left.clone(), false);
-    compiler.add_to_current_function("}".to_string());
+    compiler.add_to_current_function(" .CONSTANT INT 1;}; };".to_string());
 
     result
 }

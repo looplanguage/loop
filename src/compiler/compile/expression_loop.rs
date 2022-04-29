@@ -25,18 +25,18 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     compiler.enter_variable_scope();
 
     // Condition
-    compiler.add_to_current_function("() { while (".to_string());
+    compiler.add_to_current_function(".WHILE CONDITION { ".to_string());
     let result = compiler.compile_expression(*lp.condition, false);
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
     }
 
-    compiler.add_to_current_function(")".to_string());
+    compiler.add_to_current_function("} THEN ".to_string());
 
     // Body
     let result = compiler.compile_block(lp.body, true);
 
-    compiler.add_to_current_function("}()".to_string());
+    compiler.add_to_current_function(";".to_string());
 
     result
 }
