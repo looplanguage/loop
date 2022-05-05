@@ -80,6 +80,8 @@ pub fn compile_expression_extension_method(
         _ => String::from(""),
     };
 
+    // Check if method exists in a library based on the "left".
+
     // Search extension id
     let method_id = EXTENSION_METHODS.iter().position(|&m| m == method.as_str());
 
