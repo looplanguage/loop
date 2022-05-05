@@ -81,6 +81,32 @@ pub fn compile_expression_extension_method(
     };
 
     // Check if method exists in a library based on the "left".
+    if let Expression::Identifier(ident) = left.clone() {
+        let var = compiler.variable_scope.as_ref().borrow().resolve(ident.value);
+
+        if let Some(var) = var {
+            if let Types::Library(lib) = var._type {
+                if lib.methods.contains(&method) {
+                    compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
+
+                    for parameter in call.parameters.clone() {
+                        let result = compiler.compile_expression(parameter, false);
+
+                        #[allow(clippy::single_match)]
+                        match &result {
+                            CompilerResult::Exception(_exception) => return result,
+                            _ => (),
+                        }
+                    }
+
+                    compiler.add_to_current_function("};".to_string());
+
+                    // Should return what the library says it should return
+                    return CompilerResult::Success(Types::Void);
+                }
+            }
+        }
+    }
 
     // Search extension id
     let method_id = EXTENSION_METHODS.iter().position(|&m| m == method.as_str());

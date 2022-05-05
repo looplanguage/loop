@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum BaseTypes {
     Integer,
@@ -27,12 +29,18 @@ pub struct FunctionType {
     pub parameter_types: Vec<Box<Types>>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Library {
+    pub methods: Vec<String>,
+}
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum Types {
     Basic(BaseTypes),
     Array(Box<Types>),
     // Return type & Parameter Types (for compile time)
     Function(FunctionType),
+    Library(Library),
     Void,
     Auto,
 }
@@ -58,11 +66,13 @@ impl Types {
                 Types::Function(_) => "()[]".to_string(),
                 Types::Void => "VOID[]".to_string(),
                 Types::Auto => "VOID[]".to_string(),
+                Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
             Types::Function(_) => "auto".to_string(),
             Types::Void => "void".to_string(),
+            Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
         }
     }
 }
