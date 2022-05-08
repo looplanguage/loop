@@ -58,7 +58,7 @@ pub fn compile_expression_function(
         function_type = Types::Function(FunctionType {
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
-            reference: "".to_string()
+            reference: format!("local::{}", func.name)
         });
 
         let var = compiler.define_variable(

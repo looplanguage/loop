@@ -23,6 +23,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         _ => return CompilerResult::Exception(CompilerException::Unknown),
     };
 
+    println!("SIGNATURE: {:?}", func_signature);
+
     compiler.add_to_current_function(String::from(format!(".CALL {} {{", func_signature.reference)));
 
     let mut current = 0;
