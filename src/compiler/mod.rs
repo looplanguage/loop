@@ -123,7 +123,7 @@ impl Compiler {
     /// Main compilation function which compiles a syntax tree from the parser into D
     ///
     /// # Example
-    /// ```
+    /// ```loop
     /// let lexer = lexer::build_lexer("var x = 100");
     /// let mut parser = parser::build_parser(lexer);
     /// let program = parser.parse();
@@ -283,7 +283,7 @@ impl Compiler {
     /// Compiles the [Expression] [Node](crate::parser::program::Node)
     ///
     /// # Examples
-    /// ```
+    /// ```loop
     /// let mut compiler = Compiler::default();
     /// let exp = Expression::Integer(Integer { value: 10 });
     ///
@@ -512,7 +512,7 @@ impl Compiler {
     /// Compiles the [Statement] [Node](crate::parser::program::Node)
     ///
     /// # Example
-    /// ```
+    /// ```loop
     /// let mut compiler = Compiler::default();
     /// let exp = Expression::Integer(Integer { value: 10 });
     /// let stmt = Statement::Expression(exp);

@@ -229,20 +229,20 @@ mod tests {
             assert_eq!(
                 current_token.token,
                 expected[i].token,
-                "wrong token. got={}. expected={} (values {} & {})",
-                current_token.token.as_ref(),
-                expected[i].token.as_ref(),
+                "wrong token. got={:?}. expected={:?} (values {:?} & {:?})",
+                current_token.token,
+                expected[i].token,
                 current_token.literal,
                 expected[i].literal
             );
             assert_eq!(
                 current_token.literal,
                 expected[i].literal,
-                "wrong value. got={}. expected={} (tokens {} & {})",
+                "wrong value. got={:?}. expected={:?} (tokens {:?} & {:?})",
                 current_token.literal,
                 expected[i].literal,
-                current_token.token.as_ref(),
-                expected[i].token.as_ref()
+                current_token.token,
+                expected[i].token
             );
 
             i = i + 1;

@@ -115,7 +115,7 @@ pub fn parse_loop(p: &mut Parser) -> Option<Node> {
 /// Parsing the array iterator loop:
 ///
 /// Loop iterator:
-/// ```
+/// ```loop
 /// var array = [1, 2, 3]
 /// for var i in array {
 ///     println(i)
@@ -177,7 +177,7 @@ pub fn parse_loop_array_iterator(
 /// Parsing the iterator loop:
 ///
 /// Loop iterator:
-/// ```
+/// ```loop
 /// for var i = 0 to 100 {
 ///     println(i)
 /// }

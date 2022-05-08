@@ -304,8 +304,8 @@ mod tests {
             "\
         int test := \"Hello World!\"",
             Some(CompilerException::WrongType(
-                "string".to_string(),
-                "int".to_string(),
+                "CHAR[]".to_string(),
+                "INT".to_string(),
             )),
         );
     }
@@ -326,8 +326,8 @@ mod tests {
         int test := 100\n
         test = \"Hello World!\"",
             Some(CompilerException::WrongType(
-                "string".to_string(),
-                "int".to_string(),
+                "CHAR[]".to_string(),
+                "INT".to_string(),
             )),
         );
     }
@@ -339,8 +339,8 @@ mod tests {
         test := if true { if true { 20 } }\n
         test = \"Hello World!\"",
             Some(CompilerException::WrongType(
-                "string".to_string(),
-                "int".to_string(),
+                "CHAR[]".to_string(),
+                "INT".to_string(),
             )),
         );
     }
@@ -353,8 +353,8 @@ mod tests {
         test := func()\n
         test = \"Hello World!\"",
             Some(CompilerException::WrongType(
-                "string".to_string(),
-                "int".to_string(),
+                "CHAR[]".to_string(),
+                "INT".to_string(),
             )),
         );
     }
