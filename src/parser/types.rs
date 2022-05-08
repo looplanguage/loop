@@ -27,6 +27,7 @@ impl BaseTypes {
 pub struct FunctionType {
     pub return_type: Box<Types>,
     pub parameter_types: Vec<Box<Types>>,
+    pub reference: String,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -71,7 +72,7 @@ impl Types {
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
             Types::Function(_) => "auto".to_string(),
-            Types::Void => "void".to_string(),
+            Types::Void => "VOID".to_string(),
             Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
         }
     }

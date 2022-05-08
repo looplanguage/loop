@@ -93,6 +93,8 @@ pub struct Compiler {
     pub functions: HashMap<String, Function>,
     pub function_stack: Vec<String>,
     pub current_function: String,
+    // Specifies whether or not compiling should add code
+    pub dry: bool,
 }
 
 impl Default for Compiler {
@@ -112,6 +114,7 @@ impl Default for Compiler {
             functions: HashMap::new(),
             function_stack: Vec::new(),
             current_function: String::from("main"),
+            dry: false
         }
     }
 }
@@ -188,19 +191,23 @@ impl Compiler {
 
     /// Adds code to the current function compilation scope
     pub fn add_to_current_function(&mut self, code: String) {
-        let func = self.functions.get_mut(&*self.current_function);
+        if !self.dry {
+            let func = self.functions.get_mut(&*self.current_function);
 
-        func.unwrap().code.push_str(code.as_str());
+            func.unwrap().code.push_str(code.as_str());
+        }
     }
 
     /// Allows replacing context
     pub fn replace_at_current_function(&mut self, replace: String, with: String) {
-        let func = self.functions.get_mut(&*self.current_function);
+        if !self.dry {
+            let func = self.functions.get_mut(&*self.current_function);
 
-        let unwrapped = func.unwrap();
-        let replaced = unwrapped.code.replace(replace.as_str(), &*with);
+            let unwrapped = func.unwrap();
+            let replaced = unwrapped.code.replace(replace.as_str(), &*with);
 
-        unwrapped.code = replaced;
+            unwrapped.code = replaced;
+        }
     }
 
     /// Adds an import needed by D This function can be called with the same import as many times
@@ -375,12 +382,13 @@ impl Compiler {
     }
 
     /// Defines a new variable and increases the amount of variables that exist
-    fn define_variable(&mut self, name: String, var_type: Types) -> Variable {
+    fn define_variable(&mut self, name: String, var_type: Types, parameter_id: i32) -> Variable {
         let var = self.variable_scope.borrow_mut().define(
             self.variable_count,
             format!("{}{}", self.location, name),
             var_type,
             Modifiers::default(),
+            parameter_id
         );
 
         self.variable_count += 1;

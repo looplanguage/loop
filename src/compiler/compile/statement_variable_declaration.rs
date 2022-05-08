@@ -7,7 +7,7 @@ pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
 ) -> CompilerResult {
-    let var = compiler.define_variable(variable.ident.value, variable.data_type.clone());
+    let var = compiler.define_variable(variable.ident.value, variable.data_type.clone(), -1);
 
     // let result = compiler.compile_expression(*variable.value);
 
