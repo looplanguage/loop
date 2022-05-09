@@ -23,22 +23,14 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         _ => return CompilerResult::Exception(CompilerException::Unknown),
     };
 
-    println!("SIGNATURE: {:?}", func_signature);
+    compiler.add_to_current_function(".CALL {".to_string());
 
-    compiler.add_to_current_function(String::from(format!(".CALL {} {{", func_signature.reference)));
+    compiler.compile_expression(*call.identifier.clone(), false);
 
-    let mut current = 0;
+    compiler.add_to_current_function(String::from("} {"));
+
     for parameter in call.parameters.clone() {
-        current += 1;
-
         let result = compiler.compile_expression(parameter, false);
-        // Get proper type or cast to Variant if inferring type
-        /*
-        if *func_signature.return_type == Types::Auto {
-            compiler.add_to_current_function(".to!Variant".to_string());
-        }
-
-         */
 
         #[allow(clippy::single_match)]
         match &result {

@@ -1,3 +1,4 @@
+use rand::random;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::compiler::variable_table::Variable;
 use crate::exception::compiler::CompilerException;
@@ -22,6 +23,7 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
+    let random_identifier: i64 = random();
     let mut function_type: Types;
     // (Transpiled, Named, Index)
     let mut named_function: Option<(String, String, u32)> = None;
@@ -67,10 +69,10 @@ pub fn compile_expression_function(
             -1,
         );
 
-        named_function = Option::from((var.transpile(), var.name.clone(), var.index));
+        named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
-    compiler.add_to_current_function(format!(".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{", func.name, func.name));
+    compiler.add_to_current_function(format!(".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{", named_function.clone().unwrap_or(("".to_string(), "".to_string(), 0)).0, random_identifier));
 
     let mut parameter_types: Vec<Box<Types>> = Vec::new();
 
@@ -114,12 +116,11 @@ pub fn compile_expression_function(
     };
 
     // Set return type of named function, if it exists
+    compiler.replace_at_current_function(
+        format!("REPLACE_TYPE_{}", random_identifier),
+        format!("{}", return_type.transpile()),
+    );
     function_type = if let Some(named_function) = named_function.clone() {
-        compiler.replace_at_current_function(
-            format!("REPLACE_TYPE_{}", func.name),
-            format!("{}", return_type.transpile()),
-        );
-
         Types::Function(FunctionType {
             return_type: Box::from(return_type.clone()),
             parameter_types,
