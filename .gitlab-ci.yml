@@ -7,6 +7,10 @@ stages:
   - check               # Checks for quick compilation issues
   - test                # Windows + Linux, cargo test and integration_test.py
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 publish docker:
   variables:
     TAG_LATEST: $CI_REGISTRY_IMAGE:latest
