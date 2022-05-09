@@ -77,6 +77,8 @@ pub fn compile_expression_function(
     let mut parameter_types: Vec<Box<Types>> = Vec::new();
 
     let mut index = 0;
+
+    compiler.enter_variable_scope();
     for parameter in &func.parameters {
         let symbol = compiler.define_variable(
             format!(
@@ -134,6 +136,7 @@ pub fn compile_expression_function(
         })
     };
 
+    compiler.exit_variable_scope();
     if !func.name.is_empty() {
         let named_function = named_function.unwrap();
 

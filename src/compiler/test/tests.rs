@@ -293,7 +293,7 @@ mod tests {
         ",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "hello2".to_string(),
-                scope_depth: 1,
+                scope_depth: 2,
             })),
         );
     }
@@ -391,7 +391,7 @@ mod tests {
         ",
             Some(CompilerException::UnknownSymbol(UnknownSymbol {
                 name: "hello2".to_string(),
-                scope_depth: 1,
+                scope_depth: 2,
             })),
         );
     }
