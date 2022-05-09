@@ -11,3 +11,7 @@ COPY Cargo.toml Cargo.toml
 RUN sed -i 's/lib.rs/dummy.rs/' Cargo.toml
 RUN cargo build
 RUN sed -i 's/dummy.rs/lib.rs/' Cargo.toml
+
+# Install last needed components
+RUN rustup component add clippy
+RUN rustup component add rustfmt

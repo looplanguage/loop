@@ -13,6 +13,11 @@ publish docker:
     TAG_COMMIT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
   image: docker:latest
   stage: docker
+  only:
+    changes:
+      - Cargo.lock
+      - Cargo.toml
+      - Testing.Dockerfile
   services:
     - docker:dind
   script:
