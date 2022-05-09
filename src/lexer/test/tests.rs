@@ -227,22 +227,14 @@ mod tests {
         let mut i = 0;
         while current_token.token != TokenType::Eof {
             assert_eq!(
-                current_token.token,
-                expected[i].token,
+                current_token.token, expected[i].token,
                 "wrong token. got={:?}. expected={:?} (values {:?} & {:?})",
-                current_token.token,
-                expected[i].token,
-                current_token.literal,
-                expected[i].literal
+                current_token.token, expected[i].token, current_token.literal, expected[i].literal
             );
             assert_eq!(
-                current_token.literal,
-                expected[i].literal,
+                current_token.literal, expected[i].literal,
                 "wrong value. got={:?}. expected={:?} (tokens {:?} & {:?})",
-                current_token.literal,
-                expected[i].literal,
-                current_token.token,
-                expected[i].token
+                current_token.literal, expected[i].literal, current_token.token, expected[i].token
             );
 
             i = i + 1;

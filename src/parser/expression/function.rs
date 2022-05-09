@@ -38,9 +38,7 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
 
     while p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
         let old = p.lexer.get_current_token().unwrap().clone();
-        let tp = p
-            .parse_type(old.clone())
-            .unwrap();
+        let tp = p.parse_type(old.clone()).unwrap();
 
         p.lexer.next_token_is_and_next_token(TokenType::Identifier);
         println!("Parameter: {:?}", p.current_token().literal);

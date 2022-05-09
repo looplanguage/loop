@@ -34,6 +34,8 @@ use crate::compiler::modifiers::Modifiers;
 use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, Variable, VariableScope,
 };
+use crate::exception::compiler::CompilerException;
+use crate::exception::compiler_new::CompilerError;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
@@ -42,8 +44,6 @@ use crate::parser::types::Types;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::exception::compiler::CompilerException;
-use crate::exception::compiler_new::CompilerError;
 
 /// Instance of CompilerResult which contains information on how the compiler handled input
 #[allow(dead_code)]
@@ -110,7 +110,7 @@ impl Default for Compiler {
             functions: HashMap::new(),
             function_stack: Vec::new(),
             current_function: String::from("main"),
-            dry: false
+            dry: false,
         }
     }
 }
@@ -304,7 +304,7 @@ impl Compiler {
             format!("{}{}", self.location, name),
             var_type,
             Modifiers::default(),
-            parameter_id
+            parameter_id,
         );
 
         self.variable_count += 1;

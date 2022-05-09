@@ -83,7 +83,11 @@ pub fn compile_expression_extension_method(
 
     // Check if method exists in a library based on the "left".
     if let Expression::Identifier(ident) = left.clone() {
-        let var = compiler.variable_scope.as_ref().borrow().resolve(ident.value);
+        let var = compiler
+            .variable_scope
+            .as_ref()
+            .borrow()
+            .resolve(ident.value);
 
         if let Some(var) = var {
             if let Types::Library(lib) = var._type {
@@ -291,7 +295,6 @@ fn transpile_extension_remove(
             compiler.add_to_current_function(", ".to_string());
         }
     }
-
 
     compiler.add_to_current_function(" .CONSTANT INT 1;}; };".to_string());
 

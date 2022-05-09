@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::lexer;
     use crate::exception::Exception;
+    use crate::lexer;
     use crate::parser;
     use crate::parser::expression::array::Array;
     use crate::parser::expression::boolean::Boolean;

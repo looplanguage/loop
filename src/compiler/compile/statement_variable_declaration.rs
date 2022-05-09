@@ -39,7 +39,10 @@ pub fn compile_statement_variable_declaration(
     };
 
     if variable.data_type != result && variable.data_type != Types::Auto {
-        return CompilerResult::Exception(CompilerException::WrongType(result.transpile(), variable.data_type.transpile()))
+        return CompilerResult::Exception(CompilerException::WrongType(
+            result.transpile(),
+            variable.data_type.transpile(),
+        ));
     }
 
     // Rc RefCells are so hacky wtf

@@ -6,13 +6,17 @@ pub fn compile_import_statement(_compiler: &mut Compiler, _import: Import) -> Co
     // TODO: Change after demo lmao
     // TODO: Change after demo lmao
     // TODO: Change after demo lmao
-    _compiler.define_variable(_import.identifier.clone(), Types::Library(
-            Library {
-                methods: vec!["create".to_string(), "run".to_string()]
-            }
-        ),
-                              -1);
+    _compiler.define_variable(
+        _import.identifier.clone(),
+        Types::Library(Library {
+            methods: vec!["create".to_string(), "run".to_string()],
+        }),
+        -1,
+    );
 
-    _compiler.add_to_current_function(format!(".LOADLIB {{.CONSTANT CHAR[] \"{}\";}} \"{}\";", _import.file, _import.identifier));
+    _compiler.add_to_current_function(format!(
+        ".LOADLIB {{.CONSTANT CHAR[] \"{}\";}} \"{}\";",
+        _import.file, _import.identifier
+    ));
     CompilerResult::Success(Types::Void)
 }

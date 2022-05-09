@@ -1,9 +1,9 @@
 use std::process::exit;
 
-mod lexer;
-mod parser;
 mod compiler;
 pub mod exception;
+mod lexer;
+mod parser;
 
 pub fn compile(str: &str) -> String {
     let lexer = lexer::build_lexer(str);

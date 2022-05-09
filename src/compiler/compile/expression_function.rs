@@ -1,8 +1,8 @@
-use rand::random;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{FunctionType, Types};
+use rand::random;
 
 #[derive(Clone)]
 pub struct Function {
@@ -59,7 +59,7 @@ pub fn compile_expression_function(
         function_type = Types::Function(FunctionType {
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
-            reference: format!("local::{}", func.name)
+            reference: format!("local::{}", func.name),
         });
 
         let var = compiler.define_variable(
@@ -71,7 +71,14 @@ pub fn compile_expression_function(
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
-    compiler.add_to_current_function(format!(".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{", named_function.clone().unwrap_or(("".to_string(), "".to_string(), 0)).0, random_identifier));
+    compiler.add_to_current_function(format!(
+        ".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{",
+        named_function
+            .clone()
+            .unwrap_or(("".to_string(), "".to_string(), 0))
+            .0,
+        random_identifier
+    ));
 
     let mut parameter_types: Vec<Types> = Vec::new();
 
@@ -90,7 +97,6 @@ pub fn compile_expression_function(
         let _type = parameter.get_type();
 
         parameter_types.push(parameter._type.clone());
-
 
         compiler.add_to_current_function(format!("{};", _type));
     }
@@ -121,13 +127,13 @@ pub fn compile_expression_function(
         Types::Function(FunctionType {
             return_type: Box::from(return_type),
             parameter_types,
-            reference: format!("local::{}", func.name)
+            reference: format!("local::{}", func.name),
         })
     } else {
         Types::Function(FunctionType {
             return_type: Box::from(return_type),
             parameter_types,
-            reference: "".to_string()
+            reference: "".to_string(),
         })
     };
 

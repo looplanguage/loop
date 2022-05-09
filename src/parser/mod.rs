@@ -117,9 +117,7 @@ impl Parser {
                         Some(Types::Basic(BaseTypes::Float))
                     }
                 }
-                "void" => {
-                    Some(Types::Void)
-                }
+                "void" => Some(Types::Void),
                 // Function types are as follows: func<arg1,arg2,arg3><retType>
                 "func" => {
                     let mut func_type = FunctionType {
@@ -165,8 +163,6 @@ impl Parser {
                     // previous type & '>'
                     self.lexer.next_token();
                     self.lexer.next_token();
-
-
 
                     Some(Types::Function(func_type))
                 }
