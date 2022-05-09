@@ -1,222 +1,35 @@
-# Loop Pipeline
+# Picasso Pipeline
 stages:
-  # Runs on merge requests AND on main branch
-  - setup               # Windows, installing LLVM:12.0.1
+  - docker              # Builds and publishes the docker image needed in all further stages
 
   # Runs only on merge requests
-  - lint                # Linux, cargo clippy and cargo fmt
-  - check               # Windows + Linux, cargo check (Checking for compilition errors, but without the code generation)
+  - lint                # cargo clippy & fmt
+  - check               # Checks for quick compilation issues
   - test                # Windows + Linux, cargo test and integration_test.py
 
-  # Runs only on main branch
-  - deploy              # Windows + Linux, builds and pushes to S3 (AWS)
-  - dl site refresh     # Linux Updates download.looplang.org
-
-
-
-# Images: Windows and Linux
-.linux:
-  image: ubuntu:20.04
-  before_script:
-    - ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
-    - DEBIAN_FRONTEND=noninteractive apt-get update
-    - apt-get install curl build-essential wget lsb-release software-properties-common libz-dev -y
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - D_VERSION=$(wget -qO - http://downloads.dlang.org/releases/LATEST)
-    - wget -O dmd.deb http://downloads.dlang.org/releases/2.x/${D_VERSION}/dmd_${D_VERSION}-0_amd64.deb
-    - apt-get update
-    - apt-get install -y ./dmd.deb
-    - source $HOME/.cargo/env
-    - apt-get install python3 python3-pip python3-distutils -y
-  cache:
-    - key: "rust-linux"
-      paths:
-        - target
-
-.windows:
-  tags:
-    - shared-windows
-    - windows
-    - windows-1809
-  before_script:
-    - choco install -y dmd
-    - $env:Path += ";C:\D\dmd2\windows\bin64"
-    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - refreshenv
-  cache:
-    - key: "rust"
-      paths:
-        - target
-
-
-
-# Software Installation
-.windows-rust:
-  before_script:
-    - curl -o rustup-init.exe https://win.rustup.rs/
-    - ./rustup-init.exe -y
-    - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.58.1
-    - rustup override set 1.58.1
-
-
-
-# Pipeline Types
-.ci:
-  only:
-    refs:
-      - merge_requests
-
-.deploy:
-  only:
-    - main
-
-# Windows
-
-# Runs on merge requests
-check windows x86_64:
-  stage: check
-  extends:
-    - .windows
-    - .ci
-    - .windows-rust
-  script:
-    - choco install -y dmd
-    - $env:Path += ";C:\D\dmd2\windows\bin64"
-    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - refreshenv
-    - cargo check
-
-# Runs on merge requests
-test windows x86_64:
-  stage: test
-  extends:
-    - .windows
-    - .ci
-    - .windows-rust
-  before_script:
-    - curl -o rustup-init.exe https://win.rustup.rs/
-    - ./rustup-init.exe -y
-    - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.58.1
-    - rustup override set 1.58.1
-    - choco install -y python --version=3.10
-    - choco install -y dmd
-    - $env:Path += ";C:\D\dmd2\windows\bin64"
-    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - refreshenv
-  script:
-    - cargo test
-    - cargo build --release
-    - py tests/end2end_test.py
-
-# Runs on main branch
-deploy windows x86_64:
-  stage: deploy
+publish docker:
   variables:
-    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
-    CI_PIPELINE_ID: $CI_PIPELINE_IID
-  extends:
-    - .windows
-    - .deploy
-    - .windows-rust
-  before_script:
-    - $Env:LLVM_SYS_120_PREFIX="${CI_PROJECT_DIR}\llvm-12.0.1"
-    - |
-      [Environment]::SetEnvironmentVariable("LLVM_SYS_120_PREFIX", $env:LLVM_SYS_120_PREFIX, [System.EnvironmentVariableTarget]::Machine)
-    - cd ${CI_PROJECT_DIR}
-    - curl -o rustup-init.exe https://win.rustup.rs/
-    - ./rustup-init.exe -y
-    - $env:Path += ";$Env:Userprofile\.cargo\bin"
-    - rustup install 1.58.1
-    - rustup override set 1.58.1
-    - choco install -y python --version=3.8.3
-    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-    - python -m pip install boto3
-    - python -m pip install requests
-    - python -m pip install toml
-    - choco install -y dmd
-    - $env:Path += ";C:\D\dmd2\windows\bin64"
-    - $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    TAG_LATEST: $CI_REGISTRY_IMAGE:latest
+    TAG_COMMIT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  image: docker:latest
+  stage: docker
+  services:
+    - docker:dind
   script:
-    - cargo build --release
-    - py scripts/prerelease.py
+    - docker build -t $TAG_COMMIT -t $TAG_LATEST -f Testing.Dockerfile .
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker push $TAG_COMMIT
+    - docker push $TAG_LATEST
 
-
-
-# Linux
-lint linux x86_64:
+lint:
+  image: $CI_REGISTRY/looplanguage/picasso:latest
   stage: lint
-  extends:
-    - .linux
-    - .ci
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
 
-# Runs on merge requests
-check linux x86_64:
-  stage: check
-  extends:
-    - .linux
-    - .ci
-  script:
-    - cargo check
-
-# Runs on merge requests
-test linux x86_64:
+test:
+  image: $CI_REGISTRY/looplanguage/picasso:latest
   stage: test
-  extends:
-    - .linux
-    - .ci
   script:
     - cargo test
-    - cargo build --release
-    - python3 tests/end2end_test.py
-
-# Runs on main branch
-deploy linux x86_64:
-  stage: deploy
-  variables:
-    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-    NETLIFY_BUILD_LINK: $NETLIFY_BUILD_LINK
-    CI_PIPELINE_ID: $CI_PIPELINE_IID
-  extends:
-    - .linux
-    - .deploy
-  before_script:
-    - ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
-    - DEBIAN_FRONTEND=noninteractive apt-get update
-    - apt-get install curl build-essential wget lsb-release software-properties-common libz-dev -y
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - wget https://apt.llvm.org/llvm.sh
-    - chmod +x llvm.sh
-    - ./llvm.sh 12
-    - source $HOME/.cargo/env
-    - DEBIAN_FRONTEND=noninteractive apt-get update
-    - apt-get install python3 python3-pip python3-distutils -y
-    - pip install boto3
-    - pip install requests
-    - pip install toml
-    - D_VERSION=$(wget -qO - http://downloads.dlang.org/releases/LATEST)
-    - wget -O dmd.deb http://downloads.dlang.org/releases/2.x/${D_VERSION}/dmd_${D_VERSION}-0_amd64.deb
-    - apt-get update
-    - apt-get install -y ./dmd.deb
-  script:
-    - cargo build --release
-    - python3 scripts/prerelease.py
-
-# Runs on main branch
-refresh downloads website:
-  only:
-    refs:
-      - main
-  image: ubuntu:20.04
-  stage: dl site refresh
-  before_script:
-    - apt-get update && apt-get install curl -y
-  script:
-    - curl -X POST -d {} $NETLIFY_BUILD_LINK
