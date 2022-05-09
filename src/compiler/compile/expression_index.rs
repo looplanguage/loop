@@ -31,12 +31,12 @@ pub fn compile_expression_assign_index(
     let var = compiler.define_variable("ptr_to_array".to_string(), Types::Auto, -1);
 
     compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
-    compiler.compile_expression(assign.left, false);
+    compiler.compile_expression(assign.left);
 
     compiler.add_to_current_function(format!("; {}[", var.transpile()));
-    compiler.compile_expression(assign.index, false);
+    compiler.compile_expression(assign.index);
     compiler.add_to_current_function("] = ".to_string());
-    compiler.compile_expression(assign.value, false);
+    compiler.compile_expression(assign.value);
 
     CompilerResult::Success(Types::Void)
 }
@@ -47,9 +47,9 @@ fn compile_expression_index_internal(
     index: Expression,
 ) -> CompilerResult {
     compiler.add_to_current_function(".INDEX {".to_string());
-    let result = compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left);
     compiler.add_to_current_function("} {".to_string());
-    compiler.compile_expression(index, false);
+    compiler.compile_expression(index);
     compiler.add_to_current_function("}".to_string());
 
     if let CompilerResult::Success(Types::Array(value_type)) = result {
@@ -90,8 +90,8 @@ pub fn compile_expression_extension_method(
                 if lib.methods.contains(&method) {
                     compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
 
-                    for parameter in call.parameters.clone() {
-                        let result = compiler.compile_expression(parameter, false);
+                    for parameter in call.parameters {
+                        let result = compiler.compile_expression(parameter);
 
                         #[allow(clippy::single_match)]
                         match &result {
@@ -143,7 +143,7 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
 
-    let result = compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left);
 
     compiler.add_to_current_function(";".to_string());
 
@@ -172,7 +172,7 @@ fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> Comp
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
 
-    let result = compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left);
 
     compiler.add_to_current_function(".to!string;".to_string());
 
@@ -204,7 +204,7 @@ fn transpile_extension_add(
     left: Expression,
 ) -> CompilerResult {
     compiler.add_to_current_function(".PUSH { ".to_string());
-    let result = compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left);
 
     compiler.replace_at_current_function("{INSERT}".to_string(), ".STORE {".to_string());
 
@@ -213,7 +213,7 @@ fn transpile_extension_add(
     let mut index = 0;
 
     for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter, false);
+        let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
         match &result {
@@ -253,12 +253,12 @@ fn transpile_extension_remove(
 ) -> CompilerResult {
     compiler.add_to_current_function(".SLICE { ".to_string());
 
-    let result = compiler.compile_expression(left.clone(), false);
+    let result = compiler.compile_expression(left);
     compiler.add_to_current_function("} { ".to_string());
 
     let mut index = 0;
     for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter, false);
+        let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
         match &result {
@@ -277,7 +277,7 @@ fn transpile_extension_remove(
 
     let mut index = 0;
     for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter, false);
+        let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
         match &result {
@@ -316,7 +316,7 @@ fn transpile_extension_slice(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    let result = compiler.compile_expression(left, false);
+    let result = compiler.compile_expression(left);
 
     let mut slice_type = Types::Void;
 
@@ -335,11 +335,11 @@ fn transpile_extension_slice(
     let start = call.parameters[0].clone();
     let end = call.parameters[1].clone();
 
-    compiler.compile_expression(start, false);
+    compiler.compile_expression(start);
 
     compiler.add_to_current_function("..".to_string());
 
-    compiler.compile_expression(end, false);
+    compiler.compile_expression(end);
 
     compiler.add_to_current_function("]".to_string());
 
@@ -362,7 +362,7 @@ fn transpile_extension_slice(
 fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
     compiler.add_to_current_function("to!int(".to_string());
 
-    compiler.compile_expression(left, false);
+    compiler.compile_expression(left);
 
     compiler.add_to_current_function(".length)".to_string());
 

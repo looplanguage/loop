@@ -7,7 +7,6 @@ use crate::parser::types::Types;
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
-    is_statement: bool,
 ) -> CompilerResult {
     // User needs to enable optimization, for Loop to optimize code.
     // Right now only does hardcoded "true" and "false" values
@@ -22,7 +21,7 @@ pub fn compile_expression_conditional(
 
     let mut if_type: Types = Types::Void;
     compiler.add_to_current_function(".IF CONDITION { ".to_string());
-    let result = compiler.compile_expression(*conditional.condition, false);
+    let result = compiler.compile_expression(*conditional.condition);
     compiler.add_to_current_function(" } THEN ".to_string());
 
     #[allow(clippy::single_match)]
@@ -46,7 +45,7 @@ pub fn compile_expression_conditional(
 
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
-            compiler.compile_expression(exp.clone(), false);
+            compiler.compile_expression(exp.clone());
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {

@@ -1,6 +1,5 @@
 use rand::random;
 use crate::compiler::{Compiler, CompilerResult};
-use crate::compiler::variable_table::Variable;
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{FunctionType, Types};
@@ -50,10 +49,10 @@ pub fn compile_expression_function(
             parameters.push(parameter);
         }
 
-        let mut type_parameters: Vec<Box<Types>> = Vec::new();
+        let mut type_parameters: Vec<Types> = Vec::new();
 
         for parameter in &parameters {
-            type_parameters.push(Box::from(parameter.parameter_type.clone()))
+            type_parameters.push(parameter.parameter_type.clone())
         }
 
         // TODO: Return type is auto for now, but types for parameters is et
@@ -74,30 +73,26 @@ pub fn compile_expression_function(
 
     compiler.add_to_current_function(format!(".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{", named_function.clone().unwrap_or(("".to_string(), "".to_string(), 0)).0, random_identifier));
 
-    let mut parameter_types: Vec<Box<Types>> = Vec::new();
-
-    let mut index = 0;
+    let mut parameter_types: Vec<Types> = Vec::new();
 
     compiler.enter_variable_scope();
-    for parameter in &func.parameters {
-        let symbol = compiler.define_variable(
+    for (index, parameter) in func.parameters.iter().enumerate() {
+        compiler.define_variable(
             format!(
                 "{}{}",
                 compiler.location,
                 parameter.identifier.value.clone(),
             ),
             parameter._type.clone(),
-            index,
+            index as i32,
         );
 
         let _type = parameter.get_type();
 
-        parameter_types.push(Box::from(parameter._type.clone()));
+        parameter_types.push(parameter._type.clone());
 
 
         compiler.add_to_current_function(format!("{};", _type));
-
-        index += 1;
     }
 
     compiler.add_to_current_function("} FREE {} THEN ".to_string());
@@ -120,17 +115,17 @@ pub fn compile_expression_function(
     // Set return type of named function, if it exists
     compiler.replace_at_current_function(
         format!("REPLACE_TYPE_{}", random_identifier),
-        format!("{}", return_type.transpile()),
+        return_type.transpile(),
     );
-    function_type = if let Some(named_function) = named_function.clone() {
+    function_type = if named_function.is_some() {
         Types::Function(FunctionType {
-            return_type: Box::from(return_type.clone()),
+            return_type: Box::from(return_type),
             parameter_types,
             reference: format!("local::{}", func.name)
         })
     } else {
         Types::Function(FunctionType {
-            return_type: Box::from(return_type.clone()),
+            return_type: Box::from(return_type),
             parameter_types,
             reference: "".to_string()
         })

@@ -19,6 +19,7 @@ impl Modifiers {
     /// returns: Modifiers
     ///
     /// # Examples
+    #[allow(dead_code)]
     pub fn new(constant: bool) -> Modifiers {
         Modifiers { constant }
     }

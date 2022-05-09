@@ -1,5 +1,4 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::exception::compiler::CompilerException;
 use crate::parser::statement::import::Import;
 use crate::parser::types::{Library, Types};
 

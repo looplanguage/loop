@@ -26,7 +26,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
 
     // Condition
     compiler.add_to_current_function(".WHILE CONDITION {".to_string());
-    let result = compiler.compile_expression(*lp.condition, false);
+    let result = compiler.compile_expression(*lp.condition);
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
     }
@@ -116,7 +116,7 @@ pub fn compile_loop_array_iterator_expression(
 
     compiler.add_to_current_function(format!("foreach({}; ", var.transpile(),));
 
-    compiler.compile_expression(*lp.array, false);
+    compiler.compile_expression(*lp.array);
 
     compiler.add_to_current_function(") {".to_string());
 

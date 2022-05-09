@@ -40,12 +40,12 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
     }
 
     if _suffix.operator == "<" {
-        _compiler.compile_expression(_suffix.right, false);
-        _compiler.compile_expression(_suffix.left, false);
+        _compiler.compile_expression(_suffix.right);
+        _compiler.compile_expression(_suffix.left);
 
     } else {
-        _compiler.compile_expression(_suffix.left, false);
-        _compiler.compile_expression(_suffix.right, false);
+        _compiler.compile_expression(_suffix.left);
+        _compiler.compile_expression(_suffix.right);
     }
     _compiler.add_to_current_function("};".to_string());
 

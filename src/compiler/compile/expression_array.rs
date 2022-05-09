@@ -12,7 +12,7 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
         for value in arr.values.clone() {
             index += 1;
 
-            let result = compiler.compile_expression(*value.expression, false);
+            let result = compiler.compile_expression(*value.expression);
 
             if let CompilerResult::Success(_type) = result {
                 if index == 1 {
@@ -28,12 +28,8 @@ pub fn compile_expression_array(compiler: &mut Compiler, arr: Array) -> Compiler
         }
 
         compiler.add_to_current_function("];".to_string());
-    } else if let Types::Array(value_type) = array_type.clone() {
-        if let Types::Basic(BaseTypes::Null) = *value_type {
-            compiler.add_to_current_function("(cast(Variant[])[])".to_string());
-        } else {
-            compiler.add_to_current_function(format!(".CONSTANT {} [];", array_type.transpile()));
-        }
+    } else if let Types::Array(_) = array_type {
+        compiler.add_to_current_function(format!(".CONSTANT {} [];", array_type.transpile()));
     }
 
     CompilerResult::Success(array_type)

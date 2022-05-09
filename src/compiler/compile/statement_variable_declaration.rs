@@ -25,10 +25,10 @@ pub fn compile_statement_variable_declaration(
     let variable_borrowed = compiler
         .variable_scope
         .borrow_mut()
-        .get_variable_mutable(var.index, var.name.clone())
+        .get_variable_mutable(var.index, var.name)
         .unwrap();
 
-    let result = compiler.compile_expression(*variable.value, false);
+    let result = compiler.compile_expression(*variable.value);
 
     let result = if let CompilerResult::Success(_suc_type) = result.clone() {
         compiler.add_to_current_function("};".to_string());

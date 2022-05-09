@@ -9,6 +9,7 @@ pub struct Block {
     pub statements: Vec<Statement>,
 }
 
+#[allow(dead_code)]
 pub fn parse_block_statement(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
 

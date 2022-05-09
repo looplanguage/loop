@@ -5,7 +5,7 @@ use crate::parser::types::Types;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     compiler.dry = true;
-    let result = compiler.compile_expression(*call.identifier.clone(), false);
+    let result = compiler.compile_expression(*call.identifier.clone());
     compiler.dry = false;
 
     #[allow(clippy::single_match)]
@@ -25,12 +25,12 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
     compiler.add_to_current_function(".CALL {".to_string());
 
-    compiler.compile_expression(*call.identifier.clone(), false);
+    compiler.compile_expression(*call.identifier.clone());
 
     compiler.add_to_current_function(String::from("} {"));
 
-    for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter, false);
+    for parameter in call.parameters {
+        let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
         match &result {

@@ -1,7 +1,6 @@
 //! Responsible for transpiling Loop to D
 mod compile;
 mod modifiers;
-mod symbol_table;
 mod test;
 mod variable_table;
 
@@ -32,7 +31,6 @@ use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::modifiers::Modifiers;
-use crate::compiler::symbol_table::{Scope, Symbol, SymbolTable};
 use crate::compiler::variable_table::{
     build_deeper_variable_scope, build_variable_scope, Variable, VariableScope,
 };
@@ -80,7 +78,6 @@ impl DCode {
 /// The compiler itself containing global metadata needed during compilation and methods
 pub struct Compiler {
     pub scope_index: i32,
-    pub symbol_table: Rc<RefCell<SymbolTable>>,
     pub variable_scope: Rc<RefCell<VariableScope>>,
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
@@ -101,7 +98,6 @@ impl Default for Compiler {
     fn default() -> Self {
         Compiler {
             scope_index: 0,
-            symbol_table: Rc::new(RefCell::new(SymbolTable::new_with_builtins())),
             variable_count: 0,
             variable_scope: Rc::new(RefCell::new(build_variable_scope())),
             last_extension_type: None,
@@ -154,11 +150,9 @@ impl Compiler {
         for statement in program.statements {
             index += 1;
 
-            let mut has_return_value = false;
             let mut is_expression = false;
             if index == length {
                 if let Statement::Expression(_) = statement.clone() {
-                    has_return_value = !self.is_blacklisted_function_call(statement.clone());
                     is_expression = true;
                 }
             }
@@ -173,20 +167,6 @@ impl Compiler {
         }
 
         Result::Ok(self.get_d_code())
-    }
-
-    /// Defines a new named function and sets it as the compilation scope
-    pub fn new_function(&mut self, func: Function) {
-        self.enter_variable_scope();
-        self.function_stack.push(self.current_function.clone());
-        self.current_function = func.name.clone();
-        self.functions.insert(func.name.clone(), func);
-    }
-
-    /// Exits the current function compilation scope
-    pub fn exit_function(&mut self) {
-        self.exit_variable_scope();
-        self.current_function = self.function_stack.pop().unwrap();
     }
 
     /// Adds code to the current function compilation scope
@@ -208,55 +188,6 @@ impl Compiler {
 
             unwrapped.code = replaced;
         }
-    }
-
-    /// Adds an import needed by D This function can be called with the same import as many times
-    /// as you would like, it will only add imports if it doesn't already exist
-    pub fn add_import(&mut self, import: String) {
-        let found = self.imports.iter().find(|&imp| *imp == import);
-
-        if found.is_none() {
-            self.imports.push(import);
-        }
-    }
-
-    /// Loads an internal Loop symbol and adds it to the current function
-    pub fn load_symbol(&mut self, symbol: Symbol) {
-        match symbol.scope {
-            // Parameters in functions
-            Scope::Local => {
-                self.add_to_current_function(format!("local_{}", symbol.index));
-            }
-            // Globally defined functions (TODO: should be removed due to transpiling)
-            Scope::Global => {}
-            // Free "variables" in the scope of closures (D "lambdas") probably unused
-            Scope::Free => {
-                self.add_to_current_function(format!("local_{}", symbol.index));
-            }
-            // Builtin symbols, currently this is "std" related symbols and should be replaced by such in the future
-            Scope::Builtin => {
-                // Temporary
-                /*
-                   builtin!(len),
-                   builtin!(print),
-                   builtin!(println),
-                   builtin!(format),
-                */
-                match symbol.index {
-                    1 => {
-                        self.add_import(String::from("std"));
-                        self.add_to_current_function(String::from("write"));
-                    }
-                    2 => {
-                        self.add_import(String::from("std"));
-                        self.add_to_current_function(String::from("writeln"));
-                    }
-                    _ => {
-                        println!("Unknown symbol!");
-                    }
-                };
-            }
-        };
     }
 
     /// Enter a deeper variable scope
@@ -289,7 +220,7 @@ impl Compiler {
     ///
     /// let result = compiler.compile_expression(exp);
     /// ```
-    fn compile_expression(&mut self, expr: Expression, is_statement: bool) -> CompilerResult {
+    fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
         match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
@@ -297,7 +228,7 @@ impl Compiler {
             Expression::Boolean(boolean) => compile_expression_boolean(self, boolean),
             Expression::Function(func) => compile_expression_function(self, func),
             Expression::Conditional(conditional) => {
-                compile_expression_conditional(self, *conditional, is_statement)
+                compile_expression_conditional(self, *conditional)
             }
             Expression::Null(_) => compile_expression_null(self),
             Expression::Call(call) => compile_expression_call(self, call),
@@ -351,21 +282,6 @@ impl Compiler {
         self.exit_variable_scope();
 
         CompilerResult::Success(return_type)
-    }
-
-    /// To check whether a statement is the builtin functions: `print` or `println`.
-    /// This code is not very good, because it looks for hardcoded function calls,
-    /// should recursively walk through statement to check for returns
-    fn is_blacklisted_function_call(&self, stat: Statement) -> bool {
-        if let Statement::Expression(expr) = stat {
-            if let Expression::Call(call) = *expr.expression {
-                if let Expression::Identifier(s) = *call.identifier {
-                    return s.value == "print" || s.value == "println";
-                }
-            }
-        }
-
-        false
     }
 
     /// Recursively search through a block to find if it returns anything
@@ -531,7 +447,7 @@ impl Compiler {
             }
             Statement::Expression(expr) => {
                 expression_statement = true;
-                self.compile_expression(*expr.expression, true)
+                self.compile_expression(*expr.expression)
             }
             Statement::Block(block) => self.compile_block(block, false),
             Statement::VariableAssign(variable) => {

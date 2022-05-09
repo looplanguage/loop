@@ -1,5 +1,4 @@
 use std::process::exit;
-use crate::lexer::Lexer;
 
 mod lexer;
 mod parser;

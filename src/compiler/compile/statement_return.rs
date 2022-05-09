@@ -11,7 +11,7 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
 
     _compiler.add_to_current_function(".RETURN {".to_string());
 
-    let result = _compiler.compile_expression(*rt.expression, false);
+    let result = _compiler.compile_expression(*rt.expression);
     _compiler.add_to_current_function("};".to_string());
 
     #[allow(clippy::single_match)]

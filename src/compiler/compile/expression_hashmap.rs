@@ -20,7 +20,7 @@ pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) ->
             _ => (),
         }
 
-        _compiler.compile_expression(value.1, false);
+        _compiler.compile_expression(value.1);
     }
 
     CompilerResult::Optimize

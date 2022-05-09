@@ -7,7 +7,6 @@ pub enum BaseTypes {
     Boolean,
     Float,
     UserDefined(String),
-    Null,
 }
 
 impl BaseTypes {
@@ -18,7 +17,6 @@ impl BaseTypes {
             BaseTypes::Boolean => "BOOL".to_string(),
             BaseTypes::Float => "FLOAT".to_string(),
             BaseTypes::UserDefined(a) => a.clone(),
-            BaseTypes::Null => "VOID".to_string(),
         }
     }
 }
@@ -26,7 +24,7 @@ impl BaseTypes {
 #[derive(Clone, PartialEq, Debug)]
 pub struct FunctionType {
     pub return_type: Box<Types>,
-    pub parameter_types: Vec<Box<Types>>,
+    pub parameter_types: Vec<Types>,
     pub reference: String,
 }
 
@@ -55,7 +53,6 @@ impl Display for Types {
                 BaseTypes::Boolean => "bool".to_string(),
                 BaseTypes::Float => "float".to_string(),
                 BaseTypes::UserDefined(s) => s.to_string(),
-                BaseTypes::Null => "void".to_string(),
             },
             Types::Array(array) => match *array.clone() {
                 Types::Basic(basic) => {
@@ -101,7 +98,6 @@ impl Types {
                 BaseTypes::Boolean => "BOOL".to_string(),
                 BaseTypes::Float => "FLOAT".to_string(),
                 BaseTypes::UserDefined(s) => s.to_string(),
-                BaseTypes::Null => "VOID".to_string(),
             },
             Types::Array(array) => match *array.clone() {
                 Types::Basic(basic) => {
@@ -117,7 +113,21 @@ impl Types {
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
-            Types::Function(func) => "VOID".to_string(),
+            Types::Function(func) => {
+                let mut args = String::new();
+
+                let mut index = 0;
+                for parameter_type in &func.parameter_types {
+                    index += 1;
+                    args.push_str(&*parameter_type.transpile());
+
+                    if index != func.parameter_types.len() {
+                        args.push(',');
+                    }
+                }
+
+                format!("fn({}): {}", args, func.return_type)
+            },
             Types::Void => "VOID".to_string(),
             Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
         }

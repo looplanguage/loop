@@ -86,12 +86,6 @@ impl Parser {
         self.lexer.current_token.as_ref().unwrap().clone()
     }
 
-    fn print_current_token(&self) {
-        let cur = self.lexer.current_token.as_ref().unwrap().clone();
-
-        println!("\"{}\":{:?}", cur.literal, cur.token)
-    }
-
     fn parse_type(&mut self, token: Token) -> Option<Types> {
         match token.token {
             TokenType::Identifier => match token.literal.as_str() {
@@ -140,15 +134,13 @@ impl Parser {
                     let mut skipped = false;
 
                     // func<INT
-                    println!("GOT: {}", self.current_token().literal);
                     while !self.current_token_is(TokenType::RightArrow)
                         && !self.current_token_is(TokenType::Eof)
                     {
-                        println!("DOING: {}", self.current_token().literal);
-                        let next = self.lexer.current_token.as_ref().unwrap();
-                        let tp = self.parse_type(next.clone());
+                        let next = self.lexer.current_token.as_ref().unwrap().clone();
+                        let tp = self.parse_type(next);
 
-                        func_type.parameter_types.push(Box::new(tp.unwrap()));
+                        func_type.parameter_types.push(tp.unwrap());
 
                         // Comma
                         skipped = true;
@@ -166,9 +158,9 @@ impl Parser {
                     }
 
                     self.lexer.next_token();
-                    let cur = self.lexer.current_token.as_ref().unwrap();
+                    let cur = self.lexer.current_token.as_ref().unwrap().clone();
 
-                    func_type.return_type = Box::new(self.parse_type(cur.clone()).unwrap());
+                    func_type.return_type = Box::new(self.parse_type(cur).unwrap());
 
                     // previous type & '>'
                     self.lexer.next_token();
@@ -325,7 +317,7 @@ impl Parser {
             return false;
         }
 
-        cur.clone().unwrap().token == tok
+        cur.unwrap().token == tok
     }
 
     pub fn next_token_is(&self, tok: TokenType) -> bool {
