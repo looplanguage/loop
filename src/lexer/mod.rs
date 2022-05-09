@@ -25,7 +25,7 @@ impl Lexer {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```loop
     /// let token: Token = self.next_token();
     /// ```
     pub fn next_token(&mut self) {
@@ -253,7 +253,7 @@ impl Lexer {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```loop
     /// self.get_character(0);  // Returns current character
     /// self.get_character(1);  // "Peeking" at the next character
     /// self.get_character(-1); // Getting the previous character
@@ -407,7 +407,7 @@ impl Lexer {
 /// Creates a new instance of the Lexer with the input string provided
 ///
 /// # Examples
-/// ```
+/// ```loop
 /// let new_lexer = build_lexer("var x = 100");
 /// ```
 pub fn build_lexer(input: &str) -> Lexer {

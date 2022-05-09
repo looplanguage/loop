@@ -25,7 +25,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
     compiler.enter_variable_scope();
 
     // Condition
-    compiler.add_to_current_function(".WHILE CONDITION { ".to_string());
+    compiler.add_to_current_function(".WHILE CONDITION {".to_string());
     let result = compiler.compile_expression(*lp.condition, false);
     if let CompilerResult::Exception(exception) = result {
         return CompilerResult::Exception(exception);
@@ -35,7 +35,6 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
 
     // Body
     let result = compiler.compile_block(lp.body, true);
-
     compiler.add_to_current_function(";".to_string());
 
     result
@@ -68,7 +67,7 @@ pub fn compile_loop_iterator_expression(
 ) -> CompilerResult {
     compiler.enter_variable_scope();
     // Define the identifier variable, with the starting integer
-    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer));
+    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
 
     compiler.add_to_current_function(format!("int {} = {};", var.transpile(), lp.from));
 
@@ -113,7 +112,7 @@ pub fn compile_loop_array_iterator_expression(
     // lp.identifier.value
 
     // Define the identifier variable, with the starting value of the array
-    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer));
+    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
 
     compiler.add_to_current_function(format!("foreach({}; ", var.transpile(),));
 

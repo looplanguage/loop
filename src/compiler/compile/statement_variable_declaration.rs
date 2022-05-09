@@ -7,7 +7,7 @@ pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
 ) -> CompilerResult {
-    let var = compiler.define_variable(variable.ident.value, variable.data_type.clone());
+    let var = compiler.define_variable(variable.ident.value, variable.data_type.clone(), -1);
 
     // let result = compiler.compile_expression(*variable.value);
 
@@ -37,6 +37,10 @@ pub fn compile_statement_variable_declaration(
     } else {
         return result;
     };
+
+    if variable.data_type != result && variable.data_type != Types::Auto {
+        return CompilerResult::Exception(CompilerException::WrongType(result.transpile(), variable.data_type.transpile()))
+    }
 
     // Rc RefCells are so hacky wtf
     variable_borrowed.as_ref().borrow_mut()._type = result;

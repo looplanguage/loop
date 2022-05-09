@@ -10,6 +10,7 @@ pub struct Variable {
     pub name: String,
     pub _type: Types,
     pub modifiers: Modifiers,
+    pub parameter_id: i32
 }
 
 pub struct VariableScope {
@@ -43,12 +44,14 @@ impl VariableScope {
         name: String,
         _type: Types,
         modifiers: Modifiers,
+        parameter_id: i32
     ) -> Variable {
         self.variables.push(Rc::from(RefCell::from(Variable {
             index,
             name,
             _type: _type.clone(),
             modifiers: modifiers.clone(),
+            parameter_id
         })));
 
         let var = self.variables.last().expect("inserted").as_ref().borrow();
@@ -58,6 +61,7 @@ impl VariableScope {
             index: var.index,
             _type,
             modifiers,
+            parameter_id
         }
     }
 
@@ -86,6 +90,7 @@ impl VariableScope {
                     name,
                     _type: variable._type.clone(),
                     modifiers: variable.modifiers.clone(),
+                    parameter_id: variable.parameter_id
                 });
             }
         }

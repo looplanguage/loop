@@ -28,7 +28,7 @@ pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
 ) -> CompilerResult {
-    let var = compiler.define_variable("ptr_to_array".to_string(), Types::Auto);
+    let var = compiler.define_variable("ptr_to_array".to_string(), Types::Auto, -1);
 
     compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
     compiler.compile_expression(assign.left, false);
@@ -46,10 +46,11 @@ fn compile_expression_index_internal(
     left: Expression,
     index: Expression,
 ) -> CompilerResult {
+    compiler.add_to_current_function(".INDEX {".to_string());
     let result = compiler.compile_expression(left, false);
-    compiler.add_to_current_function("[".to_string());
+    compiler.add_to_current_function("} {".to_string());
     compiler.compile_expression(index, false);
-    compiler.add_to_current_function("]".to_string());
+    compiler.add_to_current_function("}".to_string());
 
     if let CompilerResult::Success(Types::Array(value_type)) = result {
         return CompilerResult::Success(*value_type);
@@ -79,6 +80,34 @@ pub fn compile_expression_extension_method(
         Expression::Identifier(identifier) => identifier.value,
         _ => String::from(""),
     };
+
+    // Check if method exists in a library based on the "left".
+    if let Expression::Identifier(ident) = left.clone() {
+        let var = compiler.variable_scope.as_ref().borrow().resolve(ident.value);
+
+        if let Some(var) = var {
+            if let Types::Library(lib) = var._type {
+                if lib.methods.contains(&method) {
+                    compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
+
+                    for parameter in call.parameters.clone() {
+                        let result = compiler.compile_expression(parameter, false);
+
+                        #[allow(clippy::single_match)]
+                        match &result {
+                            CompilerResult::Exception(_exception) => return result,
+                            _ => (),
+                        }
+                    }
+
+                    compiler.add_to_current_function("};".to_string());
+
+                    // Should return what the library says it should return
+                    return CompilerResult::Success(Types::Void);
+                }
+            }
+        }
+    }
 
     // Search extension id
     let method_id = EXTENSION_METHODS.iter().position(|&m| m == method.as_str());
@@ -110,7 +139,7 @@ pub fn compile_expression_extension_method(
 /// to!string(500)
 /// ```
 fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto);
+    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto, -1);
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
 
@@ -139,7 +168,7 @@ fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> C
 /// to!int("500")
 /// ```
 fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto);
+    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto, -1);
 
     compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
 

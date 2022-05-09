@@ -4,7 +4,9 @@ use crate::parser::expression::function::Call;
 use crate::parser::types::Types;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
+    compiler.dry = true;
     let result = compiler.compile_expression(*call.identifier.clone(), false);
+    compiler.dry = false;
 
     #[allow(clippy::single_match)]
     let func_signature = match &result {
@@ -21,7 +23,9 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         _ => return CompilerResult::Exception(CompilerException::Unknown),
     };
 
-    compiler.add_to_current_function(String::from("("));
+    println!("SIGNATURE: {:?}", func_signature);
+
+    compiler.add_to_current_function(String::from(format!(".CALL {} {{", func_signature.reference)));
 
     let mut current = 0;
     for parameter in call.parameters.clone() {
@@ -41,13 +45,9 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             CompilerResult::Exception(_exception) => return result,
             _ => (),
         }
-
-        if call.parameters.len() > 1 && current != call.parameters.len() {
-            compiler.add_to_current_function(String::from(","));
-        }
     }
 
-    compiler.add_to_current_function(String::from(")"));
+    compiler.add_to_current_function(String::from("};"));
 
     CompilerResult::Success(*func_signature.return_type.clone())
 }

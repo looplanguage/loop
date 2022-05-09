@@ -1,4 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::variable_table::Variable;
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{FunctionType, Types};
@@ -57,40 +58,19 @@ pub fn compile_expression_function(
         function_type = Types::Function(FunctionType {
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
+            reference: format!("local::{}", func.name)
         });
 
         let var = compiler.define_variable(
             format!("{}{}", compiler.location, func.name),
             function_type.clone(),
+            -1,
         );
 
         named_function = Option::from((var.transpile(), var.name.clone(), var.index));
-
-        let function = Function {
-            name: var.transpile(),
-            code: "".to_string(),
-            return_type: Types::Auto,
-            parameters,
-        };
-
-        compiler.new_function(function);
-
-        let return_type = {
-            if let Types::Function(f) = function_type.clone() {
-                f
-            } else {
-                return CompilerResult::Exception(CompilerException::Unknown);
-            }
-        };
-
-        compiler.add_to_current_function(format!(
-            "{} {}",
-            return_type.return_type.transpile(),
-            var.transpile()
-        ));
     }
 
-    compiler.add_to_current_function(" (".to_string());
+    compiler.add_to_current_function(format!(".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{", func.name, func.name));
 
     let mut parameter_types: Vec<Box<Types>> = Vec::new();
 
@@ -103,26 +83,24 @@ pub fn compile_expression_function(
                 parameter.identifier.value.clone(),
             ),
             parameter._type.clone(),
+            index,
         );
 
         let _type = parameter.get_type();
 
         parameter_types.push(Box::from(parameter._type.clone()));
 
-        // This currently defines every parameter type to be a Variant, we should do compile time
-        // checks to ensure type safety.
-        compiler.add_to_current_function(format!("{} {}", _type, symbol.transpile()));
+
+        compiler.add_to_current_function(format!("{};", _type));
 
         index += 1;
-
-        if func.parameters.len() > 1 && index != func.parameters.len() {
-            compiler.add_to_current_function(", ".to_string());
-        }
     }
 
-    compiler.add_to_current_function(") ".to_string());
+    compiler.add_to_current_function("} FREE {} THEN ".to_string());
 
     let result = compiler.compile_block(func.body, func.name.is_empty());
+
+    compiler.add_to_current_function(";".to_string());
 
     // Currently infer and dont allow manually setting type
     let return_type = {
@@ -135,26 +113,27 @@ pub fn compile_expression_function(
         }
     };
 
-    // TODO: Return type is auto for now, but types for parameters is et
-    function_type = Types::Function(FunctionType {
-        return_type: Box::from(return_type.clone()),
-        parameter_types,
-    });
-
     // Set return type of named function, if it exists
-    if let Some(named_function) = named_function.clone() {
-        let function = compiler.functions.get_mut(&*named_function.0);
-        function.unwrap().return_type = return_type.clone();
-
+    function_type = if let Some(named_function) = named_function.clone() {
         compiler.replace_at_current_function(
-            format!("Variant {}", named_function.0),
-            format!("{} {}", return_type.transpile(), named_function.0),
+            format!("REPLACE_TYPE_{}", func.name),
+            format!("{}", return_type.transpile()),
         );
-    }
+
+        Types::Function(FunctionType {
+            return_type: Box::from(return_type.clone()),
+            parameter_types,
+            reference: format!("local::{}", func.name)
+        })
+    } else {
+        Types::Function(FunctionType {
+            return_type: Box::from(return_type.clone()),
+            parameter_types,
+            reference: "".to_string()
+        })
+    };
 
     if !func.name.is_empty() {
-        compiler.exit_function();
-
         let named_function = named_function.unwrap();
 
         let variable = compiler

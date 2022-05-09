@@ -1,5 +1,4 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::exception::compiler::CompilerException;
 use crate::parser::expression::suffix::Suffix;
 use crate::parser::types::{BaseTypes, Types};
 
@@ -26,24 +25,27 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
         "/" => {
             _compiler.add_to_current_function(".DIVIDE {".to_string());
         }
-        ">" => {
-            _compiler.add_to_current_function(".GREATERTHAN {".to_string());
-        },
-        "<" => {
+        ">" | "<" => {
             _compiler.add_to_current_function(".GREATERTHAN {".to_string());
         }
+        "==" => {
+            _compiler.add_to_current_function(".EQUALS {".to_string());
+        }
+        "!=" => {
+            _compiler.add_to_current_function(".NOTEQUALS {".to_string());
+        }
         _ => {
-            return CompilerResult::Exception(CompilerException::Unknown)
+            _compiler.add_to_current_function("UNKNOWN_OPERATOR".to_string());
         }
     }
 
     if _suffix.operator == "<" {
         _compiler.compile_expression(_suffix.right, false);
         _compiler.compile_expression(_suffix.left, false);
+
     } else {
         _compiler.compile_expression(_suffix.left, false);
         _compiler.compile_expression(_suffix.right, false);
-
     }
     _compiler.add_to_current_function("};".to_string());
 

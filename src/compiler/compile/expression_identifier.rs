@@ -20,6 +20,7 @@ pub fn compile_expression_identifier(
         return CompilerResult::Success(Types::Function(FunctionType {
             return_type: Box::new(Types::Void),
             parameter_types: vec![],
+            reference: "".to_string(),
         }));
     } else {
         let var = compiler
@@ -28,7 +29,11 @@ pub fn compile_expression_identifier(
             .resolve(format!("{}{}", compiler.location, identifier.value));
 
         if let Some(var) = var {
-            compiler.add_to_current_function(format!(".LOAD VARIABLE {};", var.index));
+            if var.parameter_id > -1 {
+                compiler.add_to_current_function(format!(".LOAD PARAMETER {};", var.parameter_id));
+            } else {
+                compiler.add_to_current_function(format!(".LOAD VARIABLE {};", var.index));
+            }
 
             return CompilerResult::Success(var._type);
         }
