@@ -1,9 +1,9 @@
 //! Responsible for parsing tokens into an abstract syntax tree
 use std::collections::HashMap;
 
+use crate::exception::Exception;
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
-use crate::exception::Exception;
 use crate::parser::expression::array::parse_expression_array;
 use crate::parser::expression::boolean::{parse_boolean, parse_inverted_boolean};
 use crate::parser::expression::conditional::parse_conditional;
@@ -29,7 +29,7 @@ use crate::parser::expression::number::{parse_negative_number, parse_number_lite
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::export::parse_export_statement;
 use crate::parser::statement::import::parse_import_statement;
-use crate::parser::types::{BaseTypes, Types};
+use crate::parser::types::{BaseTypes, FunctionType, Types};
 
 pub mod expression;
 pub mod program;
@@ -82,6 +82,16 @@ impl Parser {
         }
     }
 
+    fn current_token(&self) -> Token {
+        self.lexer.current_token.as_ref().unwrap().clone()
+    }
+
+    fn print_current_token(&self) {
+        let cur = self.lexer.current_token.as_ref().unwrap().clone();
+
+        println!("\"{}\":{:?}", cur.literal, cur.token)
+    }
+
     fn parse_type(&mut self, token: Token) -> Option<Types> {
         match token.token {
             TokenType::Identifier => match token.literal.as_str() {
@@ -113,6 +123,61 @@ impl Parser {
                         Some(Types::Basic(BaseTypes::Float))
                     }
                 }
+                "void" => {
+                    Some(Types::Void)
+                }
+                // Function types are as follows: func<arg1,arg2,arg3><retType>
+                "func" => {
+                    let mut func_type = FunctionType {
+                        return_type: Box::new(Types::Void),
+                        parameter_types: vec![],
+                        reference: "".to_string(),
+                    };
+
+                    // <
+                    self.lexer.next_token();
+                    self.lexer.next_token();
+                    let mut skipped = false;
+
+                    // func<INT
+                    println!("GOT: {}", self.current_token().literal);
+                    while !self.current_token_is(TokenType::RightArrow)
+                        && !self.current_token_is(TokenType::Eof)
+                    {
+                        println!("DOING: {}", self.current_token().literal);
+                        let next = self.lexer.current_token.as_ref().unwrap();
+                        let tp = self.parse_type(next.clone());
+
+                        func_type.parameter_types.push(Box::new(tp.unwrap()));
+
+                        // Comma
+                        skipped = true;
+                        self.lexer.next_token();
+                        if self.lexer.current_token.as_ref().unwrap().token == TokenType::Comma {
+                            self.lexer.next_token();
+                        }
+                    }
+
+                    // '>'
+                    self.lexer.next_token();
+                    // Return type '<'
+                    if !skipped {
+                        self.lexer.next_token();
+                    }
+
+                    self.lexer.next_token();
+                    let cur = self.lexer.current_token.as_ref().unwrap();
+
+                    func_type.return_type = Box::new(self.parse_type(cur.clone()).unwrap());
+
+                    // previous type & '>'
+                    self.lexer.next_token();
+                    self.lexer.next_token();
+
+
+
+                    Some(Types::Function(func_type))
+                }
                 _ => {
                     if self.peek_is_array() {
                         Some(Types::Array(Box::from(Types::Basic(
@@ -142,6 +207,11 @@ impl Parser {
                         .parse_type(self.lexer.get_current_token().unwrap().clone())
                         .unwrap();
                     self.lexer.next_token();
+                    parse_variable_declaration(self, Some(types))
+                } else if self.peek_token_is(TokenType::LeftArrow) {
+                    let types = self
+                        .parse_type(self.lexer.get_current_token().unwrap().clone())
+                        .unwrap();
                     parse_variable_declaration(self, Some(types))
                 } else {
                     parse_expression_statement(self)
@@ -255,7 +325,7 @@ impl Parser {
             return false;
         }
 
-        cur.unwrap().token == tok
+        cur.clone().unwrap().token == tok
     }
 
     pub fn next_token_is(&self, tok: TokenType) -> bool {
@@ -345,9 +415,9 @@ pub fn build_parser(lexer: Lexer) -> Parser {
 
     // Infix Parsers Comparisons
     p.add_infix_parser(TokenType::Equals, parse_suffix_expression);
-    p.add_infix_parser(TokenType::GreaterThan, parse_suffix_expression);
+    p.add_infix_parser(TokenType::RightArrow, parse_suffix_expression);
     p.add_infix_parser(TokenType::GreaterThanOrEquals, parse_suffix_expression);
-    p.add_infix_parser(TokenType::LessThan, parse_suffix_expression);
+    p.add_infix_parser(TokenType::LeftArrow, parse_suffix_expression);
     p.add_infix_parser(TokenType::LessThanOrEquals, parse_suffix_expression);
     p.add_infix_parser(TokenType::NotEquals, parse_suffix_expression);
 

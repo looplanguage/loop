@@ -37,11 +37,13 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
     p.lexer.next_token();
 
     while p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
+        let old = p.lexer.get_current_token().unwrap().clone();
         let tp = p
-            .parse_type(p.lexer.get_current_token().unwrap().clone())
+            .parse_type(old.clone())
             .unwrap();
 
-        p.lexer.next_token();
+        p.lexer.next_token_is_and_next_token(TokenType::Identifier);
+        println!("Parameter: {:?}", p.current_token().literal);
 
         arguments.push(Parameter {
             identifier: Identifier {
@@ -122,16 +124,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let arguments: Vec<Parameter> = parse_arguments(p);
 
-    if !p
-        .lexer
-        .next_token_and_current_is(TokenType::RightParenthesis)
-    {
-        p.add_error(format!(
-            "wrong token. expected=\"RightParenthesis\". got=\"{:?}\".",
-            p.lexer.get_current_token().unwrap().token
-        ));
-        return None;
-    }
+    p.lexer.next_token();
 
     if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
         p.add_error(format!(
@@ -143,6 +136,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let body = parse_block(p);
 
+    println!("FUNCTION DONE!");
     if !p.current_token_is(TokenType::RightBrace) {
         p.add_error(format!(
             "wrong token. expected=\"RightBrace\". got=\"{:?}\".",
@@ -150,6 +144,8 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         ));
         return None;
     }
+
+    println!("FUNCTION DONE!");
 
     Some(Node::Expression(Expression::Function(Function {
         name,

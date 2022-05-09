@@ -150,7 +150,7 @@ impl Lexer {
                     );
                 }
 
-                create_token(TokenType::GreaterThan, ch.to_string())
+                create_token(TokenType::RightArrow, ch.to_string())
             }
             '<' => {
                 if self.get_character(1) == '=' {
@@ -161,7 +161,7 @@ impl Lexer {
                     );
                 }
 
-                create_token(TokenType::LessThan, ch.to_string())
+                create_token(TokenType::LeftArrow, ch.to_string())
             }
             _ => self.find_keyword(ch),
         }

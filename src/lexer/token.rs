@@ -60,9 +60,9 @@ pub enum TokenType {
     /// Example: '$'
     DollarSign,
     /// Example: '>'
-    GreaterThan,
+    RightArrow,
     /// Example: '<'
-    LessThan,
+    LeftArrow,
     /// Example: ','
     Comma,
     /// Example: '{'
@@ -123,6 +123,7 @@ pub enum TokenType {
     In,
     /// Example: 'break'
     Break,
+    FunctionType,
     Unknown,
     /// Indicates that there are no more tokens
     Eof,

@@ -155,7 +155,7 @@ mod tests {
         let input = "1 > 2; 1 >= 2; 1 < 2; 1 <= 2;";
         let expected = vec![
             test_helper::generate_token("1", TokenType::Integer),
-            test_helper::generate_token(">", TokenType::GreaterThan),
+            test_helper::generate_token(">", TokenType::RightArrow),
             test_helper::generate_token("2", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
             test_helper::generate_token("1", TokenType::Integer),
@@ -163,7 +163,7 @@ mod tests {
             test_helper::generate_token("2", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
             test_helper::generate_token("1", TokenType::Integer),
-            test_helper::generate_token("<", TokenType::LessThan),
+            test_helper::generate_token("<", TokenType::LeftArrow),
             test_helper::generate_token("2", TokenType::Integer),
             test_helper::generate_token(";", TokenType::Semicolon),
             test_helper::generate_token("1", TokenType::Integer),

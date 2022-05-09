@@ -17,6 +17,7 @@ pub enum CompilerException {
     CanNotReadFile(String),
     DoubleParameterName(String),
     CallingNonFunction(String),
+    // GOT, EXPECTED
     WrongType(String, String),
     ValueDifferentFromType(String, String),
     Unknown,
