@@ -30,9 +30,15 @@ publish docker:
     - docker push $TAG_COMMIT
     - docker push $TAG_LATEST
 
+.copy:
+  before_script:
+    - cp -r /app/target $CI_PROJECT_DIR/target
+
 lint:
   image: $CI_REGISTRY/looplanguage/picasso:latest
   stage: lint
+  before_script:
+    - !reference [.copy, before_script]
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
@@ -40,5 +46,7 @@ lint:
 test:
   image: $CI_REGISTRY/looplanguage/picasso:latest
   stage: test
+  before_script:
+    - !reference [ .copy, before_script ]
   script:
     - cargo test
