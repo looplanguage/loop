@@ -13,7 +13,10 @@ pub fn compile_expression_identifier(
 
     if let Some(var) = var {
         if var.parameter_id > -1 {
-            compiler.add_to_current_function(format!(".LOAD PARAMETER {};", var.parameter_id));
+            compiler.add_to_current_function(format!(
+                ".LOAD PARAMETER {} {};",
+                var.function_identifier, var.parameter_id
+            ));
         } else {
             compiler.add_to_current_function(format!(".LOAD VARIABLE {};", var.index));
         }

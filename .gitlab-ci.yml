@@ -7,6 +7,10 @@ stages:
   - check               # Checks for quick compilation issues
   - test                # Windows + Linux, cargo test and integration_test.py
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 publish docker:
   variables:
     TAG_LATEST: $CI_REGISTRY_IMAGE:latest
@@ -26,9 +30,15 @@ publish docker:
     - docker push $TAG_COMMIT
     - docker push $TAG_LATEST
 
+.copy:
+  before_script:
+    - cp -r /app/target $CI_PROJECT_DIR/target
+
 lint:
   image: $CI_REGISTRY/looplanguage/picasso:latest
   stage: lint
+  before_script:
+    - !reference [.copy, before_script]
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
@@ -36,5 +46,7 @@ lint:
 test:
   image: $CI_REGISTRY/looplanguage/picasso:latest
   stage: test
+  before_script:
+    - !reference [ .copy, before_script ]
   script:
     - cargo test

@@ -117,21 +117,7 @@ impl Types {
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
-            Types::Function(func) => {
-                let mut args = String::new();
-
-                let mut index = 0;
-                for parameter_type in &func.parameter_types {
-                    index += 1;
-                    args.push_str(&*parameter_type.transpile());
-
-                    if index != func.parameter_types.len() {
-                        args.push(',');
-                    }
-                }
-
-                format!("fn({}): {}", args, func.return_type)
-            }
+            Types::Function(_) => "VOID".to_string(),
             Types::Void => "VOID".to_string(),
             Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
         }

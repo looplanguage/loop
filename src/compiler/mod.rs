@@ -89,9 +89,17 @@ pub struct Compiler {
     pub imports: Vec<String>,
     pub functions: HashMap<String, Function>,
     pub function_stack: Vec<String>,
+    pub function_count: i32,
     pub current_function: String,
     // Specifies whether or not compiling should add code
     pub dry: bool,
+}
+
+#[derive(Clone)]
+pub struct CompilerState {
+    pub variable_scope: Rc<RefCell<VariableScope>>,
+    pub variable_count: u32,
+    pub function_count: i32,
 }
 
 impl Default for Compiler {
@@ -109,6 +117,7 @@ impl Default for Compiler {
             imports: Vec::new(),
             functions: HashMap::new(),
             function_stack: Vec::new(),
+            function_count: 0,
             current_function: String::from("main"),
             dry: false,
         }
@@ -167,6 +176,23 @@ impl Compiler {
         }
 
         Result::Ok(self.get_d_code())
+    }
+
+    pub fn default_with_state(compiler_state: CompilerState) -> Compiler {
+        Compiler {
+            function_count: compiler_state.function_count,
+            variable_count: compiler_state.variable_count,
+            variable_scope: compiler_state.variable_scope,
+            ..Compiler::default()
+        }
+    }
+
+    pub fn get_compiler_state(&self) -> CompilerState {
+        CompilerState {
+            function_count: self.function_count,
+            variable_count: self.variable_count,
+            variable_scope: self.variable_scope.clone(),
+        }
     }
 
     /// Adds code to the current function compilation scope
@@ -305,6 +331,7 @@ impl Compiler {
             var_type,
             Modifiers::default(),
             parameter_id,
+            self.function_count,
         );
 
         self.variable_count += 1;

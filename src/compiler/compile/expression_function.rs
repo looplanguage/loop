@@ -22,6 +22,7 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
+    compiler.function_count += 1;
     let random_identifier: i64 = random();
     let mut function_type: Types;
     // (Transpiled, Named, Index)
@@ -72,11 +73,12 @@ pub fn compile_expression_function(
     }
 
     compiler.add_to_current_function(format!(
-        ".FUNCTION \"{}\" REPLACE_TYPE_{} ARGUMENTS {{",
+        ".FUNCTION \"{}\" {} REPLACE_TYPE_{} ARGUMENTS {{",
         named_function
             .clone()
             .unwrap_or(("".to_string(), "".to_string(), 0))
             .0,
+        compiler.function_count,
         random_identifier
     ));
 
