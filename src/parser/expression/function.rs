@@ -134,7 +134,6 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
 
     let body = parse_block(p);
 
-    println!("FUNCTION DONE!");
     if !p.current_token_is(TokenType::RightBrace) {
         p.add_error(format!(
             "wrong token. expected=\"RightBrace\". got=\"{:?}\".",
@@ -142,8 +141,6 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         ));
         return None;
     }
-
-    println!("FUNCTION DONE!");
 
     Some(Node::Expression(Expression::Function(Function {
         name,
