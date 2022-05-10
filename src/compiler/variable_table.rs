@@ -11,7 +11,7 @@ pub struct Variable {
     pub _type: Types,
     pub modifiers: Modifiers,
     pub parameter_id: i32,
-    pub function_identifier: i32
+    pub function_identifier: i32,
 }
 
 pub struct VariableScope {
@@ -54,7 +54,7 @@ impl VariableScope {
             _type: _type.clone(),
             modifiers: modifiers.clone(),
             parameter_id,
-            function_identifier
+            function_identifier,
         })));
 
         let var = self.variables.last().expect("inserted").as_ref().borrow();
@@ -65,7 +65,7 @@ impl VariableScope {
             _type,
             modifiers,
             parameter_id,
-            function_identifier
+            function_identifier,
         }
     }
 
@@ -98,7 +98,7 @@ impl VariableScope {
                     _type: variable._type.clone(),
                     modifiers: variable.modifiers.clone(),
                     parameter_id: variable.parameter_id,
-                    function_identifier: variable.function_identifier
+                    function_identifier: variable.function_identifier,
                 });
             }
         }
