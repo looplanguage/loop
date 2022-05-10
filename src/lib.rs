@@ -1,5 +1,5 @@
-use std::process::exit;
 use crate::compiler::CompilerState;
+use std::process::exit;
 
 pub mod compiler;
 pub mod exception;

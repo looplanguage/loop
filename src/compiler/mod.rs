@@ -193,7 +193,7 @@ impl Compiler {
         CompilerState {
             function_count: self.function_count,
             variable_count: self.variable_count,
-            variable_scope: self.variable_scope.clone()
+            variable_scope: self.variable_scope.clone(),
         }
     }
 
