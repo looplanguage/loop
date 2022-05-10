@@ -89,6 +89,7 @@ pub struct Compiler {
     pub imports: Vec<String>,
     pub functions: HashMap<String, Function>,
     pub function_stack: Vec<String>,
+    pub function_count: i32,
     pub current_function: String,
     // Specifies whether or not compiling should add code
     pub dry: bool,
@@ -109,6 +110,7 @@ impl Default for Compiler {
             imports: Vec::new(),
             functions: HashMap::new(),
             function_stack: Vec::new(),
+            function_count: 0,
             current_function: String::from("main"),
             dry: false,
         }
@@ -305,6 +307,7 @@ impl Compiler {
             var_type,
             Modifiers::default(),
             parameter_id,
+            self.function_count,
         );
 
         self.variable_count += 1;
