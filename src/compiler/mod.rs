@@ -95,6 +95,13 @@ pub struct Compiler {
     pub dry: bool,
 }
 
+#[derive(Clone)]
+pub struct CompilerState {
+    pub variable_scope: Rc<RefCell<VariableScope>>,
+    pub variable_count: u32,
+    pub function_count: i32,
+}
+
 impl Default for Compiler {
     fn default() -> Self {
         Compiler {
@@ -169,6 +176,24 @@ impl Compiler {
         }
 
         Result::Ok(self.get_d_code())
+    }
+
+    pub fn default_with_state(compiler_state: CompilerState) -> Compiler {
+        let mut compiler = Compiler::default();
+
+        compiler.function_count = compiler_state.function_count;
+        compiler.variable_count = compiler_state.variable_count;
+        compiler.variable_scope = compiler_state.variable_scope;
+
+        compiler
+    }
+
+    pub fn get_compiler_state(&self) -> CompilerState {
+        CompilerState {
+            function_count: self.function_count,
+            variable_count: self.variable_count,
+            variable_scope: self.variable_scope.clone()
+        }
     }
 
     /// Adds code to the current function compilation scope
