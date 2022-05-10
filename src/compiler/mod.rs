@@ -179,11 +179,12 @@ impl Compiler {
     }
 
     pub fn default_with_state(compiler_state: CompilerState) -> Compiler {
-        let mut compiler = Compiler::default();
-
-        compiler.function_count = compiler_state.function_count;
-        compiler.variable_count = compiler_state.variable_count;
-        compiler.variable_scope = compiler_state.variable_scope;
+        let mut compiler = Compiler {
+            function_count: compiler_state.function_count,
+            variable_count: compiler_state.variable_count,
+            variable_scope: compiler_state.variable_scope,
+            ..Compiler::default()
+        };
 
         compiler
     }
