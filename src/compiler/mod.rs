@@ -358,70 +358,29 @@ impl Compiler {
 
             let err = {
                 if let Statement::Expression(exp) = statement.clone() {
-                    if Compiler::should_add_return(*exp.expression.clone()) {
-                        /*
-                        let block_return =
-                            self.define_variable("block_return".to_string(), Types::Auto);
-
-                        if index == block.statements.len() && !anonymous {
-                            self.add_to_current_function(format!(
-                                "Variant {} = ",
-                                block_return.transpile()
-                            ));
-                        }*/
-
-                        let result = self.compile_statement(statement.clone(), false);
-
-                        if index == block.statements.len()
-                        /*&& !anonymous*/
-                        {
-                            if let CompilerResult::Success(_type) = &result {
-                                block_type = _type.clone();
-                            }
-                        }
-                        /*
-                        if let CompilerResult::Success(_type) = &result {
-                            if *_type == Types::Void {
-                                self.replace_at_current_function(
-                                    format!("Variant {} = ", block_return.transpile()),
-                                    "".to_string(),
-                                )
-                            } /*else if index == block.statements.len() && !anonymous {
-                                  self.add_to_current_function(format!(
-                                      "return {};",
-                                      block_return.transpile()
-                                  ));
-                              }*/
-                        }*/
-
-                        if index == block.statements.len() && anonymous {
-                            if let CompilerResult::Success(_type) = &result {
-                                block_type = _type.clone();
-                            }
-
-                            self.add_to_current_function("".to_string());
-                        }
-
-                        result
-                    } else {
-                        let result = self.compile_statement(statement.clone(), false);
-
-                        // Find first "return" as that is the only way to return
-                        if let Statement::Return(_) = statement.clone() {
-                            if let CompilerResult::Success(_type) = &result {
-                                block_type = _type.clone();
-                            }
-                        }
-
-                        // Or if its the last expression
-                        if index == block.statements.len() {
-                            if let CompilerResult::Success(_type) = &result {
-                                block_type = _type.clone();
-                            }
-                        }
-
-                        result
+                    if index == block.statements.len() {
+                        self.add_to_current_function(".RETURN { ".to_string())
                     }
+
+                    let result = self.compile_statement(statement.clone(), false);
+
+                    // Find first "return" as that is the only way to return
+                    if let Statement::Return(_) = statement.clone() {
+                        if let CompilerResult::Success(_type) = &result {
+                            block_type = _type.clone();
+                        }
+                    }
+
+                    // Or if its the last expression
+                    if index == block.statements.len() {
+                        if let CompilerResult::Success(_type) = &result {
+                            block_type = _type.clone();
+                        }
+
+                        self.add_to_current_function("};".to_string());
+                    }
+
+                    result
                 } else {
                     let result = self.compile_statement(statement.clone(), false);
 
