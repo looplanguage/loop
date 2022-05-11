@@ -22,6 +22,9 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
+    if !compiler.dry {
+        println!("DECLARING FUNC!");
+    }
     compiler.function_count += 1;
     let random_identifier: i64 = random();
     let mut function_type: Types;

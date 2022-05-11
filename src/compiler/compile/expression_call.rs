@@ -4,12 +4,12 @@ use crate::parser::expression::function::Call;
 use crate::parser::types::Types;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
-    compiler.dry = true;
-    let result = compiler.compile_expression(*call.identifier.clone());
-    compiler.dry = false;
+    compiler.add_to_current_function(".CALL {".to_string());
+
+    let result = compiler.compile_expression(*call.identifier);
 
     #[allow(clippy::single_match)]
-    let func_signature = match &result {
+        let func_signature = match &result {
         CompilerResult::Exception(_exception) => return result,
         CompilerResult::Success(_type) => {
             if let Types::Function(func) = _type {
@@ -22,10 +22,6 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         }
         _ => return CompilerResult::Exception(CompilerException::Unknown),
     };
-
-    compiler.add_to_current_function(".CALL {".to_string());
-
-    compiler.compile_expression(*call.identifier.clone());
 
     compiler.add_to_current_function(String::from("} {"));
 

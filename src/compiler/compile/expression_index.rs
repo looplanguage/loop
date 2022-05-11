@@ -28,15 +28,14 @@ pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
 ) -> CompilerResult {
-    let var = compiler.define_variable("ptr_to_array".to_string(), Types::Auto, -1);
-
-    compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
+    compiler.add_to_current_function(".ASSIGN { .INDEX {".to_string());
     compiler.compile_expression(assign.left);
 
-    compiler.add_to_current_function(format!("; {}[", var.transpile()));
+    compiler.add_to_current_function("} {".to_string());
     compiler.compile_expression(assign.index);
-    compiler.add_to_current_function("] = ".to_string());
+    compiler.add_to_current_function("} } {".to_string());
     compiler.compile_expression(assign.value);
+    compiler.add_to_current_function("}".to_string());
 
     CompilerResult::Success(Types::Void)
 }
@@ -207,16 +206,13 @@ fn transpile_extension_add(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.add_to_current_function(".PUSH { ".to_string());
-    let result = compiler.compile_expression(left);
-
-    compiler.replace_at_current_function("{INSERT}".to_string(), ".STORE {".to_string());
-
-    compiler.add_to_current_function("} { ".to_string());
-
-    let mut index = 0;
-
     for parameter in call.parameters.clone() {
+        compiler.add_to_current_function(".PUSH { ".to_string());
+        compiler.compile_expression(left.clone());
+
+        compiler.add_to_current_function("} { ".to_string());
+
+        let mut index = 0;
         let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
@@ -227,14 +223,10 @@ fn transpile_extension_add(
 
         index += 1;
 
-        if call.parameters.len() > 1 && call.parameters.len() != index {
-            compiler.add_to_current_function(", ".to_string());
-        }
+        compiler.add_to_current_function("};".to_string());
     }
 
-    compiler.add_to_current_function("};".to_string());
-
-    result
+    CompilerResult::Success(Types::Void)
 }
 
 /// Transpiles the extension method 'remove'
@@ -255,13 +247,13 @@ fn transpile_extension_remove(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    compiler.add_to_current_function(".SLICE { ".to_string());
-
-    let result = compiler.compile_expression(left);
-    compiler.add_to_current_function("} { ".to_string());
-
-    let mut index = 0;
     for parameter in call.parameters.clone() {
+        compiler.add_to_current_function(".POP { ".to_string());
+        compiler.compile_expression(left.clone());
+
+        compiler.add_to_current_function("} { ".to_string());
+
+        let mut index = 0;
         let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
@@ -272,33 +264,10 @@ fn transpile_extension_remove(
 
         index += 1;
 
-        if call.parameters.len() > 1 && call.parameters.len() != index {
-            compiler.add_to_current_function(", ".to_string());
-        }
+        compiler.add_to_current_function("};".to_string());
     }
 
-    compiler.add_to_current_function("} { .ADD { ".to_string());
-
-    let mut index = 0;
-    for parameter in call.parameters.clone() {
-        let result = compiler.compile_expression(parameter);
-
-        #[allow(clippy::single_match)]
-        match &result {
-            CompilerResult::Exception(_exception) => return result,
-            _ => (),
-        }
-
-        index += 1;
-
-        if call.parameters.len() > 1 && call.parameters.len() != index {
-            compiler.add_to_current_function(", ".to_string());
-        }
-    }
-
-    compiler.add_to_current_function(" .CONSTANT INT 1;}; };".to_string());
-
-    result
+    CompilerResult::Success(Types::Void)
 }
 
 /// Transpiles the extension method 'slice'
@@ -319,7 +288,9 @@ fn transpile_extension_slice(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
+    compiler.add_to_current_function(".SLICE { ".to_string());
     let result = compiler.compile_expression(left);
+    compiler.add_to_current_function("} { ".to_string());
 
     let mut slice_type = Types::Void;
 
@@ -332,19 +303,16 @@ fn transpile_extension_slice(
         }
     };
 
-    // Maybe add .get!(Variant[]) if auto?
-    compiler.add_to_current_function("[".to_string());
-
     let start = call.parameters[0].clone();
     let end = call.parameters[1].clone();
 
     compiler.compile_expression(start);
 
-    compiler.add_to_current_function("..".to_string());
+    compiler.add_to_current_function("} { .SUBTRACT { ".to_string());
 
     compiler.compile_expression(end);
 
-    compiler.add_to_current_function("]".to_string());
+    compiler.add_to_current_function(" .CONSTANT INT 1; }; };".to_string());
 
     CompilerResult::Success(slice_type)
 }
@@ -363,11 +331,12 @@ fn transpile_extension_slice(
 /// auto length = to!int(var_array_0.length);
 /// ```
 fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    compiler.add_to_current_function("to!int(".to_string());
+
+    compiler.add_to_current_function(".LENGTH {".to_string());
 
     compiler.compile_expression(left);
 
-    compiler.add_to_current_function(".length)".to_string());
+    compiler.add_to_current_function("};".to_string());
 
     CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }

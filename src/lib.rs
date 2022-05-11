@@ -28,6 +28,8 @@ pub fn compile(str: &str) -> (String, CompilerState) {
     let mut parser = parser::build_parser(lexer);
 
     let program = parser.parse();
+    println!("PROGRAM: {:?}", program.statements.clone());
+
     let mut compiler = compiler::Compiler::default();
 
     let compiled = compiler.compile(program);
