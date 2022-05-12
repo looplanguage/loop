@@ -340,29 +340,17 @@ impl Compiler {
             let err = {
                 if let Statement::Expression(ref exp) = statement {
                     if index != block.statements.len() {
-                        if let Expression::Integer(_) = *exp.expression {
-                            continue;
-                        }
-
-                        if let Expression::String(_) = *exp.expression {
-                            continue;
-                        }
-
-                        if let Expression::Boolean(_) = *exp.expression {
-                            continue;
-                        }
-
-                        if let Expression::Float(_) = *exp.expression {
-                            continue;
-                        }
-
-                        if let Expression::Array(_) = *exp.expression {
-                            continue;
-                        }
-
-                        if let Expression::Identifier(_) = *exp.expression {
-                            continue;
-                        }
+                        // On their own these expressions dont provide side affects, so we don't
+                        // want them to be compiled as they are useless
+                        match *exp.expression {
+                            Expression::Integer(_) => continue,
+                            Expression::String(_) => continue,
+                            Expression::Array(_) => continue,
+                            Expression::Boolean(_) => continue,
+                            Expression::Float(_) => continue,
+                            Expression::Identifier(_) => continue,
+                            _ => {}
+                        };
                     }
 
                     if index == block.statements.len() && anonymous {
