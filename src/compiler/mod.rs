@@ -358,7 +358,7 @@ impl Compiler {
 
             let err = {
                 if let Statement::Expression(exp) = statement.clone() {
-                    if index == block.statements.len() {
+                    if index == block.statements.len() && !anonymous {
                         self.add_to_current_function(".RETURN { ".to_string())
                     }
 
@@ -377,7 +377,9 @@ impl Compiler {
                             block_type = _type.clone();
                         }
 
-                        self.add_to_current_function("};".to_string());
+                        if !anonymous {
+                            self.add_to_current_function("};".to_string());
+                        }
                     }
 
                     result
