@@ -310,19 +310,6 @@ impl Compiler {
         CompilerResult::Success(return_type)
     }
 
-    /// Recursively search through a block to find if it returns anything
-    fn _block_get_return_type(block: Block) -> bool {
-        if !block.statements.is_empty() {
-            return match block.statements.last().unwrap() {
-                Statement::Expression(exp) => Compiler::should_add_return(*exp.expression.clone()),
-                Statement::Return(_) => true,
-                _ => false,
-            };
-        }
-
-        false
-    }
-
     /// Defines a new variable and increases the amount of variables that exist
     fn define_variable(&mut self, name: String, var_type: Types, parameter_id: i32) -> Variable {
         let var = self.variable_scope.borrow_mut().define(
@@ -339,12 +326,6 @@ impl Compiler {
         var
     }
 
-    /// Checks an expression if it doesn't already have a return (as expressions always evalaute to a value)
-    fn should_add_return(expression: Expression) -> bool {
-        // Right now this is a macro, but can be expanded using a matches expression
-        !matches!(expression, Expression::Conditional(_))
-    }
-
     /// Compiles a deeper [Block] adding curly braces
     fn compile_block(&mut self, block: Block, anonymous: bool) -> CompilerResult {
         let mut block_type: Types = Types::Void;
@@ -357,7 +338,7 @@ impl Compiler {
             index += 1;
 
             let err = {
-                if let Statement::Expression(exp) = statement.clone() {
+                if let Statement::Expression(_) = statement {
                     if index == block.statements.len() && !anonymous {
                         self.add_to_current_function(".RETURN { ".to_string())
                     }

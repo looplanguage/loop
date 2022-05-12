@@ -206,13 +206,12 @@ fn transpile_extension_add(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    for parameter in call.parameters.clone() {
+    for parameter in call.parameters {
         compiler.add_to_current_function(".PUSH { ".to_string());
         compiler.compile_expression(left.clone());
 
         compiler.add_to_current_function("} { ".to_string());
 
-        let mut index = 0;
         let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
@@ -220,8 +219,6 @@ fn transpile_extension_add(
             CompilerResult::Exception(_exception) => return result,
             _ => (),
         }
-
-        index += 1;
 
         compiler.add_to_current_function("};".to_string());
     }
@@ -247,13 +244,12 @@ fn transpile_extension_remove(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    for parameter in call.parameters.clone() {
+    for parameter in call.parameters {
         compiler.add_to_current_function(".POP { ".to_string());
         compiler.compile_expression(left.clone());
 
         compiler.add_to_current_function("} { ".to_string());
 
-        let mut index = 0;
         let result = compiler.compile_expression(parameter);
 
         #[allow(clippy::single_match)]
@@ -261,8 +257,6 @@ fn transpile_extension_remove(
             CompilerResult::Exception(_exception) => return result,
             _ => (),
         }
-
-        index += 1;
 
         compiler.add_to_current_function("};".to_string());
     }
@@ -331,7 +325,6 @@ fn transpile_extension_slice(
 /// auto length = to!int(var_array_0.length);
 /// ```
 fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-
     compiler.add_to_current_function(".LENGTH {".to_string());
 
     compiler.compile_expression(left);

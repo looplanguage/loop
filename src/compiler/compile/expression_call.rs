@@ -9,7 +9,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     let result = compiler.compile_expression(*call.identifier);
 
     #[allow(clippy::single_match)]
-        let func_signature = match &result {
+    let func_signature = match &result {
         CompilerResult::Exception(_exception) => return result,
         CompilerResult::Success(_type) => {
             if let Types::Function(func) = _type {
