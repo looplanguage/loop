@@ -338,7 +338,33 @@ impl Compiler {
             index += 1;
 
             let err = {
-                if let Statement::Expression(_) = statement {
+                if let Statement::Expression(ref exp) = statement {
+                    if index != block.statements.len() {
+                        if let Expression::Integer(_) = *exp.expression {
+                            continue;
+                        }
+
+                        if let Expression::String(_) = *exp.expression {
+                            continue;
+                        }
+
+                        if let Expression::Boolean(_) = *exp.expression {
+                            continue;
+                        }
+
+                        if let Expression::Float(_) = *exp.expression {
+                            continue;
+                        }
+
+                        if let Expression::Array(_) = *exp.expression {
+                            continue;
+                        }
+
+                        if let Expression::Identifier(_) = *exp.expression {
+                            continue;
+                        }
+                    }
+
                     if index == block.statements.len() && anonymous {
                         self.add_to_current_function(".RETURN { ".to_string())
                     }
