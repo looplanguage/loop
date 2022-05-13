@@ -18,7 +18,7 @@ pub fn compile_statement_constant_declaration(
 
     compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
-    let result = compiler.compile_expression(*constant.value);
+    let _ = compiler.compile_expression(*constant.value);
 
     compiler.add_to_current_function("};".to_string());
 

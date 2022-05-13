@@ -1,9 +1,8 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::parser::expression::Expression;
-use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
+use crate::parser::expression::Expression;
 use crate::parser::types::{BaseTypes, Types};
 
 use super::expression_index::compile_expression_index;
@@ -125,20 +124,27 @@ pub fn compile_loop_array_iterator_expression(
 
     // Define the identifier variable, with the starting value of the array
     let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
-    let index = compiler.define_variable("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
+    let index =
+        compiler.define_variable("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
 
     compiler.add_to_current_function(format!(".STORE {} {{ .CONSTANT INT 0; }};", index.index));
     compiler.add_to_current_function(format!(".STORE {} {{ ", var.index));
 
     // TODO: Get result and set it as type of 'var'
-    let _ = compile_expression_index(compiler, Index {
-        left: *lp.array.clone(),
-        index: Expression::Integer(Integer { value: 0 })
-    });
+    let _ = compile_expression_index(
+        compiler,
+        Index {
+            left: *lp.array.clone(),
+            index: Expression::Integer(Integer { value: 0 }),
+        },
+    );
 
-    compiler.add_to_current_function(format!("}}; .WHILE CONDITION {{ .GREATERTHAN {{ .LENGTH {{"));
+    compiler.add_to_current_function("}; .WHILE CONDITION { .GREATERTHAN { .LENGTH {".to_string());
     compiler.compile_expression(*lp.array.clone());
-    compiler.add_to_current_function(format!(" }}; .LOAD VARIABLE {}; }}; }} THEN {{", index.index));
+    compiler.add_to_current_function(format!(
+        " }}; .LOAD VARIABLE {}; }}; }} THEN {{",
+        index.index
+    ));
 
     // Compile body and then increase the index
     let result = compiler.compile_loop_block(lp.body);
@@ -147,12 +153,9 @@ pub fn compile_loop_array_iterator_expression(
         ".STORE {} {{ .ADD {{.LOAD VARIABLE {};.CONSTANT INT 1;}};}};",
         index.index, index.index
     ));
-    compiler.add_to_current_function(format!(
-        ".STORE {} {{ .INDEX {{",
-        var.index
-    ));
+    compiler.add_to_current_function(format!(".STORE {} {{ .INDEX {{", var.index));
 
-    compiler.compile_expression(*lp.array.clone());
+    compiler.compile_expression(*lp.array);
 
     compiler.add_to_current_function(format!("}} {{ .LOAD VARIABLE {}; }} }};", index.index));
 
