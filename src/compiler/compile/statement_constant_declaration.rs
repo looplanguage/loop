@@ -16,16 +16,11 @@ pub fn compile_statement_constant_declaration(
     // ToDo: Check whether value has the same type as the type, otherwise there will be a D error
     let _type = constant.data_type.transpile();
 
-    compiler.add_to_current_function(format!("const {} {} = ", _type, var.transpile()));
+    compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
-    let result = compiler.compile_expression(*constant.value);
+    let _ = compiler.compile_expression(*constant.value);
 
-    if let CompilerResult::Success(inferred_type) = result {
-        compiler.replace_at_current_function(
-            format!("const {} {} = ", _type, var.transpile()),
-            format!("const {} {} = ", inferred_type.transpile(), var.transpile()),
-        );
-    }
+    compiler.add_to_current_function("};".to_string());
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 

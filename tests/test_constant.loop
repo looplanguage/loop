@@ -1,4 +1,0 @@
-const int x := 12
-const y := 10
-
-println(x + y)

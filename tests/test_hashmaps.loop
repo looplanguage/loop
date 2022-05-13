@@ -1,3 +1,0 @@
-// answer = 30
-x := {20: 30, false: true, "hello test": {100: 20}}
-x[20]

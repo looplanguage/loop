@@ -82,10 +82,6 @@ impl Parser {
         }
     }
 
-    fn current_token(&self) -> Token {
-        self.lexer.current_token.as_ref().unwrap().clone()
-    }
-
     fn parse_type(&mut self, token: Token) -> Option<Types> {
         match token.token {
             TokenType::Identifier => match token.literal.as_str() {

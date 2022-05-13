@@ -1,6 +1,0 @@
-// answer = 20
-y := 0
-for (y < 10) { y = y + 1 }
-x := 0
-for x < 10 { x = x + 1 }
-x + y

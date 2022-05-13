@@ -1,5 +1,0 @@
-// answer = 9
-fn f(int x, int y) {
-    return x + y
-}
-f(3, 6)
