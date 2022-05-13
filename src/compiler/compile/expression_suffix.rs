@@ -8,7 +8,7 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
             _compiler.add_to_current_function(".POWER {".to_string());
         }
         "and" => {
-            _compiler.add_to_current_function(".IF {".to_string());
+            _compiler.add_to_current_function(".AND {".to_string());
         }
         "or" => {
             _compiler.add_to_current_function(".OR {".to_string());
@@ -33,6 +33,9 @@ pub fn compile_expression_suffix(_compiler: &mut Compiler, _suffix: Suffix) -> C
         }
         "!=" => {
             _compiler.add_to_current_function(".NOTEQUALS {".to_string());
+        }
+        "%" => {
+            _compiler.add_to_current_function(".MODULO {".to_string());
         }
         _ => {
             _compiler.add_to_current_function("UNKNOWN_OPERATOR".to_string());

@@ -1,5 +1,0 @@
-// Expected result from test: 8
-import "./tests/package.loop" as double
-
-// 4 * 2
-double(4)

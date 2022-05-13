@@ -1,4 +1,0 @@
-// answer = 50
-answer := 0
-if false { answer = 10 } else if false { if false { answer = 10 } } else if false {answer = 320 + 400} else if true { answer = 50 } else { answer = 6000 }
-answer

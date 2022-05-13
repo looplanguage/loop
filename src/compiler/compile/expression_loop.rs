@@ -1,6 +1,12 @@
 use crate::compiler::{Compiler, CompilerResult};
+use crate::parser::expression::Expression;
+use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::index::Index;
+use crate::parser::expression::integer::Integer;
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::types::{BaseTypes, Types};
+
+use super::expression_index::compile_expression_index;
 
 /// Compiles (/transpiles) the "while" loop of Loop
 ///
@@ -69,9 +75,15 @@ pub fn compile_loop_iterator_expression(
     // Define the identifier variable, with the starting integer
     let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
 
-    compiler.add_to_current_function(format!("int {} = {};", var.transpile(), lp.from));
+    compiler.add_to_current_function(format!(
+        ".STORE {} {{.CONSTANT INT {};}};",
+        var.index, lp.from
+    ));
 
-    compiler.add_to_current_function(format!("while({} < {}) {{", var.transpile(), lp.till));
+    compiler.add_to_current_function(format!(
+        ".WHILE CONDITION {{ .GREATERTHAN {{ .CONSTANT INT {}; .LOAD VARIABLE {}; }}; }} THEN {{",
+        lp.till, var.index
+    ));
 
     // Compile the body that is executed
     let result = compiler.compile_loop_block(lp.body);
@@ -79,7 +91,11 @@ pub fn compile_loop_iterator_expression(
     compiler.exit_variable_scope();
 
     // Increase it
-    compiler.add_to_current_function(format!("{} += 1; }}", var.transpile()));
+    compiler.add_to_current_function(format!(
+        ".STORE {} {{ .ADD {{.LOAD VARIABLE {};.CONSTANT INT 1;}};}};",
+        var.index, var.index
+    ));
+    compiler.add_to_current_function("};".to_string());
 
     result
 }
@@ -97,8 +113,7 @@ pub fn compile_loop_iterator_expression(
 /// Will translate to this D code (excluding imports & main declaration)
 /// ```d
 /// int[] var_array_0 = [10, 20, 30];
-/// foreach (var_value_1; var_array_0)
-/// {
+/// foreach (var_value_1; var_array_0)/// {
 ///     writeln(var_value_1);
 /// }
 /// ```
@@ -108,22 +123,40 @@ pub fn compile_loop_array_iterator_expression(
 ) -> CompilerResult {
     compiler.enter_variable_scope();
 
-    // compiler.compile_expression(*lp.array, false);
-    // lp.identifier.value
-
     // Define the identifier variable, with the starting value of the array
     let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
+    let index = compiler.define_variable("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
 
-    compiler.add_to_current_function(format!("foreach({}; ", var.transpile(),));
+    compiler.add_to_current_function(format!(".STORE {} {{ .CONSTANT INT 0; }};", index.index));
+    compiler.add_to_current_function(format!(".STORE {} {{ ", var.index));
 
-    compiler.compile_expression(*lp.array);
+    // TODO: Get result and set it as type of 'var'
+    let _ = compile_expression_index(compiler, Index {
+        left: *lp.array.clone(),
+        index: Expression::Integer(Integer { value: 0 })
+    });
 
-    compiler.add_to_current_function(") {".to_string());
+    compiler.add_to_current_function(format!("}}; .WHILE CONDITION {{ .GREATERTHAN {{ .LENGTH {{"));
+    compiler.compile_expression(*lp.array.clone());
+    compiler.add_to_current_function(format!(" }}; .LOAD VARIABLE {}; }}; }} THEN {{", index.index));
 
     // Compile body and then increase the index
     let result = compiler.compile_loop_block(lp.body);
 
-    compiler.add_to_current_function("}".to_string());
+    compiler.add_to_current_function(format!(
+        ".STORE {} {{ .ADD {{.LOAD VARIABLE {};.CONSTANT INT 1;}};}};",
+        index.index, index.index
+    ));
+    compiler.add_to_current_function(format!(
+        ".STORE {} {{ .INDEX {{",
+        var.index
+    ));
+
+    compiler.compile_expression(*lp.array.clone());
+
+    compiler.add_to_current_function(format!("}} {{ .LOAD VARIABLE {}; }} }};", index.index));
+
+    compiler.add_to_current_function("};".to_string());
 
     result
 }
