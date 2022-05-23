@@ -14,7 +14,7 @@ mod optimize;
 /// Value: `false` -> is not enabled<br>
 /// Value: `None` -> unspecified<br>
 #[allow(dead_code)]
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum FlagTypes {
     Help(String), // When user does -h or --help it gives all the flags and closes program
     File(String),
