@@ -128,8 +128,7 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
             namespace,
             arguments,
         }))
-    }
-    else {
+    } else {
         let next = parser.next_token();
 
         let function = parser.parse_node(&next)?;

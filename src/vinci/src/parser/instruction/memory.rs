@@ -248,7 +248,7 @@ pub fn parse_loadlib_instruction(parser: &mut Parser) -> Result<Node, ParseError
     parser.expected(Token::RightCurly)?;
 
     let t = parser.next_token();
-    let mut namespace= String::new();
+    let mut namespace = String::new();
     if let Token::String(cs) = t {
         for c in cs {
             namespace.push(c);

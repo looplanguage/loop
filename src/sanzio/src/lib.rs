@@ -307,7 +307,11 @@ impl LuaBackend {
                 if let Ok(str) = self.get_lib_signiture(lib.clone().get_path().to_string()) {
                     self.add_library(lib.clone().get_path());
                     self.add_code(format!("ffi.cdef[[ {} ]]", str.as_str()));
-                    self.add_code(format!("{} = ffi.load(\"{}\")", lib.namespace, lib.clone().get_path()))
+                    self.add_code(format!(
+                        "{} = ffi.load(\"{}\")",
+                        lib.namespace,
+                        lib.clone().get_path()
+                    ))
                 } else {
                     panic!("Somethings went wrong during loading of library");
                 }
