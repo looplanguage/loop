@@ -1,0 +1,7 @@
+// answer = 20
+array := [1, 2, 3]
+array.remove(2)
+array.add(array.length() * 3)
+array = array.slice(1, 3)
+array[array.length() - 2] = array[array.length() - 2] * 10
+array[0]

@@ -1,0 +1,5 @@
+double := fn(int num) {
+    return num * 2
+}
+
+export double

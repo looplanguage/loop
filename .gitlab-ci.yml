@@ -1,52 +1,190 @@
-# Picasso Pipeline
+# ==============================================================================
+#                             LOOP CI/CD PIPELINE 
+# ==============================================================================
 stages:
-  - docker              # Builds and publishes the docker image needed in all further stages
+  - lint     # Doing a clippy and fmt test
+  - check    # Checking for compilition errors, but without the code generation
+  - test     # cargo test and end2end_test.py
 
-  # Runs only on merge requests
-  - lint                # cargo clippy & fmt
-  - check               # Checks for quick compilation issues
-  - test                # Windows + Linux, cargo test and integration_test.py
+.linux:
+  image: joseluisq/rust-linux-darwin-builder:1.60.0
 
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
-publish docker:
-  variables:
-    TAG_LATEST: $CI_REGISTRY_IMAGE:latest
-    TAG_COMMIT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-  image: docker:latest
-  stage: docker
-  only:
-    changes:
-      - Cargo.lock
-      - Cargo.toml
-      - Testing.Dockerfile
-  services:
-    - docker:dind
-  script:
-    - docker build -t $TAG_COMMIT -t $TAG_LATEST -f Testing.Dockerfile .
-    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-    - docker push $TAG_COMMIT
-    - docker push $TAG_LATEST
-
-.copy:
-  before_script:
-    - cp -r /app/target $CI_PROJECT_DIR/target
-
-lint:
-  image: $CI_REGISTRY/looplanguage/picasso:latest
-  stage: lint
-  before_script:
-    - !reference [.copy, before_script]
+# ==============================================================================
+#                             BEGINNING OF LINTING STAGE
+# ==============================================================================
+.lint_test:
   script:
     - cargo clippy -- -D warnings
     - cargo fmt --all -- --check
 
-test:
-  image: $CI_REGISTRY/looplanguage/picasso:latest
-  stage: test
-  before_script:
-    - !reference [ .copy, before_script ]
+loop lint:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+  stage: lint
+  script:
+    - !reference [.lint_test, script]
+
+picasso lint:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/picasso/*
+  stage: lint
+  script:
+    - cd src/picasso/
+    - !reference [.lint_test, script]
+
+vinci lint: 
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/vinci/*
+  stage: lint
+  script:
+    - cd src/vinci/
+    - !reference [.lint_test, script]
+
+sanzio lint: 
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/sanzio/*
+  stage: lint
+  script:
+    - cd src/sanzio/
+    - !reference [.lint_test, script]
+# ==============================================================================
+#                             ENDING OF LINTING STAGE
+# ==============================================================================
+
+# ==============================================================================
+#                             BEGINNING OF CHECKING STAGE
+# ==============================================================================
+.check:
+  script:
+    - cargo check
+
+loop check:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - loop/*
+  stage: check
+  script:
+    - !reference [.check, script]
+
+picasso check:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/picasso/*
+  stage: check
+  script:
+    - cd src/picasso/
+    - !reference [.check, script]
+
+vinci check:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/vinci/*
+  stage: check
+  script:
+    - cd src/vinci/
+    - !reference [.check, script]
+
+sanzio check: 
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/sanzio/*
+  stage: check
+  script:
+    - cd src/sanzio/
+    - !reference [.check, script]
+# ==============================================================================
+#                             ENDING OF CHECKING STAGE
+# ==============================================================================
+
+# ==============================================================================
+#                             BEGINNING OF TESTING STAGE
+# ==============================================================================
+.test:
   script:
     - cargo test
+
+loop test:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+  stage: test
+  script:
+    - !reference [.test, script]
+
+loop end2end_test:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+  stage: test
+  script:
+    - apt-get update
+    - apt-get install python3 python3-pip python3-distutils -y
+    - cargo build --release
+    - python3 tests/end2end_test.py
+
+picasso test:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/picasso/*
+  stage: test
+  script:
+    - cd src/picasso/
+    - !reference [.test, script]
+
+vinci test: 
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/vinci/*
+  stage: test
+  script:
+    - cd src/vinci/
+    - !reference [.test, script]
+
+sanzio test:
+  extends: .linux
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - src/sanzio/*
+  stage: test
+  script:
+    - cd src/sanzio/
+    - !reference [.test, script]
+# ==============================================================================
+#                             ENDING OF TESTING STAGE
+# ==============================================================================

@@ -1,10 +1,10 @@
-/target
-/.idea
-/.loop
-__pycache__/
-# Script to run checks locally in one command
-loop-pipeline.ps1
+# Editors
+.vs/
+.idea/
 
-# Build script copies a D compiler
-ldc2-latest*
-dmd-latest*
+# Language things
+__pycache__/
+target/
+
+# Scripts
+loop-pipeline.ps1

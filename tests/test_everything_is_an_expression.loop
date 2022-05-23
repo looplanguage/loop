@@ -1,0 +1,8 @@
+// answer = 110
+x := if true { 10 } else { 20 }
+
+y := for true { return 100 }
+
+z := if false { x * y } else { x + y }
+
+z

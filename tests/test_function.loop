@@ -1,0 +1,6 @@
+// answer = 9
+fn test(int x, int y) {
+    return x + y
+}
+
+test(3, 6)

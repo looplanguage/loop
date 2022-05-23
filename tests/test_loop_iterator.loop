@@ -1,0 +1,4 @@
+// answer = 20
+x := 0; for (var i = 0 to 10) { x = x + 1 }
+y := 0; for var i = 0 to 10 { y = y + 1 }
+x + y

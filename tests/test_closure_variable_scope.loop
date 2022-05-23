@@ -1,0 +1,3 @@
+// answer = 1230
+q := 200; newClosure := fn(int a) { c := 1000; return fn(int b) { return a + b + c + q } };
+newClosure(20)(10)
