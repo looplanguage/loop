@@ -113,6 +113,20 @@ impl LuaBackend {
             ValueType::Boolean(b) => self.add_code(b.to_string()),
             ValueType::Character(c) => self.add_code(format!("\"{}\"", c)),
             ValueType::Float(f) => self.add_code(f.to_string()),
+            ValueType::Compound(_, values) => {
+                self.add_code_str("({");
+
+                for (key, value) in values.iter().enumerate() {
+                    self.add_code(format!("[{}] = ", key));
+                    self.add_constant_value(value);
+
+                    if key + 1 != values.len() {
+                        self.add_code_str(",");
+                    }
+                }
+
+                self.add_code_str("})");
+            }
             ValueType::Array(a) => {
                 let items = a.deref();
 
@@ -367,6 +381,7 @@ impl LuaBackend {
                 }
                 self.add_code_str(")");
             }
+            Node::COMPOUND(_) => (),
         }
     }
 
