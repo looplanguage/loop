@@ -59,7 +59,6 @@ impl Display for Node {
             Node::LENGTH(a) => write!(f, "{}", a),
             Node::AND(a, b) => write!(f, "{}, {}", a, b),
             Node::OR(a, b) => write!(f, "{}, {}", a, b),
-            Node::LOADLIB(a) => write!(f, "{}", a),
             Node::LIBCALL(a) => write!(f, "{}", a),
         }
     }

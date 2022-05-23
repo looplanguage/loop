@@ -51,7 +51,6 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         }
         // TODO: This causes extension methods to break, as they start with an identifier as well.
     } else if p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
-
         let y = p.lexer.get_current_token().unwrap().clone().literal;
         p.lexer.next_token();
         let arguments: Vec<Expression> = parse_expression_arguments(p);
@@ -78,8 +77,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
             identifier: Box::from(identifier),
             parameters: arguments,
         })));
-    }
-    else {
+    } else {
         // This index expression is for: Extension methods OR Hashmaps
         let identifier = parse_identifier(p);
         if let Node::Expression(ident_exp) = identifier.unwrap() {

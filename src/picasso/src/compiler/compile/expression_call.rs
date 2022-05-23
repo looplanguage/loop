@@ -1,8 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
-use crate::parser::expression::function::Call;
-use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression;
+use crate::parser::expression::function::Call;
 use crate::parser::types::Types;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {

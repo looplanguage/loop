@@ -121,7 +121,9 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
         let arguments = parser.parse_nodes()?;
 
         parser.expected(Token::Semicolon)?;
-        let x: Vec<&str> = namespace.split("::").collect();
+
+        let _x: Vec<&str> = namespace.split("::").collect();
+
         Ok(Node::LIBCALL(LibCall {
             namespace,
             arguments,

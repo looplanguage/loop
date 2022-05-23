@@ -1,6 +1,6 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::statement::import::Import;
-use crate::parser::types::{Library, Types};
+use crate::parser::types::Types;
 
 pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> CompilerResult {
     compiler.imports.push(import.clone().identifier);
