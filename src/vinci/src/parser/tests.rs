@@ -78,11 +78,11 @@ mod tests {
 
     }
 
-
     #[test]
-    fn test_parser_compound_use() {
+    fn test_parser_compound_functions() {
         let lexer = Token::lexer(
-            ".COMPOUND \"TEST\" { INT; INT; CHAR[]; }; .CONSTANT TEST { .CONSTANT INT 10; .CONSTANT INT 40; .CONSTANT CHAR[] \"Hi\"; };",
+            ".COMPOUND \"TEST\" { INT; INT; CHAR[]; }; \
+            .FUNCTION \"\" 0 TEST ARGUMENTS { } FREE { } THEN { };"
         );
         let mut parser = Parser::new(lexer);
 
@@ -93,6 +93,40 @@ mod tests {
                 name: "TEST".to_string(),
                 values: Box::new(vec![Type::INT, Type::INT, Type::ARRAY(Box::new(Type::CHAR))])
             }),
+            Node::FUNCTION(Box::new(Function {
+                name: "".to_string(),
+                return_type: Type::Compound("TEST".to_string(), Box::new(vec![Type::INT, Type::INT, Type::ARRAY(Box::new(Type::CHAR))])),
+                parameters: vec![],
+                free: vec![],
+                body: vec![],
+                unique_identifier: 0
+            }))
+        ]);
+
+        assert_eq!(expected, result)
+    }
+
+    #[test]
+    fn test_parser_compound_use() {
+        let lexer = Token::lexer(
+            ".COMPOUND \"TEST\" { INT; INT; CHAR[]; }; \
+            .COMPOUND \"TEST_SECOND\" { INT; TEST; INT; }; \
+            .CONSTANT TEST { .CONSTANT INT 10; .CONSTANT INT 40; .CONSTANT CHAR[] \"Hi\"; };\
+            .CONSTANT TEST_SECOND { .CONSTANT INT 33; .CONSTANT TEST { .CONSTANT INT 10; .CONSTANT INT 40; .CONSTANT CHAR[] \"Hi\"; }; .CONSTANT INT 45; };",
+        );
+        let mut parser = Parser::new(lexer);
+
+        let result = parser.parse();
+
+        let expected = AST::new_mock(vec![
+            Node::COMPOUND(CompoundType {
+                name: "TEST".to_string(),
+                values: Box::new(vec![Type::INT, Type::INT, Type::ARRAY(Box::new(Type::CHAR))])
+            }),
+            Node::COMPOUND(CompoundType {
+                name: "TEST_SECOND".to_string(),
+                values: Box::new(vec![Type::INT, Type::Compound("TEST".to_string(), Box::new(vec![Type::INT, Type::INT, Type::ARRAY(Box::new(Type::CHAR))])), Type::INT])
+            }),
             Node::CONSTANT(ValueType::Compound("TEST".to_string(), Box::new(vec![
                 ValueType::Integer(10),
                 ValueType::Integer(40),
@@ -100,12 +134,22 @@ mod tests {
                     ValueType::Character('H'),
                     ValueType::Character('i'),
                 ]))
+            ]))),
+            Node::CONSTANT(ValueType::Compound("TEST_SECOND".to_string(), Box::new(vec![
+                ValueType::Integer(33),
+                ValueType::Compound("TEST".to_string(), Box::new(vec![
+                ValueType::Integer(10),
+                ValueType::Integer(40),
+                ValueType::Array(Box::new(vec![
+                    ValueType::Character('H'),
+                    ValueType::Character('i'),
+                ]))
+                ])),
+                ValueType::Integer(45),
             ])))
         ]);
 
-
         assert_eq!(expected, result)
-
     }
 
     #[test]

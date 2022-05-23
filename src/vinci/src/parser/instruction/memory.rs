@@ -305,6 +305,7 @@ pub fn parse_compound_instruction(parser: &mut Parser) -> Result<Node, ParseErro
     parser.expected(Token::LeftCurly)?;
 
     let types = parse_type_arguments(parser)?;
+    parser.expected(Token::RightCurly)?;
 
     parser.expected(Token::Semicolon)?;
 
