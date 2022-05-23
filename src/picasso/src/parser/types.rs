@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
+use crate::parser::expression::Expression;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum BaseTypes {
@@ -40,6 +42,7 @@ pub enum Types {
     // Return type & Parameter Types (for compile time)
     Function(FunctionType),
     Library(Library),
+    Compound(String, Box<HashMap<String, (u32, (Types, Expression))>>),
     Void,
     Auto,
 }
@@ -68,6 +71,7 @@ impl Display for Types {
                     Types::Void => "void[]".to_string(),
                     Types::Auto => "void[]".to_string(),
                     Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
+                    Types::Compound(tp, _) => tp.clone(),
                 },
                 Types::Auto => "Variant".to_string(),
                 // TODO: Should probably be different now we know types
@@ -86,6 +90,7 @@ impl Display for Types {
 
                     format!("fn({}): {}", args, func.return_type)
                 }
+                Types::Compound(tp, _) => tp.clone(),
                 Types::Void => "void".to_string(),
                 Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
             }
@@ -114,12 +119,14 @@ impl Types {
                 Types::Void => "VOID[]".to_string(),
                 Types::Auto => "VOID[]".to_string(),
                 Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
+                Types::Compound(tp, _) => tp.clone(),
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
             Types::Function(_) => "VOID".to_string(),
             Types::Void => "VOID".to_string(),
             Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
+            Types::Compound(tp, _) => tp.clone(),
         }
     }
 }

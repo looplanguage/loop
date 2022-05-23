@@ -24,6 +24,7 @@ use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_break::compile_break_statement;
+use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
@@ -125,7 +126,7 @@ impl Default for Compiler {
 }
 
 impl Compiler {
-    /// Main compilation function which compiles a syntax tree from the parser into D
+    /// Main compilation function which compiles a syntax tree from the parser into Arc
     ///
     /// # Example
     /// ```loop
@@ -440,6 +441,7 @@ impl Compiler {
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
             Statement::Break(br) => compile_break_statement(self, br),
+            Statement::Class(class) => compile_class_statement(self, class),
         };
 
         let add_semicolon = match stmt {
@@ -459,6 +461,7 @@ impl Compiler {
             Statement::Import(_) => false,
             Statement::Export(_) => true,
             Statement::Break(_) => true,
+            Statement::Class(_) => true,
         };
 
         if add_semicolon && !no_semicolon {

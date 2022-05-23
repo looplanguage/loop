@@ -79,6 +79,7 @@ pub fn parse_index_instruction(parser: &mut Parser) -> Result<Node, ParseError> 
     let next = &parser.next_token();
     let index = Box::new(parser.parse_node(next)?);
     parser.expected(Token::RightCurly)?;
+    parser.expected(Token::Semicolon)?;
 
     Ok(Node::INDEX(Index { to_index, index }))
 }
@@ -93,6 +94,7 @@ pub fn parse_assign_instruction(parser: &mut Parser) -> Result<Node, ParseError>
     let next = &parser.next_token();
     let assign = Box::new(parser.parse_node(next)?);
     parser.expected(Token::RightCurly)?;
+    parser.expected(Token::Semicolon)?;
 
     Ok(Node::ASSIGN(to_assign, assign))
 }

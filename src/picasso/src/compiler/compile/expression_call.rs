@@ -1,3 +1,4 @@
+use std::fmt::format;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
@@ -5,9 +6,30 @@ use crate::parser::expression::function::Call;
 use crate::parser::types::Types;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
-    // This is for calling functions from a library
-
+    // This is for calling functions from a library & instantiating classes
     if let expression::Expression::Identifier(i) = *call.clone().identifier {
+        // Check if this is a class
+        let class = compiler
+            .variable_scope
+            .borrow_mut()
+            .resolve(format!("{}{}", compiler.location, i.value));
+
+        if let Some(class) = class {
+            if let Types::Compound(name, values) = class._type {
+                // Instantiate the class using a constant
+                compiler.add_to_current_function(format!(".CONSTANT {} {{", name));
+
+                for value in &*values {
+                    println!("Bad!");
+                    compiler.compile_expression(value.1.1.1.clone());
+                }
+
+                compiler.add_to_current_function("};".to_string());
+
+                return CompilerResult::Success(Types::Compound(name.clone(), values.clone()))
+            }
+        }
+
         let x: Vec<&str> = i.value.split("::").collect();
         let name = x[0].to_string();
         if compiler.imports.contains(&name) {

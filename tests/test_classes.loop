@@ -1,7 +1,13 @@
 class Person {
-    age = 0;
+    age = 40;
+    name = "Jeff"
 }
 
-foo := Person();
+class Class {
+    count = 0
+    member1 = Person()
+}
 
-foo.age
+foo := Class();
+
+foo.member1

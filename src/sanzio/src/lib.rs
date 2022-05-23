@@ -416,7 +416,16 @@ impl LuaBackend {
             }
 
             if index != nodes.len() {
-                self.add_code_str(";")
+                let add_colon = {
+                    match node {
+                        Node::COMPOUND(_) => false,
+                        _ => true
+                    }
+                };
+
+                if add_colon {
+                    self.add_code_str(";")
+                }
             }
         }
     }

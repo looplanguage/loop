@@ -48,15 +48,39 @@ impl SyntaxError {
     pub fn throw_exception(&mut self) {
         println!("==========================================================");
         println!("{}", format!("SyntaxError [{}:{}] -->", self.line, self.column).bright_red());
-        println!("    {}: {}", "Line".bright_blue(),format!("{}\n", self.error_line.as_str()).bright_white());
-        println!("    {}: {}", "Message".bright_blue(), format!("Expected: '{}', but got: '{}'\n", self.expected.literal, self.got.literal).bright_white());
+        println!("{}", self.error_line.as_str());
+
+        let mut index = 1;
+        while index < self.column {
+            index = index + 1;
+            print!(" ");
+        }
+
+        let mut amount = 1;
+        loop {
+            print!("^");
+            amount = amount + 1;
+            if amount > self.got.literal.len() {
+                break;
+            }
+        }
+
+        println!();
+
+        println!("    {}: {}", "Message".bright_blue(), format!("Expected: '{:?}', but got: '{}'\n", self.expected, self.got.literal).bright_white());
 
         if self.extra_message.is_none() {
+            #[cfg(test)]
+            panic!("See above!");
+
             process::exit(1);
         }
         let message = self.add_identation(8, self.extra_message.as_ref().unwrap().to_string());
         println!("    {}:", "Note".bright_blue());
         println!("        {}", message.bright_white());
+
+        #[cfg(test)]
+        panic!("See above!");
 
         process::exit(1);
     }

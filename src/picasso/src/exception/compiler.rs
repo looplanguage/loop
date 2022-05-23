@@ -20,6 +20,8 @@ pub enum CompilerException {
     // GOT, EXPECTED
     WrongType(String, String),
     ValueDifferentFromType(String, String),
+    // Field, Type
+    UnknownField(String, String),
     Unknown,
 }
 
@@ -64,6 +66,9 @@ impl CompilerException {
                     "type mismatch, can not declare variable with static type to different typed value. got=\"{}\". expected\"{}\"",
                     got, expected
                 )
+            }
+            CompilerException::UnknownField(field, class) => {
+                format!("field does not exist on type. field=\"{}\". type=\"{}\"", field, class)
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }

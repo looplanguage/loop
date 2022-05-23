@@ -124,6 +124,7 @@ pub enum TokenType {
     /// Example: 'break'
     Break,
     FunctionType,
+    Class,
     Unknown,
     /// Indicates that there are no more tokens
     Eof,

@@ -21,6 +21,7 @@ pub fn print_valuetype(value_type: ValueType) {
         }
         ValueType::Void => print!("null"),
         ValueType::Float(f) => print!("{}", f),
+        ValueType::Compound(_, _) => print!("awh")
     }
 }
 

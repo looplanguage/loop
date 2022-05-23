@@ -12,7 +12,26 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
     #[allow(clippy::single_match)]
     match _index.index.clone() {
         Expression::Call(call) => compile_expression_extension_method(_compiler, call, _index.left),
+        Expression::Identifier(ident) => compile_expression_class_index(_compiler, _index.left, ident.value),
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
+    }
+}
+
+fn compile_expression_class_index(_compiler: &mut Compiler, left: Expression, field: String) -> CompilerResult {
+    println!("CLASS INDEXING!");
+    _compiler.add_to_current_function(".INDEX { ".to_string());
+    let result = _compiler.compile_expression(left);
+
+    if let CompilerResult::Success(Types::Compound(_, fields)) = result {
+        if let Some(field) = fields.get(&field) {
+            _compiler.add_to_current_function(format!("}} {{ .CONSTANT INT {}; }};", (field.0 as i32) - 1));
+
+            CompilerResult::Success(Types::Basic(BaseTypes::Integer))
+        } else {
+            CompilerResult::Exception(CompilerException::UnknownField(field, "unk".to_string()))
+        }
+    } else {
+        CompilerResult::Exception(CompilerException::UnknownField(field, "unk".to_string()))
     }
 }
 
@@ -28,14 +47,24 @@ pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
 ) -> CompilerResult {
-    compiler.add_to_current_function(".ASSIGN { .INDEX {".to_string());
-    compiler.compile_expression(assign.left);
+    compiler.add_to_current_function(".ASSIGN { ".to_string());
+    if let Expression::Identifier(ident) = assign.index {
+        compile_expression_class_index(compiler, assign.left, ident.value);
 
-    compiler.add_to_current_function("} {".to_string());
-    compiler.compile_expression(assign.index);
-    compiler.add_to_current_function("} } {".to_string());
-    compiler.compile_expression(assign.value);
-    compiler.add_to_current_function("}".to_string());
+        compiler.add_to_current_function("} { ".to_string());
+        compiler.compile_expression(assign.value);
+    } else {
+        compiler.add_to_current_function(".INDEX {".to_string());
+        compiler.compile_expression(assign.left);
+
+        compiler.add_to_current_function("} {".to_string());
+        compiler.compile_expression(assign.index);
+        compiler.add_to_current_function("} } {".to_string());
+
+        compiler.compile_expression(assign.value);
+    }
+
+    compiler.add_to_current_function("};".to_string());
 
     CompilerResult::Success(Types::Void)
 }

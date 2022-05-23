@@ -62,11 +62,11 @@ impl Lexer {
         }
 
         let mut line = String::from("");
-        let mut current_char = self.input.chars().nth(char_count as usize);
+        let mut current_char = self.input.chars().nth(char_count - 1 as usize);
         while current_char.is_some() && current_char.unwrap() != '\n' {
             line.push(current_char.unwrap());
             char_count += 1;
-            current_char = self.input.chars().nth(char_count as usize);
+            current_char = self.input.chars().nth(char_count - 1 as usize);
         }
 
         line.trim_start().to_string()
@@ -382,6 +382,7 @@ impl Lexer {
             "in" => TokenType::In,
             "to" => TokenType::To,
             "break" => TokenType::Break,
+            "class" => TokenType::Class,
             _ => {
                 if keyword.parse::<i64>().is_ok() {
                     return TokenType::Integer;
