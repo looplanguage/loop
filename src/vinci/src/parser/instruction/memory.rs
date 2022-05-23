@@ -1,32 +1,46 @@
-use crate::ast::instructions::memory::{Copy, Index, Load, LoadLib, LoadType, Push, Slice, Store};
+use crate::ast::instructions::memory::{CompoundType, Copy, Index, Load, LoadLib, LoadType, Push, Slice, Store};
 use crate::ast::instructions::Node;
 use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
+use crate::parser::instruction::function::parse_type_arguments;
 use crate::parser::Parser;
 use crate::types::{Type, ValueType};
 
 pub fn parse_constant_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
-    let _ = if let Token::Type(tp) = parser.next_token() {
-        tp
-    } else {
-        return Err(ParseError::Unknown);
-    };
+    let type_def = parser.parse_type()?;
 
-    // Second argument is the value
-    let next = parser.next_token();
-    let value = match next {
-        Token::Number(int) => ValueType::Integer(int),
-        Token::Boolean(bool) => ValueType::Boolean(bool),
-        Token::Float(float) => ValueType::Float(float),
-        Token::LeftBracket => parse_array(parser)?,
-        Token::String(string) => {
-            let mapped: Vec<ValueType> = string.into_iter().map(ValueType::Character).collect();
+    let value = if let Type::Compound(name, compound_type) = type_def {
+        let mut values: Vec<ValueType> = Vec::new();
 
-            ValueType::Array(Box::new(mapped))
+        parser.expected(Token::LeftCurly)?;
+
+        while parser.next_token() != Token::RightCurly {
+            let constant = parse_constant_instruction(parser)?;
+
+            if let Node::CONSTANT(v) = constant {
+                values.push(v);
+            }
         }
-        Token::Character(char) => ValueType::Character(char),
-        a => {
-            return Err(ParseError::UnexpectedToken(Token::Type(Type::INT), a));
+
+        ValueType::Compound(name, Box::new(values))
+    } else {
+        // Second argument is the value
+        let next = parser.next_token();
+
+        match next {
+            Token::Number(int) => ValueType::Integer(int),
+            Token::Boolean(bool) => ValueType::Boolean(bool),
+            Token::Float(float) => ValueType::Float(float),
+            Token::LeftBracket => parse_array(parser)?,
+            Token::String(string) => {
+                let mapped: Vec<ValueType> = string.into_iter().map(ValueType::Character).collect();
+
+                ValueType::Array(Box::new(mapped))
+            }
+            Token::Character(char) => ValueType::Character(char),
+            a => {
+                return Err(ParseError::UnexpectedToken(Token::Type(Type::INT), a));
+            }
         }
     };
 
@@ -275,5 +289,29 @@ pub fn parse_copy_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
 
     Ok(Node::COPY(Copy {
         object: Box::new(obj),
+    }))
+}
+
+pub fn parse_compound_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
+    let name = {
+        if let Token::String(n) = parser.next_token() {
+            let s: String = n.into_iter().collect();
+            s
+        } else {
+            return Err(ParseError::Unknown)
+        }
+    };
+
+    parser.expected(Token::LeftCurly)?;
+
+    let types = parse_type_arguments(parser)?;
+
+    parser.expected(Token::Semicolon)?;
+
+    parser.add_custom_type(name.clone(), types.clone())?;
+
+    Ok(Node::COMPOUND(CompoundType {
+        name,
+        values: Box::new(types)
     }))
 }

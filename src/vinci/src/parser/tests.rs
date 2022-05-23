@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::ast::instructions::function::{Call, Function};
-    use crate::ast::instructions::memory::{Index, Load, LoadType, Push, Slice, Store};
+    use crate::ast::instructions::memory::{CompoundType, Index, Load, LoadType, Push, Slice, Store};
     use crate::ast::instructions::suffix::{BinaryOperation, Suffix};
     use crate::ast::instructions::while_loop::While;
     use crate::ast::instructions::Node;
@@ -48,6 +48,64 @@ mod tests {
         ]);
 
         assert_eq!(expected, result)
+    }
+
+    #[test]
+    fn test_parser_compound() {
+        let lexer = Token::lexer(
+            ".COMPOUND \"TEST\" { INT; INT; CHAR[]; };",
+        );
+        let mut parser = Parser::new(lexer);
+
+        let result = parser.parse();
+
+        let expected = AST::new_mock(vec![
+            Node::COMPOUND(CompoundType {
+                name: "TEST".to_string(),
+                values: Box::new(vec![Type::INT, Type::INT, Type::ARRAY(Box::new(Type::CHAR))])
+            }),
+        ]);
+
+        assert!(parser.custom_types.get("TEST").is_some());
+
+        let values = parser.custom_types.get("TEST").unwrap();
+        assert_eq!(values[0], Type::INT);
+        assert_eq!(values[1], Type::INT);
+        assert_eq!(values[2], Type::ARRAY(Box::new(Type::CHAR)));
+
+
+        assert_eq!(expected, result)
+
+    }
+
+
+    #[test]
+    fn test_parser_compound_use() {
+        let lexer = Token::lexer(
+            ".COMPOUND \"TEST\" { INT; INT; CHAR[]; }; .CONSTANT TEST { .CONSTANT INT 10; .CONSTANT INT 40; .CONSTANT CHAR[] \"Hi\"; };",
+        );
+        let mut parser = Parser::new(lexer);
+
+        let result = parser.parse();
+
+        let expected = AST::new_mock(vec![
+            Node::COMPOUND(CompoundType {
+                name: "TEST".to_string(),
+                values: Box::new(vec![Type::INT, Type::INT, Type::ARRAY(Box::new(Type::CHAR))])
+            }),
+            Node::CONSTANT(ValueType::Compound("TEST".to_string(), Box::new(vec![
+                ValueType::Integer(10),
+                ValueType::Integer(40),
+                ValueType::Array(Box::new(vec![
+                    ValueType::Character('H'),
+                    ValueType::Character('i'),
+                ]))
+            ])))
+        ]);
+
+
+        assert_eq!(expected, result)
+
     }
 
     #[test]

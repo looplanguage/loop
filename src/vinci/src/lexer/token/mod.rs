@@ -34,6 +34,7 @@ pub enum Instruction {
     AND,
     OR,
     MODULO,
+    COMPOUND,
 }
 
 impl Instruction {
@@ -139,7 +140,7 @@ pub enum Token {
     Type(Type),
     #[regex("[+-]?[0-9]+[.][0-9]+", |lex| lex.slice().parse())]
     Float(f64),
-    #[regex("[+-]?[0-9]+", |lex| lex.slice().parse())]
+    #[regex("[+-]?[0-9]+", |lex| lex.slice().parse(), priority = 2)]
     Number(i64),
     #[regex(r"true|false", |lex| lex.slice().parse())]
     Boolean(bool),
@@ -147,6 +148,8 @@ pub enum Token {
     Arguments,
     #[regex(r"[a-zA-Z0-9_-]+::[a-zA-Z0-9_-]+", |lex| lex.slice().to_string())]
     Namespace(String),
+    #[regex(r"[a-zA-Z0-9_-]+", |lex| lex.slice().to_string())]
+    Identifier(String),
     #[token("WHILE")]
     While,
     End,

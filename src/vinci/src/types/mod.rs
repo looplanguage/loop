@@ -8,6 +8,7 @@ pub enum ValueType {
     Character(char),
     Array(Box<Vec<ValueType>>),
     Void,
+    Compound(String, Box<Vec<ValueType>>),
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -19,6 +20,8 @@ pub enum Type {
     ARRAY(Box<Type>),
     // Only allowed for function "return type"
     VOID,
+    // Compound name and values
+    Compound(String, Box<Vec<Type>>)
 }
 
 impl Display for ValueType {
@@ -38,6 +41,9 @@ impl Display for ValueType {
             }
             ValueType::Float(float) => {
                 write!(f, "FLOAT {}", float)
+            }
+            ValueType::Compound(name, cmp) => {
+                write!(f, "COMPOUND {} {:?}", name, cmp)
             }
             _ => write!(f, "unknown type"),
         }

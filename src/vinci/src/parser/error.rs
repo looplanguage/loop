@@ -6,6 +6,8 @@ pub enum ParseError {
     Unknown,
     // (Expected, Got)
     UnexpectedToken(Token, Token),
+    TypeAlreadyExists(String),
+    UnknownType(String),
 }
 
 impl Display for ParseError {
@@ -14,7 +16,9 @@ impl Display for ParseError {
             ParseError::Unknown => write!(f, "{:?}", self),
             ParseError::UnexpectedToken(expected, got) => {
                 write!(f, "expected={:?}. got={:?}", expected, got)
-            }
+            },
+            ParseError::TypeAlreadyExists(name) => write!(f, "Compound type's name already in use. got=\"{}\"", name),
+            ParseError::UnknownType(name) => write!(f, "Type is unknown, did you define it using .COMPOUND? got=\"{}\"", name),
         }
     }
 }

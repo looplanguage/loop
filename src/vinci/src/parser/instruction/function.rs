@@ -147,7 +147,7 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
     }
 }
 
-fn parse_type_arguments(parser: &mut Parser) -> Result<Vec<Type>, ParseError> {
+pub fn parse_type_arguments(parser: &mut Parser) -> Result<Vec<Type>, ParseError> {
     let mut parameters: Vec<Type> = Vec::new();
     let mut next = parser.next_token();
 

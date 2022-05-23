@@ -8,12 +8,7 @@ use crate::parser::instruction::conditional::{
 use crate::parser::instruction::function::{
     parse_call_instruction, parse_function_instruction, parse_return_instruction,
 };
-use crate::parser::instruction::memory::{
-    parse_assign_instruction, parse_constant_instruction, parse_copy_instruction,
-    parse_index_instruction, parse_length_instruction, parse_load_instruction,
-    parse_loadlib_instruction, parse_pop_instruction, parse_push_instruction,
-    parse_slice_instruction, parse_store_instruction,
-};
+use crate::parser::instruction::memory::{parse_assign_instruction, parse_compound_instruction, parse_constant_instruction, parse_copy_instruction, parse_index_instruction, parse_length_instruction, parse_load_instruction, parse_loadlib_instruction, parse_pop_instruction, parse_push_instruction, parse_slice_instruction, parse_store_instruction};
 use crate::parser::instruction::suffix::parse_math_instruction;
 use crate::parser::instruction::while_loop::parse_while_instruction;
 use crate::parser::Parser;
@@ -53,5 +48,6 @@ pub fn parse_instruction(parser: &mut Parser, ins: Instruction) -> Result<Node, 
         Instruction::AND => parse_and_instruction(parser),
         Instruction::OR => parse_or_instruction(parser),
         Instruction::MODULO => parse_math_instruction(parser, BinaryOperation::MODULO),
+        Instruction::COMPOUND => parse_compound_instruction(parser),
     }
 }

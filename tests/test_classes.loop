@@ -1,0 +1,7 @@
+class Person {
+    age = 0;
+}
+
+foo := Person();
+
+foo.age
