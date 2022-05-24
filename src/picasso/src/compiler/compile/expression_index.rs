@@ -58,7 +58,7 @@ pub fn compile_expression_assign_index(
 
         compiler.add_to_current_function("} {".to_string());
         compiler.compile_expression(assign.index);
-        compiler.add_to_current_function("} } {".to_string());
+        compiler.add_to_current_function("}; } {".to_string());
 
         compiler.compile_expression(assign.value);
     }
@@ -77,7 +77,7 @@ fn compile_expression_index_internal(
     let result = compiler.compile_expression(left);
     compiler.add_to_current_function("} {".to_string());
     compiler.compile_expression(index);
-    compiler.add_to_current_function("}".to_string());
+    compiler.add_to_current_function("};".to_string());
 
     if let CompilerResult::Success(Types::Array(value_type)) = result {
         return CompilerResult::Success(*value_type);
