@@ -18,15 +18,19 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             if let Types::Compound(name, values) = class._type {
                 // Instantiate the class using a constant
                 compiler.add_to_current_function(format!(".CONSTANT {} {{", name));
+                let mut cloned_values = values.clone();
 
-                for value in &*values {
-                    println!("Bad!");
+                let mut index = 0;
+                for value in &mut *cloned_values {
                     compiler.compile_expression(value.1.1.1.clone());
+                    value.1.0 = index;
+
+                    index += 1;
                 }
 
                 compiler.add_to_current_function("};".to_string());
 
-                return CompilerResult::Success(Types::Compound(name.clone(), values.clone()))
+                return CompilerResult::Success(Types::Compound(name.clone(), cloned_values))
             }
         }
 
