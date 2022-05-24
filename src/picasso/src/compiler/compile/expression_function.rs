@@ -1,7 +1,7 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
-use crate::parser::types::{FunctionType, Types};
+use crate::parser::types::{BaseTypes, FunctionType, Types};
 use rand::random;
 
 #[derive(Clone)]
@@ -53,7 +53,17 @@ pub fn compile_expression_function(
         let mut type_parameters: Vec<Types> = Vec::new();
 
         for parameter in &parameters {
-            type_parameters.push(parameter.parameter_type.clone())
+            let mut param_type = parameter.parameter_type.clone();
+
+            if let Types::Basic(BaseTypes::UserDefined(name)) = &param_type {
+                if let Some(compound) = compiler.get_compound_type(name) {
+                    param_type = compound.clone()
+                } else {
+                    return CompilerResult::Exception(CompilerException::UnknownType(name.clone()))
+                }
+            }
+
+            type_parameters.push(param_type)
         }
 
         // TODO: Return type is auto for now, but types for parameters is et
@@ -86,13 +96,23 @@ pub fn compile_expression_function(
 
     compiler.enter_variable_scope();
     for (index, parameter) in func.parameters.iter().enumerate() {
+        let mut param_type = parameter._type.clone();
+
+        if let Types::Basic(BaseTypes::UserDefined(name)) = &param_type {
+            if let Some(compound) = compiler.get_compound_type(name) {
+                param_type = compound.clone()
+            } else {
+                return CompilerResult::Exception(CompilerException::UnknownType(name.clone()))
+            }
+        }
+
         compiler.define_variable(
             format!(
                 "{}{}",
                 compiler.location,
                 parameter.identifier.value.clone(),
             ),
-            parameter._type.clone(),
+            param_type,
             index as i32,
         );
 

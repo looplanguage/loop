@@ -1,13 +1,18 @@
 class Person {
-    age = 40;
-    name = "Jeff"
+    age = 0
+    name = ""
 }
 
-class Class {
-    count = 0
-    member1 = Person()
+fn add_age(Person a) {
+    a.age = a.age + 1
 }
 
-foo := Class();
+john := Person()
+john.name = "John Doe"
+john.age = 42
 
-foo.member1
+add_age(john)
+add_age(john)
+add_age(john)
+
+john.age

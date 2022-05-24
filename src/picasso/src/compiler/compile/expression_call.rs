@@ -9,13 +9,10 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     // This is for calling functions from a library & instantiating classes
     if let expression::Expression::Identifier(i) = *call.clone().identifier {
         // Check if this is a class
-        let class = compiler
-            .variable_scope
-            .borrow_mut()
-            .resolve(format!("{}{}", compiler.location, i.value));
+        let class = compiler.get_compound_type(&i.value);
 
         if let Some(class) = class {
-            if let Types::Compound(name, values) = class._type {
+            if let Types::Compound(name, values) = class {
                 // Instantiate the class using a constant
                 compiler.add_to_current_function(format!(".CONSTANT {} {{", name));
                 let mut cloned_values = values.clone();

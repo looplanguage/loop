@@ -18,7 +18,6 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
 }
 
 fn compile_expression_class_index(_compiler: &mut Compiler, left: Expression, field: String) -> CompilerResult {
-    println!("CLASS INDEXING!");
     _compiler.add_to_current_function(".INDEX { ".to_string());
     let result = _compiler.compile_expression(left);
 

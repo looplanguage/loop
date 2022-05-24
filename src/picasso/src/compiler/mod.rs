@@ -179,6 +179,31 @@ impl Compiler {
         Result::Ok(self.get_d_code())
     }
 
+    pub fn get_compound_type(&self, name: &String) -> Option<Types> {
+        let class = self
+            .variable_scope
+            .borrow_mut()
+            .resolve(format!("{}{}", self.location, name.clone()));
+
+        if let Some(class) = class {
+            if let Types::Compound(name, values) = class._type {
+                // Instantiate the class using a constant
+                let mut cloned_values = values.clone();
+
+                let mut index = 0;
+                for value in &mut *cloned_values {
+                    value.1.0 = index;
+
+                    index += 1;
+                }
+
+                return Some(Types::Compound(name.clone(), cloned_values))
+            }
+        }
+
+        None
+    }
+
     pub fn default_with_state(compiler_state: CompilerState) -> Compiler {
         Compiler {
             function_count: compiler_state.function_count,

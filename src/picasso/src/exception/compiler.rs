@@ -22,6 +22,7 @@ pub enum CompilerException {
     ValueDifferentFromType(String, String),
     // Field, Type
     UnknownField(String, String),
+    UnknownType(String),
     Unknown,
 }
 
@@ -69,6 +70,9 @@ impl CompilerException {
             }
             CompilerException::UnknownField(field, class) => {
                 format!("field does not exist on type. field=\"{}\". type=\"{}\"", field, class)
+            }
+            CompilerException::UnknownType(tp) => {
+                format!("type does not exist. got=\"{}\"", tp)
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
         }
