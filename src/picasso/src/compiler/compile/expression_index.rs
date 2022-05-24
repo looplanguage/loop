@@ -22,16 +22,16 @@ fn compile_expression_class_index(_compiler: &mut Compiler, left: Expression, fi
     _compiler.add_to_current_function(".INDEX { ".to_string());
     let result = _compiler.compile_expression(left);
 
-    if let CompilerResult::Success(Types::Compound(_, fields)) = result {
+    if let CompilerResult::Success(Types::Compound(ref name, ref fields)) = result {
         if let Some(field) = fields.get(&field) {
             _compiler.add_to_current_function(format!("}} {{ .CONSTANT INT {}; }};", (field.0 as i32) - 1));
 
-            CompilerResult::Success(Types::Basic(BaseTypes::Integer))
+            CompilerResult::Success(field.1.0.clone())
         } else {
-            CompilerResult::Exception(CompilerException::UnknownField(field, "unk".to_string()))
+            CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()))
         }
     } else {
-        CompilerResult::Exception(CompilerException::UnknownField(field, "unk".to_string()))
+        CompilerResult::Exception(CompilerException::UnknownField(field, format!("{:?}", result)))
     }
 }
 
