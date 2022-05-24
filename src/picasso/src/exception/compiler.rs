@@ -69,7 +69,10 @@ impl CompilerException {
                 )
             }
             CompilerException::UnknownField(field, class) => {
-                format!("field does not exist on type. field=\"{}\". type=\"{}\"", field, class)
+                format!(
+                    "field does not exist on type. field=\"{}\". type=\"{}\"",
+                    field, class
+                )
             }
             CompilerException::UnknownType(tp) => {
                 format!("type does not exist. got=\"{}\"", tp)

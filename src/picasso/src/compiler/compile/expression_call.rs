@@ -1,9 +1,9 @@
-use std::fmt::format;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::expression::function::Call;
 use crate::parser::types::Types;
+use std::fmt::format;
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     // This is for calling functions from a library & instantiating classes
@@ -19,15 +19,15 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
                 let mut index = 0;
                 for value in &mut *cloned_values {
-                    compiler.compile_expression(value.1.1.1.clone());
-                    value.1.0 = index;
+                    compiler.compile_expression(value.1 .1 .1.clone());
+                    value.1 .0 = index;
 
                     index += 1;
                 }
 
                 compiler.add_to_current_function("};".to_string());
 
-                return CompilerResult::Success(Types::Compound(name.clone(), cloned_values))
+                return CompilerResult::Success(Types::Compound(name.clone(), cloned_values));
             }
         }
 

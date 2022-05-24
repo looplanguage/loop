@@ -12,25 +12,37 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
     #[allow(clippy::single_match)]
     match _index.index.clone() {
         Expression::Call(call) => compile_expression_extension_method(_compiler, call, _index.left),
-        Expression::Identifier(ident) => compile_expression_class_index(_compiler, _index.left, ident.value),
+        Expression::Identifier(ident) => {
+            compile_expression_class_index(_compiler, _index.left, ident.value)
+        }
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
     }
 }
 
-fn compile_expression_class_index(_compiler: &mut Compiler, left: Expression, field: String) -> CompilerResult {
+fn compile_expression_class_index(
+    _compiler: &mut Compiler,
+    left: Expression,
+    field: String,
+) -> CompilerResult {
     _compiler.add_to_current_function(".INDEX { ".to_string());
     let result = _compiler.compile_expression(left);
 
     if let CompilerResult::Success(Types::Compound(ref name, ref fields)) = result {
         if let Some(field) = fields.get(&field) {
-            _compiler.add_to_current_function(format!("}} {{ .CONSTANT INT {}; }};", (field.0 as i32) - 1));
+            _compiler.add_to_current_function(format!(
+                "}} {{ .CONSTANT INT {}; }};",
+                (field.0 as i32) - 1
+            ));
 
-            CompilerResult::Success(field.1.0.clone())
+            CompilerResult::Success(field.1 .0.clone())
         } else {
             CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()))
         }
     } else {
-        CompilerResult::Exception(CompilerException::UnknownField(field, format!("{:?}", result)))
+        CompilerResult::Exception(CompilerException::UnknownField(
+            field,
+            format!("{:?}", result),
+        ))
     }
 }
 
@@ -120,7 +132,8 @@ pub fn compile_expression_extension_method(
             match var._type {
                 Types::Library(lib) => {
                     if lib.methods.contains(&method) {
-                        compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
+                        compiler
+                            .add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
 
                         for parameter in call.parameters {
                             let result = compiler.compile_expression(parameter);
@@ -141,7 +154,7 @@ pub fn compile_expression_extension_method(
                 Types::Compound(_, fields) => {
                     println!("FIELDS: {:?}", fields);
                 }
-                _ => ()
+                _ => (),
             }
         }
     }

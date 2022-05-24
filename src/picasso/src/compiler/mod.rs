@@ -180,10 +180,10 @@ impl Compiler {
     }
 
     pub fn get_compound_type(&self, name: &String) -> Option<Types> {
-        let class = self
-            .variable_scope
-            .borrow_mut()
-            .resolve(format!("{}{}", self.location, name.clone()));
+        let class =
+            self.variable_scope
+                .borrow_mut()
+                .resolve(format!("{}{}", self.location, name.clone()));
 
         if let Some(class) = class {
             if let Types::Compound(name, values) = class._type {
@@ -192,12 +192,12 @@ impl Compiler {
 
                 let mut index = 0;
                 for value in &mut *cloned_values {
-                    value.1.0 = index;
+                    value.1 .0 = index;
 
                     index += 1;
                 }
 
-                return Some(Types::Compound(name.clone(), cloned_values))
+                return Some(Types::Compound(name.clone(), cloned_values));
             }
         }
 

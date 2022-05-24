@@ -59,7 +59,7 @@ pub fn compile_expression_function(
                 if let Some(compound) = compiler.get_compound_type(name) {
                     param_type = compound.clone()
                 } else {
-                    return CompilerResult::Exception(CompilerException::UnknownType(name.clone()))
+                    return CompilerResult::Exception(CompilerException::UnknownType(name.clone()));
                 }
             }
 
@@ -102,7 +102,7 @@ pub fn compile_expression_function(
             if let Some(compound) = compiler.get_compound_type(name) {
                 param_type = compound.clone()
             } else {
-                return CompilerResult::Exception(CompilerException::UnknownType(name.clone()))
+                return CompilerResult::Exception(CompilerException::UnknownType(name.clone()));
             }
         }
 

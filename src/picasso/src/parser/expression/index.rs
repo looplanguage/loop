@@ -63,9 +63,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
                     return Some(Node::Expression(Expression::AssignIndex(Box::from(
                         AssignIndex {
                             left,
-                            index: Expression::Identifier(Identifier {
-                                value: y.clone()
-                            }),
+                            index: Expression::Identifier(Identifier { value: y.clone() }),
                             value: exp,
                         },
                     ))));
@@ -74,10 +72,8 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
 
             return Some(Node::Expression(Expression::Index(Box::new(Index {
                 left,
-                index: Expression::Identifier(Identifier {
-                    value: y.clone()
-                })
-            }))))
+                index: Expression::Identifier(Identifier { value: y.clone() }),
+            }))));
         }
 
         p.lexer.next_token();

@@ -1,11 +1,13 @@
-use std::borrow::Borrow;
-use crate::ast::instructions::memory::{CompoundType, Copy, Index, Load, LoadLib, LoadType, Push, Slice, Store};
+use crate::ast::instructions::memory::{
+    CompoundType, Copy, Index, Load, LoadLib, LoadType, Push, Slice, Store,
+};
 use crate::ast::instructions::Node;
 use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
 use crate::parser::instruction::function::{parse_function_instruction, parse_type_arguments};
 use crate::parser::Parser;
 use crate::types::{Type, ValueType};
+use std::borrow::Borrow;
 
 pub fn parse_constant_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
     let type_def = parser.parse_type()?;
@@ -29,12 +31,16 @@ pub fn parse_constant_instruction(parser: &mut Parser) -> Result<Node, ParseErro
 
                     if let Node::FUNCTION(func) = function {
                         // Return type, arguments, unique ID, body
-                        values.push(ValueType::Function(Box::new(func.return_type), Box::new(func.parameters), func.unique_identifier as u32, Box::new(func.body)))
+                        values.push(ValueType::Function(
+                            Box::new(func.return_type),
+                            Box::new(func.parameters),
+                            func.unique_identifier as u32,
+                            Box::new(func.body),
+                        ))
                     }
                 }
                 _ => (),
             }
-
         }
 
         ValueType::Compound(name, Box::new(values))
@@ -315,7 +321,7 @@ pub fn parse_compound_instruction(parser: &mut Parser) -> Result<Node, ParseErro
             let s: String = n.into_iter().collect();
             s
         } else {
-            return Err(ParseError::Unknown)
+            return Err(ParseError::Unknown);
         }
     };
 
@@ -330,6 +336,6 @@ pub fn parse_compound_instruction(parser: &mut Parser) -> Result<Node, ParseErro
 
     Ok(Node::COMPOUND(CompoundType {
         name,
-        values: Box::new(types)
+        values: Box::new(types),
     }))
 }

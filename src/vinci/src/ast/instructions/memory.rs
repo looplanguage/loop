@@ -1,8 +1,8 @@
 use crate::ast::instructions::Node;
+use crate::types::Type;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use strum_macros::EnumString;
-use crate::types::Type;
 
 #[derive(PartialEq, Debug, Clone, EnumString)]
 pub enum LoadType {
@@ -13,7 +13,7 @@ pub enum LoadType {
 #[derive(PartialEq, Debug, Clone)]
 pub struct CompoundType {
     pub name: String,
-    pub values: Box<Vec<Type>>
+    pub values: Box<Vec<Type>>,
 }
 
 impl Display for LoadType {

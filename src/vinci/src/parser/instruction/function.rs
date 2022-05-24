@@ -1,10 +1,10 @@
-use std::borrow::{Borrow, BorrowMut};
 use crate::ast::instructions::function::{Call, Function, LibCall};
 use crate::ast::instructions::Node;
 use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
 use crate::parser::Parser;
 use crate::types::Type;
+use std::borrow::{Borrow, BorrowMut};
 
 /// ```
 /// use vinci::ast::AST;

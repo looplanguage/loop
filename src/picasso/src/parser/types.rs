@@ -1,6 +1,6 @@
+use crate::parser::expression::Expression;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
-use crate::parser::expression::Expression;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum BaseTypes {

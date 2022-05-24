@@ -443,7 +443,7 @@ impl LuaBackend {
                 let add_colon = {
                     match node {
                         Node::COMPOUND(_) => false,
-                        _ => true
+                        _ => true,
                     }
                 };
 
@@ -461,19 +461,19 @@ impl LuaBackend {
             format!("{}.so", path)
         };
         #[cfg(feature = "libloading")]
-            {
-                let lib = libloading::Library::new(full_path);
-                if let Ok(l) = lib {
-                    unsafe {
-                        if let Ok(sym) = l.get(b"library_signatures") {
-                            let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
-                            let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
-                            return Ok(str);
-                        }
-                        return Err(());
+        {
+            let lib = libloading::Library::new(full_path);
+            if let Ok(l) = lib {
+                unsafe {
+                    if let Ok(sym) = l.get(b"library_signatures") {
+                        let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
+                        let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
+                        return Ok(str);
                     }
+                    return Err(());
                 }
             }
+        }
         Err(())
     }
 }
