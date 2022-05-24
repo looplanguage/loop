@@ -1,8 +1,9 @@
+use std::borrow::Borrow;
 use crate::ast::instructions::memory::{CompoundType, Copy, Index, Load, LoadLib, LoadType, Push, Slice, Store};
 use crate::ast::instructions::Node;
 use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
-use crate::parser::instruction::function::parse_type_arguments;
+use crate::parser::instruction::function::{parse_function_instruction, parse_type_arguments};
 use crate::parser::Parser;
 use crate::types::{Type, ValueType};
 
@@ -15,11 +16,22 @@ pub fn parse_constant_instruction(parser: &mut Parser) -> Result<Node, ParseErro
         parser.expected(Token::LeftCurly)?;
 
         while parser.next_token() != Token::RightCurly {
-            let constant = parse_constant_instruction(parser)?;
+            match parser.lexer.borrow().slice() {
+                ".CONSTANT" => {
+                    let constant = parse_constant_instruction(parser)?;
 
-            if let Node::CONSTANT(v) = constant {
-                values.push(v);
+                    if let Node::CONSTANT(v) = constant {
+                        values.push(v);
+                    }
+                }
+                ".FUNCTION" => {
+                    parse_function_instruction(parser)?;
+                    // Currently Arc doesn't support function "pointers" yet.
+                    values.push(ValueType::Void);
+                }
+                _ => (),
             }
+
         }
 
         ValueType::Compound(name, Box::new(values))
