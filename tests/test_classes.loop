@@ -18,4 +18,4 @@ add_age(john)
 add_age(john)
 add_age(john)
 
-john.test
+john.test()

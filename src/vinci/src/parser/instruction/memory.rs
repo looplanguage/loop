@@ -25,9 +25,12 @@ pub fn parse_constant_instruction(parser: &mut Parser) -> Result<Node, ParseErro
                     }
                 }
                 ".FUNCTION" => {
-                    parse_function_instruction(parser)?;
-                    // Currently Arc doesn't support function "pointers" yet.
-                    values.push(ValueType::Void);
+                    let function = parse_function_instruction(parser)?;
+
+                    if let Node::FUNCTION(func) = function {
+                        // Return type, arguments, unique ID, body
+                        values.push(ValueType::Function(Box::new(func.return_type), Box::new(func.parameters), func.unique_identifier as u32, Box::new(func.body)))
+                    }
                 }
                 _ => (),
             }

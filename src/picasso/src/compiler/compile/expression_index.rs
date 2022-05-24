@@ -117,25 +117,31 @@ pub fn compile_expression_extension_method(
             .resolve(ident.value);
 
         if let Some(var) = var {
-            if let Types::Library(lib) = var._type {
-                if lib.methods.contains(&method) {
-                    compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
+            match var._type {
+                Types::Library(lib) => {
+                    if lib.methods.contains(&method) {
+                        compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
 
-                    for parameter in call.parameters {
-                        let result = compiler.compile_expression(parameter);
+                        for parameter in call.parameters {
+                            let result = compiler.compile_expression(parameter);
 
-                        #[allow(clippy::single_match)]
-                        match &result {
-                            CompilerResult::Exception(_exception) => return result,
-                            _ => (),
+                            #[allow(clippy::single_match)]
+                            match &result {
+                                CompilerResult::Exception(_exception) => return result,
+                                _ => (),
+                            }
                         }
+
+                        compiler.add_to_current_function("};".to_string());
+
+                        // Should return what the library says it should return
+                        return CompilerResult::Success(Types::Void);
                     }
-
-                    compiler.add_to_current_function("};".to_string());
-
-                    // Should return what the library says it should return
-                    return CompilerResult::Success(Types::Void);
                 }
+                Types::Compound(_, fields) => {
+                    println!("FIELDS: {:?}", fields);
+                }
+                _ => ()
             }
         }
     }

@@ -116,6 +116,27 @@ impl LuaBackend {
             ValueType::Boolean(b) => self.add_code(b.to_string()),
             ValueType::Character(c) => self.add_code(format!("\"{}\"", c)),
             ValueType::Float(f) => self.add_code(f.to_string()),
+            ValueType::Function(_, args, id, block) => {
+                self.add_code_str("(function");
+
+                self.add_code_str("(");
+
+                let mut index = 0;
+                for _ in args.clone().iter() {
+                    self.add_code(format!("param_{}_{}", id, index));
+                    index += 1;
+
+                    if index != args.len() {
+                        self.add_code_str(",")
+                    }
+                }
+
+                self.add_code_str(") ");
+
+                self.compile_nodes(block);
+
+                self.add_code_str("end)");
+            }
             ValueType::Compound(_, values) => {
                 self.add_code_str("({");
 

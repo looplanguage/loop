@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
+use crate::ast::instructions::Node;
 
 #[derive(PartialEq, Clone)]
 pub enum ValueType {
@@ -9,6 +10,8 @@ pub enum ValueType {
     Array(Box<Vec<ValueType>>),
     Void,
     Compound(String, Box<Vec<ValueType>>),
+    // Return type, arguments, unique ID, body
+    Function(Box<Type>, Box<Vec<Type>>, u32, Box<Vec<Node>>)
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -21,7 +24,8 @@ pub enum Type {
     // Only allowed for function "return type"
     VOID,
     // Compound name and values
-    Compound(String, Box<Vec<Type>>)
+    Compound(String, Box<Vec<Type>>),
+    Function(Box<Type>, Box<Vec<Type>>)
 }
 
 impl Display for ValueType {
