@@ -1,21 +1,10 @@
 class Person {
-    age = 0
-    name = ""
     test = fn() {
         return 10
     }
-}
-
-fn add_age(Person a) {
-    a.age = a.age + 1
+    age = 0
 }
 
 john := Person()
-john.name = "John Doe"
-john.age = 42
 
-add_age(john)
-add_age(john)
-add_age(john)
-
-john.test()
+john.test

@@ -3,9 +3,12 @@ use crate::parser::expression::Precedence;
 use crate::parser::program::Node;
 use crate::parser::statement::expression::Expression;
 use crate::parser::statement::Statement;
-use crate::parser::types::Types;
+use crate::parser::types::{BaseTypes, Types};
 use crate::parser::Parser;
 use std::collections::HashMap;
+use crate::parser;
+use crate::parser::expression::function::Parameter;
+use crate::parser::expression::identifier::Identifier;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Class {
@@ -13,7 +16,7 @@ pub struct Class {
     pub values: HashMap<String, Expression>,
 }
 
-fn parse_class_item(p: &mut Parser) -> Option<(String, Expression)> {
+fn parse_class_item(p: &mut Parser, class_name: String) -> Option<(String, Expression)> {
     p.expected(TokenType::Identifier)?;
 
     let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
@@ -21,14 +24,14 @@ fn parse_class_item(p: &mut Parser) -> Option<(String, Expression)> {
     p.expected(TokenType::Assign)?;
     p.lexer.next_token();
 
-    let value = p.parse_expression(Precedence::Lowest)?;
+    let mut value = p.parse_expression(Precedence::Lowest)?;
     p.expected_maybe(TokenType::Semicolon);
 
-    if let Node::Expression(exp) = value {
+    if let Node::Expression(exp) = &mut value {
         Some((
             name,
             Expression {
-                expression: Box::new(exp),
+                expression: Box::new(exp.clone()),
             },
         ))
     } else {
@@ -46,7 +49,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     let mut values: HashMap<String, Expression> = HashMap::new();
 
     while !p.current_token_is(TokenType::RightBrace) {
-        let class_item = parse_class_item(p)?;
+        let class_item = parse_class_item(p, name.clone())?;
         values.insert(class_item.0, class_item.1);
 
         if p.next_token_is(TokenType::RightBrace) {
@@ -55,6 +58,20 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     }
 
     p.lexer.next_token();
+
+    // Box<HashMap<String, (u32, (Types, Expression))>>
+    let mut index = 0;
+    for value in &mut values {
+        let cloned_exp = value.1.expression.clone();
+        if let parser::expression::Expression::Function(f) = &mut *value.1.expression {
+            f.parameters.insert(0, Parameter {
+                identifier: Identifier { value: "self".to_string() },
+                _type: Types::Basic(BaseTypes::UserDefined(name.clone()))
+            });
+        }
+
+        index += 1;
+    }
 
     Some(Node::Statement(Statement::Class(Class { name, values })))
 }
