@@ -76,18 +76,10 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
             }))));
         }
 
-        p.lexer.next_token();
+        p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-        if !p.current_token_is(TokenType::RightParenthesis) {
-            p.add_error(format!(
-                "wrong token. got=\"{:?}\". expected=\"RightParenthesis\"",
-                p.lexer.get_current_token().unwrap().token
-            ));
-            return None;
-        };
-
-        let x = if let Expression::Identifier(i) = left {
+        let x = if let Expression::Identifier(i) = left.clone() {
             i.value
         } else {
             unreachable!()
@@ -97,8 +89,14 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
             value: format!("{}::{}", x, y),
         });
 
+        // Index & Assign
         return Some(Node::Expression(Expression::Call(Call {
-            identifier: Box::from(identifier),
+            identifier: Box::from(Expression::Index(Box::new(Index {
+                left,
+                index: Expression::Identifier(Identifier {
+                    value: y.clone()
+                })
+            }))),
             parameters: arguments,
         })));
     } else {
