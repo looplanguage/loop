@@ -92,7 +92,10 @@ impl LuaBackend {
     ///  ),
     pub fn new() -> LuaBackend {
         LuaBackend {
+            #[cfg(feature = "libloading")]
             code: String::from("ffi = require(\"ffi\")\n"),
+            #[cfg(not(feature = "libloading"))]
+            code: String::from(""),
             doing_statement: false,
             libs: vec![],
         }
@@ -436,17 +439,20 @@ impl LuaBackend {
         } else {
             format!("{}.so", path)
         };
-        let lib = libloading::Library::new(full_path);
-        if let Ok(l) = lib {
-            unsafe {
-                if let Ok(sym) = l.get(b"library_signatures") {
-                    let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
-                    let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
-                    return Ok(str);
+        #[cfg(feature = "libloading")]
+            {
+                let lib = libloading::Library::new(full_path);
+                if let Ok(l) = lib {
+                    unsafe {
+                        if let Ok(sym) = l.get(b"library_signatures") {
+                            let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
+                            let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
+                            return Ok(str);
+                        }
+                        return Err(());
+                    }
                 }
-                return Err(());
             }
-        }
         Err(())
     }
 }
