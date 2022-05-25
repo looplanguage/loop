@@ -16,7 +16,6 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
         Types::Auto,
         0,
     );
-    println!(":): {:?}", class.name.clone());
 
     for class_item in class.values.iter().enumerate() {
         compiler.dry = true;

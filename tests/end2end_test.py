@@ -44,7 +44,7 @@ def main():
     # Println is made to just be print now
     # add_test("test_println.loop", "123")
     add_test("test_expression_statements.loop", "10946")
-    add_test("test_classes.loop", "45")
+    add_test("test_classes.loop", "2")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:

@@ -99,7 +99,6 @@ pub fn compile_expression_function(
         let mut param_type = parameter._type.clone();
 
         if let Types::Basic(BaseTypes::UserDefined(name)) = &param_type {
-            println!("fakah: {:?}", name.clone());
             if let Some(compound) = compiler.get_compound_type(name) {
                 param_type = compound.clone()
             } else {

@@ -1,10 +1,15 @@
 class Person {
-    test = fn() {
-        return 10
-    }
     age = 0
+    name = ""
 }
 
 john := Person()
 
-john.test
+fn add_age(Person a) {
+    a.age = a.age + 1
+}
+
+add_age(john)
+add_age(john)
+
+john.age
