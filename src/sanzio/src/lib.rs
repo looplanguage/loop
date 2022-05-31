@@ -1,5 +1,3 @@
-#![feature(core_c_str)]
-#![feature(core_ffi_c)]
 #[cfg(feature = "mlua")]
 use mlua::{Lua, MultiValue, Value};
 
@@ -457,7 +455,9 @@ impl LuaBackend {
     fn get_lib_signiture(&self, _path: String) -> Result<String, ()> {
         #[cfg(feature = "libloading")]
         {
-            use core::ffi::{c_char, CStr};
+            use std::ffi::CStr;
+            use std::os::raw::c_char;
+
             let full_path: String = if std::env::consts::OS == "windows" {
                 format!("{}.dll", _path)
             } else {
