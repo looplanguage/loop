@@ -4,7 +4,7 @@ use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, Types};
+use crate::parser::types::{BaseTypes, Compound, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -12,7 +12,35 @@ pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> Comp
     #[allow(clippy::single_match)]
     match _index.index.clone() {
         Expression::Call(call) => compile_expression_extension_method(_compiler, call, _index.left),
+        Expression::Identifier(ident) => {
+            compile_expression_class_index(_compiler, _index.left, ident.value)
+        }
         _ => compile_expression_index_internal(_compiler, _index.left, _index.index),
+    }
+}
+
+fn compile_expression_class_index(
+    _compiler: &mut Compiler,
+    left: Expression,
+    field: String,
+) -> CompilerResult {
+    _compiler.add_to_current_function(".INDEX { ".to_string());
+    let result = _compiler.compile_expression(left);
+
+    if let CompilerResult::Success(Types::Compound(Compound(ref name, ref fields))) = result {
+        if let Some(field) = fields.get(&field) {
+            _compiler
+                .add_to_current_function(format!("}} {{ .CONSTANT INT {}; }};", (field.0 as i32)));
+
+            CompilerResult::Success(field.1 .0.clone())
+        } else {
+            CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()))
+        }
+    } else {
+        CompilerResult::Exception(CompilerException::UnknownField(
+            field,
+            format!("{:?}", result),
+        ))
     }
 }
 
@@ -28,14 +56,24 @@ pub fn compile_expression_assign_index(
     compiler: &mut Compiler,
     assign: AssignIndex,
 ) -> CompilerResult {
-    compiler.add_to_current_function(".ASSIGN { .INDEX {".to_string());
-    compiler.compile_expression(assign.left);
+    compiler.add_to_current_function(".ASSIGN { ".to_string());
+    if let Expression::Identifier(ident) = assign.index {
+        compile_expression_class_index(compiler, assign.left, ident.value);
 
-    compiler.add_to_current_function("} {".to_string());
-    compiler.compile_expression(assign.index);
-    compiler.add_to_current_function("} } {".to_string());
-    compiler.compile_expression(assign.value);
-    compiler.add_to_current_function("}".to_string());
+        compiler.add_to_current_function("} { ".to_string());
+        compiler.compile_expression(assign.value);
+    } else {
+        compiler.add_to_current_function(".INDEX {".to_string());
+        compiler.compile_expression(assign.left);
+
+        compiler.add_to_current_function("} {".to_string());
+        compiler.compile_expression(assign.index);
+        compiler.add_to_current_function("}; } {".to_string());
+
+        compiler.compile_expression(assign.value);
+    }
+
+    compiler.add_to_current_function("};".to_string());
 
     CompilerResult::Success(Types::Void)
 }
@@ -49,7 +87,7 @@ fn compile_expression_index_internal(
     let result = compiler.compile_expression(left);
     compiler.add_to_current_function("} {".to_string());
     compiler.compile_expression(index);
-    compiler.add_to_current_function("}".to_string());
+    compiler.add_to_current_function("};".to_string());
 
     if let CompilerResult::Success(Types::Array(value_type)) = result {
         return CompilerResult::Success(*value_type);
@@ -89,25 +127,32 @@ pub fn compile_expression_extension_method(
             .resolve(ident.value);
 
         if let Some(var) = var {
-            if let Types::Library(lib) = var._type {
-                if lib.methods.contains(&method) {
-                    compiler.add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
+            match var._type {
+                Types::Library(lib) => {
+                    if lib.methods.contains(&method) {
+                        compiler
+                            .add_to_current_function(format!(".CALL {}::{} {{", var.name, method));
 
-                    for parameter in call.parameters {
-                        let result = compiler.compile_expression(parameter);
+                        for parameter in call.parameters {
+                            let result = compiler.compile_expression(parameter);
 
-                        #[allow(clippy::single_match)]
-                        match &result {
-                            CompilerResult::Exception(_exception) => return result,
-                            _ => (),
+                            #[allow(clippy::single_match)]
+                            match &result {
+                                CompilerResult::Exception(_exception) => return result,
+                                _ => (),
+                            }
                         }
+
+                        compiler.add_to_current_function("};".to_string());
+
+                        // Should return what the library says it should return
+                        return CompilerResult::Success(Types::Void);
                     }
-
-                    compiler.add_to_current_function("};".to_string());
-
-                    // Should return what the library says it should return
-                    return CompilerResult::Success(Types::Void);
                 }
+                Types::Compound(Compound(_, fields)) => {
+                    println!("FIELDS: {:?}", fields);
+                }
+                _ => (),
             }
         }
     }

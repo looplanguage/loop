@@ -3,7 +3,7 @@ use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use crate::parser::Parser;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Import {
     pub file: String,
     pub identifier: String,

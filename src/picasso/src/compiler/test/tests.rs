@@ -224,6 +224,17 @@ mod tests {
     //     }
 
     #[test]
+    fn class() {
+        compiler_test(
+            "class Person { \
+        age = 100; \
+        test = 42 }\
+        x := Person()",
+            ".COMPOUND \"Person\" { INT;INT;};.STORE 1 {.CONSTANT Person {.CONSTANT INT 42;.CONSTANT INT 100;};};",
+        );
+    }
+
+    #[test]
     fn scoping_rules_1() {
         compiler_test_error("test := 100; if(true) { test }", None);
     }
@@ -430,6 +441,28 @@ mod tests {
 
     //#[test]
     //fn divide_by_float() { compiler_test_error("302 / 1.14", None) }
+
+    fn compiler_test(input: &str, expected: &str) {
+        let l = lexer::build_lexer(input);
+        let mut parser = parser::build_parser(l);
+
+        let program = parser.parse();
+
+        if !parser.errors.is_empty() {
+            for err in parser.errors {
+                if let Exception::Syntax(err) = err {
+                    println!("ParserException: {}", err);
+                }
+            }
+
+            panic!("Parser exceptions occurred!")
+        }
+
+        let mut comp = compiler::Compiler::default();
+        let err = comp.compile(program);
+
+        assert_eq!(err.unwrap().get_arc(), expected.to_string())
+    }
 
     fn compiler_test_error(input: &str, expected: Option<CompilerException>) {
         let l = lexer::build_lexer(input);

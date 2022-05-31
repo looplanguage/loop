@@ -1,12 +1,19 @@
 use crate::ast::instructions::Node;
+use crate::types::Type;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use strum_macros::EnumString;
 
-#[derive(PartialEq, Debug, Clone, EnumString)]
+#[derive(PartialEq, Eq, Debug, Clone, EnumString)]
 pub enum LoadType {
     VARIABLE,
     PARAMETER(u64),
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct CompoundType {
+    pub name: String,
+    pub values: Box<Vec<Type>>,
 }
 
 impl Display for LoadType {
@@ -30,7 +37,7 @@ impl LoadType {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct Load {
     pub load_type: LoadType,
     pub index: u64,

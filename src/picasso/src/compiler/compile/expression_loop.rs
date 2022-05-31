@@ -157,7 +157,7 @@ pub fn compile_loop_array_iterator_expression(
 
     compiler.compile_expression(*lp.array);
 
-    compiler.add_to_current_function(format!("}} {{ .LOAD VARIABLE {}; }} }};", index.index));
+    compiler.add_to_current_function(format!("}} {{ .LOAD VARIABLE {}; }}; }};", index.index));
 
     compiler.add_to_current_function("};".to_string());
 

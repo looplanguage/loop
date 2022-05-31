@@ -1,6 +1,8 @@
 use crate::ast::instructions::conditional::Conditional;
 use crate::ast::instructions::function::{Call, Function, LibCall};
-use crate::ast::instructions::memory::{Copy, Index, Load, LoadLib, Push, Slice, Store};
+use crate::ast::instructions::memory::{
+    CompoundType, Copy, Index, Load, LoadLib, Push, Slice, Store,
+};
 use crate::ast::instructions::suffix::Suffix;
 use crate::ast::instructions::while_loop::While;
 use crate::types::ValueType;
@@ -35,6 +37,7 @@ pub enum Node {
     LENGTH(Box<Node>),
     AND(Box<Node>, Box<Node>),
     OR(Box<Node>, Box<Node>),
+    COMPOUND(CompoundType),
 }
 
 impl Display for Node {
@@ -60,6 +63,7 @@ impl Display for Node {
             Node::AND(a, b) => write!(f, "{}, {}", a, b),
             Node::OR(a, b) => write!(f, "{}, {}", a, b),
             Node::LIBCALL(a) => write!(f, "{}", a),
+            Node::COMPOUND(cmp) => write!(f, "{:?}", cmp),
         }
     }
 }

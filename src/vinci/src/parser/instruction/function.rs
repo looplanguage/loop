@@ -4,6 +4,7 @@ use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
 use crate::parser::Parser;
 use crate::types::Type;
+use std::borrow::Borrow;
 
 /// ```
 /// use vinci::ast::AST;
@@ -52,14 +53,7 @@ pub fn parse_function_instruction(parser: &mut Parser) -> Result<Node, ParseErro
         ));
     };
 
-    let return_type = if let Token::Type(tp) = parser.next_token() {
-        tp
-    } else {
-        return Err(ParseError::UnexpectedToken(
-            Token::Type(Type::INT),
-            parser.current_token(),
-        ));
-    };
+    let return_type = parser.parse_type()?;
 
     parser.expected(Token::Arguments)?;
 
@@ -67,10 +61,13 @@ pub fn parse_function_instruction(parser: &mut Parser) -> Result<Node, ParseErro
 
     let parameters: Vec<Type> = parse_type_arguments(parser)?;
 
+    parser.expected(Token::RightCurly)?;
     parser.expected(Token::Free)?;
     parser.expected(Token::LeftCurly)?;
 
     let free: Vec<Type> = parse_type_arguments(parser)?;
+
+    parser.expected(Token::RightCurly)?;
 
     parser.expected(Token::Then)?;
 
@@ -147,18 +144,14 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
     }
 }
 
-fn parse_type_arguments(parser: &mut Parser) -> Result<Vec<Type>, ParseError> {
+pub fn parse_type_arguments(parser: &mut Parser) -> Result<Vec<Type>, ParseError> {
     let mut parameters: Vec<Type> = Vec::new();
-    let mut next = parser.next_token();
+    let mut next = parser.lexer.borrow().clone().next().unwrap();
 
-    while next != Token::RightCurly && next != Token::Error {
-        if let Token::Type(tp) = next {
-            parameters.push(tp);
-            parser.expected(Token::Semicolon)?;
-            next = parser.next_token();
-        } else {
-            break;
-        }
+    while next != Token::RightCurly {
+        parameters.push(parser.parse_type()?);
+        parser.expected(Token::Semicolon)?;
+        next = parser.lexer.borrow().clone().next().unwrap();
     }
 
     Ok(parameters)

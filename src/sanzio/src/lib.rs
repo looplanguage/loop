@@ -1,8 +1,8 @@
 #[cfg(feature = "mlua")]
 use mlua::{Lua, MultiValue, Value};
-use std::ffi::CStr;
+
 use std::ops::Deref;
-use std::os::raw::c_char;
+
 use std::str;
 use vinci::ast::instructions::memory::LoadType;
 use vinci::ast::instructions::suffix::BinaryOperation;
@@ -44,6 +44,9 @@ impl Default for Sanzio {
 }
 
 impl Sanzio {
+    /// # Safety
+    /// This function is unsafe due to Sanzio allowing C FFI. And FFI is inherintly unsafe due to
+    /// the fact that C code is unsafe.
     pub unsafe fn new() -> Sanzio {
         Sanzio {
             #[cfg(feature = "mlua")]
@@ -92,7 +95,10 @@ impl LuaBackend {
     ///  ),
     pub fn new() -> LuaBackend {
         LuaBackend {
+            #[cfg(feature = "libloading")]
             code: String::from("ffi = require(\"ffi\")\n"),
+            #[cfg(not(feature = "libloading"))]
+            code: String::from(""),
             doing_statement: false,
             libs: vec![],
         }
@@ -113,6 +119,41 @@ impl LuaBackend {
             ValueType::Boolean(b) => self.add_code(b.to_string()),
             ValueType::Character(c) => self.add_code(format!("\"{}\"", c)),
             ValueType::Float(f) => self.add_code(f.to_string()),
+            ValueType::Function(_, args, id, block) => {
+                self.add_code_str("(function");
+
+                self.add_code_str("(");
+
+                let mut index = 0;
+                for _ in args.clone().iter() {
+                    self.add_code(format!("param_{}_{}", id, index));
+                    index += 1;
+
+                    if index != args.len() {
+                        self.add_code_str(",")
+                    }
+                }
+
+                self.add_code_str(") ");
+
+                self.compile_nodes(block);
+
+                self.add_code_str("end)");
+            }
+            ValueType::Compound(_, values) => {
+                self.add_code_str("({");
+
+                for (key, value) in values.iter().enumerate() {
+                    self.add_code(format!("[{} + 1] = ", key));
+                    self.add_constant_value(value);
+
+                    if key + 1 != values.len() {
+                        self.add_code_str(",");
+                    }
+                }
+
+                self.add_code_str("})");
+            }
             ValueType::Array(a) => {
                 let items = a.deref();
 
@@ -304,7 +345,7 @@ impl LuaBackend {
             }
             Node::COPY(_) => {}
             Node::LOADLIB(lib) => {
-                if let Ok(str) = self.get_lib_signiture(lib.clone().get_path().to_string()) {
+                if let Ok(str) = self.get_lib_signiture(lib.clone().get_path()) {
                     self.add_library(lib.clone().get_path());
                     self.add_code(format!("ffi.cdef[[ {} ]]", str.as_str()));
                     self.add_code(format!(
@@ -367,6 +408,7 @@ impl LuaBackend {
                 }
                 self.add_code_str(")");
             }
+            Node::COMPOUND(_) => (),
         }
     }
 
@@ -401,26 +443,36 @@ impl LuaBackend {
             }
 
             if index != nodes.len() {
-                self.add_code_str(";")
+                let add_colon = !matches!(node, Node::COMPOUND(_));
+
+                if add_colon {
+                    self.add_code_str(";")
+                }
             }
         }
     }
 
-    fn get_lib_signiture(&self, path: String) -> Result<String, ()> {
-        let full_path: String = if std::env::consts::OS.to_string() == "windows" {
-            format!("{}.dll", path)
-        } else {
-            format!("{}.so", path)
-        };
-        let lib = libloading::Library::new(full_path);
-        if let Ok(l) = lib {
-            unsafe {
-                if let Ok(sym) = l.get(b"library_signatures") {
-                    let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
-                    let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
-                    return Ok(str);
+    fn get_lib_signiture(&self, _path: String) -> Result<String, ()> {
+        #[cfg(feature = "libloading")]
+        {
+            use std::ffi::CStr;
+            use std::os::raw::c_char;
+
+            let full_path: String = if std::env::consts::OS == "windows" {
+                format!("{}.dll", _path)
+            } else {
+                format!("{}.so", _path)
+            };
+            let lib = libloading::Library::new(full_path);
+            if let Ok(l) = lib {
+                unsafe {
+                    if let Ok(sym) = l.get(b"library_signatures") {
+                        let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
+                        let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
+                        return Ok(str);
+                    }
+                    return Err(());
                 }
-                return Err(());
             }
         }
         Err(())

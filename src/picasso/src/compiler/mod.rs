@@ -24,6 +24,7 @@ use crate::compiler::compile::expression_null::compile_expression_null;
 use crate::compiler::compile::expression_string::compile_expression_string;
 use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_break::compile_break_statement;
+use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
@@ -40,7 +41,7 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
-use crate::parser::types::Types;
+use crate::parser::types::{Compound, Types};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -125,7 +126,7 @@ impl Default for Compiler {
 }
 
 impl Compiler {
-    /// Main compilation function which compiles a syntax tree from the parser into D
+    /// Main compilation function which compiles a syntax tree from the parser into Arc
     ///
     /// # Example
     /// ```loop
@@ -176,6 +177,32 @@ impl Compiler {
         }
 
         Result::Ok(self.get_d_code())
+    }
+
+    pub fn get_compound_type(&self, name: &str) -> Option<Types> {
+        let class = self.variable_scope.borrow_mut().resolve(format!(
+            "{}{}",
+            self.location,
+            name.to_owned()
+        ));
+
+        if let Some(class) = class {
+            if let Types::Compound(Compound(name, mut values)) = class._type {
+                // Instantiate the class using a constant
+
+                for (index, value) in (*values).iter_mut().enumerate() {
+                    value.1 .0 = index as u32;
+                }
+
+                return Some(Types::Compound(Compound(name, values)));
+            }
+
+            if let Types::Auto = class._type {
+                return Some(Types::Auto);
+            }
+        }
+
+        None
     }
 
     pub fn default_with_state(compiler_state: CompilerState) -> Compiler {
@@ -440,6 +467,7 @@ impl Compiler {
             Statement::Import(import) => compile_import_statement(self, import),
             Statement::Export(export) => compile_export_statement(self, export),
             Statement::Break(br) => compile_break_statement(self, br),
+            Statement::Class(class) => compile_class_statement(self, class),
         };
 
         let add_semicolon = match stmt {
@@ -459,6 +487,7 @@ impl Compiler {
             Statement::Import(_) => false,
             Statement::Export(_) => true,
             Statement::Break(_) => true,
+            Statement::Class(_) => true,
         };
 
         if add_semicolon && !no_semicolon {

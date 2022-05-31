@@ -5,6 +5,7 @@
 # Language things
 __pycache__/
 target/
+venv/
 
 # Scripts
 loop-pipeline.ps1

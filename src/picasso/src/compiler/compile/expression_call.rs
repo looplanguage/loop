@@ -2,12 +2,27 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::expression::function::Call;
-use crate::parser::types::Types;
+use crate::parser::types::{Compound, Types};
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
-    // This is for calling functions from a library
-
+    // This is for calling functions from a library & instantiating classes
     if let expression::Expression::Identifier(i) = *call.clone().identifier {
+        // Check if this is a class
+        let class = compiler.get_compound_type(&i.value);
+
+        if let Some(Types::Compound(Compound(name, mut values))) = class {
+            // Instantiate the class using a constant
+            compiler.add_to_current_function(format!(".CONSTANT {} {{", name));
+            for (index, mut value) in (*values).iter_mut().enumerate() {
+                compiler.compile_expression(value.1 .1 .1.clone());
+                value.1 .0 = index as u32;
+            }
+
+            compiler.add_to_current_function("};".to_string());
+
+            return CompilerResult::Success(Types::Compound(Compound(name, values)));
+        }
+
         let x: Vec<&str> = i.value.split("::").collect();
         let name = x[0].to_string();
         if compiler.imports.contains(&name) {

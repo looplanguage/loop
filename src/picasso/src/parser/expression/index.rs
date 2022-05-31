@@ -52,33 +52,43 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         // TODO: This causes extension methods to break, as they start with an identifier as well.
     } else if p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
         let y = p.lexer.get_current_token().unwrap().clone().literal;
-        p.lexer.next_token();
+
+        if p.lexer.get_peek_token().unwrap().clone().token != TokenType::LeftParenthesis {
+            if p.lexer.next_token_is_and_next_token(TokenType::Assign) {
+                p.lexer.next_token();
+
+                let value = p.parse_expression(Precedence::Lowest);
+
+                if let Node::Expression(exp) = value.unwrap() {
+                    return Some(Node::Expression(Expression::AssignIndex(Box::from(
+                        AssignIndex {
+                            left,
+                            index: Expression::Identifier(Identifier { value: y }),
+                            value: exp,
+                        },
+                    ))));
+                }
+            }
+
+            return Some(Node::Expression(Expression::Index(Box::new(Index {
+                left,
+                index: Expression::Identifier(Identifier { value: y }),
+            }))));
+        }
+
+        p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-        if !p.current_token_is(TokenType::RightParenthesis) {
-            p.add_error(format!(
-                "wrong token. got=\"{:?}\". expected=\"RightParenthesis\"",
-                p.lexer.get_current_token().unwrap().token
-            ));
-            return None;
-        };
-
-        let x = if let Expression::Identifier(i) = left {
-            i.value
-        } else {
-            unreachable!()
-        };
-
-        let identifier = Expression::Identifier(Identifier {
-            value: format!("{}::{}", x, y),
-        });
-
+        // Index & Assign
         return Some(Node::Expression(Expression::Call(Call {
-            identifier: Box::from(identifier),
+            identifier: Box::from(Expression::Index(Box::new(Index {
+                left,
+                index: Expression::Identifier(Identifier { value: y }),
+            }))),
             parameters: arguments,
         })));
     } else {
-        // This index expression is for: Extension methods OR Hashmaps
+        // This index expression is for: Extension methods OR Classes
         let identifier = parse_identifier(p);
         if let Node::Expression(ident_exp) = identifier.unwrap() {
             p.lexer.next_token();

@@ -29,6 +29,7 @@ pub mod expression_string;
 pub mod expression_suffix;
 /// Transpiling breaks to D code
 pub mod statement_break;
+pub mod statement_class;
 /// Transpiling constant declarations to D code
 pub mod statement_constant_declaration;
 /// Transpiling exports to D code

@@ -2,7 +2,9 @@ use crate::ast::instructions::Node;
 use crate::ast::AST;
 use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
+use crate::types::Type;
 use std::borrow::{Borrow, BorrowMut};
+use std::collections::HashMap;
 
 pub mod error;
 mod instruction;
@@ -10,6 +12,7 @@ mod tests;
 
 pub struct Parser<'a> {
     lexer: logos::Lexer<'a, Token>,
+    custom_types: HashMap<String, Vec<Type>>,
 }
 
 impl Parser<'_> {
@@ -69,6 +72,27 @@ impl Parser<'_> {
         Ok(nodes)
     }
 
+    pub fn parse_type(&mut self) -> Result<Type, ParseError> {
+        let tp = self.next_token();
+
+        if let Token::Type(tp) = tp {
+            return Ok(tp);
+        }
+
+        if let Token::Identifier(custom_type) = tp {
+            if let Some(compound_types) = self.custom_types.get(&custom_type) {
+                return Ok(Type::Compound(
+                    custom_type,
+                    Box::new(compound_types.clone()),
+                ));
+            }
+        }
+
+        Err(ParseError::UnknownType(
+            self.lexer.borrow().slice().to_string(),
+        ))
+    }
+
     pub fn next_token(&mut self) -> Token {
         if let Some(token) = self.lexer.borrow_mut().next() {
             token
@@ -85,6 +109,16 @@ impl Parser<'_> {
             }
             _ => Err(ParseError::Unknown),
         }
+    }
+
+    pub fn add_custom_type(&mut self, name: String, tp: Vec<Type>) -> Result<(), ParseError> {
+        if self.custom_types.contains_key(&name) {
+            return Err(ParseError::TypeAlreadyExists(name));
+        }
+
+        self.custom_types.insert(name, tp);
+
+        Ok(())
     }
 
     /// Get the current token, wrapper for lexer
@@ -115,6 +149,9 @@ impl Parser<'_> {
     }
 
     pub fn new(lexer: logos::Lexer<Token>) -> Parser {
-        Parser { lexer }
+        Parser {
+            lexer,
+            custom_types: HashMap::new(),
+        }
     }
 }

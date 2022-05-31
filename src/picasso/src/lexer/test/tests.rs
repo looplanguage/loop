@@ -176,6 +176,14 @@ mod tests {
     }
 
     #[test]
+    fn class() {
+        let input = "class";
+        let expected = vec![test_helper::generate_token("class", TokenType::Class)];
+
+        do_test(input, expected);
+    }
+
+    #[test]
     fn strings() {
         let input = "\"hello\" \"world!\"";
         let expected = vec![
