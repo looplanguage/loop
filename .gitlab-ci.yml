@@ -7,7 +7,7 @@ stages:
   - test     # cargo test and end2end_test.py
 
 .linux:
-  image: joseluisq/rust-linux-darwin-builder:1.61.0
+  image: joseluisq/rust-linux-darwin-builder:1.62.0
 
 # ==============================================================================
 #                             BEGINNING OF LINTING STAGE
