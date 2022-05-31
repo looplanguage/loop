@@ -230,7 +230,7 @@ mod tests {
         age = 100; \
         test = 42 }\
         x := Person()",
-            "1",
+            ".COMPOUND \"Person\" { INT;INT;};.STORE 1 {.CONSTANT Person {.CONSTANT INT 42;.CONSTANT INT 100;};};",
         );
     }
 
