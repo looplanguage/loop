@@ -1,4 +1,7 @@
 use crate::lexer::token::TokenType;
+use crate::parser;
+use crate::parser::expression::function::Parameter;
+use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::Precedence;
 use crate::parser::program::Node;
 use crate::parser::statement::expression::Expression;
@@ -6,9 +9,6 @@ use crate::parser::statement::Statement;
 use crate::parser::types::{BaseTypes, Types};
 use crate::parser::Parser;
 use std::collections::HashMap;
-use crate::parser;
-use crate::parser::expression::function::Parameter;
-use crate::parser::expression::identifier::Identifier;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Class {
@@ -64,10 +64,15 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     for value in &mut values {
         let cloned_exp = value.1.expression.clone();
         if let parser::expression::Expression::Function(f) = &mut *value.1.expression {
-            f.parameters.insert(0, Parameter {
-                identifier: Identifier { value: "self".to_string() },
-                _type: Types::Basic(BaseTypes::UserDefined(name.clone()))
-            });
+            f.parameters.insert(
+                0,
+                Parameter {
+                    identifier: Identifier {
+                        value: "self".to_string(),
+                    },
+                    _type: Types::Basic(BaseTypes::UserDefined(name.clone())),
+                },
+            );
         }
 
         index += 1;

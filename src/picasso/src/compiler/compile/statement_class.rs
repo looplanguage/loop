@@ -11,11 +11,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", class.name));
 
-    let var = compiler.define_variable(
-        class.name.clone(),
-        Types::Auto,
-        0,
-    );
+    let var = compiler.define_variable(class.name.clone(), Types::Auto, 0);
 
     for class_item in class.values.iter().enumerate() {
         compiler.dry = true;
@@ -39,7 +35,10 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     compiler.add_to_current_function("};".to_string());
 
-    let var = compiler.variable_scope.borrow_mut().get_variable_mutable(var.index, var.name.clone());
+    let var = compiler
+        .variable_scope
+        .borrow_mut()
+        .get_variable_mutable(var.index, var.name.clone());
 
     var.unwrap().as_ref().borrow_mut()._type = Types::Compound(class.name.clone(), Box::new(items));
 

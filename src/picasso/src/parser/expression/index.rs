@@ -93,9 +93,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         return Some(Node::Expression(Expression::Call(Call {
             identifier: Box::from(Expression::Index(Box::new(Index {
                 left,
-                index: Expression::Identifier(Identifier {
-                    value: y.clone()
-                })
+                index: Expression::Identifier(Identifier { value: y.clone() }),
             }))),
             parameters: arguments,
         })));
