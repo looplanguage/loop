@@ -31,7 +31,7 @@ fn compile_expression_class_index(
         if let Some(field) = fields.get(&field) {
             _compiler.add_to_current_function(format!(
                 "}} {{ .CONSTANT INT {}; }};",
-                (field.0 as i32) - 1
+                (field.0 as i32)
             ));
 
             CompilerResult::Success(field.1 .0.clone())

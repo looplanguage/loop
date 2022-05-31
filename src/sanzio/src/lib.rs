@@ -141,7 +141,7 @@ impl LuaBackend {
                 self.add_code_str("({");
 
                 for (key, value) in values.iter().enumerate() {
-                    self.add_code(format!("[{}] = ", key));
+                    self.add_code(format!("[{} + 1] = ", key));
                     self.add_constant_value(value);
 
                     if key + 1 != values.len() {
