@@ -1,10 +1,8 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::Expression;
 use crate::parser::statement::class::Class;
-use crate::parser::statement::import::Import;
-use crate::parser::types::Types;
+use crate::parser::types::{Compound, Types};
 use std::collections::HashMap;
-use std::fmt::format;
 
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: HashMap<String, (u32, (Types, Expression))> = HashMap::new();
@@ -38,9 +36,10 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
     let var = compiler
         .variable_scope
         .borrow_mut()
-        .get_variable_mutable(var.index, var.name.clone());
+        .get_variable_mutable(var.index, var.name);
 
-    var.unwrap().as_ref().borrow_mut()._type = Types::Compound(class.name.clone(), Box::new(items));
+    var.unwrap().as_ref().borrow_mut()._type =
+        Types::Compound(Compound(class.name, Box::new(items)));
 
     CompilerResult::Success(Types::Void)
 }

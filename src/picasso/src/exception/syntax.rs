@@ -52,14 +52,14 @@ impl SyntaxError {
 
         let mut index = 1;
         while index < self.column {
-            index = index + 1;
+            index += 1;
             print!(" ");
         }
 
         let mut amount = 1;
         loop {
             print!("^");
-            amount = amount + 1;
+            amount += 1;
             if amount > self.got.literal.len() {
                 break;
             }

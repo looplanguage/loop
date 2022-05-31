@@ -63,7 +63,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
                     return Some(Node::Expression(Expression::AssignIndex(Box::from(
                         AssignIndex {
                             left,
-                            index: Expression::Identifier(Identifier { value: y.clone() }),
+                            index: Expression::Identifier(Identifier { value: y }),
                             value: exp,
                         },
                     ))));
@@ -72,28 +72,18 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
 
             return Some(Node::Expression(Expression::Index(Box::new(Index {
                 left,
-                index: Expression::Identifier(Identifier { value: y.clone() }),
+                index: Expression::Identifier(Identifier { value: y }),
             }))));
         }
 
         p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-        let x = if let Expression::Identifier(i) = left.clone() {
-            i.value
-        } else {
-            unreachable!()
-        };
-
-        let identifier = Expression::Identifier(Identifier {
-            value: format!("{}::{}", x, y),
-        });
-
         // Index & Assign
         return Some(Node::Expression(Expression::Call(Call {
             identifier: Box::from(Expression::Index(Box::new(Index {
                 left,
-                index: Expression::Identifier(Identifier { value: y.clone() }),
+                index: Expression::Identifier(Identifier { value: y }),
             }))),
             parameters: arguments,
         })));

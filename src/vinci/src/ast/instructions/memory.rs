@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use strum_macros::EnumString;
 
-#[derive(PartialEq, Debug, Clone, EnumString)]
+#[derive(PartialEq, Eq, Debug, Clone, EnumString)]
 pub enum LoadType {
     VARIABLE,
     PARAMETER(u64),
@@ -37,7 +37,7 @@ impl LoadType {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct Load {
     pub load_type: LoadType,
     pub index: u64,

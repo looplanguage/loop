@@ -16,7 +16,7 @@ pub struct Class {
     pub values: HashMap<String, Expression>,
 }
 
-fn parse_class_item(p: &mut Parser, class_name: String) -> Option<(String, Expression)> {
+fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Expression)> {
     p.expected(TokenType::Identifier)?;
 
     let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
@@ -60,9 +60,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
 
     // Box<HashMap<String, (u32, (Types, Expression))>>
-    let mut index = 0;
     for value in &mut values {
-        let cloned_exp = value.1.expression.clone();
         if let parser::expression::Expression::Function(f) = &mut *value.1.expression {
             f.parameters.insert(
                 0,
@@ -74,8 +72,6 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
                 },
             );
         }
-
-        index += 1;
     }
 
     Some(Node::Statement(Statement::Class(Class { name, values })))

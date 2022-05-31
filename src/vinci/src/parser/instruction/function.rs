@@ -4,7 +4,7 @@ use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
 use crate::parser::Parser;
 use crate::types::Type;
-use std::borrow::{Borrow, BorrowMut};
+use std::borrow::Borrow;
 
 /// ```
 /// use vinci::ast::AST;

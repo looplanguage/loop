@@ -62,11 +62,11 @@ impl Lexer {
         }
 
         let mut line = String::from("");
-        let mut current_char = self.input.chars().nth(char_count - 1 as usize);
+        let mut current_char = self.input.chars().nth(char_count - 1_usize);
         while current_char.is_some() && current_char.unwrap() != '\n' {
             line.push(current_char.unwrap());
             char_count += 1;
-            current_char = self.input.chars().nth(char_count - 1 as usize);
+            current_char = self.input.chars().nth(char_count - 1_usize);
         }
 
         line.trim_start().to_string()

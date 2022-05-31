@@ -1,10 +1,10 @@
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UnknownSymbol {
     pub name: String,
     pub scope_depth: u16,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CompilerException {
     UnknownSymbol(UnknownSymbol),
     DivideByZero,

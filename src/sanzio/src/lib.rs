@@ -1,8 +1,10 @@
+#![feature(core_c_str)]
+#![feature(core_ffi_c)]
 #[cfg(feature = "mlua")]
 use mlua::{Lua, MultiValue, Value};
-use std::ffi::CStr;
+
 use std::ops::Deref;
-use std::os::raw::c_char;
+
 use std::str;
 use vinci::ast::instructions::memory::LoadType;
 use vinci::ast::instructions::suffix::BinaryOperation;
@@ -44,6 +46,9 @@ impl Default for Sanzio {
 }
 
 impl Sanzio {
+    /// # Safety
+    /// This function is unsafe due to Sanzio allowing C FFI. And FFI is inherintly unsafe due to
+    /// the fact that C code is unsafe.
     pub unsafe fn new() -> Sanzio {
         Sanzio {
             #[cfg(feature = "mlua")]
@@ -342,7 +347,7 @@ impl LuaBackend {
             }
             Node::COPY(_) => {}
             Node::LOADLIB(lib) => {
-                if let Ok(str) = self.get_lib_signiture(lib.clone().get_path().to_string()) {
+                if let Ok(str) = self.get_lib_signiture(lib.clone().get_path()) {
                     self.add_library(lib.clone().get_path());
                     self.add_code(format!("ffi.cdef[[ {} ]]", str.as_str()));
                     self.add_code(format!(
@@ -440,12 +445,7 @@ impl LuaBackend {
             }
 
             if index != nodes.len() {
-                let add_colon = {
-                    match node {
-                        Node::COMPOUND(_) => false,
-                        _ => true,
-                    }
-                };
+                let add_colon = !matches!(node, Node::COMPOUND(_));
 
                 if add_colon {
                     self.add_code_str(";")
@@ -454,14 +454,15 @@ impl LuaBackend {
         }
     }
 
-    fn get_lib_signiture(&self, path: String) -> Result<String, ()> {
-        let full_path: String = if std::env::consts::OS.to_string() == "windows" {
-            format!("{}.dll", path)
-        } else {
-            format!("{}.so", path)
-        };
+    fn get_lib_signiture(&self, _path: String) -> Result<String, ()> {
         #[cfg(feature = "libloading")]
         {
+            use core::ffi::{c_char, CStr};
+            let full_path: String = if std::env::consts::OS == "windows" {
+                format!("{}.dll", _path)
+            } else {
+                format!("{}.so", _path)
+            };
             let lib = libloading::Library::new(full_path);
             if let Ok(l) = lib {
                 unsafe {

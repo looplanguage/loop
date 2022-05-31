@@ -4,7 +4,7 @@ use logos::{Lexer, Logos};
 use std::str::FromStr;
 use strum_macros::EnumString;
 
-#[derive(PartialEq, Debug, Clone, EnumString)]
+#[derive(PartialEq, Eq, Debug, Clone, EnumString)]
 #[allow(clippy::upper_case_acronyms)]
 pub enum Instruction {
     CONSTANT,

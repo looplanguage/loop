@@ -1,7 +1,7 @@
 use crate::ast::instructions::Node;
 use std::fmt::{Display, Formatter};
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum BinaryOperation {
     ADD,
     SUBTRACT,

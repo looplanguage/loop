@@ -51,7 +51,7 @@ pub enum Expression {
     Hashmap(Hashmap),
 }
 
-#[derive(PartialOrd, PartialEq, Debug)]
+#[derive(PartialOrd, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
 pub enum Precedence {
     Lowest,

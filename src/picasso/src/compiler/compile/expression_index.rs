@@ -4,7 +4,7 @@ use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, Types};
+use crate::parser::types::{BaseTypes, Compound, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -27,7 +27,7 @@ fn compile_expression_class_index(
     _compiler.add_to_current_function(".INDEX { ".to_string());
     let result = _compiler.compile_expression(left);
 
-    if let CompilerResult::Success(Types::Compound(ref name, ref fields)) = result {
+    if let CompilerResult::Success(Types::Compound(Compound(ref name, ref fields))) = result {
         if let Some(field) = fields.get(&field) {
             _compiler
                 .add_to_current_function(format!("}} {{ .CONSTANT INT {}; }};", (field.0 as i32)));
@@ -149,7 +149,7 @@ pub fn compile_expression_extension_method(
                         return CompilerResult::Success(Types::Void);
                     }
                 }
-                Types::Compound(_, fields) => {
+                Types::Compound(Compound(_, fields)) => {
                     println!("FIELDS: {:?}", fields);
                 }
                 _ => (),

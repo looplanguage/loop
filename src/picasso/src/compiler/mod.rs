@@ -41,7 +41,7 @@ use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::Statement;
-use crate::parser::types::Types;
+use crate::parser::types::{Compound, Types};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -179,25 +179,22 @@ impl Compiler {
         Result::Ok(self.get_d_code())
     }
 
-    pub fn get_compound_type(&self, name: &String) -> Option<Types> {
-        let class =
-            self.variable_scope
-                .borrow_mut()
-                .resolve(format!("{}{}", self.location, name.clone()));
+    pub fn get_compound_type(&self, name: &str) -> Option<Types> {
+        let class = self.variable_scope.borrow_mut().resolve(format!(
+            "{}{}",
+            self.location,
+            name.to_owned()
+        ));
 
         if let Some(class) = class {
-            if let Types::Compound(name, values) = class._type {
+            if let Types::Compound(Compound(name, mut values)) = class._type {
                 // Instantiate the class using a constant
-                let mut cloned_values = values.clone();
 
-                let mut index = 0;
-                for value in &mut *cloned_values {
-                    value.1 .0 = index;
-
-                    index += 1;
+                for (index, value) in (*values).iter_mut().enumerate() {
+                    value.1 .0 = index as u32;
                 }
 
-                return Some(Types::Compound(name.clone(), cloned_values));
+                return Some(Types::Compound(Compound(name, values)));
             }
 
             if let Types::Auto = class._type {

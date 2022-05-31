@@ -12,7 +12,7 @@ use std::borrow::Borrow;
 pub fn parse_constant_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
     let type_def = parser.parse_type()?;
 
-    let value = if let Type::Compound(name, compound_type) = type_def {
+    let value = if let Type::Compound(name, _compound_type) = type_def {
         let mut values: Vec<ValueType> = Vec::new();
 
         parser.expected(Token::LeftCurly)?;
