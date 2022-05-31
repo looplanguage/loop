@@ -34,7 +34,7 @@ picasso lint:
     refs:
       - merge_requests
     changes:
-      - src/picasso/*
+      - src/picasso/**/*
   stage: lint
   script:
     - cd src/picasso/
@@ -46,7 +46,7 @@ vinci lint:
     refs:
       - merge_requests
     changes:
-      - src/vinci/*
+      - src/vinci/**/*
   stage: lint
   script:
     - cd src/vinci/
@@ -58,7 +58,7 @@ sanzio lint:
     refs:
       - merge_requests
     changes:
-      - src/sanzio/*
+      - src/sanzio/**/*
   stage: lint
   script:
     - cd src/sanzio/
@@ -91,7 +91,7 @@ picasso check:
     refs:
       - merge_requests
     changes:
-      - src/picasso/*
+      - src/picasso/**/*
   stage: check
   script:
     - cd src/picasso/
@@ -103,7 +103,7 @@ vinci check:
     refs:
       - merge_requests
     changes:
-      - src/vinci/*
+      - src/vinci/**/*
   stage: check
   script:
     - cd src/vinci/
@@ -115,7 +115,7 @@ sanzio check:
     refs:
       - merge_requests
     changes:
-      - src/sanzio/*
+      - src/sanzio/**/*
   stage: check
   script:
     - cd src/sanzio/
@@ -158,7 +158,7 @@ picasso test:
     refs:
       - merge_requests
     changes:
-      - src/picasso/*
+      - src/picasso/**/*
   stage: test
   script:
     - cd src/picasso/
@@ -170,7 +170,7 @@ vinci test:
     refs:
       - merge_requests
     changes:
-      - src/vinci/*
+      - src/vinci/**/*
   stage: test
   script:
     - cd src/vinci/
@@ -182,7 +182,7 @@ sanzio test:
     refs:
       - merge_requests
     changes:
-      - src/sanzio/*
+      - src/sanzio/**/*
   stage: test
   script:
     - cd src/sanzio/

@@ -22,9 +22,8 @@ def lint_directory(directory):
     try:
         subprocess.check_output(["cargo", "clippy", "--", "-D", "warnings"])
         subprocess.check_output(["cargo", "fmt", "--all"])
-    except subprocess.CalledProcessError as err:
-        print("Failed with:")
-        print(err)
+    except subprocess.CalledProcessError:
+        exit(1)
 
     os.chdir(root_dir)
 
