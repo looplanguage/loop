@@ -113,7 +113,6 @@ pub fn compile_expression_extension_method(
     call: Call,
     left: Expression,
 ) -> CompilerResult {
-    println!("{:?}", call);
     let method = match *call.identifier.clone() {
         Expression::Identifier(identifier) => identifier.value,
         _ => String::from(""),

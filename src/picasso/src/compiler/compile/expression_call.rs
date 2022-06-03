@@ -6,6 +6,7 @@ use crate::parser::types::{Compound, Types};
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     // This is for calling functions from a library & instantiating classes
+    // First class instantation
     if let expression::Expression::Identifier(i) = *call.clone().identifier {
         // Check if this is a class
         let class = compiler.get_compound_type(&i.value);
@@ -22,14 +23,15 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
             return CompilerResult::Success(Types::Compound(Compound(name, values)));
         }
-    } else if let expression::Expression::String(s) = *call.clone().identifier {
-        let splitted_namespace: Vec<&str> = s.value.split("::").collect();
+    // Second library function calling
+    } else if let expression::Expression::String(namespace) = *call.clone().identifier {
+        let splitted_namespace: Vec<&str> = namespace.value.split("::").collect();
         let lib_name = splitted_namespace[0].to_string();
 
         // Checks whether file is imported
         if compiler.imports.contains(&lib_name) {
             compiler.add_to_current_function(".CALL ".to_string());
-            compiler.add_to_current_function(s.value);
+            compiler.add_to_current_function(namespace.value);
             compiler.add_to_current_function(" { ".to_string());
             for parameter in call.parameters {
                 let result = compiler.compile_expression(parameter);

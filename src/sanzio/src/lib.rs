@@ -468,14 +468,19 @@ impl LuaBackend {
             } else {
                 format!("{}.so", _path)
             };
+
             let lib = libloading::Library::new(full_path);
             if let Ok(l) = lib {
                 unsafe {
-                    if let Ok(sym) = l.get(b"library_signatures") {
+                    let signature = l.get(b"library_signatures");
+                    if let Ok(sym) = signature {
                         let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
                         let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
                         return Ok(str);
+                    } else if let Err(err) = signature {
+                        println!("{}", err);
                     }
+
                     return Err(());
                 }
             }

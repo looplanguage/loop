@@ -8,5 +8,4 @@ target/
 venv/
 
 # Scripts
-loop-pipeline.ps1
 test.loop
