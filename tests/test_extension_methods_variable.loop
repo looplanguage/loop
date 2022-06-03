@@ -1,0 +1,6 @@
+// answer = 102
+x := "100"
+y := 2
+x.to_int() + y.to_string().to_int()
+
+

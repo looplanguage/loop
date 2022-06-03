@@ -1,0 +1,4 @@
+// answer = 100
+answer := 0
+if (false) { answer = 10 * 2 + 1 } else if false { answer = 20 } else if (true) { answer = 100 } else { answer = 300 }
+answer

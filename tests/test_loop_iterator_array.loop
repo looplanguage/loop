@@ -1,0 +1,9 @@
+// answer = 46
+array := [3, 4, 6, 10]
+x := 0
+for (var i in array) { x = x + i }
+
+y := 0
+for (var i in array) { y = y + i }
+
+x + y

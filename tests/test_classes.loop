@@ -1,0 +1,15 @@
+class Person {
+    age = 0
+    name = ""
+}
+
+john := Person()
+
+fn add_age(Person a) {
+    a.age = a.age + 1
+}
+
+add_age(john)
+add_age(john)
+
+john.age

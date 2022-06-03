@@ -1,0 +1,3 @@
+import "tests/std" as std
+
+std.println("hello")

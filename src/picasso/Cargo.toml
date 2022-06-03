@@ -1,0 +1,16 @@
+[package]
+name = "picasso"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.60.0"
+
+[dependencies]
+colored = "2"
+rand = "0.8.5"
+
+[lib]
+name = "picasso"
+path = "src/lib.rs"
+
+[profile.release]
+debug = true

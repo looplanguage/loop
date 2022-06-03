@@ -1,0 +1,4 @@
+// Answer = 250
+test := 1000
+test = 500 
+test / 2

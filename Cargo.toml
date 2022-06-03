@@ -1,16 +1,18 @@
 [package]
-name = "picasso"
+name = "loop"
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.58.1"
+rust-version = "1.60.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-colored = "2"
-rand = "0.8.5"
-
-[lib]
-name = "picasso"
-path = "src/lib.rs"
-
-[profile.release]
-debug = true
+vinci = { path = "./src/vinci", version = "0.2.0" }
+picasso = { path = "./src/picasso", version = "0.2.0" }
+sanzio = { path = "./src/sanzio", features = ["mlua", "libloading"], version = "0.1.0" }
+rustyline = "9.1.0"
+colored = "2.0.0"
+once_cell = "1.10.0"
+toml = "0.5.9"
+serde = { version = "1.0", features = ["derive"] }
+dirs = "4.0.0"
