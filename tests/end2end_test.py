@@ -45,6 +45,7 @@ def main():
     # add_test("test_println.loop", "123")
     add_test("test_expression_statements.loop", "10946")
     add_test("test_classes.loop", "2")
+    add_test("test_import_lib.loop", "hello")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:
