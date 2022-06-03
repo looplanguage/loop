@@ -1,5 +1,5 @@
 //! Responsible for transpiling Loop to D
-mod compile;
+pub mod compile;
 mod modifiers;
 mod test;
 mod variable_table;
@@ -54,6 +54,16 @@ pub enum CompilerResult {
     Success(Types),
     Optimize,
     Exception(CompilerException),
+}
+
+impl CompilerResult {
+    pub fn is_exception(&self) -> bool {
+        if let CompilerResult::Exception(_) = self {
+            true
+        } else {
+            false
+        }
+    }
 }
 
 /// The result of the transpiler, which will be passed to the D compiler [crate::util::execute_code]
@@ -176,7 +186,7 @@ impl Compiler {
             }
         }
 
-        Result::Ok(self.get_d_code())
+        Ok(self.get_d_code())
     }
 
     pub fn get_compound_type(&self, name: &str) -> Option<Types> {
@@ -191,7 +201,7 @@ impl Compiler {
                 // Instantiate the class using a constant
 
                 for (index, value) in (*values).iter_mut().enumerate() {
-                    value.1 .0 = index as u32;
+                    value.1.index = index as u32;
                 }
 
                 return Some(Types::Compound(Compound(name, values)));

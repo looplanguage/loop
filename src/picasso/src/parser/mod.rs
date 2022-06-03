@@ -193,7 +193,8 @@ impl Parser {
                             BaseTypes::UserDefined(token.literal),
                         ))))
                     } else {
-                        Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
+                        //Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
+                        None
                     }
                 }
             },

@@ -1,9 +1,10 @@
 use crate::lexer::token::TokenType;
 use crate::parser;
-use crate::parser::expression::function::Parameter;
+use crate::parser::expression::function::{parse_arguments, Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::Precedence;
 use crate::parser::program::Node;
+use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::statement::expression::Expression;
 use crate::parser::statement::Statement;
 use crate::parser::types::{BaseTypes, Types};
@@ -11,31 +12,72 @@ use crate::parser::Parser;
 use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct Class {
+pub struct Method {
     pub name: String,
-    pub values: HashMap<String, Expression>,
+    pub return_type: Types,
+    pub arguments: Vec<Parameter>,
+    pub body: Block,
 }
 
-fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Expression)> {
+#[derive(Clone, PartialEq, Debug)]
+pub enum ClassItem {
+    Property(Expression),
+    Method(Method),
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct Class {
+    pub name: String,
+    pub values: HashMap<String, ClassItem>,
+}
+
+fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, ClassItem)> {
     p.expected(TokenType::Identifier)?;
 
-    let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
+    if let Some(return_type) = p.parse_type(p.lexer.current_token.as_ref().unwrap().clone()) {
+        p.expected(TokenType::Identifier)?;
 
-    p.expected(TokenType::Assign)?;
-    p.lexer.next_token();
+        let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
 
-    let mut value = p.parse_expression(Precedence::Lowest)?;
-    p.expected_maybe(TokenType::Semicolon);
+        p.expected(TokenType::LeftParenthesis);
 
-    if let Node::Expression(exp) = &mut value {
+        let parameters = parse_arguments(p);
+
+        p.expected(TokenType::LeftBrace)?;
+        p.lexer.next_token();
+
+        let body = parse_block(p);
+
+        p.expected(TokenType::RightBrace)?;
+
         Some((
-            name,
-            Expression {
-                expression: Box::new(exp.clone()),
-            },
+            name.clone(),
+            ClassItem::Method(Method {
+                name,
+                return_type,
+                arguments: parameters,
+                body,
+            }),
         ))
     } else {
-        None
+        let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
+
+        p.expected(TokenType::Assign)?;
+        p.lexer.next_token();
+
+        let mut value = p.parse_expression(Precedence::Lowest)?;
+        p.expected_maybe(TokenType::Semicolon);
+
+        if let Node::Expression(exp) = &mut value {
+            Some((
+                name,
+                ClassItem::Property(Expression {
+                    expression: Box::new(exp.clone()),
+                }),
+            ))
+        } else {
+            None
+        }
     }
 }
 
@@ -46,7 +88,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
 
     p.expected(TokenType::LeftBrace);
 
-    let mut values: HashMap<String, Expression> = HashMap::new();
+    let mut values: HashMap<String, ClassItem> = HashMap::new();
 
     while !p.current_token_is(TokenType::RightBrace) {
         let class_item = parse_class_item(p, name.clone())?;
@@ -57,9 +99,10 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         }
     }
 
-    p.lexer.next_token();
+    //p.lexer.next_token();
 
     // Box<HashMap<String, (u32, (Types, Expression))>>
+    /*
     for value in &mut values {
         if let parser::expression::Expression::Function(f) = &mut *value.1.expression {
             f.parameters.insert(
@@ -72,7 +115,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
                 },
             );
         }
-    }
+    }*/
 
     Some(Node::Statement(Statement::Class(Class { name, values })))
 }
