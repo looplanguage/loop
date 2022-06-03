@@ -6,6 +6,7 @@ use crate::parser::expression::identifier::parse_identifier;
 use crate::parser::expression::Call;
 use crate::parser::expression::Identifier;
 use crate::parser::expression::{Expression, Precedence};
+use crate::parser::expression::string::LoopString;
 use crate::parser::program::Node;
 use crate::parser::Parser;
 
@@ -49,7 +50,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
                 index,
             }))));
         }
-        // TODO: This causes extension methods to break, as they start with an identifier as well.
+    // TODO: This causes extension methods to break, as they start with an identifier as well.
     } else if p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
         let y = p.lexer.get_current_token().unwrap().clone().literal;
 
@@ -69,7 +70,6 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
                     ))));
                 }
             }
-
             return Some(Node::Expression(Expression::Index(Box::new(Index {
                 left,
                 index: Expression::Identifier(Identifier { value: y }),
@@ -79,12 +79,17 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
+        let namespace = if let Expression::Identifier(i) = left {
+            i.value
+        } else {
+          panic!("should not be ere");
+        };
+
         // Index & Assign
         return Some(Node::Expression(Expression::Call(Call {
-            identifier: Box::from(Expression::Index(Box::new(Index {
-                left,
-                index: Expression::Identifier(Identifier { value: y }),
-            }))),
+            identifier: Box::from(Expression::String(LoopString{
+                value: format!("{}::{}", namespace, y)
+            })),
             parameters: arguments,
         })));
     } else {
