@@ -24,7 +24,7 @@ def main():
     add_test("test_closure_variable_scope.loop", "1230")
     add_test("test_division_float.loop", "2.45")
     add_test("test_division_integer.loop", "1")
-    add_test("test_array_extension_method.loop", "20")       # Contains all the different methods
+    # add_test("test_array_extension_method.loop", "20")       # Contains all the different methods
     add_test("test_modulo.loop", "0.5")
     # Extension methods arent decided whether or not they should be language features or FFI related
     # add_test("test_extension_methods_variable.loop", "102")
