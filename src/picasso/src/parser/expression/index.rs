@@ -3,10 +3,10 @@ use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::parse_call;
 use crate::parser::expression::function::parse_expression_arguments;
 use crate::parser::expression::identifier::parse_identifier;
+use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Call;
 use crate::parser::expression::Identifier;
 use crate::parser::expression::{Expression, Precedence};
-use crate::parser::expression::string::LoopString;
 use crate::parser::program::Node;
 use crate::parser::Parser;
 
@@ -82,13 +82,13 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         let namespace = if let Expression::Identifier(i) = left {
             i.value
         } else {
-          panic!("should not be ere");
+            panic!("should not be ere");
         };
 
         // Index & Assign
         return Some(Node::Expression(Expression::Call(Call {
-            identifier: Box::from(Expression::String(LoopString{
-                value: format!("{}::{}", namespace, y)
+            identifier: Box::from(Expression::String(LoopString {
+                value: format!("{}::{}", namespace, y),
             })),
             parameters: arguments,
         })));

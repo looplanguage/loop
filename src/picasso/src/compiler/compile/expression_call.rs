@@ -22,7 +22,6 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
             return CompilerResult::Success(Types::Compound(Compound(name, values)));
         }
-
     } else if let expression::Expression::String(s) = *call.clone().identifier {
         let splitted_namespace: Vec<&str> = s.value.split("::").collect();
         let lib_name = splitted_namespace[0].to_string();

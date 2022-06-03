@@ -125,7 +125,7 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
         let x: ValueType = ValueType::Array(Box::new(mapped));
         Ok(Node::CALL(Box::new(Call {
             call: Node::CONSTANT(x),
-            arguments
+            arguments,
         })))
     } else {
         let next = parser.next_token();
