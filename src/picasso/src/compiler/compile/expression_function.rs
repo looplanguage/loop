@@ -181,7 +181,9 @@ pub fn compile_expression_function(
             .borrow_mut()
             .get_variable_mutable(named_function.2, named_function.1);
 
-        variable.unwrap().as_ref().borrow_mut()._type = function_type.clone();
+        if variable.is_some() {
+            variable.unwrap().as_ref().borrow_mut()._type = function_type.clone();
+        }
     }
 
     CompilerResult::Success(function_type)

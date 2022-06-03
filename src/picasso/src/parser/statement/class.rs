@@ -48,8 +48,6 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
 
         let body = parse_block(p);
 
-        p.expected(TokenType::RightBrace)?;
-
         Some((
             name.clone(),
             ClassItem::Method(Method {
@@ -90,12 +88,22 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
 
     let mut values: HashMap<String, ClassItem> = HashMap::new();
 
-    while !p.current_token_is(TokenType::RightBrace) {
+    let mut depth = 1;
+    while depth > 0 {
         let class_item = parse_class_item(p, name.clone())?;
+
+        if let ClassItem::Method(_) = class_item.1 {
+            depth += 1;
+        }
+
         values.insert(class_item.0, class_item.1);
 
-        if p.next_token_is(TokenType::RightBrace) {
-            break;
+        while p.next_token_is(TokenType::RightBrace) {
+            depth -= 1;
+
+            if depth == 0 {
+                break;
+            }
         }
     }
 
