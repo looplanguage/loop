@@ -1,9 +1,9 @@
-use crate::ast::instructions::function::{Call, Function, LibCall};
+use crate::ast::instructions::function::{Call, Function};
 use crate::ast::instructions::Node;
 use crate::lexer::token::Token;
 use crate::parser::error::ParseError;
 use crate::parser::Parser;
-use crate::types::Type;
+use crate::types::{Type, ValueType};
 use std::borrow::Borrow;
 
 /// ```
@@ -119,12 +119,14 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
 
         parser.expected(Token::Semicolon)?;
 
-        let _x: Vec<&str> = namespace.split("::").collect();
+        let chars: Vec<char> = namespace.chars().collect();
 
-        Ok(Node::LIBCALL(LibCall {
-            namespace,
-            arguments,
-        }))
+        let mapped: Vec<ValueType> = chars.into_iter().map(ValueType::Character).collect();
+        let x: ValueType = ValueType::Array(Box::new(mapped));
+        Ok(Node::CALL(Box::new(Call {
+            call: Node::CONSTANT(x),
+            arguments
+        })))
     } else {
         let next = parser.next_token();
 

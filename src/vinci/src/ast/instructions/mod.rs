@@ -1,5 +1,5 @@
 use crate::ast::instructions::conditional::Conditional;
-use crate::ast::instructions::function::{Call, Function, LibCall};
+use crate::ast::instructions::function::{Call, Function};
 use crate::ast::instructions::memory::{
     CompoundType, Copy, Index, Load, LoadLib, Push, Slice, Store,
 };
@@ -23,8 +23,6 @@ pub enum Node {
     CONDITIONAL(Box<Conditional>),
     FUNCTION(Box<Function>),
     CALL(Box<Call>),
-    // TODO: This should not exist but, because Node::CALL was annoying this is here
-    LIBCALL(LibCall),
     WHILE(Box<While>),
     INDEX(Index),
     SLICE(Slice),
@@ -62,7 +60,6 @@ impl Display for Node {
             Node::LENGTH(a) => write!(f, "{}", a),
             Node::AND(a, b) => write!(f, "{}, {}", a, b),
             Node::OR(a, b) => write!(f, "{}, {}", a, b),
-            Node::LIBCALL(a) => write!(f, "{}", a),
             Node::COMPOUND(cmp) => write!(f, "{:?}", cmp),
         }
     }

@@ -297,21 +297,41 @@ impl LuaBackend {
                 }
             }
             Node::CALL(call) => {
-                self.compile_node(&call.call);
+                let namespace = &call.call;
+                // Calling a function from an import (DLL or Loop)
+                if let Node::CONSTANT(e) = namespace {
+                    let str = e.clone().char_arr_to_string();
+                    let parts: Vec<&str> = str.split("::").collect();
 
-                self.add_code_str("(");
+                    self.add_code(format!("{}.{}(", parts[0], parts[1]));
+                    let mut index = 0;
+                    for argument in &call.arguments {
+                        index += 1;
+                        self.compile_node(argument);
 
-                let mut index = 0;
-                for argument in &call.arguments {
-                    index += 1;
-                    self.compile_node(argument);
-
-                    if index != call.arguments.len() {
-                        self.add_code_str(",");
+                        if index != call.arguments.len() {
+                            self.add_code_str(",");
+                        }
                     }
-                }
+                    self.add_code_str(")");
+                // Calling a user-defined function or a class
+                } else {
+                    self.compile_node(&call.call);
 
-                self.add_code_str(")");
+                    self.add_code_str("(");
+
+                    let mut index = 0;
+                    for argument in &call.arguments {
+                        index += 1;
+                        self.compile_node(argument);
+
+                        if index != call.arguments.len() {
+                            self.add_code_str(",");
+                        }
+                    }
+
+                    self.add_code_str(")");
+                }
             }
             Node::WHILE(whi) => {
                 self.add_code_str("(function() while ");
@@ -391,21 +411,6 @@ impl LuaBackend {
                 self.compile_node(a);
                 self.add_code_str(") or (");
                 self.compile_node(b);
-                self.add_code_str(")");
-            }
-            Node::LIBCALL(a) => {
-                let x: Vec<&str> = a.namespace.split("::").collect();
-
-                self.add_code(format!("{}.{}(", x[0], x[1]));
-                let mut index = 0;
-                for argument in &a.arguments {
-                    index += 1;
-                    self.compile_node(argument);
-
-                    if index != a.arguments.len() {
-                        self.add_code_str(",");
-                    }
-                }
                 self.add_code_str(")");
             }
             Node::COMPOUND(_) => (),

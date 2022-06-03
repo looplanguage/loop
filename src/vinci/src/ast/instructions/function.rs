@@ -22,7 +22,7 @@ impl Display for Function {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct Call {
     pub call: Node,
     pub arguments: Vec<Node>,
@@ -31,17 +31,5 @@ pub struct Call {
 impl Display for Call {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, ".CALL {} {{{:?}}}", self.call, self.arguments)
-    }
-}
-
-#[derive(PartialEq, Clone)]
-pub struct LibCall {
-    pub namespace: String,
-    pub arguments: Vec<Node>,
-}
-
-impl Display for LibCall {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, ".LIBCALL {} {{{:?}}}", self.namespace, self.arguments)
     }
 }

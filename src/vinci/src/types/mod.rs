@@ -86,6 +86,6 @@ impl ValueType {
             }
             return s;
         }
-        panic!("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        panic!("\"char_arr_to_string()\" Expects an char array");
     }
 }
