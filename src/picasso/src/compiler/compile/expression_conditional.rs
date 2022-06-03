@@ -63,7 +63,7 @@ pub fn compile_expression_conditional(
     CompilerResult::Success(if_type)
 }
 
-// ToDo: This does not work yet. Hence it is commented
+// TODO: This does not work yet. Hence it is commented
 // fn compile_expression_conditional_optimize(
 //     compiler: &mut Compiler,
 //     conditional: Conditional,

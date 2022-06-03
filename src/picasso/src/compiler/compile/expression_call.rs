@@ -23,24 +23,25 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             return CompilerResult::Success(Types::Compound(Compound(name, values)));
         }
 
-        let x: Vec<&str> = i.value.split("::").collect();
-        let name = x[0].to_string();
-        if compiler.imports.contains(&name) {
+        let splitted_namespace: Vec<&str> = i.value.split("::").collect();
+        let lib_name = splitted_namespace[0].to_string();
+
+        // Checks whether file is imported
+        if compiler.imports.contains(&lib_name) {
             compiler.add_to_current_function(".CALL ".to_string());
             compiler.add_to_current_function(i.value);
             compiler.add_to_current_function(" { ".to_string());
             for parameter in call.parameters {
                 let result = compiler.compile_expression(parameter);
 
-                #[allow(clippy::single_match)]
-                match &result {
-                    CompilerResult::Exception(_exception) => return result,
-                    _ => (),
+                if let CompilerResult::Exception(_) = &result {
+                    result
                 }
             }
             compiler.add_to_current_function(String::from("};"));
 
             // Since we do not know what the return type of the function is, we use Types::Auto
+            // TODO: You do know function signiture it is in the header or "function_signiture" function
             return CompilerResult::Success(Types::Auto);
         }
     }
@@ -68,10 +69,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     for parameter in call.parameters {
         let result = compiler.compile_expression(parameter);
 
-        #[allow(clippy::single_match)]
-        match &result {
-            CompilerResult::Exception(_exception) => return result,
-            _ => (),
+        if let CompilerResult::Exception(_) = &result {
+            result
         }
     }
 

@@ -114,7 +114,7 @@ pub mod test_helper {
 
     // ====================================================================
     // Everything underneath here is things with if expression parsing test
-    // ToDo: Will be refactored
+    // TODO: Will be refactored
     //====================================================================
 
     pub fn generate_boolean_expression_box(value: bool) -> Statement {

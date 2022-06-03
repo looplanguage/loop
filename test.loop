@@ -1,0 +1,7 @@
+// answer = 9
+fn test() {
+    return 1
+}
+
+i := test()
+i

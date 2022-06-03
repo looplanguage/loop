@@ -165,7 +165,7 @@ pub fn parse_loop_array_iterator(
             "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }"
                 .to_string();
         p.throw_exception(
-            // ToDo: Pass two tokens as expected
+            // TODO: Pass two tokens as expected
             create_token(TokenType::From, "from/in".to_string()),
             Some(message),
         );
