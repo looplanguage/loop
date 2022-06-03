@@ -119,12 +119,10 @@ pub fn parse_call_instruction(parser: &mut Parser) -> Result<Node, ParseError> {
 
         parser.expected(Token::Semicolon)?;
 
-        let chars: Vec<char> = namespace.chars().collect();
-
-        let mapped: Vec<ValueType> = chars.into_iter().map(ValueType::Character).collect();
-        let x: ValueType = ValueType::Array(Box::new(mapped));
+        let mapped: Vec<ValueType> = namespace.chars().map(ValueType::Character).collect();
+        let name: ValueType = ValueType::Array(Box::new(mapped));
         Ok(Node::CALL(Box::new(Call {
-            call: Node::CONSTANT(x),
+            call: Node::CONSTANT(name),
             arguments,
         })))
     } else {
