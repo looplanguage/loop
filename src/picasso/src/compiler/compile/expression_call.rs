@@ -18,8 +18,15 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
         if let Some(Types::Compound(class_type)) = class {
             if let Compound(name, mut values) = class_type.clone() {
-                // Instantiate the class using a constant
-                compiler.add_to_current_function(format!(".CONSTANT {} {{", name));
+                // Wrapped in a call expression so that we can do more during execution
+                compiler.add_to_current_function(format!(".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{", compiler.function_count, i.value.clone()));
+
+                compiler.function_count += 1;
+
+                let temp_var = compiler.define_variable("temporary_class_holder".to_string(), Types::Compound(class_type.clone()), 0);
+
+                // Instantiate the class using a constant and store it into the temporary value
+                compiler.add_to_current_function(format!(".STORE {} {{ .CONSTANT {} {{", temp_var.index, name));
                 for (index, mut value) in (*values).iter_mut().enumerate() {
                     // Define "self" if its a function
                     let result = if let Expression::Function(func) = value.1.value.clone() {
@@ -47,7 +54,28 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                     value.1.index = index as u32;
                 }
 
-                compiler.add_to_current_function("};".to_string());
+                compiler.add_to_current_function("};};".to_string());
+
+                if let Some(constructor) = values.get("constructor") {
+                    // TODO: Explain this a bit better, probably needs some refactoring anyway
+                    compiler.add_to_current_function(format!(".CALL {{ .INDEX {{ .LOAD VARIABLE {}; }} {{ .CONSTANT INT {}; }}; }} {{ .LOAD VARIABLE {}; ", temp_var.index, constructor.index, temp_var.index));
+
+                    // Compile parameters
+                    for parameter in call.parameters {
+                        let result = compiler.compile_expression(parameter);
+
+                        if let CompilerResult::Exception(_) = &result {
+                            return result;
+                        }
+                    }
+
+                    compiler.add_to_current_function("};".to_string())
+                }
+
+                compiler.add_to_current_function(format!(".RETURN {{ .LOAD VARIABLE {}; }};", temp_var.index));
+
+                // End of variable definition, function definition & call to it
+                compiler.add_to_current_function("};} {};".to_string());
 
                 return CompilerResult::Success(Types::Compound(Compound(name, values)));
             }

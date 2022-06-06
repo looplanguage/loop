@@ -1,15 +1,22 @@
 class Person {
     age = 0
     name = ""
+
+    void constructor(string name) {
+        self.age = 40
+        self.name = name
+    }
+
+    void ageup() {
+        self.age = self.age + 1
+    }
 }
 
-john := Person()
+john := Person("John")
 
-fn add_age(Person a) {
-    a.age = a.age + 1
-}
-
-add_age(john)
-add_age(john)
+john.ageup()
+john.ageup()
+john.ageup()
+john.ageup()
 
 john.age
