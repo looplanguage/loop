@@ -12,7 +12,19 @@ class Person {
     }
 }
 
-john := Person("John")
+fn deepest_factory() {
+    return Person("John")
+}
+
+fn deeper_factory() {
+    return deepest_factory()
+}
+
+fn test_factory() {
+    return deeper_factory()
+}
+
+john := test_factory()
 
 john.ageup()
 john.ageup()

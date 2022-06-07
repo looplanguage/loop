@@ -59,23 +59,43 @@ fn compile_expression_class_index(
 
     let result = _compiler.compile_expression(left);
 
-    if let CompilerResult::Success(Types::Compound(Compound(ref name, ref fields))) = result {
-        if let Some(field) = fields.get(&field) {
-            _compiler.add_to_current_function(format!(
-                "}} {{ .CONSTANT INT {}; }};",
-                (field.index as i32)
-            ));
-
-            CompilerResult::Success(field.class_item_type.clone())
-        } else {
-            CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()))
+    fn find_type(_type: Types) -> Option<Compound> {
+        match _type {
+            Types::Compound(c) => Some(c),
+            Types::Function(func) => {
+                match *func.return_type {
+                    Types::Function(f) => find_type(*f.return_type),
+                    Types::Compound(c) => Some(c),
+                    _ => return None,
+                }
+            },
+            _ => return None,
         }
-    } else {
-        CompilerResult::Exception(CompilerException::UnknownField(
-            field,
-            format!("{:?}", result),
-        ))
     }
+
+    if let CompilerResult::Success(ref success) = result {
+        let compound = find_type(success.clone());
+
+        if let Some(Compound(ref name, ref fields)) = compound {
+            if let Some(field) = fields.get(&field) {
+                _compiler.add_to_current_function(format!(
+                    "}} {{ .CONSTANT INT {}; }};",
+                    (field.index as i32)
+                ));
+
+                return CompilerResult::Success(field.class_item_type.clone());
+            } else {
+                return CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()));
+            }
+        }
+
+        return CompilerResult::Exception(CompilerException::UnknownField(field, format!("{:?}", result)));
+    }
+
+    CompilerResult::Exception(CompilerException::UnknownField(
+        field.clone(),
+        format!("{:?}", result),
+    ))
 }
 
 fn _get_array_value_type(result: CompilerResult) -> Types {
