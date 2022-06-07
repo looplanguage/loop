@@ -1,7 +1,10 @@
+use crate::compiler::compile::expression_call::compile_expression_call;
+use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
+use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
 use crate::parser::types::{BaseTypes, Compound, Types};
@@ -24,7 +27,36 @@ fn compile_expression_class_index(
     left: Expression,
     field: String,
 ) -> CompilerResult {
+    _compiler.drier();
+    let result = _compiler.compile_expression(left.clone());
+    _compiler.undrier();
+
+    if let CompilerResult::Success(success) = result {
+        let mut check = success.clone();
+
+        if let Types::Function(func) = check {
+            check = *func.return_type;
+        }
+
+        // Check if function exists with this specific signature
+        let var = _compiler.variable_scope.borrow_mut().resolve(format!(
+            "{}_{}",
+            check.transpile(),
+            field
+        ));
+
+        if let Some(var) = var {
+            let result = compile_expression_identifier(
+                _compiler,
+                Identifier { value: var.name },
+            );
+
+            return result;
+        }
+    }
+
     _compiler.add_to_current_function(".INDEX { ".to_string());
+
     let result = _compiler.compile_expression(left);
 
     if let CompilerResult::Success(Types::Compound(Compound(ref name, ref fields))) = result {
@@ -167,72 +199,11 @@ pub fn compile_expression_extension_method(
     }
 
     match method_id.unwrap() {
-        0 => transpile_extension_to_string(compiler, left),
-        1 => transpile_extension_to_int(compiler, left),
         2 => transpile_extension_add(compiler, call, left),
         3 => transpile_extension_remove(compiler, call, left),
         4 => transpile_extension_slice(compiler, call, left),
-        5 => transpile_extension_length(compiler, left),
         _ => unreachable!("Should not be here"),
     }
-}
-
-/// Transpiles the extension method 'to_string'
-///
-/// Take this Loop code:
-/// ```loop
-/// 500.to_string()
-/// ```
-///
-/// And generates this D code:
-/// ```d
-/// to!string(500)
-/// ```
-fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto, -1);
-
-    compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
-
-    let result = compiler.compile_expression(left);
-
-    compiler.add_to_current_function(";".to_string());
-
-    if let CompilerResult::Exception(exception) = result {
-        return CompilerResult::Exception(exception);
-    }
-
-    compiler.add_to_current_function(format!("return to!string({}); }}()", var.transpile()));
-
-    CompilerResult::Success(Types::Basic(BaseTypes::String))
-}
-
-/// Transpiles the extension method 'to_int'
-///
-/// Take this Loop code:
-/// ```loop
-/// "500".to_int()
-/// ```
-///
-/// And generates this D code:
-/// ```d
-/// to!int("500")
-/// ```
-fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto, -1);
-
-    compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
-
-    let result = compiler.compile_expression(left);
-
-    compiler.add_to_current_function(".to!string;".to_string());
-
-    if let CompilerResult::Exception(exception) = result {
-        return CompilerResult::Exception(exception);
-    }
-
-    compiler.add_to_current_function(format!("return to!int({}); }}()", var.transpile()));
-
-    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }
 
 /// Transpiles the extension method 'add'
@@ -356,27 +327,4 @@ fn transpile_extension_slice(
     compiler.add_to_current_function(" .CONSTANT INT 1; }; };".to_string());
 
     CompilerResult::Success(slice_type)
-}
-
-/// Transpiles the extension method 'length'
-///
-/// Take this Loop code:
-/// ```loop
-/// var array = [10, 20, 30];
-/// var length = array.length()
-/// ```
-///
-/// And generates this D code:
-/// ```d
-/// auto var_array_0 = [10, 20, 30];
-/// auto length = to!int(var_array_0.length);
-/// ```
-fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    compiler.add_to_current_function(".LENGTH {".to_string());
-
-    compiler.compile_expression(left);
-
-    compiler.add_to_current_function("};".to_string());
-
-    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }

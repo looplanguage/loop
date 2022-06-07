@@ -6,6 +6,7 @@ use crate::parser::statement::class::Class;
 use crate::parser::statement::constant::ConstantDeclaration;
 use crate::parser::statement::export::Export;
 use crate::parser::statement::expression::Expression;
+use crate::parser::statement::extends::ExtendStatement;
 use crate::parser::statement::import::Import;
 use crate::parser::statement::return_statement::ReturnStatement;
 pub mod assign;
@@ -15,6 +16,7 @@ pub mod class;
 pub mod constant;
 pub mod export;
 pub mod expression;
+pub mod extends;
 pub mod import;
 pub mod return_statement;
 pub mod variable;
@@ -31,4 +33,5 @@ pub enum Statement {
     Export(Export),
     Break(BreakStatement),
     Class(Class),
+    Extend(ExtendStatement),
 }

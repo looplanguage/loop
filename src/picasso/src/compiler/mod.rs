@@ -27,6 +27,7 @@ use crate::compiler::compile::statement_break::compile_break_statement;
 use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
 use crate::compiler::compile::statement_export::compile_export_statement;
+use crate::compiler::compile::statement_extend::compile_extend_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
@@ -40,8 +41,10 @@ use crate::exception::compiler_new::CompilerError;
 use crate::parser::expression::Expression;
 use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
+use crate::parser::statement::class::Method;
 use crate::parser::statement::Statement;
-use crate::parser::types::{Compound, Types};
+use crate::parser::types::{ClassItemType, Compound, Types};
+use crate::{lexer, parser};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -102,8 +105,10 @@ pub struct Compiler {
     pub function_stack: Vec<String>,
     pub function_count: i32,
     pub current_function: String,
+    // Extensions to basetypes
+    pub extensions: HashMap<String, Vec<Method>>,
     // Specifies whether or not compiling should add code
-    pub dry: bool,
+    pub dry: u32,
 }
 
 #[derive(Clone)]
@@ -124,13 +129,21 @@ impl Default for Compiler {
             export_name: String::new(),
             prev_location: String::new(),
             breaks: Vec::new(),
-
+            extensions: HashMap::new(),
             imports: Vec::new(),
-            functions: HashMap::new(),
+            functions: HashMap::from([(
+                "main".to_string(),
+                Function {
+                    name: "main".to_string(),
+                    code: String::from(""),
+                    parameters: Vec::new(),
+                    return_type: Types::Void,
+                },
+            )]),
             function_stack: Vec::new(),
             function_count: 0,
             current_function: String::from("main"),
-            dry: false,
+            dry: 0,
         }
     }
 }
@@ -153,18 +166,6 @@ impl Compiler {
     /// }
     /// ```
     pub fn compile(&mut self, program: Program) -> Result<DCode, CompilerException> {
-        // Insert main function
-        if self.location.is_empty() {
-            let main_function = Function {
-                name: "main".to_string(),
-                code: String::from(""),
-                parameters: Vec::new(),
-                return_type: Types::Void,
-            };
-
-            self.functions.insert(String::from("main"), main_function);
-        }
-
         let mut index = 0;
         let length = program.statements.len();
         for statement in program.statements {
@@ -187,6 +188,24 @@ impl Compiler {
         }
 
         Ok(self.get_d_code())
+    }
+
+    /// Allows you to use Loop code within the compiler
+    pub fn compile_generic_loop(&mut self, str: &str) -> Result<DCode, CompilerException> {
+        let lexer = lexer::build_lexer(str);
+        let mut parser = parser::build_parser(lexer);
+
+        let program = parser.parse();
+
+        self.compile(program)
+    }
+
+    pub fn drier(&mut self) {
+        self.dry += 1;
+    }
+
+    pub fn undrier(&mut self) {
+        self.dry -= 1;
     }
 
     pub fn get_compound_type(&self, name: &str) -> Option<Types> {
@@ -234,7 +253,7 @@ impl Compiler {
 
     /// Adds code to the current function compilation scope
     pub fn add_to_current_function(&mut self, code: String) {
-        if !self.dry {
+        if self.dry == 0 {
             let func = self.functions.get_mut(&*self.current_function);
 
             func.unwrap().code.push_str(code.as_str());
@@ -243,7 +262,7 @@ impl Compiler {
 
     /// Allows replacing context
     pub fn replace_at_current_function(&mut self, replace: String, with: String) {
-        if !self.dry {
+        if self.dry == 0 {
             let func = self.functions.get_mut(&*self.current_function);
 
             let unwrapped = func.unwrap();
@@ -478,6 +497,7 @@ impl Compiler {
             Statement::Export(export) => compile_export_statement(self, export),
             Statement::Break(br) => compile_break_statement(self, br),
             Statement::Class(class) => compile_class_statement(self, class),
+            Statement::Extend(extend) => compile_extend_statement(self, extend),
         };
 
         let add_semicolon = match stmt {
@@ -498,6 +518,7 @@ impl Compiler {
             Statement::Export(_) => true,
             Statement::Break(_) => true,
             Statement::Class(_) => true,
+            Statement::Extend(_) => true,
         };
 
         if add_semicolon && !no_semicolon {

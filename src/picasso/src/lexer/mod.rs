@@ -383,6 +383,7 @@ impl Lexer {
             "to" => TokenType::To,
             "break" => TokenType::Break,
             "class" => TokenType::Class,
+            "ext" => TokenType::Extends,
             _ => {
                 if keyword.parse::<i64>().is_ok() {
                     return TokenType::Integer;

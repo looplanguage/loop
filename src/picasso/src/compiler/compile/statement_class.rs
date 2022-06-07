@@ -21,9 +21,9 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
         match class_item.1 .1 {
             ClassItem::Property(property) => {
-                compiler.dry = true;
+                compiler.drier();
                 let node = compiler.compile_expression(*property.expression.clone());
-                compiler.dry = false;
+                compiler.undrier();
 
                 if let CompilerResult::Success(_type) = node {
                     compiler.add_to_current_function(format!("{};", _type.transpile()));

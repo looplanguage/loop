@@ -19,14 +19,25 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         if let Some(Types::Compound(class_type)) = class {
             if let Compound(name, mut values) = class_type.clone() {
                 // Wrapped in a call expression so that we can do more during execution
-                compiler.add_to_current_function(format!(".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{", compiler.function_count, i.value.clone()));
+                compiler.add_to_current_function(format!(
+                    ".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{",
+                    compiler.function_count,
+                    i.value.clone()
+                ));
 
                 compiler.function_count += 1;
 
-                let temp_var = compiler.define_variable("temporary_class_holder".to_string(), Types::Compound(class_type.clone()), 0);
+                let temp_var = compiler.define_variable(
+                    "temporary_class_holder".to_string(),
+                    Types::Compound(class_type.clone()),
+                    0,
+                );
 
                 // Instantiate the class using a constant and store it into the temporary value
-                compiler.add_to_current_function(format!(".STORE {} {{ .CONSTANT {} {{", temp_var.index, name));
+                compiler.add_to_current_function(format!(
+                    ".STORE {} {{ .CONSTANT {} {{",
+                    temp_var.index, name
+                ));
                 for (index, mut value) in (*values).iter_mut().enumerate() {
                     // Define "self" if its a function
                     let result = if let Expression::Function(func) = value.1.value.clone() {
@@ -72,7 +83,10 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                     compiler.add_to_current_function("};".to_string())
                 }
 
-                compiler.add_to_current_function(format!(".RETURN {{ .LOAD VARIABLE {}; }};", temp_var.index));
+                compiler.add_to_current_function(format!(
+                    ".RETURN {{ .LOAD VARIABLE {}; }};",
+                    temp_var.index
+                ));
 
                 // End of variable definition, function definition & call to it
                 compiler.add_to_current_function("};} {};".to_string());
@@ -80,7 +94,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 return CompilerResult::Success(Types::Compound(Compound(name, values)));
             }
         // Second library function calling
-        } else if let expression::Expression::String(namespace) = *call.clone().identifier {
+        }
+        else if let expression::Expression::String(namespace) = *call.clone().identifier {
             let splitted_namespace: Vec<&str> = namespace.value.split("::").collect();
             let lib_name = splitted_namespace[0].to_string();
 
@@ -109,7 +124,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     compiler.add_to_current_function(".CALL {".to_string());
 
     let mut method_type: Option<Types> = None;
-    let mut class_reference: Option<Expression> = None;
+    let mut self_reference: Option<Expression> = None;
 
     if let Expression::String(ref namespace) = *call.identifier {
         let split: Vec<&str> = namespace.value.split("::").collect();
@@ -118,10 +133,10 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             let name = split.first().unwrap().to_string();
             let method = split.get(1).unwrap().to_string();
 
-            class_reference = Some(Expression::Identifier(Identifier { value: name }));
+            self_reference = Some(Expression::Identifier(Identifier { value: name }));
 
             let result = compiler.compile_expression(Expression::Index(Box::new(Index {
-                left: class_reference.clone().unwrap(),
+                left: self_reference.clone().unwrap(),
                 index: Expression::Identifier(Identifier { value: method }),
             })));
 
@@ -134,10 +149,19 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     }
 
     if method_type.is_none() {
+        // If left side of the call was an index, this is a method being called on it so insert
+        // "self"
+
+        if let Expression::Index(i) = *call.identifier.clone() {
+            self_reference = Some(i.left.clone());
+        }
+
         let result = compiler.compile_expression(*call.identifier.clone());
 
         let func_signature = match &result {
-            CompilerResult::Exception(_exception) => return result,
+            CompilerResult::Exception(_exception) => {
+                return result
+            },
             CompilerResult::Success(_type) => match _type {
                 Types::Function(func) => func,
                 _ => {
@@ -146,7 +170,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                     ));
                 }
             },
-            _ => return CompilerResult::Exception(CompilerException::Unknown),
+            _ => { return CompilerResult::Exception(CompilerException::Unknown) },
         };
 
         method_type = Some(Types::Function(func_signature.clone()));
@@ -155,8 +179,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     compiler.add_to_current_function(String::from("} {"));
 
     // Insert "self" parameter
-    if let Some(class_reference) = class_reference {
-        compiler.compile_expression(class_reference);
+    if let Some(self_reference) = self_reference {
+        compiler.compile_expression(self_reference);
     }
 
     for parameter in call.parameters {

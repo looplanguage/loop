@@ -1,0 +1,7 @@
+ext string {
+    int to_int() {
+        return 100
+    }
+}
+
+"".to_int()

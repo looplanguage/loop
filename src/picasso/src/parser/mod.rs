@@ -29,6 +29,7 @@ use crate::parser::expression::number::{parse_negative_number, parse_number_lite
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::class::parse_class_statement;
 use crate::parser::statement::export::parse_export_statement;
+use crate::parser::statement::extends::parse_extend_statement;
 use crate::parser::statement::import::parse_import_statement;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
 
@@ -233,6 +234,7 @@ impl Parser {
             TokenType::Export => parse_export_statement(self),
             TokenType::Break => parse_break_statement(self),
             TokenType::Class => parse_class_statement(self),
+            TokenType::Extends => parse_extend_statement(self),
             _ => self.parse_expression_statement(),
         };
 
