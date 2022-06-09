@@ -15,7 +15,21 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     let var = compiler.define_variable(class.name.clone(), Types::Auto, 0);
 
-    for class_item in class.values.iter().enumerate() {
+    let mut handle: Vec<_> = class.values.iter().collect();
+
+    let inherits = compiler.variable_scope.borrow_mut().resolve(class.inherits);
+
+    if let Some(inherits) = inherits {
+        if let Types::Compound(inherits) = inherits._type {
+            let inherited_handles: Vec<_> = inherits.1.iter().collect();
+
+            for inherited_handle in inherited_handles {
+                items.insert(inherited_handle.0.clone(), inherited_handle.1.clone());
+            }
+        }
+    }
+
+    for class_item in handle.iter().enumerate() {
         let name = class_item.1 .0.clone();
         let index = class_item.0 as u32;
 

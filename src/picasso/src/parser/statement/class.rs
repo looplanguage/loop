@@ -29,6 +29,7 @@ pub enum ClassItem {
 pub struct Class {
     pub name: String,
     pub values: HashMap<String, ClassItem>,
+    pub inherits: String,
 }
 
 fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, ClassItem)> {
@@ -83,6 +84,14 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     p.expected(TokenType::Identifier)?;
 
     let name = p.lexer.get_current_token().unwrap().literal.clone();
+    let mut inherits = String::new();
+
+    if let Some(ident) = p.expected_maybe(TokenType::LeftArrow) {
+        println!(":)");
+        p.expected(TokenType::Identifier)?;
+
+        inherits = p.lexer.get_current_token().unwrap().literal.clone();
+    }
 
     p.expected(TokenType::LeftBrace);
 
@@ -125,5 +134,5 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         }
     }*/
 
-    Some(Node::Statement(Statement::Class(Class { name, values })))
+    Some(Node::Statement(Statement::Class(Class { inherits, name, values })))
 }
