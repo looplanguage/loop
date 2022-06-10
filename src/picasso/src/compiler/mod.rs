@@ -405,8 +405,10 @@ impl Compiler {
                         };
                     }
 
-                    if index == block.statements.len() && anonymous {
-                        self.add_to_current_function(".RETURN { ".to_string())
+                    if index == block.statements.len() /*&& anonymous*/ {
+                        if !matches!(*exp.expression, Expression::AssignIndex(_)) {
+                            self.add_to_current_function(".RETURN { ".to_string())
+                        }
                     }
 
                     let result = self.compile_statement(statement.clone(), false);
@@ -424,7 +426,7 @@ impl Compiler {
                             block_type = _type.clone();
                         }
 
-                        if anonymous {
+                        if !matches!(*exp.expression, Expression::AssignIndex(_)) {
                             self.add_to_current_function("};".to_string());
                         }
                     }
