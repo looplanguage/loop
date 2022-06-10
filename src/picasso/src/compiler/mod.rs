@@ -379,7 +379,7 @@ impl Compiler {
     }
 
     /// Compiles a deeper [Block] adding curly braces
-    fn compile_block(&mut self, block: Block, anonymous: bool) -> CompilerResult {
+    fn compile_block(&mut self, block: Block, _anonymous: bool) -> CompilerResult {
         let mut block_type: Types = Types::Void;
         self.enter_variable_scope();
 
@@ -405,10 +405,10 @@ impl Compiler {
                         };
                     }
 
-                    if index == block.statements.len() /*&& anonymous*/ {
-                        if !matches!(*exp.expression, Expression::AssignIndex(_)) {
-                            self.add_to_current_function(".RETURN { ".to_string())
-                        }
+                    if index == block.statements.len()
+                        && !matches!(*exp.expression, Expression::AssignIndex(_))
+                    {
+                        self.add_to_current_function(".RETURN { ".to_string());
                     }
 
                     let result = self.compile_statement(statement.clone(), false);

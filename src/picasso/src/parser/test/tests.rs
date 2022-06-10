@@ -53,7 +53,7 @@ mod tests {
                     }),
                 ),
             ]),
-            inherits: "".to_string()
+            inherits: "".to_string(),
         })];
 
         test_parser(input, expected)
@@ -78,7 +78,7 @@ mod tests {
                     })],
                 },
                 name: "".to_string(),
-                predefined_type: None
+                predefined_type: None,
             })),
         })));
 
