@@ -1,4 +1,3 @@
-use crate::compiler::compile::expression_call::compile_expression_call;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
@@ -7,7 +6,7 @@ use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, Compound, Types};
+use crate::parser::types::{Compound, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -31,9 +30,7 @@ fn compile_expression_class_index(
     let result = _compiler.compile_expression(left.clone());
     _compiler.undrier();
 
-    if let CompilerResult::Success(success) = result {
-        let mut check = success.clone();
-
+    if let CompilerResult::Success(mut check) = result {
         if let Types::Function(func) = check {
             check = *func.return_type;
         }
@@ -62,9 +59,9 @@ fn compile_expression_class_index(
             Types::Function(func) => match *func.return_type {
                 Types::Function(f) => find_type(*f.return_type),
                 Types::Compound(c) => Some(c),
-                _ => return None,
+                _ => None,
             },
-            _ => return None,
+            _ => None,
         }
     }
 
@@ -94,7 +91,7 @@ fn compile_expression_class_index(
     }
 
     CompilerResult::Exception(CompilerException::UnknownField(
-        field.clone(),
+        field,
         format!("{:?}", result),
     ))
 }

@@ -2,20 +2,16 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::{Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::Expression;
-use crate::parser::program::Node;
 use crate::parser::statement::class::{Class, ClassItem};
-use crate::parser::statement::Statement;
 use crate::parser::types::{BaseTypes, ClassItemType, Compound, Types};
 use std::collections::HashMap;
 
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: HashMap<String, ClassItemType> = HashMap::new();
 
-    compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", class.name.clone()));
+    compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", class.name));
 
     let var = compiler.define_variable(class.name.clone(), Types::Auto, 0);
-
-    let mut handle: Vec<_> = class.values.iter().collect();
 
     let inherits = compiler.variable_scope.borrow_mut().resolve(class.inherits);
 
@@ -29,7 +25,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
         }
     }
 
-    for class_item in handle.iter().enumerate() {
+    for class_item in class.values.iter().enumerate() {
         let name = class_item.1 .0.clone();
         let index = class_item.0 as u32;
 

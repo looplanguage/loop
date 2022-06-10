@@ -1,4 +1,4 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::parse_call;
 use crate::parser::expression::function::parse_expression_arguments;

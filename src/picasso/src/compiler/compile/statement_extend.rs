@@ -3,10 +3,9 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression::function::{Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
-use crate::parser::statement::class::{Class, ClassItem, Method};
+use crate::parser::statement::class::{ClassItem, Method};
 use crate::parser::statement::extends::ExtendStatement;
 use crate::parser::types::{BaseTypes, Types};
-use std::collections::HashMap;
 
 pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement) -> CompilerResult {
     // Just for the basetypes

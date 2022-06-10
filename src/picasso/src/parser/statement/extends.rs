@@ -1,6 +1,6 @@
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::program::Node;
-use crate::parser::statement::class::{parse_class_statement, ClassItem, Method};
+use crate::parser::statement::class::{parse_class_statement, ClassItem};
 use crate::parser::statement::Statement;
 use crate::parser::Parser;
 use std::collections::HashMap;

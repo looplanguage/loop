@@ -1,13 +1,11 @@
 use crate::lexer::token::TokenType;
-use crate::parser;
-use crate::parser::expression::function::{parse_arguments, Function, Parameter};
-use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::function::{parse_arguments, Parameter};
 use crate::parser::expression::Precedence;
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::statement::expression::Expression;
 use crate::parser::statement::Statement;
-use crate::parser::types::{BaseTypes, Types};
+use crate::parser::types::Types;
 use crate::parser::Parser;
 use std::collections::HashMap;
 
@@ -86,8 +84,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     let name = p.lexer.get_current_token().unwrap().literal.clone();
     let mut inherits = String::new();
 
-    if let Some(ident) = p.expected_maybe(TokenType::LeftArrow) {
-        println!(":)");
+    if p.expected_maybe(TokenType::LeftArrow).is_some() {
         p.expected(TokenType::Identifier)?;
 
         inherits = p.lexer.get_current_token().unwrap().literal.clone();

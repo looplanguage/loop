@@ -43,7 +43,7 @@ use crate::parser::program::Program;
 use crate::parser::statement::block::Block;
 use crate::parser::statement::class::Method;
 use crate::parser::statement::Statement;
-use crate::parser::types::{ClassItemType, Compound, Types};
+use crate::parser::types::{Compound, Types};
 use crate::{lexer, parser};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -61,11 +61,7 @@ pub enum CompilerResult {
 
 impl CompilerResult {
     pub fn is_exception(&self) -> bool {
-        if let CompilerResult::Exception(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, CompilerResult::Exception(_))
     }
 }
 
