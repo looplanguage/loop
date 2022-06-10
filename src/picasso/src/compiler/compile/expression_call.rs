@@ -94,8 +94,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 return CompilerResult::Success(Types::Compound(Compound(name, values)));
             }
         // Second library function calling
-        }
-        else if let expression::Expression::String(namespace) = *call.clone().identifier {
+        } else if let expression::Expression::String(namespace) = *call.clone().identifier {
             let splitted_namespace: Vec<&str> = namespace.value.split("::").collect();
             let lib_name = splitted_namespace[0].to_string();
 
@@ -159,9 +158,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         let result = compiler.compile_expression(*call.identifier.clone());
 
         let func_signature = match &result {
-            CompilerResult::Exception(_exception) => {
-                return result
-            },
+            CompilerResult::Exception(_exception) => return result,
             CompilerResult::Success(_type) => match _type {
                 Types::Function(func) => func,
                 _ => {
@@ -170,7 +167,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                     ));
                 }
             },
-            _ => { return CompilerResult::Exception(CompilerException::Unknown) },
+            _ => return CompilerResult::Exception(CompilerException::Unknown),
         };
 
         method_type = Some(Types::Function(func_signature.clone()));

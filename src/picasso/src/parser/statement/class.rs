@@ -134,5 +134,9 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         }
     }*/
 
-    Some(Node::Statement(Statement::Class(Class { inherits, name, values })))
+    Some(Node::Statement(Statement::Class(Class {
+        inherits,
+        name,
+        values,
+    })))
 }

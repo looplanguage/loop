@@ -46,10 +46,7 @@ fn compile_expression_class_index(
         ));
 
         if let Some(var) = var {
-            let result = compile_expression_identifier(
-                _compiler,
-                Identifier { value: var.name },
-            );
+            let result = compile_expression_identifier(_compiler, Identifier { value: var.name });
 
             return result;
         }
@@ -62,12 +59,10 @@ fn compile_expression_class_index(
     fn find_type(_type: Types) -> Option<Compound> {
         match _type {
             Types::Compound(c) => Some(c),
-            Types::Function(func) => {
-                match *func.return_type {
-                    Types::Function(f) => find_type(*f.return_type),
-                    Types::Compound(c) => Some(c),
-                    _ => return None,
-                }
+            Types::Function(func) => match *func.return_type {
+                Types::Function(f) => find_type(*f.return_type),
+                Types::Compound(c) => Some(c),
+                _ => return None,
             },
             _ => return None,
         }
@@ -85,11 +80,17 @@ fn compile_expression_class_index(
 
                 return CompilerResult::Success(field.class_item_type.clone());
             } else {
-                return CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()));
+                return CompilerResult::Exception(CompilerException::UnknownField(
+                    field,
+                    name.clone(),
+                ));
             }
         }
 
-        return CompilerResult::Exception(CompilerException::UnknownField(field, format!("{:?}", result)));
+        return CompilerResult::Exception(CompilerException::UnknownField(
+            field,
+            format!("{:?}", result),
+        ));
     }
 
     CompilerResult::Exception(CompilerException::UnknownField(

@@ -44,12 +44,15 @@ pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement)
         for item in &class.items {
             if let ClassItem::Method(method) = item.1 {
                 let mut params = method.arguments.clone();
-                params.insert(0, Parameter {
-                    identifier: Identifier {
-                        value: "self".to_string(),
+                params.insert(
+                    0,
+                    Parameter {
+                        identifier: Identifier {
+                            value: "self".to_string(),
+                        },
+                        _type: raw_type.clone(),
                     },
-                    _type: raw_type.clone(),
-                });
+                );
 
                 compile_expression_function(
                     compiler,
