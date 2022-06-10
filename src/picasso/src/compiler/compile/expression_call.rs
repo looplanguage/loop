@@ -167,7 +167,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             _ => return CompilerResult::Exception(CompilerException::Unknown),
         };
 
-        method_type = Some(Types::Function(func_signature.clone()));
+        method_type = Some(*func_signature.clone().return_type);
     }
 
     compiler.add_to_current_function(String::from("} {"));
