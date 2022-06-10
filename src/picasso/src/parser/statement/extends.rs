@@ -16,10 +16,8 @@ pub fn parse_extend_statement(p: &mut Parser) -> Option<Node> {
     // parser
     let class_statement = parse_class_statement(p);
 
-    let class;
-
-    if let Some(Node::Statement(Statement::Class(cls))) = class_statement {
-        class = cls;
+    let class = if let Some(Node::Statement(Statement::Class(cls))) = class_statement {
+        cls
     } else {
         return None;
     };
