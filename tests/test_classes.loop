@@ -1,34 +1,27 @@
-class Person {
-    age = 0
-    name = ""
+class Shape {
+    x = 0
+    y = 0
+    sizeX = 0
+    sizeY = 0
 
-    void constructor(string name) {
-        self.age = 40
-        self.name = name
+    int calculate_area() {
+        return 300
     }
 
-    void ageup() {
-        self.age = self.age + 1
+    void constructor(int xWidth, int xHeight, int yWidth, int yHeight) {
+        self.x = xWidth
+        self.y = yWidth
+        self.sizeX = xHeight
+        self.sizeY = yHeight
     }
 }
 
-fn deepest_factory() {
-    return Person("John")
+class Square < Shape {
+    int calculate_area() {
+        return self.x * self.sizeX + self.y * self.sizeY
+    }
 }
 
-fn deeper_factory() {
-    return deepest_factory()
-}
+square := Square(10, 20, 10, 20)
 
-fn test_factory() {
-    return deeper_factory()
-}
-
-john := test_factory()
-
-john.ageup()
-john.ageup()
-john.ageup()
-john.ageup()
-
-john.age
+square.calculate_area()
