@@ -66,6 +66,7 @@ pub mod test_helper {
             parameters,
             body: Block { statements },
             name: "".to_string(),
+            predefined_type: None,
         }))
     }
 
@@ -77,6 +78,7 @@ pub mod test_helper {
             parameters,
             body: Block { statements },
             name: "".to_string(),
+            predefined_type: None,
         })
     }
 

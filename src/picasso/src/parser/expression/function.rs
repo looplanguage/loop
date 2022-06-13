@@ -23,6 +23,7 @@ pub struct Function {
     pub name: String,
     pub parameters: Vec<Parameter>,
     pub body: Block,
+    pub predefined_type: Option<Types>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -144,5 +145,6 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         name,
         parameters: arguments,
         body,
+        predefined_type: None,
     })))
 }

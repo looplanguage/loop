@@ -1,4 +1,4 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::parse_call;
 use crate::parser::expression::function::parse_expression_arguments;
@@ -50,7 +50,6 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
                 index,
             }))));
         }
-    // TODO: This causes extension methods to break, as they start with an identifier as well.
     } else if p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
         let identifier = p.lexer.get_current_token().unwrap().clone().literal;
 
@@ -79,14 +78,17 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-        let namespace = if let Expression::Identifier(i) = left {
-            i.value
-        } else {
-            p.throw_exception(
-                create_token(TokenType::Null, "unknown".to_string()),
-                Some("Unknown parser error occurred!".to_string()),
-            );
-            return None;
+        let namespace = match left {
+            Expression::Identifier(i) => i.value,
+            _ => {
+                return Some(Node::Expression(Expression::Call(Call {
+                    identifier: Box::from(Expression::Index(Box::new(Index {
+                        left: left.clone(),
+                        index: Expression::Identifier(Identifier { value: identifier }),
+                    }))),
+                    parameters: arguments,
+                })));
+            }
         };
 
         // Index & Assign

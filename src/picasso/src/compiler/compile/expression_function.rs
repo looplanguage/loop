@@ -82,15 +82,27 @@ pub fn compile_expression_function(
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
-    compiler.add_to_current_function(format!(
-        ".FUNCTION \"{}\" {} REPLACE_TYPE_{} ARGUMENTS {{",
-        named_function
-            .clone()
-            .unwrap_or(("".to_string(), "".to_string(), 0))
-            .0,
-        compiler.function_count,
-        random_identifier
-    ));
+    if let Some(predefined) = func.predefined_type {
+        compiler.add_to_current_function(format!(
+            ".FUNCTION \"{}\" {} {} ARGUMENTS {{",
+            named_function
+                .clone()
+                .unwrap_or(("".to_string(), "".to_string(), 0))
+                .0,
+            compiler.function_count,
+            predefined.transpile()
+        ));
+    } else {
+        compiler.add_to_current_function(format!(
+            ".FUNCTION \"{}\" {} REPLACE_TYPE_{} ARGUMENTS {{",
+            named_function
+                .clone()
+                .unwrap_or(("".to_string(), "".to_string(), 0))
+                .0,
+            compiler.function_count,
+            random_identifier
+        ));
+    }
 
     let mut parameter_types: Vec<Types> = Vec::new();
 
@@ -169,7 +181,9 @@ pub fn compile_expression_function(
             .borrow_mut()
             .get_variable_mutable(named_function.2, named_function.1);
 
-        variable.unwrap().as_ref().borrow_mut()._type = function_type.clone();
+        if let Some(variable) = variable {
+            variable.as_ref().borrow_mut()._type = function_type.clone();
+        }
     }
 
     CompilerResult::Success(function_type)

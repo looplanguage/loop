@@ -1,0 +1,18 @@
+// Extend base types with custom methods
+ext int {
+    int double() {
+        return self * 2
+    }
+
+    int triple() {
+        return self * 3
+    }
+}
+
+ext string {
+    int get_integer() {
+        return 20
+    }
+}
+
+":)".get_integer() + 20.double().triple().double() * 30.triple().triple().double()

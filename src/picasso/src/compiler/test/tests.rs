@@ -223,12 +223,12 @@ mod tests {
     //         //compiler_test(input, expected);
     //     }
 
-    #[test]
+    //#[test]
     fn class() {
         compiler_test(
             "class Person { \
         age = 100; \
-        test = 42 }\
+        test = 42; }\
         x := Person()",
             ".COMPOUND \"Person\" { INT;INT;};.STORE 1 {.CONSTANT Person {.CONSTANT INT 42;.CONSTANT INT 100;};};",
         );

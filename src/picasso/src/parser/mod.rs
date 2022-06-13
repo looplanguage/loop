@@ -29,6 +29,7 @@ use crate::parser::expression::number::{parse_negative_number, parse_number_lite
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::class::parse_class_statement;
 use crate::parser::statement::export::parse_export_statement;
+use crate::parser::statement::extends::parse_extend_statement;
 use crate::parser::statement::import::parse_import_statement;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
 
@@ -47,6 +48,7 @@ pub struct Parser {
     prefix_parser: HashMap<TokenType, PrefixParseFn>,
     infix_parser: HashMap<TokenType, InfixParseFn>,
     pub errors: Vec<Exception>,
+    pub defined_types: Vec<String>,
 }
 
 impl Parser {
@@ -192,8 +194,10 @@ impl Parser {
                         Some(Types::Array(Box::from(Types::Basic(
                             BaseTypes::UserDefined(token.literal),
                         ))))
-                    } else {
+                    } else if self.defined_types.contains(&token.literal) {
                         Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
+                    } else {
+                        None
                     }
                 }
             },
@@ -232,6 +236,7 @@ impl Parser {
             TokenType::Export => parse_export_statement(self),
             TokenType::Break => parse_break_statement(self),
             TokenType::Class => parse_class_statement(self),
+            TokenType::Extends => parse_extend_statement(self),
             _ => self.parse_expression_statement(),
         };
 
@@ -391,6 +396,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
         prefix_parser: HashMap::new(),
         infix_parser: HashMap::new(),
         errors: Vec::new(),
+        defined_types: Vec::new(),
     };
 
     // Prefix parsers
