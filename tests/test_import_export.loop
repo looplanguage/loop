@@ -1,5 +1,5 @@
 // Expected result from test: 8
-import "./tests/package.loop" as double
+import "./tests/package.loop" as package
 
 // 4 * 2
-double(4)
+package.double(10)

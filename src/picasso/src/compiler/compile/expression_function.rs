@@ -71,10 +71,11 @@ pub fn compile_expression_function(
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
             reference: format!("local::{}", func.name),
+            is_method: false
         });
 
         let var = compiler.define_variable(
-            format!("{}{}", compiler.location, func.name),
+            func.name.clone(),
             function_type.clone(),
             -1,
         );
@@ -118,12 +119,7 @@ pub fn compile_expression_function(
             }
         }
 
-        compiler.define_variable(
-            format!(
-                "{}{}",
-                compiler.location,
-                parameter.identifier.value.clone(),
-            ),
+        compiler.define_variable(parameter.identifier.value.clone(),
             param_type,
             index as i32,
         );
@@ -132,7 +128,14 @@ pub fn compile_expression_function(
 
         parameter_types.push(parameter._type.clone());
 
-        compiler.add_to_current_function(format!("{};", _type));
+        // Try to find it
+        let found = compiler.resolve_variable(&_type);
+
+        if let Some(found) = found {
+            compiler.add_to_current_function(format!("{};", found.transpile()));
+        } else {
+            compiler.add_to_current_function(format!("{};", _type));
+        }
     }
 
     compiler.add_to_current_function("} FREE {} THEN ".to_string());
@@ -162,12 +165,14 @@ pub fn compile_expression_function(
             return_type: Box::from(return_type),
             parameter_types,
             reference: format!("local::{}", func.name),
+            is_method: false
         })
     } else {
         Types::Function(FunctionType {
             return_type: Box::from(return_type),
             parameter_types,
             reference: "".to_string(),
+            is_method: false
         })
     };
 

@@ -9,9 +9,9 @@ use crate::parser::types::{BaseTypes, ClassItemType, Compound, FunctionType, Typ
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: Vec<ClassItemType> = Vec::new();
 
-    compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", class.name));
+    let var = compiler.define_variable(class.name.clone(), Types::Compound(Compound("".to_string(), Box::new(vec![]))), 0);
 
-    let var = compiler.define_variable(class.name.clone(), Types::Auto, 0);
+    compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", var.transpile()));
 
     let inherits = compiler.resolve_variable(&class.inherits);
 
@@ -62,22 +62,6 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                 };
             }
             ClassItem::Method(method) => {
-                // For methods we won't compile the expression yet, as we are not sure yet
-                // what the self reference fully contains. Ok this explanation really sucks
-                // and I'm not sure yet how to make it more clear. So, learn PL design please :)
-
-                let mut arguments = method.arguments.clone();
-
-                arguments.insert(
-                    0,
-                    Parameter {
-                        identifier: Identifier {
-                            value: "self".to_string(),
-                        },
-                        _type: Types::Basic(BaseTypes::UserDefined(class.name.clone())),
-                    },
-                );
-
                 let mut new_item = ClassItemType {
                     name: name.clone(),
                     index,
@@ -90,6 +74,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                             .map(|v| v._type)
                             .collect(),
                         reference: "".to_string(),
+                        is_method: true
                     }),
                     value: Expression::Function(Function {
                         name: name.clone(),
@@ -125,7 +110,14 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                     items.push(new_item)
                 }
 
-                compiler.add_to_current_function(format!("{};", lazy.transpile()))
+                // Find the type spec
+                let found = compiler.resolve_variable(&lazy.transpile());
+
+                if let Some(found) = found {
+                    compiler.add_to_current_function(format!("{};", found.transpile()))
+                } else {
+                    compiler.add_to_current_function(format!("{};", lazy.transpile()))
+                }
             }
         }
     }

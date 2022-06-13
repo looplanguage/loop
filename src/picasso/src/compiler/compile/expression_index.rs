@@ -30,6 +30,8 @@ fn compile_expression_class_index(
     let result = _compiler.compile_expression(left.clone());
     _compiler.undrier();
 
+
+
     if let CompilerResult::Success(mut check) = result {
         if let Types::Function(func) = check {
             check = *func.return_type;
@@ -43,6 +45,8 @@ fn compile_expression_class_index(
 
             return result;
         }
+    } else {
+        return result;
     }
 
     _compiler.add_to_current_function(".INDEX { ".to_string());
@@ -127,7 +131,7 @@ pub fn compile_expression_assign_index(
         compiler.compile_expression(assign.value);
     } else {
         compiler.add_to_current_function(".INDEX {".to_string());
-        compiler.compile_expression(assign.left);
+        compiler.compile_expression(assign.left.clone());
 
         compiler.add_to_current_function("} {".to_string());
         compiler.compile_expression(assign.index);

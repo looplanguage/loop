@@ -147,6 +147,7 @@ impl Parser {
                         return_type: Box::new(Types::Void),
                         parameter_types: vec![],
                         reference: "".to_string(),
+                        is_method: false,
                     };
 
                     // <

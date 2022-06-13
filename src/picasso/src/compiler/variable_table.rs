@@ -34,7 +34,10 @@ pub fn build_deeper_variable_scope(outer: Option<Rc<RefCell<VariableScope>>>) ->
 
 impl Variable {
     pub fn transpile(&self) -> String {
-        format!("var_{}_{}", self.name, self.index)
+        match self._type {
+            Types::Compound(_) => format!("class_{}", self.index),
+            _ => format!("var_{}", self.index)
+        }
     }
 }
 

@@ -27,6 +27,7 @@ pub struct FunctionType {
     pub return_type: Box<Types>,
     pub parameter_types: Vec<Types>,
     pub reference: String,
+    pub is_method: bool
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

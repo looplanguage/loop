@@ -92,6 +92,7 @@ pub struct Compiler {
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
     pub location: String,
+    pub locations: Vec<String>,
     pub export_name: String,
     pub prev_location: String,
     pub breaks: Vec<u32>,
@@ -126,6 +127,7 @@ impl Default for Compiler {
             prev_location: String::new(),
             breaks: Vec::new(),
             extensions: HashMap::new(),
+            locations: Vec::new(),
             imports: Vec::new(),
             functions: HashMap::from([(
                 "main".to_string(),
@@ -184,6 +186,18 @@ impl Compiler {
         }
 
         Ok(self.get_d_code())
+    }
+
+    pub fn enter_location(&mut self, location: String) {
+        self.locations.push(location.clone());
+        self.location = location
+    }
+
+    pub fn exit_location(&mut self) -> String {
+        let loc = self.locations.pop().unwrap();
+        self.location = loc.clone();
+
+        loc
     }
 
     /// Allows you to use Loop code within the compiler
@@ -371,12 +385,26 @@ impl Compiler {
 
     /// Finds a variable
     fn resolve_variable(&self, name: &String) -> Option<Variable> {
-        let var = self
+        let mut var = self
             .variable_scope
             .borrow_mut()
-            .resolve(format!("{}{}", self.location, name));
+            .resolve(format!("{}{}", self.location, name.clone()));
+
+        if var.is_none() {
+            var = self
+                .variable_scope
+                .borrow_mut()
+                .resolve(format!("{}", name))
+        }
 
         var
+    }
+
+    fn resolve_with_location(&self, name: &String, location: &String) -> Option<Variable> {
+        self
+            .variable_scope
+            .borrow_mut()
+            .resolve(format!("{}{}", location, name))
     }
 
     /// Compiles a deeper [Block] adding curly braces

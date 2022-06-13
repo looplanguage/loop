@@ -15,83 +15,87 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         let class = compiler.get_compound_type(&i.value);
 
         if let Some(Types::Compound(class_type)) = class {
+            let idenfitier = compiler.resolve_variable(&i.value);
             let Compound(name, values) = class_type.clone();
-            // Wrapped in a call expression so that we can do more during execution
-            compiler.add_to_current_function(format!(
-                ".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{",
-                compiler.function_count, i.value
-            ));
 
-            compiler.function_count += 1;
+            if let Some(definition) = idenfitier {
+                // Wrapped in a call expression so that we can do more during execution
+                compiler.add_to_current_function(format!(
+                    ".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{",
+                    compiler.function_count, definition.transpile()
+                ));
 
-            let temp_var = compiler.define_variable(
-                "temporary_class_holder".to_string(),
-                Types::Compound(class_type.clone()),
-                0,
-            );
+                compiler.function_count += 1;
 
-            // Instantiate the class using a constant and store it into the temporary value
-            compiler.add_to_current_function(format!(
-                ".STORE {} {{ .CONSTANT {} {{",
-                temp_var.index, name
-            ));
+                let temp_var = compiler.define_variable(
+                    "temporary_class_holder".to_string(),
+                    Types::Compound(class_type.clone()),
+                    0,
+                );
 
-            for value in &*values {
-                // Define "self" if its a function
-                let result = if let Expression::Function(func) = value.value.clone() {
-                    let mut func = func.clone();
+                // Instantiate the class using a constant and store it into the temporary value
+                compiler.add_to_current_function(format!(
+                    ".STORE {} {{ .CONSTANT {} {{",
+                    temp_var.index, definition.transpile()
+                ));
 
-                    func.parameters.insert(
-                        0,
-                        Parameter {
-                            identifier: Identifier {
-                                value: "self".to_string(),
+                for value in &*values {
+                    // Define "self" if its a function
+                    let result = if let Expression::Function(func) = value.value.clone() {
+                        let mut func = func.clone();
+
+                        func.parameters.insert(
+                            0,
+                            Parameter {
+                                identifier: Identifier {
+                                    value: "self".to_string(),
+                                },
+                                _type: Types::Compound(class_type.clone()),
                             },
-                            _type: Types::Compound(class_type.clone()),
-                        },
-                    );
+                        );
 
-                    compiler.compile_expression(Expression::Function(func))
-                } else {
-                    compiler.compile_expression(value.value.clone())
-                };
+                        compiler.compile_expression(Expression::Function(func))
+                    } else {
+                        compiler.compile_expression(value.value.clone())
+                    };
 
-                if result.is_exception() {
-                    return result;
-                }
-            }
-
-            compiler.add_to_current_function("};};".to_string());
-
-            let found = values.iter().find(|item| item.name == "constructor");
-
-            if let Some(constructor) = found {
-                // TODO: Explain this a bit better, probably needs some refactoring anyway
-                compiler.add_to_current_function(format!(".CALL {{ .INDEX {{ .LOAD VARIABLE {}; }} {{ .CONSTANT INT {}; }}; }} {{ .LOAD VARIABLE {}; ", temp_var.index, constructor.index, temp_var.index));
-
-                // Compile parameters
-                for parameter in call.parameters {
-                    let result = compiler.compile_expression(parameter);
-
-                    if let CompilerResult::Exception(_) = &result {
+                    if result.is_exception() {
                         return result;
                     }
                 }
 
-                compiler.add_to_current_function("};".to_string())
+                compiler.add_to_current_function("};};".to_string());
+
+                let found = values.iter().find(|item| item.name == "constructor");
+
+                if let Some(constructor) = found {
+                    // TODO: Explain this a bit better, probably needs some refactoring anyway
+                    compiler.add_to_current_function(format!(".CALL {{ .INDEX {{ .LOAD VARIABLE {}; }} {{ .CONSTANT INT {}; }}; }} {{ .LOAD VARIABLE {}; ", temp_var.index, constructor.index, temp_var.index));
+
+                    // Compile parameters
+                    for parameter in call.parameters {
+                        let result = compiler.compile_expression(parameter);
+
+                        if let CompilerResult::Exception(_) = &result {
+                            return result;
+                        }
+                    }
+
+                    compiler.add_to_current_function("};".to_string())
+                }
+
+                compiler.add_to_current_function(format!(
+                    ".RETURN {{ .LOAD VARIABLE {}; }};",
+                    temp_var.index
+                ));
+
+                // End of variable definition, function definition & call to it
+                compiler.add_to_current_function("};} {};".to_string());
+
+                return CompilerResult::Success(Types::Compound(Compound(name, values)));
+
+                // Second library function calling
             }
-
-            compiler.add_to_current_function(format!(
-                ".RETURN {{ .LOAD VARIABLE {}; }};",
-                temp_var.index
-            ));
-
-            // End of variable definition, function definition & call to it
-            compiler.add_to_current_function("};} {};".to_string());
-
-            return CompilerResult::Success(Types::Compound(Compound(name, values)));
-
-            // Second library function calling
         }
     } else if let expression::Expression::String(namespace) = *call.clone().identifier {
         let splitted_namespace: Vec<&str> = namespace.value.split("::").collect();
@@ -130,14 +134,18 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             let name = split.first().unwrap().to_string();
             let method = split.get(1).unwrap().to_string();
 
-            self_reference = Some(Expression::Identifier(Identifier { value: name }));
-
             let result = compiler.compile_expression(Expression::Index(Box::new(Index {
-                left: self_reference.clone().unwrap(),
+                left: Expression::Identifier(Identifier { value: name.clone() }),
                 index: Expression::Identifier(Identifier { value: method }),
             })));
 
             if let CompilerResult::Success(_type) = result {
+                if let Types::Function(func) = _type.clone() {
+                    if func.is_method {
+                        self_reference = Some(Expression::Identifier(Identifier { value: name }));
+                    }
+                }
+
                 method_type = Some(_type)
             } else {
                 return result;
