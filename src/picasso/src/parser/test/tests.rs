@@ -43,17 +43,17 @@ mod tests {
                         expression: Box::new(parser::expression::Expression::String(LoopString {
                             value: "Jeff".to_string(),
                         })),
-                }),
-            },
+                    }),
+                },
                 ClassField {
                     name: "age".to_string(),
                     index: 1,
                     item: ClassItem::Property(Expression {
-                    expression: Box::new(parser::expression::Expression::Integer(Integer {
-                        value: 42,
-                    })),
-                }),
-            },
+                        expression: Box::new(parser::expression::Expression::Integer(Integer {
+                            value: 42,
+                        })),
+                    }),
+                },
             ],
             inherits: "".to_string(),
         })];
