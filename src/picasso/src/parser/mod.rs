@@ -48,6 +48,7 @@ pub struct Parser {
     prefix_parser: HashMap<TokenType, PrefixParseFn>,
     infix_parser: HashMap<TokenType, InfixParseFn>,
     pub errors: Vec<Exception>,
+    pub defined_types: Vec<String>,
 }
 
 impl Parser {
@@ -194,8 +195,11 @@ impl Parser {
                             BaseTypes::UserDefined(token.literal),
                         ))))
                     } else {
-                        //Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
-                        None
+                        if self.defined_types.contains(&token.literal) {
+                            Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
+                        } else {
+                            None
+                        }
                     }
                 }
             },
@@ -394,6 +398,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
         prefix_parser: HashMap::new(),
         infix_parser: HashMap::new(),
         errors: Vec::new(),
+        defined_types: Vec::new(),
     };
 
     // Prefix parsers

@@ -1,13 +1,15 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::{Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::integer::Integer;
+use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Expression;
 use crate::parser::statement::class::{Class, ClassItem};
-use crate::parser::types::{BaseTypes, ClassItemType, Compound, Types};
+use crate::parser::types::{BaseTypes, ClassItemType, Compound, FunctionType, Types};
 use std::collections::HashMap;
 
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
-    let mut items: HashMap<String, ClassItemType> = HashMap::new();
+    let mut items: Vec<ClassItemType> = Vec::new();
 
     compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", class.name));
 
@@ -20,16 +22,17 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
             let inherited_handles: Vec<_> = inherits.1.iter().collect();
 
             for inherited_handle in inherited_handles {
-                items.insert(inherited_handle.0.clone(), inherited_handle.1.clone());
+                // TODO: overwrite old methods with same name
+                items.push(inherited_handle.clone());
             }
         }
     }
 
-    for class_item in class.values.iter().enumerate() {
-        let name = class_item.1 .0.clone();
-        let index = class_item.0 as u32;
+    for class_item in class.values {
+        let name = class_item.name.clone();
+        let index = class_item.index;
 
-        match class_item.1 .1 {
+        match class_item.item {
             ClassItem::Property(property) => {
                 compiler.drier();
                 let node = compiler.compile_expression(*property.expression.clone());
@@ -38,9 +41,9 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                 if let CompilerResult::Success(_type) = node {
                     compiler.add_to_current_function(format!("{};", _type.transpile()));
 
-                    items.insert(
-                        name,
+                    items.push(
                         ClassItemType {
+                            name,
                             index,
                             class_item_type: _type,
                             value: *property.expression.clone(),
@@ -67,11 +70,20 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                     },
                 );
 
-                items.insert(
-                    name.clone(),
+                items.push(
                     ClassItemType {
+                        name: name.clone(),
                         index,
-                        class_item_type: method.return_type.clone(),
+                        class_item_type: Types::Function(FunctionType {
+                            return_type: Box::new(method.return_type.clone()),
+                            parameter_types: method
+                                .arguments
+                                .clone()
+                                .into_iter()
+                                .map(|v| v._type)
+                                .collect(),
+                            reference: "".to_string(),
+                        }),
                         value: Expression::Function(Function {
                             name: name.clone(),
                             parameters: method.arguments.clone(),
@@ -82,6 +94,20 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                 );
 
                 compiler.add_to_current_function(format!("{};", method.return_type.transpile()));
+            }
+            ClassItem::Lazy(lazy) => {
+                let value = Expression::Integer(Integer { value: 0 });
+
+                items.push(
+                    ClassItemType {
+                        name,
+                        index,
+                        class_item_type: lazy.clone(),
+                        value,
+                    },
+                );
+
+                compiler.add_to_current_function(format!("{};", lazy.transpile()))
             }
         }
     }

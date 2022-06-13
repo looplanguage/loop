@@ -6,7 +6,7 @@ use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{Compound, Types};
+use crate::parser::types::{BaseTypes, ClassItemType, Compound, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -53,23 +53,39 @@ fn compile_expression_class_index(
 
     let result = _compiler.compile_expression(left);
 
-    fn find_type(_type: Types) -> Option<Compound> {
+    fn find_type(_type: Types, _compiler: &mut Compiler) -> Option<Compound> {
         match _type {
             Types::Compound(c) => Some(c),
             Types::Function(func) => match *func.return_type {
-                Types::Function(f) => find_type(*f.return_type),
+                Types::Function(f) => find_type(*f.return_type, _compiler),
                 Types::Compound(c) => Some(c),
                 _ => None,
             },
+            Types::Basic(BaseTypes::UserDefined(ref user)) => {
+                // Find a user defined type
+                let var = _compiler.variable_scope.borrow_mut().resolve(user.clone());
+
+                if let Some(var) = var {
+                    if let Types::Compound(c) = var._type {
+                        return Some(c);
+                    }
+                }
+
+                None
+            }
             _ => None,
         }
     }
 
     if let CompilerResult::Success(ref success) = result {
-        let compound = find_type(success.clone());
+        let compound = find_type(success.clone(), _compiler);
 
         if let Some(Compound(ref name, ref fields)) = compound {
-            if let Some(field) = fields.get(&field) {
+
+            let fields = fields.clone();
+            let found = fields.iter().find(|item| item.name == field);
+
+            if let Some(field) = found.clone() {
                 _compiler.add_to_current_function(format!(
                     "}} {{ .CONSTANT INT {}; }};",
                     (field.index as i32)

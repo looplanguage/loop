@@ -1,4 +1,4 @@
-use crate::lexer::token::TokenType;
+use crate::lexer::token::{Token, TokenType};
 use crate::parser::expression::function::{parse_arguments, Parameter};
 use crate::parser::expression::Precedence;
 use crate::parser::program::Node;
@@ -21,12 +21,20 @@ pub struct Method {
 pub enum ClassItem {
     Property(Expression),
     Method(Method),
+    Lazy(Types),
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct ClassField {
+    pub name: String,
+    pub index: u32,
+    pub item: ClassItem
 }
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Class {
     pub name: String,
-    pub values: HashMap<String, ClassItem>,
+    pub values: Vec<ClassField>,
     pub inherits: String,
 }
 
@@ -38,24 +46,26 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
 
         let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
 
-        p.expected(TokenType::LeftParenthesis);
+        if let Some(_) = p.expected_maybe(TokenType::LeftParenthesis) {
+            let parameters = parse_arguments(p);
 
-        let parameters = parse_arguments(p);
+            p.expected(TokenType::LeftBrace)?;
+            p.lexer.next_token();
 
-        p.expected(TokenType::LeftBrace)?;
-        p.lexer.next_token();
+            let body = parse_block(p);
 
-        let body = parse_block(p);
-
-        Some((
-            name.clone(),
-            ClassItem::Method(Method {
-                name,
-                return_type,
-                arguments: parameters,
-                body,
-            }),
-        ))
+            Some((
+                name.clone(),
+                ClassItem::Method(Method {
+                    name,
+                    return_type,
+                    arguments: parameters,
+                    body,
+                }),
+            ))
+        } else {
+            Some((name.clone(), ClassItem::Lazy(return_type)))
+        }
     } else {
         let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
 
@@ -92,9 +102,10 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
 
     p.expected(TokenType::LeftBrace);
 
-    let mut values: HashMap<String, ClassItem> = HashMap::new();
+    let mut values: Vec<ClassField> = Vec::new();
 
     let mut depth = 1;
+    let mut index = 0;
     while depth > 0 {
         let class_item = parse_class_item(p, name.clone())?;
 
@@ -102,7 +113,12 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
             depth += 1;
         }
 
-        values.insert(class_item.0, class_item.1);
+        values.push(ClassField {
+            index,
+            name: class_item.0.clone(),
+            item: class_item.1
+        });
+        index += 1;
 
         while p.next_token_is(TokenType::RightBrace) {
             depth -= 1;
@@ -113,23 +129,21 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         }
     }
 
-    //p.lexer.next_token();
+    if p.defined_types.contains(&name) {
+        p.throw_exception(
+            Token {
+                token: TokenType::Null,
+                literal: "NONE".to_string(),
+            },
+            Some(format!(
+                "Type \"{}\" already defined! (Type definitions are always root scoped)",
+                name
+            )),
+        );
+        return None;
+    }
 
-    // Box<HashMap<String, (u32, (Types, Expression))>>
-    /*
-    for value in &mut values {
-        if let parser::expression::Expression::Function(f) = &mut *value.1.expression {
-            f.parameters.insert(
-                0,
-                Parameter {
-                    identifier: Identifier {
-                        value: "self".to_string(),
-                    },
-                    _type: Types::Basic(BaseTypes::UserDefined(name.clone())),
-                },
-            );
-        }
-    }*/
+    p.defined_types.push(name.clone());
 
     Some(Node::Statement(Statement::Class(Class {
         inherits,

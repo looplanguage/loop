@@ -1,14 +1,13 @@
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::program::Node;
-use crate::parser::statement::class::{parse_class_statement, ClassItem};
+use crate::parser::statement::class::{parse_class_statement, ClassField};
 use crate::parser::statement::Statement;
 use crate::parser::Parser;
-use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ExtendStatement {
     pub identifier: Identifier,
-    pub items: HashMap<String, ClassItem>,
+    pub items: Vec<ClassField>,
 }
 
 pub fn parse_extend_statement(p: &mut Parser) -> Option<Node> {

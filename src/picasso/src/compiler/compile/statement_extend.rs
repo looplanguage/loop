@@ -35,13 +35,13 @@ pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement)
         let unwrapped = extensions.unwrap();
 
         for item in &class.items {
-            if let ClassItem::Method(method) = item.1 {
+            if let ClassItem::Method(method) = item.item.clone() {
                 unwrapped.push(method.clone());
             }
         }
 
         for item in &class.items {
-            if let ClassItem::Method(method) = item.1 {
+            if let ClassItem::Method(method) = item.item.clone() {
                 let mut params = method.arguments.clone();
                 params.insert(
                     0,

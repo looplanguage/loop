@@ -1,0 +1,24 @@
+class Test {
+    a = 100
+    b = 200
+}
+
+class SubTest {
+    Test a
+
+    void constructor() {
+        self.a = Test()
+    }
+}
+
+class SubSubTest {
+    SubTest a
+
+    void constructor() {
+        self.a = SubTest()
+    }
+}
+
+test := SubSubTest()
+
+test.a.a.a

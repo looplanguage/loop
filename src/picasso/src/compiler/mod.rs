@@ -214,11 +214,6 @@ impl Compiler {
         if let Some(class) = class {
             if let Types::Compound(Compound(name, mut values)) = class._type {
                 // Instantiate the class using a constant
-
-                for (index, value) in (*values).iter_mut().enumerate() {
-                    value.1.index = index as u32;
-                }
-
                 return Some(Types::Compound(Compound(name, values)));
             }
 

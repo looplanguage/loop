@@ -35,9 +35,10 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 ".STORE {} {{ .CONSTANT {} {{",
                 temp_var.index, name
             ));
-            for (index, mut value) in (*values).iter_mut().enumerate() {
+
+            for value in &*values {
                 // Define "self" if its a function
-                let result = if let Expression::Function(func) = value.1.value.clone() {
+                let result = if let Expression::Function(func) = value.value.clone() {
                     let mut func = func.clone();
 
                     func.parameters.insert(
@@ -52,19 +53,20 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
                     compiler.compile_expression(Expression::Function(func))
                 } else {
-                    compiler.compile_expression(value.1.value.clone())
+                    compiler.compile_expression(value.value.clone())
                 };
 
                 if result.is_exception() {
                     return result;
                 }
-
-                value.1.index = index as u32;
             }
 
             compiler.add_to_current_function("};};".to_string());
 
-            if let Some(constructor) = values.get("constructor") {
+            let values = values.clone();
+            let found = values.iter().find(|item| item.name == "constructor");
+
+            if let Some(constructor) = found {
                 // TODO: Explain this a bit better, probably needs some refactoring anyway
                 compiler.add_to_current_function(format!(".CALL {{ .INDEX {{ .LOAD VARIABLE {}; }} {{ .CONSTANT INT {}; }}; }} {{ .LOAD VARIABLE {}; ", temp_var.index, constructor.index, temp_var.index));
 

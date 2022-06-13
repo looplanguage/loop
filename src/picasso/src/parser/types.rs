@@ -37,6 +37,7 @@ pub struct Library {
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct ClassItemType {
+    pub name: String,
     pub index: u32,
     pub class_item_type: Types,
     pub value: Expression,
@@ -45,7 +46,7 @@ pub struct ClassItemType {
 #[derive(Clone, PartialEq, Debug)]
 pub struct Compound(pub String, pub CompoundFields);
 
-type CompoundFields = Box<HashMap<String, ClassItemType>>;
+type CompoundFields = Box<Vec<ClassItemType>>;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Types {
