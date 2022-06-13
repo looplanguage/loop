@@ -205,11 +205,7 @@ impl Compiler {
     }
 
     pub fn get_compound_type(&self, name: &str) -> Option<Types> {
-        let class = self.variable_scope.borrow_mut().resolve(format!(
-            "{}{}",
-            self.location,
-            name.to_owned()
-        ));
+        let class = self.resolve_variable(&name.to_string());
 
         if let Some(class) = class {
             if let Types::Compound(Compound(name, values)) = class._type {
@@ -369,6 +365,16 @@ impl Compiler {
         );
 
         self.variable_count += 1;
+
+        var
+    }
+
+    /// Finds a variable
+    fn resolve_variable(&self, name: &String) -> Option<Variable> {
+        let var = self
+            .variable_scope
+            .borrow_mut()
+            .resolve(format!("{}{}", self.location, name));
 
         var
     }

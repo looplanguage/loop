@@ -13,7 +13,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     let var = compiler.define_variable(class.name.clone(), Types::Auto, 0);
 
-    let inherits = compiler.variable_scope.borrow_mut().resolve(class.inherits);
+    let inherits = compiler.resolve_variable(&class.inherits);
 
     if let Some(inherits) = inherits {
         if let Types::Compound(inherits) = inherits._type {
