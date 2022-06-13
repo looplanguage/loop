@@ -6,7 +6,7 @@ use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, ClassItemType, Compound, Types};
+use crate::parser::types::{BaseTypes, Compound, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -81,11 +81,10 @@ fn compile_expression_class_index(
         let compound = find_type(success.clone(), _compiler);
 
         if let Some(Compound(ref name, ref fields)) = compound {
-
             let fields = fields.clone();
             let found = fields.iter().find(|item| item.name == field);
 
-            if let Some(field) = found.clone() {
+            if let Some(field) = found {
                 _compiler.add_to_current_function(format!(
                     "}} {{ .CONSTANT INT {}; }};",
                     (field.index as i32)

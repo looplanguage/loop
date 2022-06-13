@@ -194,12 +194,10 @@ impl Parser {
                         Some(Types::Array(Box::from(Types::Basic(
                             BaseTypes::UserDefined(token.literal),
                         ))))
+                    } else if self.defined_types.contains(&token.literal) {
+                        Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
                     } else {
-                        if self.defined_types.contains(&token.literal) {
-                            Some(Types::Basic(BaseTypes::UserDefined(token.literal)))
-                        } else {
-                            None
-                        }
+                        None
                     }
                 }
             },

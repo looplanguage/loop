@@ -1,5 +1,4 @@
 use crate::parser::expression::Expression;
-use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Debug)]

@@ -2,11 +2,9 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::{Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
-use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Expression;
 use crate::parser::statement::class::{Class, ClassItem};
 use crate::parser::types::{BaseTypes, ClassItemType, Compound, FunctionType, Types};
-use std::collections::HashMap;
 
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: Vec<ClassItemType> = Vec::new();
@@ -28,7 +26,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
     }
 
     for class_item in class.values {
-        let mut class_item = class_item.clone();
+        let class_item = class_item.clone();
         let name = class_item.name.clone();
         let index = class_item.index;
         let mut replace = None;
@@ -98,7 +96,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                         parameters: method.arguments.clone(),
                         body: method.body.clone(),
                         predefined_type: Some(method.return_type.clone()),
-                    })
+                    }),
                 };
 
                 if let Some(replace) = replace {

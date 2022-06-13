@@ -212,7 +212,7 @@ impl Compiler {
         ));
 
         if let Some(class) = class {
-            if let Types::Compound(Compound(name, mut values)) = class._type {
+            if let Types::Compound(Compound(name, values)) = class._type {
                 // Instantiate the class using a constant
                 return Some(Types::Compound(Compound(name, values)));
             }

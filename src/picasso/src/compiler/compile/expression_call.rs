@@ -15,7 +15,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         let class = compiler.get_compound_type(&i.value);
 
         if let Some(Types::Compound(class_type)) = class {
-            let Compound(name, mut values) = class_type.clone();
+            let Compound(name, values) = class_type.clone();
             // Wrapped in a call expression so that we can do more during execution
             compiler.add_to_current_function(format!(
                 ".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{",
@@ -63,7 +63,6 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
             compiler.add_to_current_function("};};".to_string());
 
-            let values = values.clone();
             let found = values.iter().find(|item| item.name == "constructor");
 
             if let Some(constructor) = found {

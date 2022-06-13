@@ -7,7 +7,6 @@ use crate::parser::statement::expression::Expression;
 use crate::parser::statement::Statement;
 use crate::parser::types::Types;
 use crate::parser::Parser;
-use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Method {
@@ -28,7 +27,7 @@ pub enum ClassItem {
 pub struct ClassField {
     pub name: String,
     pub index: u32,
-    pub item: ClassItem
+    pub item: ClassItem,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -46,7 +45,7 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
 
         let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
 
-        if let Some(_) = p.expected_maybe(TokenType::LeftParenthesis) {
+        if p.expected_maybe(TokenType::LeftParenthesis).is_some() {
             let parameters = parse_arguments(p);
 
             p.expected(TokenType::LeftBrace)?;
@@ -64,7 +63,7 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
                 }),
             ))
         } else {
-            Some((name.clone(), ClassItem::Lazy(return_type)))
+            Some((name, ClassItem::Lazy(return_type)))
         }
     } else {
         let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
@@ -116,7 +115,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         values.push(ClassField {
             index,
             name: class_item.0.clone(),
-            item: class_item.1
+            item: class_item.1,
         });
         index += 1;
 
