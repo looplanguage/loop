@@ -1,18 +1,18 @@
-use std::ffi::OsStr;
-use std::path::Path;
+use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
+use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::lexer::{build_lexer, Lexer};
-use crate::parser::statement::import::Import;
-use crate::parser::types::Types;
-use std::fs;
-use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
-use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
-use crate::parser::{build_parser, expression};
 use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::statement::assign::VariableAssign;
+use crate::parser::statement::import::Import;
 use crate::parser::statement::variable::VariableDeclaration;
+use crate::parser::types::Types;
+use crate::parser::{build_parser, expression};
+use std::ffi::OsStr;
+use std::fs;
+use std::path::Path;
 
 pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> CompilerResult {
     let import_as = import.identifier.clone();
@@ -30,14 +30,18 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
 
             // Check if file exists
             if !path.exists() {
-                return CompilerResult::Exception(CompilerException::CanNotReadFile(path_as_string));
+                return CompilerResult::Exception(CompilerException::CanNotReadFile(
+                    path_as_string,
+                ));
             }
 
             let contents = fs::read_to_string(path.clone());
 
             let contents = {
                 if contents.is_err() {
-                    return CompilerResult::Exception(CompilerException::CanNotReadFile(path_as_string));
+                    return CompilerResult::Exception(CompilerException::CanNotReadFile(
+                        path_as_string,
+                    ));
                 } else {
                     contents.unwrap()
                 }
@@ -63,16 +67,18 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
             // Now define it here
             if let Some(export) = export {
                 let assign = VariableDeclaration {
-                    ident: Identifier { value: import_as.to_string() },
+                    ident: Identifier {
+                        value: import_as.to_string(),
+                    },
                     value: Box::new(expression::Expression::Call(Call {
                         identifier: Box::new(expression::Expression::Identifier(Identifier {
-                            value: export.name.clone()
+                            value: export.name.clone(),
                         })),
                         parameters: vec![expression::Expression::Identifier(Identifier {
-                            value: export.name
-                        })]
+                            value: export.name,
+                        })],
                     })),
-                    data_type: export._type.clone()
+                    data_type: export._type.clone(),
                 };
 
                 return compile_statement_variable_declaration(compiler, assign);
@@ -86,7 +92,8 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
 
     compiler.add_to_current_function(format!(
         ".LOADLIB {{.CONSTANT CHAR[] \"{}\";}} \"{}\";",
-        path.to_str().unwrap(), import.identifier
+        path.to_str().unwrap(),
+        import.identifier
     ));
 
     CompilerResult::Success(Types::Void)

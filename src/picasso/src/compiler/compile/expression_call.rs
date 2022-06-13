@@ -22,7 +22,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 // Wrapped in a call expression so that we can do more during execution
                 compiler.add_to_current_function(format!(
                     ".CALL {{ .FUNCTION \"\" {} {} ARGUMENTS {{}} FREE {{}} THEN {{",
-                    compiler.function_count, definition.transpile()
+                    compiler.function_count,
+                    definition.transpile()
                 ));
 
                 compiler.function_count += 1;
@@ -36,7 +37,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 // Instantiate the class using a constant and store it into the temporary value
                 compiler.add_to_current_function(format!(
                     ".STORE {} {{ .CONSTANT {} {{",
-                    temp_var.index, definition.transpile()
+                    temp_var.index,
+                    definition.transpile()
                 ));
 
                 for value in &*values {
@@ -135,7 +137,9 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             let method = split.get(1).unwrap().to_string();
 
             let result = compiler.compile_expression(Expression::Index(Box::new(Index {
-                left: Expression::Identifier(Identifier { value: name.clone() }),
+                left: Expression::Identifier(Identifier {
+                    value: name.clone(),
+                }),
                 index: Expression::Identifier(Identifier { value: method }),
             })));
 

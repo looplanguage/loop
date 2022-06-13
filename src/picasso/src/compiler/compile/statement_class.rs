@@ -9,7 +9,11 @@ use crate::parser::types::{BaseTypes, ClassItemType, Compound, FunctionType, Typ
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: Vec<ClassItemType> = Vec::new();
 
-    let var = compiler.define_variable(class.name.clone(), Types::Compound(Compound("".to_string(), Box::new(vec![]))), 0);
+    let var = compiler.define_variable(
+        class.name.clone(),
+        Types::Compound(Compound("".to_string(), Box::new(vec![]))),
+        0,
+    );
 
     compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", var.transpile()));
 
@@ -74,7 +78,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                             .map(|v| v._type)
                             .collect(),
                         reference: "".to_string(),
-                        is_method: true
+                        is_method: true,
                     }),
                     value: Expression::Function(Function {
                         name: name.clone(),

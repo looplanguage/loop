@@ -385,10 +385,10 @@ impl Compiler {
 
     /// Finds a variable
     fn resolve_variable(&self, name: &String) -> Option<Variable> {
-        let mut var = self
-            .variable_scope
-            .borrow_mut()
-            .resolve(format!("{}{}", self.location, name.clone()));
+        let mut var =
+            self.variable_scope
+                .borrow_mut()
+                .resolve(format!("{}{}", self.location, name.clone()));
 
         if var.is_none() {
             var = self
@@ -401,8 +401,7 @@ impl Compiler {
     }
 
     fn resolve_with_location(&self, name: &String, location: &String) -> Option<Variable> {
-        self
-            .variable_scope
+        self.variable_scope
             .borrow_mut()
             .resolve(format!("{}{}", location, name))
     }

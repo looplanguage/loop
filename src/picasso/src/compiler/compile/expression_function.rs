@@ -71,14 +71,10 @@ pub fn compile_expression_function(
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
             reference: format!("local::{}", func.name),
-            is_method: false
+            is_method: false,
         });
 
-        let var = compiler.define_variable(
-            func.name.clone(),
-            function_type.clone(),
-            -1,
-        );
+        let var = compiler.define_variable(func.name.clone(), function_type.clone(), -1);
 
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
@@ -119,10 +115,7 @@ pub fn compile_expression_function(
             }
         }
 
-        compiler.define_variable(parameter.identifier.value.clone(),
-            param_type,
-            index as i32,
-        );
+        compiler.define_variable(parameter.identifier.value.clone(), param_type, index as i32);
 
         let _type = parameter.get_type();
 
@@ -165,14 +158,14 @@ pub fn compile_expression_function(
             return_type: Box::from(return_type),
             parameter_types,
             reference: format!("local::{}", func.name),
-            is_method: false
+            is_method: false,
         })
     } else {
         Types::Function(FunctionType {
             return_type: Box::from(return_type),
             parameter_types,
             reference: "".to_string(),
-            is_method: false
+            is_method: false,
         })
     };
 

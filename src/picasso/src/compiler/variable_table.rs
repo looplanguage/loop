@@ -36,7 +36,7 @@ impl Variable {
     pub fn transpile(&self) -> String {
         match self._type {
             Types::Compound(_) => format!("class_{}", self.index),
-            _ => format!("var_{}", self.index)
+            _ => format!("var_{}", self.index),
         }
     }
 }

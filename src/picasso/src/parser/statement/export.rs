@@ -22,7 +22,5 @@ pub fn parse_export_statement(p: &mut Parser) -> Option<Node> {
         p.lexer.next_token();
     }
 
-    Some(Node::Statement(Statement::Export(Export {
-        names
-    })))
+    Some(Node::Statement(Statement::Export(Export { names })))
 }

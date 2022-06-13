@@ -30,8 +30,6 @@ fn compile_expression_class_index(
     let result = _compiler.compile_expression(left.clone());
     _compiler.undrier();
 
-
-
     if let CompilerResult::Success(mut check) = result {
         if let Types::Function(func) = check {
             check = *func.return_type;
