@@ -5,7 +5,7 @@ use crate::parser::expression::function::{Call, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{Compound, Types};
+use crate::parser::types::{BaseTypes, Compound, Types};
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     // This is for calling functions from a library & instantiating classes
@@ -120,6 +120,47 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             // Since we do not know what the return type of the function is, we use Types::Auto
             // TODO: You do know function signiture it is in the header or "function_signiture" function
             return CompilerResult::Success(Types::Auto);
+        }
+    }
+
+    if let Expression::Index(a) = *call.identifier.clone() {
+        if let Expression::Identifier(ident) = a.index {
+            let value = ident.value;
+
+            compiler.drier();
+            let result = compiler.compile_expression(a.left.clone());
+            compiler.undrier();
+
+            let mut exists = matches!(result, CompilerResult::Success(Types::Array(_)) | CompilerResult::Success(Types::Basic(BaseTypes::String)));
+
+            if let CompilerResult::Success(succ) = result {
+                match &*value {
+                    "add" => {
+                        for parameter in &call.parameters {
+                            compiler.add_to_current_function(".PUSH {".to_string());
+                            compiler.compile_expression(a.left.clone());
+                            compiler.add_to_current_function("} { ".to_string());
+                            compiler.compile_expression(parameter.clone());
+                            compiler.add_to_current_function("};".to_string());
+                        }
+
+                        return CompilerResult::Success(succ);
+                    },
+                    "remove" => {
+                        for parameter in &call.parameters {
+                            compiler.add_to_current_function(".POP {".to_string());
+                            compiler.compile_expression(a.left.clone());
+                            compiler.add_to_current_function("} { ".to_string());
+                            compiler.compile_expression(parameter.clone());
+                            compiler.add_to_current_function("};".to_string());
+                        }
+
+                        return CompilerResult::Success(succ);
+
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 

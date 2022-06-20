@@ -6,7 +6,7 @@ use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, Compound, Types};
+use crate::parser::types::{BaseTypes, Compound, FunctionType, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -31,8 +31,28 @@ fn compile_expression_class_index(
     _compiler.undrier();
 
     if let CompilerResult::Success(mut check) = result {
+        if let Types::Array(arr) = check.clone() {
+            // Methods for arrays
+            return match field.as_str() {
+                "add" => {
+                    CompilerResult::Success(Types::Function(FunctionType {
+                        return_type: Box::new(Types::Void),
+                        parameter_types: vec![],
+                        reference: "ADD_TO_ARRAY".to_string(),
+                        is_method: false
+                    }))
+                }
+                &_ => {
+                    CompilerResult::Exception(CompilerException::UnknownField(
+                        field,
+                        format!("{:?}", check),
+                    ))
+                }
+            }
+        }
+
         if let Types::Function(func) = check {
-            check = *func.return_type;
+            check = *func.return_type.clone();
         }
 
         // Check if function exists with this specific signature

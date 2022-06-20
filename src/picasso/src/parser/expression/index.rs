@@ -78,7 +78,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-        let namespace = match left {
+        let namespace = match left.clone() {
             Expression::Identifier(i) => i.value,
             _ => {
                 return Some(Node::Expression(Expression::Call(Call {
@@ -91,7 +91,22 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
             }
         };
 
-        // Index & Assign
+        match &*identifier {
+            "add" | "remove" => {
+                return Some(Node::Expression(Expression::Call(Call {
+                    identifier: Box::new(Expression::Index(Box::new(Index {
+                        left,
+                        index: Expression::Identifier(Identifier {
+                            value: identifier
+                        })
+                    }))),
+                    parameters: arguments
+                })))
+            }
+            _ => {}
+        }
+
+        // Index **AND** Assign
         return Some(Node::Expression(Expression::Call(Call {
             identifier: Box::from(Expression::String(LoopString {
                 value: format!("{}::{}", namespace, identifier),
