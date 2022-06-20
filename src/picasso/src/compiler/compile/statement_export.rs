@@ -1,37 +1,84 @@
+use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
+use crate::parser::expression;
+use crate::parser::expression::function::Parameter;
+use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::Expression::{AssignIndex, Integer};
+use crate::parser::expression::{assign_index, identifier, integer};
+use crate::parser::statement::block::Block;
+use crate::parser::statement::class::{Class, ClassField, ClassItem, Method};
 use crate::parser::statement::export::Export;
+use crate::parser::statement::expression::Expression;
+use crate::parser::statement::Statement;
+use crate::parser::types::{BaseTypes, Types};
 
 pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> CompilerResult {
-    /*if _compiler.export_name.is_empty() {
-        // TODO: Return error
-        return CompilerResult::Exception(CompilerException::Unknown);
+    // Define a new class and assign it to __export
+
+    let mut methods: Vec<ClassField> = Vec::new();
+
+    let mut index = 0;
+    for name in _export.names {
+        // Resolve the names and add them to "methods"
+        let method = _compiler.resolve_variable(&name);
+
+        if let Some(method) = method {
+            if let Types::Function(func) = method._type {
+                let mut func = func.clone();
+
+                methods.push(ClassField {
+                    name,
+                    index,
+                    item: ClassItem::Lazy(Types::Function(func)),
+                });
+
+                index += 1;
+            }
+        }
     }
 
-    let var = _compiler.define_variable(
-        format!(
-            "{}{}",
-            _compiler.prev_location,
-            _compiler.export_name.clone()
-        ),
-        Types::Auto,
-    );
+    methods.push(ClassField {
+        name: "constructor".to_string(),
+        index: methods.len() as u32,
+        item: ClassItem::Method(Method {
+            name: "constructor".to_string(),
+            return_type: Types::Void,
+            arguments: vec![],
+            body: Block {
+                statements: methods
+                    .iter()
+                    .map(|item| {
+                        Statement::Expression(Box::new(Expression {
+                            expression: Box::new(AssignIndex(Box::new(
+                                assign_index::AssignIndex {
+                                    left: expression::Expression::Identifier(Identifier {
+                                        value: "self".to_string(),
+                                    }),
+                                    index: expression::Expression::Identifier(Identifier {
+                                        value: item.name.clone(),
+                                    }),
+                                    value: expression::Expression::Identifier(Identifier {
+                                        value: item.name.clone(),
+                                    }),
+                                },
+                            ))),
+                        }))
+                    })
+                    .collect(),
+            },
+        }),
+    });
 
-    println!("Setting variable in: \"{}\"", _compiler.prev_location);
+    let class = Class {
+        name: format!("__export"),
+        values: methods,
+        inherits: "".to_string(),
+    };
 
-    _compiler.add_to_current_function(format!("auto {} = ", var.transpile()));
+    let result = compile_class_statement(_compiler, class);
 
-    let variable_borrowed = _compiler
-        .variable_scope
-        .borrow_mut()
-        .get_variable_mutable(var.index, var.name)
-        .unwrap();
+    //let var = _compiler.define_variable("__export".to_string(), )
 
-    let result = _compiler.compile_expression(export.expression, false);
-
-    if let CompilerResult::Success(_type) = result {
-        variable_borrowed.as_ref().borrow_mut()._type = _type;
-    }*/
-
-    CompilerResult::Exception(CompilerException::Unknown)
+    CompilerResult::Success(Types::Void)
 }

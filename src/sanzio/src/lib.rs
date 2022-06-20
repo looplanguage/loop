@@ -172,7 +172,7 @@ impl LuaBackend {
 
                     self.add_code(format!("\"{}\"", string))
                 } else {
-                    self.add_code_str("{");
+                    self.add_code_str("setmetatable({");
 
                     let mut index = 0;
                     for item in items {
@@ -185,7 +185,7 @@ impl LuaBackend {
                         }
                     }
 
-                    self.add_code_str("}");
+                    self.add_code_str("}, { __concat = function(a, b) return table.insert(a, b) end })");
                 }
             }
         }
@@ -303,7 +303,7 @@ impl LuaBackend {
                     let str = e.clone().char_arr_to_string();
                     let parts: Vec<&str> = str.split("::").collect();
 
-                    self.add_code(format!("{}.{}(", parts[0], parts[1]));
+                    self.add_code(format!("ffi.string({}.{}(", parts[0], parts[1]));
                     let mut index = 0;
                     for argument in &call.arguments {
                         index += 1;
@@ -313,7 +313,7 @@ impl LuaBackend {
                             self.add_code_str(",");
                         }
                     }
-                    self.add_code_str(")");
+                    self.add_code_str("))");
                 // Calling a user-defined function or a class
                 } else {
                     self.compile_node(&call.call);
@@ -357,11 +357,9 @@ impl LuaBackend {
                 self.add_code_str("+1)})");
             }
             Node::PUSH(push) => {
-                self.add_code_str("table.insert(");
                 self.compile_node(&*push.to_push);
-                self.add_code_str(",");
+                self.add_code_str(" .. ");
                 self.compile_node(&*push.item);
-                self.add_code_str(")")
             }
             Node::COPY(_) => {}
             Node::LOADLIB(lib) => {

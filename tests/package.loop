@@ -1,5 +1,7 @@
-double := fn(int num) {
-    return num * 2
+fn double(int a) {
+    return a * 2
 }
 
-export double
+export {
+    double
+}

@@ -1,10 +1,12 @@
+use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::Call;
+use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, Compound, Types};
+use crate::parser::types::{BaseTypes, Compound, FunctionType, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     // Change to a match when indexing with [] (eg array[0])
@@ -24,24 +26,107 @@ fn compile_expression_class_index(
     left: Expression,
     field: String,
 ) -> CompilerResult {
-    _compiler.add_to_current_function(".INDEX { ".to_string());
-    let result = _compiler.compile_expression(left);
+    _compiler.drier();
+    let result = _compiler.compile_expression(left.clone());
+    _compiler.undrier();
 
-    if let CompilerResult::Success(Types::Compound(Compound(ref name, ref fields))) = result {
-        if let Some(field) = fields.get(&field) {
-            _compiler
-                .add_to_current_function(format!("}} {{ .CONSTANT INT {}; }};", (field.0 as i32)));
+    if let CompilerResult::Success(mut check) = result {
+        if let Types::Array(arr) = check.clone() {
+            // Methods for arrays
+            return match field.as_str() {
+                "add" => {
+                    CompilerResult::Success(Types::Function(FunctionType {
+                        return_type: Box::new(Types::Void),
+                        parameter_types: vec![],
+                        reference: "ADD_TO_ARRAY".to_string(),
+                        is_method: false
+                    }))
+                }
+                &_ => {
+                    CompilerResult::Exception(CompilerException::UnknownField(
+                        field,
+                        format!("{:?}", check),
+                    ))
+                }
+            }
+        }
 
-            CompilerResult::Success(field.1 .0.clone())
-        } else {
-            CompilerResult::Exception(CompilerException::UnknownField(field, name.clone()))
+        if let Types::Function(func) = check {
+            check = *func.return_type.clone();
+        }
+
+        // Check if function exists with this specific signature
+        let var = _compiler.resolve_variable(&format!("{}_{}", check.transpile(), field));
+
+        if let Some(var) = var {
+            let result = compile_expression_identifier(_compiler, Identifier { value: var.name });
+
+            return result;
         }
     } else {
-        CompilerResult::Exception(CompilerException::UnknownField(
+        return result;
+    }
+
+    _compiler.add_to_current_function(".INDEX { ".to_string());
+
+    let result = _compiler.compile_expression(left);
+
+    fn find_type(_type: Types, _compiler: &mut Compiler) -> Option<Compound> {
+        match _type {
+            Types::Compound(c) => Some(c),
+            Types::Function(func) => match *func.return_type {
+                Types::Function(f) => find_type(*f.return_type, _compiler),
+                Types::Compound(c) => Some(c),
+                _ => None,
+            },
+            Types::Basic(BaseTypes::UserDefined(ref user)) => {
+                // Find a user defined type
+                let var = _compiler.resolve_variable(user);
+
+                if let Some(var) = var {
+                    if let Types::Compound(c) = var._type {
+                        return Some(c);
+                    }
+                }
+
+                None
+            }
+            _ => None,
+        }
+    }
+
+    if let CompilerResult::Success(ref success) = result {
+        let compound = find_type(success.clone(), _compiler);
+
+        if let Some(Compound(ref name, ref fields)) = compound {
+            let fields = fields.clone();
+            let found = fields.iter().find(|item| item.name == field);
+
+            if let Some(field) = found {
+                _compiler.add_to_current_function(format!(
+                    "}} {{ .CONSTANT INT {}; }};",
+                    (field.index as i32)
+                ));
+
+                return CompilerResult::Success(field.class_item_type.clone());
+            } else {
+                return CompilerResult::Exception(CompilerException::UnknownField(
+                    field,
+                    name.clone(),
+                ));
+            }
+        }
+
+        return CompilerResult::Exception(CompilerException::UnknownField(
             field,
             format!("{:?}", result),
-        ))
+        ));
     }
+
+    CompilerResult::Exception(CompilerException::UnknownField(
+        field,
+        format!("{:?}", result),
+    ))
 }
 
 fn _get_array_value_type(result: CompilerResult) -> Types {
@@ -64,7 +149,7 @@ pub fn compile_expression_assign_index(
         compiler.compile_expression(assign.value);
     } else {
         compiler.add_to_current_function(".INDEX {".to_string());
-        compiler.compile_expression(assign.left);
+        compiler.compile_expression(assign.left.clone());
 
         compiler.add_to_current_function("} {".to_string());
         compiler.compile_expression(assign.index);
@@ -120,11 +205,7 @@ pub fn compile_expression_extension_method(
 
     // Check if method exists in a library based on the "left".
     if let Expression::Identifier(ident) = left.clone() {
-        let var = compiler
-            .variable_scope
-            .as_ref()
-            .borrow()
-            .resolve(ident.value);
+        let var = compiler.resolve_variable(&ident.value);
 
         if let Some(var) = var {
             match var._type {
@@ -165,72 +246,11 @@ pub fn compile_expression_extension_method(
     }
 
     match method_id.unwrap() {
-        0 => transpile_extension_to_string(compiler, left),
-        1 => transpile_extension_to_int(compiler, left),
         2 => transpile_extension_add(compiler, call, left),
         3 => transpile_extension_remove(compiler, call, left),
         4 => transpile_extension_slice(compiler, call, left),
-        5 => transpile_extension_length(compiler, left),
         _ => unreachable!("Should not be here"),
     }
-}
-
-/// Transpiles the extension method 'to_string'
-///
-/// Take this Loop code:
-/// ```loop
-/// 500.to_string()
-/// ```
-///
-/// And generates this D code:
-/// ```d
-/// to!string(500)
-/// ```
-fn transpile_extension_to_string(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto, -1);
-
-    compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
-
-    let result = compiler.compile_expression(left);
-
-    compiler.add_to_current_function(";".to_string());
-
-    if let CompilerResult::Exception(exception) = result {
-        return CompilerResult::Exception(exception);
-    }
-
-    compiler.add_to_current_function(format!("return to!string({}); }}()", var.transpile()));
-
-    CompilerResult::Success(Types::Basic(BaseTypes::String))
-}
-
-/// Transpiles the extension method 'to_int'
-///
-/// Take this Loop code:
-/// ```loop
-/// "500".to_int()
-/// ```
-///
-/// And generates this D code:
-/// ```d
-/// to!int("500")
-/// ```
-fn transpile_extension_to_int(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    let var = compiler.define_variable("tmp_to_convert".to_string(), Types::Auto, -1);
-
-    compiler.add_to_current_function(format!("() {{ auto {} = ", var.transpile()));
-
-    let result = compiler.compile_expression(left);
-
-    compiler.add_to_current_function(".to!string;".to_string());
-
-    if let CompilerResult::Exception(exception) = result {
-        return CompilerResult::Exception(exception);
-    }
-
-    compiler.add_to_current_function(format!("return to!int({}); }}()", var.transpile()));
-
-    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }
 
 /// Transpiles the extension method 'add'
@@ -354,27 +374,4 @@ fn transpile_extension_slice(
     compiler.add_to_current_function(" .CONSTANT INT 1; }; };".to_string());
 
     CompilerResult::Success(slice_type)
-}
-
-/// Transpiles the extension method 'length'
-///
-/// Take this Loop code:
-/// ```loop
-/// var array = [10, 20, 30];
-/// var length = array.length()
-/// ```
-///
-/// And generates this D code:
-/// ```d
-/// auto var_array_0 = [10, 20, 30];
-/// auto length = to!int(var_array_0.length);
-/// ```
-fn transpile_extension_length(compiler: &mut Compiler, left: Expression) -> CompilerResult {
-    compiler.add_to_current_function(".LENGTH {".to_string());
-
-    compiler.compile_expression(left);
-
-    compiler.add_to_current_function("};".to_string());
-
-    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
 }

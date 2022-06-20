@@ -7,10 +7,7 @@ stages:
   - test     # cargo test and end2end_test.py
 
 .linux:
-  image: rust:1.61.0
-  before_script:
-    - rustup component add rustfmt
-    - rustup component add clippy
+  image: kaners/loop_build:latest
 # ==============================================================================
 #                             BEGINNING OF LINTING STAGE
 # ==============================================================================

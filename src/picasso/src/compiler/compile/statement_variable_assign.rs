@@ -6,10 +6,7 @@ pub fn compile_statement_variable_assign(
     compiler: &mut Compiler,
     variable: VariableAssign,
 ) -> CompilerResult {
-    let var = compiler
-        .variable_scope
-        .borrow_mut()
-        .resolve(format!("{}{}", compiler.location, variable.ident.value));
+    let var = compiler.resolve_variable(&variable.ident.value);
 
     if let Some(var_type) = var {
         if var_type.modifiers.constant {

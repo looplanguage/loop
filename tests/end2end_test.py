@@ -7,7 +7,7 @@ def main():
     # AddTest( FILE LOCATION OF LOOP FILE, EXPECTED ANSWER )
     # NOTE: The expected answer always needs to be a string
     add_test("test_comments.loop", "3")
-    #add_test("test_import_export.loop", "8")
+    add_test("test_import_export.loop", "20")
     add_test("test_function.loop", "9")
     if platform.system() == "Windows": # Windows handles "new_lines" different then Unix
         add_test("test_string.loop", "123Hello\r\nWorld!")
@@ -44,8 +44,10 @@ def main():
     # Println is made to just be print now
     # add_test("test_println.loop", "123")
     add_test("test_expression_statements.loop", "10946")
-    add_test("test_classes.loop", "2")
+    add_test("test_classes.loop", "400")
     add_test("test_import_lib.loop", "hello")
+    add_test("test_extend_types.loop", "129620")
+    add_test("test_classes_lazy.loop", "100")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:

@@ -73,6 +73,7 @@ impl SyntaxError {
             #[cfg(test)]
             panic!("See above!");
 
+            #[cfg(not(test))]
             process::exit(1);
         }
         let message = self.add_identation(8, self.extra_message.as_ref().unwrap().to_string());
@@ -82,6 +83,7 @@ impl SyntaxError {
         #[cfg(test)]
         panic!("See above!");
 
+        #[cfg(not(test))]
         process::exit(1);
     }
 

@@ -1,15 +1,27 @@
-class Person {
-    age = 0
-    name = ""
+class Shape {
+    x = 0
+    y = 0
+    sizeX = 0
+    sizeY = 0
+
+    int calculate_area() {
+        return 300
+    }
+
+    void constructor(int xWidth, int xHeight, int yWidth, int yHeight) {
+        self.x = xWidth
+        self.y = yWidth
+        self.sizeX = xHeight
+        self.sizeY = yHeight
+    }
 }
 
-john := Person()
-
-fn add_age(Person a) {
-    a.age = a.age + 1
+class Square < Shape {
+    int calculate_area() {
+        return self.x * self.sizeX + self.y * self.sizeY
+    }
 }
 
-add_age(john)
-add_age(john)
+square := Square(10, 20, 10, 20)
 
-john.age
+square.calculate_area()

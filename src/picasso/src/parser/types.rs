@@ -1,5 +1,4 @@
 use crate::parser::expression::Expression;
-use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -28,6 +27,7 @@ pub struct FunctionType {
     pub return_type: Box<Types>,
     pub parameter_types: Vec<Types>,
     pub reference: String,
+    pub is_method: bool,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -36,9 +36,17 @@ pub struct Library {
 }
 
 #[derive(Clone, PartialEq, Debug)]
+pub struct ClassItemType {
+    pub name: String,
+    pub index: u32,
+    pub class_item_type: Types,
+    pub value: Expression,
+}
+
+#[derive(Clone, PartialEq, Debug)]
 pub struct Compound(pub String, pub CompoundFields);
 
-type CompoundFields = Box<HashMap<String, (u32, (Types, Expression))>>;
+type CompoundFields = Box<Vec<ClassItemType>>;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Types {
