@@ -185,7 +185,7 @@ impl LuaBackend {
                         }
                     }
 
-                    self.add_code_str("}, { __concat = function(a, b) { return table.insert(a, b) } })");
+                    self.add_code_str("}, { __concat = function(a, b) return table.insert(a, b) end })");
                 }
             }
         }
@@ -303,7 +303,7 @@ impl LuaBackend {
                     let str = e.clone().char_arr_to_string();
                     let parts: Vec<&str> = str.split("::").collect();
 
-                    self.add_code(format!("{}.{}(", parts[0], parts[1]));
+                    self.add_code(format!("ffi.string({}.{}(", parts[0], parts[1]));
                     let mut index = 0;
                     for argument in &call.arguments {
                         index += 1;
@@ -313,7 +313,7 @@ impl LuaBackend {
                             self.add_code_str(",");
                         }
                     }
-                    self.add_code_str(")");
+                    self.add_code_str("))");
                 // Calling a user-defined function or a class
                 } else {
                     self.compile_node(&call.call);
