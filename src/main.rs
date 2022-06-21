@@ -1,5 +1,6 @@
 mod lib;
 
+use std::process::Command;
 use crate::lib::util::get_flags;
 
 fn main() {
@@ -10,4 +11,5 @@ fn main() {
     } else {
         lib::repl::start();
     }
+
 }

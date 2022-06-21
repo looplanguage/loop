@@ -1,0 +1,33 @@
+import "std" as std
+
+class Container {
+  id = ""
+  last_result = ""
+
+  void constructor(string id, string image) {
+    self.id = id
+    std.execute("docker stop ".add(id))
+    std.execute("docker rm ".add(id))
+
+    result := std.execute("docker run --name ".add(id).add(" -d -p 3000:80 ".add(image)))
+
+    self.last_result = result
+  }
+
+  string run(string cmd) {
+    return std.execute("docker exec ".add(self.id).add(" ").add(cmd))
+  }
+
+  string get_last_result() {
+    return self.last_result
+  }
+}
+
+std.println("Creating the NGINX Docker container")
+
+httpServer := Container("new_id", "nginx")  
+
+result := httpServer.run("ls -al")
+std.println(result)
+
+"\n\nProgram ended"
