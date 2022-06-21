@@ -521,6 +521,7 @@ dependencies = [
 name = "sanzio"
 version = "0.1.0"
 dependencies = [
+ "colored",
  "libloading",
  "mlua",
  "vinci",

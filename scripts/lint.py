@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-expected_cargo_version = "1.63"
+expected_cargo_version = "1.60"
 crates_to_test = ["..", "picasso", "sanzio", "vinci"]
 src_dir = "src/"
 root_dir = os.getcwd()
