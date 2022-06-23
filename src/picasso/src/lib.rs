@@ -1,3 +1,4 @@
+use std::path::Path;
 use crate::compiler::CompilerState;
 use std::process::exit;
 
@@ -23,13 +24,22 @@ pub fn compile_with_state(str: &str, state: CompilerState) -> (String, CompilerS
     (compiled.unwrap().get_arc(), compiler.get_compiler_state())
 }
 
-pub fn compile(str: &str) -> (String, CompilerState) {
+pub fn compile(str: &str, file_location: Option<&str>) -> (String, CompilerState) {
     let lexer = lexer::build_lexer(str);
     let mut parser = parser::build_parser(lexer);
 
     let program = parser.parse();
 
     let mut compiler = compiler::Compiler::default();
+    if let Some(file) = file_location {
+        let path = Path::new(file);
+        println!("FILE: {:?}", path);
+        if let Some(_) = path.extension() {
+            compiler.base_location = path.parent().unwrap().to_str().unwrap().to_string()
+        } else {
+            compiler.base_location = file.to_string();
+        }
+    }
 
     let compiled = compiler.compile(program);
 

@@ -1,3 +1,4 @@
+use std::fmt::format;
 use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression;
@@ -46,6 +47,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> Co
                 statements: methods
                     .iter()
                     .map(|item| {
+                        println!("Name: {}", item.name);
                         Statement::Expression(Box::new(Expression {
                             expression: Box::new(AssignIndex(Box::new(
                                 assign_index::AssignIndex {
@@ -56,7 +58,7 @@ pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> Co
                                         value: item.name.clone(),
                                     }),
                                     value: expression::Expression::Identifier(Identifier {
-                                        value: item.name.clone(),
+                                        value: format!("{}{}", _compiler.location, item.name.clone()),
                                     }),
                                 },
                             ))),
@@ -68,10 +70,14 @@ pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> Co
     });
 
     let class = Class {
-        name: "__export".to_string(),
+        name: format!("__export_{}", _compiler.location),
         values: methods,
         inherits: "".to_string(),
     };
 
-    compile_class_statement(_compiler, class)
+    let result = compile_class_statement(_compiler, class);
+
+    println!("RESULT: {:?}", result);
+
+    CompilerResult::Success(Types::Void)
 }

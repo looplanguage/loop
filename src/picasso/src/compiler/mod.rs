@@ -106,6 +106,7 @@ pub struct Compiler {
     pub extensions: HashMap<String, Vec<Method>>,
     // Specifies whether or not compiling should add code
     pub dry: u32,
+    pub base_location: String,
 }
 
 #[derive(Clone)]
@@ -127,7 +128,7 @@ impl Default for Compiler {
             prev_location: String::new(),
             breaks: Vec::new(),
             extensions: HashMap::new(),
-            locations: Vec::new(),
+            locations: vec![],
             imports: Vec::new(),
             functions: HashMap::from([(
                 "main".to_string(),
@@ -142,6 +143,7 @@ impl Default for Compiler {
             function_count: 0,
             current_function: String::from("main"),
             dry: 0,
+            base_location: "".to_string()
         }
     }
 }
@@ -190,14 +192,17 @@ impl Compiler {
 
     pub fn enter_location(&mut self, location: String) {
         self.locations.push(location.clone());
-        self.location = location
+        self.location = location;
     }
 
     pub fn exit_location(&mut self) -> String {
-        let loc = self.locations.pop().unwrap();
-        self.location = loc.clone();
+        if self.locations.len() > 1 {
+            self.location = self.locations.get(self.locations.len() - 2).unwrap().to_string();
+        } else {
+            self.location = "".to_string();
+        }
 
-        loc
+        self.location.clone()
     }
 
     /// Allows you to use Loop code within the compiler
@@ -369,6 +374,21 @@ impl Compiler {
 
     /// Defines a new variable and increases the amount of variables that exist
     fn define_variable(&mut self, name: String, var_type: Types, parameter_id: i32) -> Variable {
+        if name.starts_with("__export_") {
+            let var = self.variable_scope.borrow_mut().define(
+                self.variable_count,
+                name.to_string(),
+                var_type,
+                Modifiers::default(),
+                parameter_id,
+                self.function_count,
+            );
+
+            self.variable_count += 1;
+
+            return var;
+        }
+
         let var = self.variable_scope.borrow_mut().define(
             self.variable_count,
             format!("{}{}", self.location, name),

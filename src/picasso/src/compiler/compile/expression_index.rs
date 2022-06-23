@@ -52,7 +52,7 @@ fn compile_expression_class_index(
         }
 
         // Check if function exists with this specific signature
-        let var = _compiler.resolve_variable(&format!("{}_{}", check.transpile(), field));
+        let var = _compiler.resolve_variable(&format!("{}{}", check.transpile(), field));
 
         if let Some(var) = var {
             let result = compile_expression_identifier(_compiler, Identifier { value: var.name });
@@ -138,25 +138,29 @@ pub fn compile_expression_assign_index(
     assign: AssignIndex,
 ) -> CompilerResult {
     compiler.add_to_current_function(".ASSIGN { ".to_string());
+    let mut err = None;
     if let Expression::Identifier(ident) = assign.index {
-        compile_expression_class_index(compiler, assign.left, ident.value);
+        err = Some(compile_expression_class_index(compiler, assign.left, ident.value));
 
         compiler.add_to_current_function("} { ".to_string());
-        compiler.compile_expression(assign.value);
+        println!("VALUE: {:?}", assign.value.clone());
+        err = Some(compiler.compile_expression(assign.value));
     } else {
         compiler.add_to_current_function(".INDEX {".to_string());
-        compiler.compile_expression(assign.left.clone());
+        err = Some(compiler.compile_expression(assign.left.clone()));
+        println!("ERROR: {:?}", err);
 
         compiler.add_to_current_function("} {".to_string());
-        compiler.compile_expression(assign.index);
+        err = Some(compiler.compile_expression(assign.index));
+        println!("ERROR: {:?}", err);
         compiler.add_to_current_function("}; } {".to_string());
 
-        compiler.compile_expression(assign.value);
+        err = Some(compiler.compile_expression(assign.value));
     }
 
     compiler.add_to_current_function("};".to_string());
 
-    CompilerResult::Success(Types::Void)
+    err.unwrap_or(CompilerResult::Success(Types::Void))
 }
 
 fn compile_expression_index_internal(

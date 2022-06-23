@@ -51,6 +51,13 @@ impl VariableScope {
         parameter_id: i32,
         function_identifier: i32,
     ) -> Variable {
+        println!("Defining: {}", name);
+        if name.clone().starts_with("__export_") {
+            if let Some(outer) = &self.outer {
+                return outer.as_ref().borrow_mut().define(index, name, _type, modifiers, parameter_id, function_identifier);
+            }
+        }
+
         self.variables.push(Rc::from(RefCell::from(Variable {
             index,
             name,
@@ -80,10 +87,15 @@ impl VariableScope {
         index: u32,
         name: String,
     ) -> Option<Rc<RefCell<Variable>>> {
+        println!("Name: {}", name);
         for rc_variable in &self.variables {
             let variable = rc_variable.as_ref().borrow();
             if variable.name == name && variable.index == index {
                 return Some(rc_variable.clone());
+            } else {
+                if let Some(outer) = &self.outer {
+                    return outer.as_ref().borrow_mut().get_variable_mutable(index, name);
+                }
             }
         }
 
@@ -91,6 +103,7 @@ impl VariableScope {
     }
 
     pub fn resolve(&self, name: String) -> Option<Variable> {
+        println!("Resolving: {}", name);
         for variable in &self.variables {
             let variable = variable.as_ref().borrow();
 
