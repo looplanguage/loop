@@ -1,4 +1,3 @@
-use std::fmt::format;
 use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression;
@@ -58,7 +57,11 @@ pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> Co
                                         value: item.name.clone(),
                                     }),
                                     value: expression::Expression::Identifier(Identifier {
-                                        value: format!("{}{}", _compiler.location, item.name.clone()),
+                                        value: format!(
+                                            "{}{}",
+                                            _compiler.location,
+                                            item.name.clone()
+                                        ),
                                     }),
                                 },
                             ))),

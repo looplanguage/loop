@@ -122,9 +122,7 @@ pub fn compile_expression_function(
         parameter_types.push(parameter._type.clone());
 
         // Try to find it
-        let mut found = compiler.resolve_variable(&_type);
-
-        println!("Type: {}", _type);
+        let found = compiler.resolve_variable(&_type);
 
         if let Some(found) = found {
             compiler.add_to_current_function(format!("{};", found.transpile()));

@@ -52,9 +52,16 @@ impl VariableScope {
         function_identifier: i32,
     ) -> Variable {
         println!("Defining: {}", name);
-        if name.clone().starts_with("__export_") {
+        if name.starts_with("__export_") {
             if let Some(outer) = &self.outer {
-                return outer.as_ref().borrow_mut().define(index, name, _type, modifiers, parameter_id, function_identifier);
+                return outer.as_ref().borrow_mut().define(
+                    index,
+                    name,
+                    _type,
+                    modifiers,
+                    parameter_id,
+                    function_identifier,
+                );
             }
         }
 
@@ -92,10 +99,11 @@ impl VariableScope {
             let variable = rc_variable.as_ref().borrow();
             if variable.name == name && variable.index == index {
                 return Some(rc_variable.clone());
-            } else {
-                if let Some(outer) = &self.outer {
-                    return outer.as_ref().borrow_mut().get_variable_mutable(index, name);
-                }
+            } else if let Some(outer) = &self.outer {
+                return outer
+                    .as_ref()
+                    .borrow_mut()
+                    .get_variable_mutable(index, name);
             }
         }
 

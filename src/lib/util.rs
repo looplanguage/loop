@@ -54,7 +54,7 @@ pub fn run_file(path: String) {
 
     let arc = picasso::compile(content.as_str(), Some(path.as_str()));
     if CONFIG.debug_mode {
-        println!("Arc\n#---------\n{}\n---------#", arc.0.replace("{", "{\n"));
+        println!("Arc\n#---------\n{}\n---------#", arc.0);
     }
 
     let ast = vinci::parse(&*arc.0);

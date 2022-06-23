@@ -143,7 +143,7 @@ impl Default for Compiler {
             function_count: 0,
             current_function: String::from("main"),
             dry: 0,
-            base_location: "".to_string()
+            base_location: "".to_string(),
         }
     }
 }
@@ -197,7 +197,11 @@ impl Compiler {
 
     pub fn exit_location(&mut self) -> String {
         if self.locations.len() > 1 {
-            self.location = self.locations.get(self.locations.len() - 2).unwrap().to_string();
+            self.location = self
+                .locations
+                .get(self.locations.len() - 2)
+                .unwrap()
+                .to_string();
         } else {
             self.location = "".to_string();
         }
@@ -377,7 +381,7 @@ impl Compiler {
         if name.starts_with("__export_") {
             let var = self.variable_scope.borrow_mut().define(
                 self.variable_count,
-                name.to_string(),
+                name,
                 var_type,
                 Modifiers::default(),
                 parameter_id,

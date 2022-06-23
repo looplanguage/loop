@@ -1,5 +1,5 @@
-use std::path::Path;
 use crate::compiler::CompilerState;
+use std::path::Path;
 use std::process::exit;
 
 pub mod compiler;
@@ -34,7 +34,7 @@ pub fn compile(str: &str, file_location: Option<&str>) -> (String, CompilerState
     if let Some(file) = file_location {
         let path = Path::new(file);
         println!("FILE: {:?}", path);
-        if let Some(_) = path.extension() {
+        if path.extension().is_some() {
             compiler.base_location = path.parent().unwrap().to_str().unwrap().to_string()
         } else {
             compiler.base_location = file.to_string();

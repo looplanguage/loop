@@ -138,29 +138,25 @@ pub fn compile_expression_assign_index(
     assign: AssignIndex,
 ) -> CompilerResult {
     compiler.add_to_current_function(".ASSIGN { ".to_string());
-    let mut err = None;
     if let Expression::Identifier(ident) = assign.index {
-        err = Some(compile_expression_class_index(compiler, assign.left, ident.value));
+        compile_expression_class_index(compiler, assign.left, ident.value);
 
         compiler.add_to_current_function("} { ".to_string());
-        println!("VALUE: {:?}", assign.value.clone());
-        err = Some(compiler.compile_expression(assign.value));
+        compiler.compile_expression(assign.value);
     } else {
         compiler.add_to_current_function(".INDEX {".to_string());
-        err = Some(compiler.compile_expression(assign.left.clone()));
-        println!("ERROR: {:?}", err);
+        compiler.compile_expression(assign.left.clone());
 
         compiler.add_to_current_function("} {".to_string());
-        err = Some(compiler.compile_expression(assign.index));
-        println!("ERROR: {:?}", err);
+        compiler.compile_expression(assign.index);
         compiler.add_to_current_function("}; } {".to_string());
 
-        err = Some(compiler.compile_expression(assign.value));
+        compiler.compile_expression(assign.value);
     }
 
     compiler.add_to_current_function("};".to_string());
 
-    err.unwrap_or(CompilerResult::Success(Types::Void))
+    CompilerResult::Success(Types::Void)
 }
 
 fn compile_expression_index_internal(

@@ -9,28 +9,29 @@ use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
 use crate::parser::{build_parser, expression};
 use std::ffi::OsStr;
-use std::fmt::format;
 use std::fs;
 use std::path::Path;
 
 pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> CompilerResult {
     let import_as = import.identifier.clone();
-    let mut file_path = import.file.clone();
+    let file_path = import.file.clone();
 
     // Find the file, based on the current location of the compiler
     let mut compiler_location = Path::new(compiler.location.as_str());
-    if let Some(loc) =  compiler_location.parent() {
+    if let Some(loc) = compiler_location.parent() {
         compiler_location = loc;
     }
 
-    let path = Path::new(compiler.base_location.as_str()).join(compiler_location).join(Path::new(file_path.as_str()));
+    let path = Path::new(compiler.base_location.as_str())
+        .join(compiler_location)
+        .join(Path::new(file_path.as_str()));
 
     let extension: Option<&str> = path.extension().and_then(OsStr::to_str);
 
     // Check if path ends with ".loop" or ".lp"
     if let Some(extension) = extension {
         if extension == "loop" || extension == "lp" {
-            let mut path_as_string = path.to_str().unwrap().to_string();
+            let path_as_string = path.to_str().unwrap().to_string();
 
             // Check if file exists
             if !path.exists() {
@@ -66,7 +67,8 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
 
             compiler.exit_location();
 
-            let export = compiler.resolve_with_location(&format!("__export_{}", path_as_string), &"".to_string());
+            let export = compiler
+                .resolve_with_location(&format!("__export_{}", path_as_string), &"".to_string());
 
             // Now define it here
             if let Some(export) = export {
