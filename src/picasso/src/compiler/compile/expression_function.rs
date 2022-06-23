@@ -149,10 +149,19 @@ pub fn compile_expression_function(
     };
 
     // Set return type of named function, if it exists
+    let return_name = {
+        if let Some(var) = compiler.resolve_variable(&return_type.transpile()) {
+            var.transpile()
+        } else {
+            return_type.transpile()
+        }
+    };
+
     compiler.replace_at_current_function(
         format!("REPLACE_TYPE_{}", random_identifier),
-        return_type.transpile(),
+        return_name,
     );
+
     function_type = if named_function.is_some() {
         Types::Function(FunctionType {
             return_type: Box::from(return_type),

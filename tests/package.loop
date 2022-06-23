@@ -2,6 +2,21 @@ fn double(int a) {
     return a * 2
 }
 
+class Vector2 {
+    x = 0
+    y = 0
+
+    void constructor(int x, int y) {
+        self.x = x
+        self.y = y
+    }
+}
+
+fn get_class() {
+    return Vector2(10, 20)
+}
+
 export {
-    double
+    double,
+    get_class
 }

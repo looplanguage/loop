@@ -1,5 +1,10 @@
 // Expected result from test: 8
 import "./tests/package.loop" as package
 
-// 4 * 2
 package.double(10)
+
+a := package.get_class()
+b := package.get_class()
+
+a.x = 400
+b.x + a.x + package.double(10)
