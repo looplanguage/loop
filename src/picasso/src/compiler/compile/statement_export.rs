@@ -46,7 +46,6 @@ pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> Co
                 statements: methods
                     .iter()
                     .map(|item| {
-                        println!("Name: {}", item.name);
                         Statement::Expression(Box::new(Expression {
                             expression: Box::new(AssignIndex(Box::new(
                                 assign_index::AssignIndex {
@@ -78,9 +77,5 @@ pub fn compile_export_statement(_compiler: &mut Compiler, _export: Export) -> Co
         inherits: "".to_string(),
     };
 
-    let result = compile_class_statement(_compiler, class);
-
-    println!("RESULT: {:?}", result);
-
-    CompilerResult::Success(Types::Void)
+    compile_class_statement(_compiler, class)
 }

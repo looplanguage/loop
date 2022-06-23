@@ -51,7 +51,6 @@ impl VariableScope {
         parameter_id: i32,
         function_identifier: i32,
     ) -> Variable {
-        println!("Defining: {}", name);
         if name.starts_with("__export_") {
             if let Some(outer) = &self.outer {
                 return outer.as_ref().borrow_mut().define(
@@ -94,7 +93,6 @@ impl VariableScope {
         index: u32,
         name: String,
     ) -> Option<Rc<RefCell<Variable>>> {
-        println!("Name: {}", name);
         for rc_variable in &self.variables {
             let variable = rc_variable.as_ref().borrow();
             if variable.name == name && variable.index == index {
@@ -111,7 +109,6 @@ impl VariableScope {
     }
 
     pub fn resolve(&self, name: String) -> Option<Variable> {
-        println!("Resolving: {}", name);
         for variable in &self.variables {
             let variable = variable.as_ref().borrow();
 

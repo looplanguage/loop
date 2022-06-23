@@ -33,7 +33,6 @@ pub fn compile(str: &str, file_location: Option<&str>) -> (String, CompilerState
     let mut compiler = compiler::Compiler::default();
     if let Some(file) = file_location {
         let path = Path::new(file);
-        println!("FILE: {:?}", path);
         if path.extension().is_some() {
             compiler.base_location = path.parent().unwrap().to_str().unwrap().to_string()
         } else {
