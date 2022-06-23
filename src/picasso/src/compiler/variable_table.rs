@@ -86,8 +86,6 @@ impl VariableScope {
     }
 
     /// This will get a mutable reference to a variable
-    /// **Note**: This will not recursively search the tree upwards, it will **ONLY** look in the
-    /// current scope.
     pub fn get_variable_mutable(
         &mut self,
         index: u32,

@@ -52,7 +52,7 @@ fn compile_expression_class_index(
         }
 
         // Check if function exists with this specific signature
-        let var = _compiler.resolve_variable(&format!("{}{}", check.transpile(), field));
+        let var = _compiler.resolve_variable(&format!("{}_{}", check.transpile(), field));
 
         if let Some(var) = var {
             let result = compile_expression_identifier(_compiler, Identifier { value: var.name });

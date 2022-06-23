@@ -22,11 +22,14 @@ pub fn compile_statement_variable_declaration(
 
     compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
-    let variable_borrowed = compiler
-        .variable_scope
-        .borrow_mut()
-        .get_variable_mutable(var.index, var.name)
-        .unwrap();
+    let mut variable_borrowed = None;
+    for variable in compiler.variable_scope.as_ref().borrow_mut().variables.clone() {
+        if variable.as_ref().borrow().name == var.name {
+            variable_borrowed = Some(variable);
+        }
+    }
+
+    let variable_borrowed = variable_borrowed.unwrap();
 
     let result = compiler.compile_expression(*variable.value);
 
