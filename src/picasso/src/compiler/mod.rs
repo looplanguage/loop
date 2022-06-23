@@ -391,10 +391,7 @@ impl Compiler {
                 .resolve(format!("{}{}", self.location, name.clone()));
 
         if var.is_none() {
-            var = self
-                .variable_scope
-                .borrow_mut()
-                .resolve(format!("{}", name))
+            var = self.variable_scope.borrow_mut().resolve(name.to_string())
         }
 
         var

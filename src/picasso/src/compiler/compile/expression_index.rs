@@ -31,28 +31,24 @@ fn compile_expression_class_index(
     _compiler.undrier();
 
     if let CompilerResult::Success(mut check) = result {
-        if let Types::Array(arr) = check.clone() {
+        if let Types::Array(_) = check {
             // Methods for arrays
             return match field.as_str() {
-                "add" => {
-                    CompilerResult::Success(Types::Function(FunctionType {
-                        return_type: Box::new(Types::Void),
-                        parameter_types: vec![],
-                        reference: "ADD_TO_ARRAY".to_string(),
-                        is_method: false
-                    }))
-                }
-                &_ => {
-                    CompilerResult::Exception(CompilerException::UnknownField(
-                        field,
-                        format!("{:?}", check),
-                    ))
-                }
-            }
+                "add" => CompilerResult::Success(Types::Function(FunctionType {
+                    return_type: Box::new(Types::Void),
+                    parameter_types: vec![],
+                    reference: "ADD_TO_ARRAY".to_string(),
+                    is_method: false,
+                })),
+                &_ => CompilerResult::Exception(CompilerException::UnknownField(
+                    field,
+                    format!("{:?}", check),
+                )),
+            };
         }
 
         if let Types::Function(func) = check {
-            check = *func.return_type.clone();
+            check = *func.return_type;
         }
 
         // Check if function exists with this specific signature

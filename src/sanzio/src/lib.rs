@@ -185,7 +185,9 @@ impl LuaBackend {
                         }
                     }
 
-                    self.add_code_str("}, { __concat = function(a, b) return table.insert(a, b) end })");
+                    self.add_code_str(
+                        "}, { __concat = function(a, b) return table.insert(a, b) end })",
+                    );
                 }
             }
         }
@@ -316,7 +318,10 @@ impl LuaBackend {
                     if parts[1] == "println" || parts[1] == "print" {
                         self.add_code(format!("{}.{}(", parts[0], parts[1]))
                     } else {
-                        self.add_code(format!("(function() local res = {}.{}(", parts[0], parts[1]));
+                        self.add_code(format!(
+                            "(function() local res = {}.{}(",
+                            parts[0], parts[1]
+                        ));
                     }
                     let mut index = 0;
                     for argument in &call.arguments {
@@ -330,7 +335,7 @@ impl LuaBackend {
                     if parts[1] == "println" || parts[1] == "print" {
                         self.add_code_str(")");
                     } else {
-                        self.add_code(format!(") if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()"));
+                        self.add_code("if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()".to_string());
                     }
                 // Calling a user-defined function or a class
                 } else {

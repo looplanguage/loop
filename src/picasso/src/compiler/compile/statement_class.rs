@@ -1,10 +1,9 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::parser::expression::function::{Function, Parameter};
-use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::function::Function;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::statement::class::{Class, ClassItem};
-use crate::parser::types::{BaseTypes, ClassItemType, Compound, FunctionType, Types};
+use crate::parser::types::{ClassItemType, Compound, FunctionType, Types};
 
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: Vec<ClassItemType> = Vec::new();

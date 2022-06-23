@@ -1,11 +1,9 @@
-use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
-use crate::lexer::{build_lexer, Lexer};
+use crate::lexer::build_lexer;
 use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
-use crate::parser::statement::assign::VariableAssign;
 use crate::parser::statement::import::Import;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
@@ -38,12 +36,12 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
             let contents = fs::read_to_string(path.clone());
 
             let contents = {
-                if contents.is_err() {
+                if let Ok(contents) = contents {
+                    contents
+                } else {
                     return CompilerResult::Exception(CompilerException::CanNotReadFile(
                         path_as_string,
                     ));
-                } else {
-                    contents.unwrap()
                 }
             };
 
@@ -67,9 +65,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
             // Now define it here
             if let Some(export) = export {
                 let assign = VariableDeclaration {
-                    ident: Identifier {
-                        value: import_as.to_string(),
-                    },
+                    ident: Identifier { value: import_as },
                     value: Box::new(expression::Expression::Call(Call {
                         identifier: Box::new(expression::Expression::Identifier(Identifier {
                             value: export.name.clone(),
@@ -78,7 +74,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
                             value: export.name,
                         })],
                     })),
-                    data_type: export._type.clone(),
+                    data_type: export._type,
                 };
 
                 return compile_statement_variable_declaration(compiler, assign);

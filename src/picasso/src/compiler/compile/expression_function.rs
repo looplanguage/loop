@@ -157,10 +157,8 @@ pub fn compile_expression_function(
         }
     };
 
-    compiler.replace_at_current_function(
-        format!("REPLACE_TYPE_{}", random_identifier),
-        return_name,
-    );
+    compiler
+        .replace_at_current_function(format!("REPLACE_TYPE_{}", random_identifier), return_name);
 
     function_type = if named_function.is_some() {
         Types::Function(FunctionType {

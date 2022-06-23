@@ -6,7 +6,7 @@ pub fn compile_expression_identifier(
     compiler: &mut Compiler,
     identifier: Identifier,
 ) -> CompilerResult {
-    let mut var = compiler.resolve_variable(&identifier.value);
+    let var = compiler.resolve_variable(&identifier.value);
 
     if let Some(var) = var {
         if var.parameter_id > -1 {

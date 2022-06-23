@@ -1,10 +1,9 @@
 use crate::lexer::token::TokenType;
-use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
 use crate::parser::Parser;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Export {
     pub names: Vec<String>,
 }
