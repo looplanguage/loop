@@ -4,17 +4,19 @@
 stages:
   - lint     # Doing a clippy and fmt test
   - check    # Checking for compilition errors, but without the code generation
-  - test     # cargo test and end2end_test.py
+  - test     # cargo +nightly test and end2end_test.py
 
 .linux:
+  variables:
+    CARGO_UNSTABLE_SPARSE_REGISTRY: "true"
   image: kaners/loop_build:latest
 # ==============================================================================
 #                             BEGINNING OF LINTING STAGE
 # ==============================================================================
 .lint_test:
   script:
-    - cargo clippy -- -D warnings
-    - cargo fmt --all -- --check
+    - cargo +nightly clippy -- -D warnings
+    - cargo +nightly fmt --all -- --check
 
 loop lint:
   extends: .linux
@@ -37,7 +39,7 @@ picasso lint:
     - cd src/picasso/
     - !reference [.lint_test, script]
 
-vinci lint: 
+vinci lint:
   extends: .linux
   only:
     refs:
@@ -49,7 +51,7 @@ vinci lint:
     - cd src/vinci/
     - !reference [.lint_test, script]
 
-sanzio lint: 
+sanzio lint:
   extends: .linux
   only:
     refs:
@@ -69,7 +71,7 @@ sanzio lint:
 # ==============================================================================
 .check:
   script:
-    - cargo check
+    - cargo +nightly check
 
 loop check:
   extends: .linux
@@ -106,7 +108,7 @@ vinci check:
     - cd src/vinci/
     - !reference [.check, script]
 
-sanzio check: 
+sanzio check:
   extends: .linux
   only:
     refs:
@@ -126,7 +128,7 @@ sanzio check:
 # ==============================================================================
 .test:
   script:
-    - cargo test
+    - cargo +nightly test
 
 loop test:
   extends: .linux
@@ -146,7 +148,7 @@ loop end2end_test:
   script:
     - apt-get update
     - apt-get install python3 python3-pip python3-distutils -y
-    - cargo build --release
+    - cargo +nightly build --release
     - python3 tests/end2end_test.py
 
 picasso test:
@@ -161,7 +163,7 @@ picasso test:
     - cd src/picasso/
     - !reference [.test, script]
 
-vinci test: 
+vinci test:
   extends: .linux
   only:
     refs:
