@@ -340,10 +340,26 @@ impl LuaBackend {
                 self.add_code_str(" end end)()");
             }
             Node::INDEX(idx) => {
+                // Created code
+                // var_0 = "hello"
+                // (function()
+                //      if type(var_0) == "string" then
+                //          return string.sub(var_0, 0, 1)
+                //      else
+                //          return var_0[0 + 1]
+                //        end
+                // end)()
+                self.add_code_str("(function() if type(");
+                self.compile_node(&idx.to_index);
+                self.add_code_str(") == \"string\" then return string.sub(");
+                self.compile_node(&idx.to_index);
+                self.add_code_str(", ");
+                self.compile_node(&idx.index);
+                self.add_code_str(", 1) else return ");
                 self.compile_node(&idx.to_index);
                 self.add_code_str("[");
                 self.compile_node(&idx.index);
-                self.add_code_str("+ 1]");
+                self.add_code_str(" + 1] end end)()");
             }
             Node::SLICE(slice) => {
                 self.add_code_str("({unpack(");
