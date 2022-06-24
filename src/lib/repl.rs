@@ -1,9 +1,9 @@
+use crate::lib::config::CONFIG;
 use crate::lib::util::print_valuetype;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use sanzio::parse_multivalue;
 use vinci::types::ValueType;
-use crate::lib::config::CONFIG;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
