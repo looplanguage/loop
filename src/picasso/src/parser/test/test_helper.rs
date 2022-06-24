@@ -80,6 +80,7 @@ pub mod test_helper {
             body: Block { statements },
             name: "".to_string(),
             predefined_type: None,
+            public: false,
         })
     }
 
