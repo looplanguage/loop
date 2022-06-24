@@ -8,7 +8,7 @@ stages:
 
 .linux:
   variables:
-    CARGO_UNSTABLE_SPARSE_REGISTRY: true
+    CARGO_UNSTABLE_SPARSE_REGISTRY: "true"
   image: kaners/loop_build:latest
 # ==============================================================================
 #                             BEGINNING OF LINTING STAGE
