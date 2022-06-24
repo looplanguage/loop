@@ -123,8 +123,6 @@ pub fn compile_expression_function(
         // Try to find it
         let found = compiler.resolve_variable(&_type);
 
-        println!("Name: {} {:?} {}", compiler.location, found, _type);
-
         if let Some(found) = found {
             compiler.add_to_current_function(format!("{};", found.transpile()));
         } else {
