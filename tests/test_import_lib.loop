@@ -1,3 +1,3 @@
-import "tests/std" as std
+import "std" as std
 
 std.println("hello")
