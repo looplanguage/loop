@@ -9,6 +9,9 @@ use vinci::ast::instructions::suffix::BinaryOperation;
 use vinci::ast::instructions::Node;
 use vinci::types::ValueType;
 
+mod exception;
+use exception::throw_runtime_exception;
+
 pub struct Sanzio {
     #[cfg(feature = "mlua")]
     lua: Lua,
@@ -83,7 +86,8 @@ impl Sanzio {
 struct LuaBackend {
     code: String,
     doing_statement: bool,
-    libs: Vec<String>,
+    library_paths: Vec<String>,
+    library_names: Vec<String>,
 }
 
 impl LuaBackend {
@@ -100,7 +104,8 @@ impl LuaBackend {
             #[cfg(not(feature = "libloading"))]
             code: String::from(""),
             doing_statement: false,
-            libs: vec![],
+            library_paths: vec![],
+            library_names: vec![],
         }
     }
 
@@ -191,13 +196,6 @@ impl LuaBackend {
                 }
             }
         }
-    }
-
-    fn add_library(&mut self, lib_name: String) {
-        if self.libs.contains(&lib_name) {
-            println!("Library is already loaded");
-        }
-        self.libs.push(lib_name);
     }
 
     fn compile_node(&mut self, node: &Node) {
@@ -385,11 +383,12 @@ impl LuaBackend {
                 self.compile_node(&*push.item);
             }
             Node::COPY(_) => {}
-            Node::LOADLIB(lib) => {
-                if let Ok(str) = self.get_lib_signiture(lib.clone().get_path()) {
+            Node::LOADLIB(lib) => match self.get_lib_signiture(lib.clone().get_path()) {
+                Ok(str) => {
                     let extension = if cfg!(windows) { "dll" } else { "so" };
 
-                    self.add_library(lib.clone().get_path());
+                    self.add_library_path(lib.clone().get_path());
+                    self.add_library_namespace(lib.clone().namespace);
                     self.add_code(format!("ffi.cdef[[ {} ]]", str.as_str()));
                     self.add_code(format!(
                         "{} = ffi.load(\"{}.{}\")",
@@ -397,10 +396,12 @@ impl LuaBackend {
                         lib.clone().get_path(),
                         extension
                     ))
-                } else {
-                    panic!("Somethings went wrong during loading of library");
                 }
-            }
+                Err(str) => {
+                    throw_runtime_exception(str, None);
+                    unreachable!("Loadlib should crash at this point")
+                }
+            },
             Node::RETURN(rt) => {
                 self.doing_statement = true;
                 self.add_code_str("return ");
@@ -481,19 +482,37 @@ impl LuaBackend {
         }
     }
 
-    fn get_lib_signiture(&self, _path: String) -> Result<String, ()> {
+    fn add_library_path(&mut self, lib_path: String) {
+        if self.library_paths.contains(&lib_path) {
+            println!("RuntimeWarning: Library is already loaded");
+        }
+        self.library_paths.push(lib_path);
+    }
+
+    fn add_library_namespace(&mut self, lib_name: String) {
+        if self.library_names.contains(&lib_name) {
+            throw_runtime_exception(
+                format!("The libary alias {}, is already in use", lib_name),
+                None,
+            );
+        }
+
+        self.library_names.push(lib_name);
+    }
+
+    fn get_lib_signiture(&self, _path: String) -> Result<String, String> {
         #[cfg(feature = "libloading")]
         {
             use std::ffi::CStr;
             use std::os::raw::c_char;
 
-            let full_path: String = if std::env::consts::OS == "windows" {
+            let full_path = if std::env::consts::OS == "windows" {
                 format!("{}.dll", _path)
             } else {
                 format!("{}.so", _path)
             };
 
-            let lib = libloading::Library::new(full_path);
+            let lib = libloading::Library::new(full_path.clone());
             if let Ok(l) = lib {
                 unsafe {
                     let signature = l.get(b"library_signatures");
@@ -501,14 +520,19 @@ impl LuaBackend {
                         let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
                         let str = CStr::from_ptr(func()).to_str().unwrap().to_owned();
                         return Ok(str);
-                    } else if let Err(err) = signature {
-                        println!("{}", err);
+                    } else if let Err(_) = signature {
+                        return Err(String::from(
+                            "Could not call the 'library_signatures' function",
+                        ));
+                    } else {
+                        unreachable!("get_lib_signatures is not supposed to get here")
                     }
-
-                    return Err(());
                 }
+            } else {
+                return Err(format!("The library: {}, does not exist", full_path));
             }
         }
-        Err(())
+        #[allow(unreachable_code)]
+        Err(String::from("Loading of dynamic libaries is not enabled"))
     }
 }
