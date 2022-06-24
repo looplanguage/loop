@@ -335,7 +335,7 @@ impl LuaBackend {
                     if parts[1] == "println" || parts[1] == "print" {
                         self.add_code_str(")");
                     } else {
-                        self.add_code("if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()".to_string());
+                        self.add_code(")if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()".to_string());
                     }
                 // Calling a user-defined function or a class
                 } else {
