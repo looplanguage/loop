@@ -403,7 +403,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
         infix_parser: HashMap::new(),
         errors: Vec::new(),
         defined_types: Vec::new(),
-        next_public: false
+        next_public: false,
     };
 
     // Prefix parsers

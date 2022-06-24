@@ -37,7 +37,7 @@ fn compile_expression_class_index(
         if let Some(var) = var {
             if let Types::Module(module) = var._type {
                 return _compiler.compile_expression(Expression::Identifier(Identifier {
-                    value: format!("{}::{}", module, field)
+                    value: format!("{}::{}", module, field),
                 }));
             }
         }

@@ -24,7 +24,7 @@ pub struct Function {
     pub parameters: Vec<Parameter>,
     pub body: Block,
     pub predefined_type: Option<Types>,
-    pub public: bool
+    pub public: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]

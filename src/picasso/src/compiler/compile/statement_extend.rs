@@ -60,7 +60,7 @@ pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement)
                         parameters: params,
                         body: method.body.clone(),
                         predefined_type: None,
-                        public: false
+                        public: false,
                     },
                 );
             }

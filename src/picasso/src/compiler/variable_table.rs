@@ -104,7 +104,6 @@ impl VariableScope {
 
     pub fn resolve(&self, name: String) -> Option<Variable> {
         for variable in &self.variables {
-
             let variable = variable.as_ref().borrow();
 
             if variable.name == name {

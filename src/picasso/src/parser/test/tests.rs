@@ -81,7 +81,7 @@ mod tests {
                 },
                 name: "".to_string(),
                 predefined_type: None,
-                public: false
+                public: false,
             })),
         })));
 

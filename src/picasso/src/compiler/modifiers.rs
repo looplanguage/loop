@@ -23,6 +23,10 @@ impl Modifiers {
     /// # Examples
     #[allow(dead_code)]
     pub fn new(constant: bool, module: String, public: bool) -> Modifiers {
-        Modifiers { constant, module, public }
+        Modifiers {
+            constant,
+            module,
+            public,
+        }
     }
 }

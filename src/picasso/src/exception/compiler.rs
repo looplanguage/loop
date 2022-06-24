@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UnknownSymbol {
     pub name: String,
@@ -82,7 +80,10 @@ impl CompilerException {
                 format!("type does not exist. got=\"{}\"", tp)
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
-            CompilerException::NotPublic(module, name) => format!("Method \"{}\" inside module \"{}\" is not public!", name, module)
+            CompilerException::NotPublic(module, name) => format!(
+                "Method \"{}\" inside module \"{}\" is not public!",
+                name, module
+            ),
         }
     }
 

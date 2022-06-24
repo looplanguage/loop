@@ -15,8 +15,14 @@ pub fn compile_expression_identifier(
                 var.function_identifier, var.parameter_id
             ));
         } else {
-            if identifier.value.contains("::") && compiler.location != var.modifiers.module && !var.modifiers.public {
-                return CompilerResult::Exception(CompilerException::NotPublic(var.modifiers.module, var.name));
+            if identifier.value.contains("::")
+                && compiler.location != var.modifiers.module
+                && !var.modifiers.public
+            {
+                return CompilerResult::Exception(CompilerException::NotPublic(
+                    var.modifiers.module,
+                    var.name,
+                ));
             }
 
             compiler.add_to_current_function(format!(".LOAD VARIABLE {};", var.index));

@@ -9,7 +9,7 @@ root_dir = os.getcwd()
 # Check if cargo matches expected version
 try:
     version = subprocess.check_output(["cargo", "version"]).decode("utf-8")
-    if not version.startswith(f"cargo {expected_cargo_version}.0"):
+    if not version.startswith(f"cargo"):
         print(f"Wrong Cargo version detected. expected={expected_cargo_version}. got={version}")
         exit(1)
 except subprocess.CalledProcessError:

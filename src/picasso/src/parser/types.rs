@@ -86,7 +86,7 @@ impl Display for Types {
                     Types::Auto => "void[]".to_string(),
                     Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
                     Types::Compound(Compound(tp, _)) => tp,
-                    Types::Module(m) => m
+                    Types::Module(m) => m,
                 },
                 Types::Auto => "Variant".to_string(),
                 // TODO: Should probably be different now we know types
@@ -108,7 +108,7 @@ impl Display for Types {
                 Types::Compound(Compound(tp, _)) => tp.clone(),
                 Types::Void => "void".to_string(),
                 Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
-                Types::Module(m) => m.clone()
+                Types::Module(m) => m.clone(),
             }
         )
     }
@@ -136,7 +136,7 @@ impl Types {
                 Types::Auto => "VOID[]".to_string(),
                 Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
                 Types::Compound(Compound(tp, _)) => tp,
-                Types::Module(m) => m
+                Types::Module(m) => m,
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
@@ -144,7 +144,7 @@ impl Types {
             Types::Void => "VOID".to_string(),
             Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
             Types::Compound(Compound(tp, _)) => tp.clone(),
-            Types::Module(m) => m.to_string()
+            Types::Module(m) => m.to_string(),
         }
     }
 }

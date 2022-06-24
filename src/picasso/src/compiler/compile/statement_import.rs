@@ -2,8 +2,8 @@ use crate::compiler::compile::statement_variable_declaration::compile_statement_
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::lexer::build_lexer;
-use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::integer::Integer;
 use crate::parser::statement::import::Import;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
@@ -11,7 +11,6 @@ use crate::parser::{build_parser, expression};
 use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
-use crate::parser::expression::integer::Integer;
 
 pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> CompilerResult {
     let import_as = import.identifier.clone();
@@ -59,7 +58,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
 
             let program = parser.parse();
 
-            compiler.enter_location(path_as_string.clone());
+            compiler.enter_location(path_as_string);
 
             let result = compiler.compile(program);
             if let Err(result) = result {
@@ -71,9 +70,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
             let assign = VariableDeclaration {
                 ident: Identifier { value: import_as },
                 // Value is irrelevant, but required
-                value: Box::new(expression::Expression::Integer(Integer {
-                    value: 0
-                })),
+                value: Box::new(expression::Expression::Integer(Integer { value: 0 })),
                 data_type: Types::Module(variables),
             };
 

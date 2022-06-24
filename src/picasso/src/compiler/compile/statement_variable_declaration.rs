@@ -34,7 +34,10 @@ pub fn compile_statement_variable_declaration(
         return result;
     };
 
-    if variable.data_type != result && variable.data_type != Types::Auto && !matches!(variable.data_type, Types::Module(_)) {
+    if variable.data_type != result
+        && variable.data_type != Types::Auto
+        && !matches!(variable.data_type, Types::Module(_))
+    {
         return CompilerResult::Exception(CompilerException::WrongType(
             result.transpile(),
             variable.data_type.transpile(),
@@ -43,7 +46,10 @@ pub fn compile_statement_variable_declaration(
 
     // Rc RefCells are so hacky wtf
     if let Some(variable_borrowed) = variable_borrowed {
-        if !matches!(variable_borrowed.as_ref().borrow_mut()._type, Types::Module(_)) {
+        if !matches!(
+            variable_borrowed.as_ref().borrow_mut()._type,
+            Types::Module(_)
+        ) {
             variable_borrowed.as_ref().borrow_mut()._type = result;
         }
     }

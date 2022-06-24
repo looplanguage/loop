@@ -4,7 +4,6 @@ mod modifiers;
 mod test;
 mod variable_table;
 
-use std::borrow::BorrowMut;
 use crate::compiler::compile::expression_array::compile_expression_array;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
@@ -123,7 +122,10 @@ impl Default for Compiler {
         Compiler {
             scope_index: 0,
             variable_count: 0,
-            variable_scope: HashMap::from([("".to_string(), Rc::new(RefCell::new(build_variable_scope())))]),
+            variable_scope: HashMap::from([(
+                "".to_string(),
+                Rc::new(RefCell::new(build_variable_scope())),
+            )]),
             last_extension_type: None,
             location: String::new(),
             export_name: String::new(),
@@ -196,7 +198,10 @@ impl Compiler {
         self.enter_variable_scope();
 
         self.locations.push(location.clone());
-        self.variable_scope.insert(location.clone(), Rc::new(RefCell::new(build_variable_scope())));
+        self.variable_scope.insert(
+            location.clone(),
+            Rc::new(RefCell::new(build_variable_scope())),
+        );
         self.location = location;
     }
 
@@ -292,11 +297,21 @@ impl Compiler {
     }
 
     fn get_variable_scope(&self) -> Rc<RefCell<VariableScope>> {
-        return self.variable_scope.get(&self.location).as_ref().unwrap().clone().clone();
+        return (*self.variable_scope.get(&self.location).as_ref().unwrap()).clone();
     }
 
-    fn get_variable_mutable(&self, index: u32, name: String, loc: Option<String>) -> Option<Rc<RefCell<Variable>>> {
-        self.variable_scope.get(&*loc.unwrap_or(self.location.clone())).unwrap().as_ref().borrow_mut().get_variable_mutable(index, name)
+    fn get_variable_mutable(
+        &self,
+        index: u32,
+        name: String,
+        loc: Option<String>,
+    ) -> Option<Rc<RefCell<Variable>>> {
+        self.variable_scope
+            .get(&*loc.unwrap_or_else(|| self.location.clone()))
+            .unwrap()
+            .as_ref()
+            .borrow_mut()
+            .get_variable_mutable(index, name)
     }
 
     /// Enter a deeper variable scope
@@ -308,11 +323,19 @@ impl Compiler {
 
     /// Exit a variable scope and go one shallower
     pub fn exit_variable_scope(&mut self) {
-        let outer = self.variable_scope.get(&self.location).as_ref().unwrap().as_ref().borrow().outer.clone();
+        let outer = self
+            .variable_scope
+            .get(&self.location)
+            .as_ref()
+            .unwrap()
+            .as_ref()
+            .borrow()
+            .outer
+            .clone();
         self.scope_index -= 1;
 
-        if outer.is_some() {
-            *self.variable_scope.get_mut(&self.location).unwrap() = outer.unwrap();
+        if let Some(outer) = outer {
+            *self.variable_scope.get_mut(&self.location).unwrap() = outer;
         }
     }
 
@@ -398,14 +421,20 @@ impl Compiler {
 
     /// Defines a new variable and increases the amount of variables that exist
     fn define_variable(&mut self, name: String, var_type: Types, parameter_id: i32) -> Variable {
-        let var = self.variable_scope.get_mut(&self.location).unwrap().as_ref().borrow_mut().define(
-            self.variable_count,
-            name,
-            var_type,
-            Modifiers::new(false, self.location.clone(), false),
-            parameter_id,
-            self.function_count,
-        );
+        let var = self
+            .variable_scope
+            .get_mut(&self.location)
+            .unwrap()
+            .as_ref()
+            .borrow_mut()
+            .define(
+                self.variable_count,
+                name,
+                var_type,
+                Modifiers::new(false, self.location.clone(), false),
+                parameter_id,
+                self.function_count,
+            );
 
         self.variable_count += 1;
 
@@ -415,25 +444,28 @@ impl Compiler {
     /// Finds a variable
     fn resolve_variable(&self, name: &String) -> Option<Variable> {
         if name.contains("::") {
-            let split = name.split("::").collect::<Vec<&str>>();;
+            let split = name.split("::").collect::<Vec<&str>>();
 
             let module = split[0];
             let name = split[1];
 
-            let var = self.variable_scope.get(module).unwrap().borrow().resolve(name.to_string());
+            let var = self
+                .variable_scope
+                .get(module)
+                .unwrap()
+                .borrow()
+                .resolve(name.to_string());
 
             if let Some(var) = var {
                 return Option::from(var);
             }
         }
 
-        self.variable_scope.get(&self.location).unwrap().borrow().resolve(name.to_string())
-    }
-
-    fn resolve_with_location(&self, name: &String, location: &String) -> Option<Variable> {
         self.variable_scope
-            .get(location).unwrap().as_ref().borrow()
-            .resolve(name.clone())
+            .get(&self.location)
+            .unwrap()
+            .borrow()
+            .resolve(name.to_string())
     }
 
     /// Compiles a deeper [Block] adding curly braces

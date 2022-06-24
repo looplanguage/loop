@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Function;
 use crate::parser::expression::integer::Integer;
@@ -85,7 +84,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                         parameters: method.arguments.clone(),
                         body: method.body.clone(),
                         predefined_type: Some(method.return_type.clone()),
-                        public: false
+                        public: false,
                     }),
                 };
 
