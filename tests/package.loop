@@ -1,4 +1,4 @@
-fn double(int a) {
+pub fn double(int a) {
     return a * 2
 }
 
@@ -12,11 +12,6 @@ class Vector2 {
     }
 }
 
-fn get_class() {
+pub fn get_class() {
     return Vector2(10, 20)
-}
-
-export {
-    double,
-    get_class
 }
