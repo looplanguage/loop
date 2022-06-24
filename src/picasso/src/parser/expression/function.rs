@@ -1,4 +1,4 @@
-use crate::lexer::token::TokenType;
+use crate::lexer::token::{Token, TokenType};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
@@ -39,7 +39,22 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
 
     while p.lexer.get_current_token().unwrap().token == TokenType::Identifier {
         let old = p.lexer.get_current_token().unwrap().clone();
-        let tp = p.parse_type(old.clone()).unwrap();
+
+        let tp = {
+            if let Some(tpe) = p.parse_type(old.clone()) {
+                tpe
+            } else {
+                p.throw_exception(
+                    Token {
+                        token: TokenType::RightParenthesis,
+                        literal: ")".to_string(),
+                    },
+                    Some("Type does not exist in this depth!".to_string()),
+                );
+
+                return Vec::new();
+            }
+        };
 
         p.lexer.next_token_is_and_next_token(TokenType::Identifier);
         arguments.push(Parameter {
