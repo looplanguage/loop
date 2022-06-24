@@ -75,7 +75,6 @@ pub fn compile_expression_function(
         });
 
         let var = compiler.define_variable(func.name.clone(), function_type.clone(), -1);
-
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
@@ -123,6 +122,8 @@ pub fn compile_expression_function(
 
         // Try to find it
         let found = compiler.resolve_variable(&_type);
+
+        println!("Name: {} {:?} {}", compiler.location, found, _type);
 
         if let Some(found) = found {
             compiler.add_to_current_function(format!("{};", found.transpile()));
@@ -180,14 +181,11 @@ pub fn compile_expression_function(
     if !func.name.is_empty() {
         let named_function = named_function.unwrap();
 
-        let variable = compiler
-            .variable_scope
-            .as_ref()
-            .borrow_mut()
-            .get_variable_mutable(named_function.2, named_function.1);
+        let variable = compiler.get_variable_mutable(named_function.2, named_function.1, None);
 
         if let Some(variable) = variable {
             variable.as_ref().borrow_mut()._type = function_type.clone();
+            variable.as_ref().borrow_mut().modifiers.public = func.public;
         }
     }
 

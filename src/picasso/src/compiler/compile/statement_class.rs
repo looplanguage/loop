@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use crate::compiler::{Compiler, CompilerResult};
 use crate::parser::expression::function::Function;
 use crate::parser::expression::integer::Integer;
@@ -84,6 +85,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                         parameters: method.arguments.clone(),
                         body: method.body.clone(),
                         predefined_type: Some(method.return_type.clone()),
+                        public: false
                     }),
                 };
 
@@ -127,10 +129,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     compiler.add_to_current_function("};".to_string());
 
-    let var = compiler
-        .variable_scope
-        .borrow_mut()
-        .get_variable_mutable(var.index, var.name);
+    let var = compiler.get_variable_mutable(var.index, var.name, None);
 
     var.unwrap().as_ref().borrow_mut()._type =
         Types::Compound(Compound(class.name, Box::new(items)));

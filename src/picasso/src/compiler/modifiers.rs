@@ -7,6 +7,8 @@ pub struct Modifiers {
     ///  - `true`  -> constant
     ///  - `false` -> mutable
     pub constant: bool, // If a variable is constant, default is false
+    pub public: bool,
+    pub module: String, // Location of the variable
 }
 
 impl Modifiers {
@@ -20,7 +22,7 @@ impl Modifiers {
     ///
     /// # Examples
     #[allow(dead_code)]
-    pub fn new(constant: bool) -> Modifiers {
-        Modifiers { constant }
+    pub fn new(constant: bool, module: String, public: bool) -> Modifiers {
+        Modifiers { constant, module, public }
     }
 }

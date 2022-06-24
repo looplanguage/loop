@@ -11,6 +11,7 @@ use crate::parser::{build_parser, expression};
 use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
+use crate::parser::expression::integer::Integer;
 
 pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> CompilerResult {
     let import_as = import.identifier.clone();
@@ -65,30 +66,18 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
                 return CompilerResult::Exception(result);
             }
 
-            compiler.exit_location();
+            let variables = compiler.exit_location();
 
-            let export = compiler
-                .resolve_with_location(&format!("__export_{}", path_as_string), &"".to_string());
+            let assign = VariableDeclaration {
+                ident: Identifier { value: import_as },
+                // Value is irrelevant, but required
+                value: Box::new(expression::Expression::Integer(Integer {
+                    value: 0
+                })),
+                data_type: Types::Module(variables),
+            };
 
-            // Now define it here
-            if let Some(export) = export {
-                let assign = VariableDeclaration {
-                    ident: Identifier { value: import_as },
-                    value: Box::new(expression::Expression::Call(Call {
-                        identifier: Box::new(expression::Expression::Identifier(Identifier {
-                            value: export.name.clone(),
-                        })),
-                        parameters: vec![expression::Expression::Identifier(Identifier {
-                            value: export.name,
-                        })],
-                    })),
-                    data_type: export._type,
-                };
-
-                return compile_statement_variable_declaration(compiler, assign);
-            }
-
-            return CompilerResult::Success(Types::Void);
+            return compile_statement_variable_declaration(compiler, assign);
         }
     }
 

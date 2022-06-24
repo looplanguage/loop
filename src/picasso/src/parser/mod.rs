@@ -49,6 +49,7 @@ pub struct Parser {
     infix_parser: HashMap<TokenType, InfixParseFn>,
     pub errors: Vec<Exception>,
     pub defined_types: Vec<String>,
+    pub next_public: bool,
 }
 
 impl Parser {
@@ -238,6 +239,10 @@ impl Parser {
             TokenType::Break => parse_break_statement(self),
             TokenType::Class => parse_class_statement(self),
             TokenType::Extends => parse_extend_statement(self),
+            TokenType::Public => {
+                self.next_public = true;
+                parse_function(self)
+            }
             _ => self.parse_expression_statement(),
         };
 
@@ -398,6 +403,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
         infix_parser: HashMap::new(),
         errors: Vec::new(),
         defined_types: Vec::new(),
+        next_public: false
     };
 
     // Prefix parsers

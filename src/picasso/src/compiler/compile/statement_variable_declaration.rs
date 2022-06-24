@@ -22,20 +22,7 @@ pub fn compile_statement_variable_declaration(
 
     compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
-    let mut variable_borrowed = None;
-    for variable in compiler
-        .variable_scope
-        .as_ref()
-        .borrow_mut()
-        .variables
-        .clone()
-    {
-        if variable.as_ref().borrow().name == var.name {
-            variable_borrowed = Some(variable);
-        }
-    }
-
-    let variable_borrowed = variable_borrowed.unwrap();
+    let variable_borrowed = compiler.get_variable_mutable(var.index, var.name, None);
 
     let result = compiler.compile_expression(*variable.value);
 
@@ -47,7 +34,7 @@ pub fn compile_statement_variable_declaration(
         return result;
     };
 
-    if variable.data_type != result && variable.data_type != Types::Auto {
+    if variable.data_type != result && variable.data_type != Types::Auto && !matches!(variable.data_type, Types::Module(_)) {
         return CompilerResult::Exception(CompilerException::WrongType(
             result.transpile(),
             variable.data_type.transpile(),
@@ -55,7 +42,11 @@ pub fn compile_statement_variable_declaration(
     }
 
     // Rc RefCells are so hacky wtf
-    variable_borrowed.as_ref().borrow_mut()._type = result;
+    if let Some(variable_borrowed) = variable_borrowed {
+        if !matches!(variable_borrowed.as_ref().borrow_mut()._type, Types::Module(_)) {
+            variable_borrowed.as_ref().borrow_mut()._type = result;
+        }
+    }
 
     CompilerResult::Success(Types::Void)
 }

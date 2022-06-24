@@ -4,6 +4,7 @@ mod modifiers;
 mod test;
 mod variable_table;
 
+use std::borrow::BorrowMut;
 use crate::compiler::compile::expression_array::compile_expression_array;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_call::compile_expression_call;
@@ -88,7 +89,8 @@ impl DCode {
 /// The compiler itself containing global metadata needed during compilation and methods
 pub struct Compiler {
     pub scope_index: i32,
-    pub variable_scope: Rc<RefCell<VariableScope>>,
+    // Module, Scope
+    pub variable_scope: HashMap<String, Rc<RefCell<VariableScope>>>,
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
     pub location: String,
@@ -111,7 +113,7 @@ pub struct Compiler {
 
 #[derive(Clone)]
 pub struct CompilerState {
-    pub variable_scope: Rc<RefCell<VariableScope>>,
+    pub variable_scope: HashMap<String, Rc<RefCell<VariableScope>>>,
     pub variable_count: u32,
     pub function_count: i32,
 }
@@ -121,7 +123,7 @@ impl Default for Compiler {
         Compiler {
             scope_index: 0,
             variable_count: 0,
-            variable_scope: Rc::new(RefCell::new(build_variable_scope())),
+            variable_scope: HashMap::from([("".to_string(), Rc::new(RefCell::new(build_variable_scope())))]),
             last_extension_type: None,
             location: String::new(),
             export_name: String::new(),
@@ -191,11 +193,16 @@ impl Compiler {
     }
 
     pub fn enter_location(&mut self, location: String) {
+        self.enter_variable_scope();
+
         self.locations.push(location.clone());
+        self.variable_scope.insert(location.clone(), Rc::new(RefCell::new(build_variable_scope())));
         self.location = location;
     }
 
     pub fn exit_location(&mut self) -> String {
+        let last_loc = self.location.clone();
+
         if self.locations.len() > 1 {
             self.location = self
                 .locations
@@ -206,7 +213,9 @@ impl Compiler {
             self.location = "".to_string();
         }
 
-        self.location.clone()
+        self.exit_variable_scope();
+
+        last_loc
     }
 
     /// Allows you to use Loop code within the compiler
@@ -282,18 +291,29 @@ impl Compiler {
         }
     }
 
+    fn get_variable_scope(&self) -> Rc<RefCell<VariableScope>> {
+        return self.variable_scope.get(&self.location).as_ref().unwrap().clone().clone();
+    }
+
+    fn get_variable_mutable(&self, index: u32, name: String, loc: Option<String>) -> Option<Rc<RefCell<Variable>>> {
+        self.variable_scope.get(&*loc.unwrap_or(self.location.clone())).unwrap().as_ref().borrow_mut().get_variable_mutable(index, name)
+    }
+
     /// Enter a deeper variable scope
     pub fn enter_variable_scope(&mut self) {
-        let scope = build_deeper_variable_scope(Option::from(self.variable_scope.clone()));
+        let scope = build_deeper_variable_scope(Option::from(self.get_variable_scope()));
         self.scope_index += 1;
-        self.variable_scope = Rc::new(RefCell::new(scope));
+        *self.variable_scope.get_mut(&self.location).unwrap() = Rc::from(RefCell::from(scope));
     }
 
     /// Exit a variable scope and go one shallower
     pub fn exit_variable_scope(&mut self) {
-        let outer = self.variable_scope.as_ref().borrow_mut().outer.clone();
+        let outer = self.variable_scope.get(&self.location).as_ref().unwrap().as_ref().borrow().outer.clone();
         self.scope_index -= 1;
-        self.variable_scope = outer.unwrap();
+
+        if outer.is_some() {
+            *self.variable_scope.get_mut(&self.location).unwrap() = outer.unwrap();
+        }
     }
 
     pub fn get_d_code(&self) -> DCode {
@@ -378,26 +398,11 @@ impl Compiler {
 
     /// Defines a new variable and increases the amount of variables that exist
     fn define_variable(&mut self, name: String, var_type: Types, parameter_id: i32) -> Variable {
-        if name.starts_with("__export_") {
-            let var = self.variable_scope.borrow_mut().define(
-                self.variable_count,
-                name,
-                var_type,
-                Modifiers::default(),
-                parameter_id,
-                self.function_count,
-            );
-
-            self.variable_count += 1;
-
-            return var;
-        }
-
-        let var = self.variable_scope.borrow_mut().define(
+        let var = self.variable_scope.get_mut(&self.location).unwrap().as_ref().borrow_mut().define(
             self.variable_count,
-            format!("{}{}", self.location, name),
+            name,
             var_type,
-            Modifiers::default(),
+            Modifiers::new(false, self.location.clone(), false),
             parameter_id,
             self.function_count,
         );
@@ -409,22 +414,26 @@ impl Compiler {
 
     /// Finds a variable
     fn resolve_variable(&self, name: &String) -> Option<Variable> {
-        let mut var =
-            self.variable_scope
-                .borrow_mut()
-                .resolve(format!("{}{}", self.location, name.clone()));
+        if name.contains("::") {
+            let split = name.split("::").collect::<Vec<&str>>();;
 
-        if var.is_none() {
-            var = self.variable_scope.borrow_mut().resolve(name.to_string())
+            let module = split[0];
+            let name = split[1];
+
+            let var = self.variable_scope.get(module).unwrap().borrow().resolve(name.to_string());
+
+            if let Some(var) = var {
+                return Option::from(var);
+            }
         }
 
-        var
+        self.variable_scope.get(&self.location).unwrap().borrow().resolve(name.to_string())
     }
 
     fn resolve_with_location(&self, name: &String, location: &String) -> Option<Variable> {
         self.variable_scope
-            .borrow_mut()
-            .resolve(format!("{}{}", location, name))
+            .get(location).unwrap().as_ref().borrow()
+            .resolve(name.clone())
     }
 
     /// Compiles a deeper [Block] adding curly braces

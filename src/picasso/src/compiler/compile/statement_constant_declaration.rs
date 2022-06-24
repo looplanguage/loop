@@ -7,7 +7,7 @@ pub fn compile_statement_constant_declaration(
     constant: ConstantDeclaration,
 ) -> CompilerResult {
     let var = compiler.define_variable(
-        format!("{}{}", compiler.location, constant.ident.value),
+        constant.ident.value,
         constant.data_type.clone(),
         -1,
     );

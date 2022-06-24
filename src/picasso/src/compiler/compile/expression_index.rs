@@ -30,6 +30,19 @@ fn compile_expression_class_index(
     let result = _compiler.compile_expression(left.clone());
     _compiler.undrier();
 
+    if let Expression::Identifier(ident) = left.clone() {
+        // Try to find var
+        let var = _compiler.resolve_variable(&ident.value);
+
+        if let Some(var) = var {
+            if let Types::Module(module) = var._type {
+                return _compiler.compile_expression(Expression::Identifier(Identifier {
+                    value: format!("{}::{}", module, field)
+                }));
+            }
+        }
+    }
+
     if let CompilerResult::Success(mut check) = result {
         if let Types::Array(_) = check {
             // Methods for arrays

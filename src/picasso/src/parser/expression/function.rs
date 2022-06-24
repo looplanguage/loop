@@ -24,6 +24,7 @@ pub struct Function {
     pub parameters: Vec<Parameter>,
     pub body: Block,
     pub predefined_type: Option<Types>,
+    pub public: bool
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -156,10 +157,19 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         return None;
     }
 
+    let public = {
+        let val = p.next_public;
+
+        p.next_public = false;
+
+        val
+    };
+
     Some(Node::Expression(Expression::Function(Function {
         name,
         parameters: arguments,
         body,
         predefined_type: None,
+        public,
     })))
 }

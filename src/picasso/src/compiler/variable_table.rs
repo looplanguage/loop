@@ -14,6 +14,7 @@ pub struct Variable {
     pub function_identifier: i32,
 }
 
+#[derive(Debug)]
 pub struct VariableScope {
     pub variables: Vec<Rc<RefCell<Variable>>>,
     pub outer: Option<Rc<RefCell<VariableScope>>>,
@@ -95,11 +96,6 @@ impl VariableScope {
             let variable = rc_variable.as_ref().borrow();
             if variable.name == name && variable.index == index {
                 return Some(rc_variable.clone());
-            } else if let Some(outer) = &self.outer {
-                return outer
-                    .as_ref()
-                    .borrow_mut()
-                    .get_variable_mutable(index, name);
             }
         }
 
@@ -108,6 +104,7 @@ impl VariableScope {
 
     pub fn resolve(&self, name: String) -> Option<Variable> {
         for variable in &self.variables {
+
             let variable = variable.as_ref().borrow();
 
             if variable.name == name {

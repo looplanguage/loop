@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UnknownSymbol {
     pub name: String,
@@ -23,6 +25,8 @@ pub enum CompilerException {
     // Field, Type
     UnknownField(String, String),
     UnknownType(String),
+    // Module, Name
+    NotPublic(String, String),
     Unknown,
 }
 
@@ -78,6 +82,7 @@ impl CompilerException {
                 format!("type does not exist. got=\"{}\"", tp)
             }
             CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
+            CompilerException::NotPublic(module, name) => format!("Method \"{}\" inside module \"{}\" is not public!", name, module)
         }
     }
 
