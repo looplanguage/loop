@@ -4,8 +4,7 @@ use crate::lib::exception::Exception;
 use crate::lib::util::get_flags;
 use dirs::home_dir;
 use once_cell::sync::Lazy;
-use serde::Deserialize;
-use serde::Serialize;
+use miniserde::{Serialize, Deserialize, json};
 use std::fs::{create_dir_all, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
@@ -90,10 +89,10 @@ pub fn load_config() -> LoadType {
 
     if config.is_err() {
         println!(
-            "Unable to load config from (after 3 attempts): {}/.loop/config.toml",
+            "Unable to load config from (after 3 attempts): {}/.loop/config.json",
             home_dir().unwrap().to_str().unwrap()
         );
-        return Normal(ConfigInternal::default());
+        return Normal(<ConfigInternal as Default>::default());
     }
 
     config.ok().unwrap()
@@ -113,7 +112,7 @@ impl TryLoadConfig {
 
         let directory = format!("{}/.loop", home.unwrap().to_str().unwrap());
 
-        let config_file = format!("{}/config.toml", directory);
+        let config_file = format!("{}/config.json", directory);
 
         let content = read_to_string(config_file);
 
@@ -129,13 +128,13 @@ impl TryLoadConfig {
                 return Result::Err(Exception::NoHomeFolder);
             }
 
-            let file = File::create(Path::new(format!("{}/config.toml", dir.clone()).as_str()));
+            let file = File::create(Path::new(format!("{}/config.json", dir.clone()).as_str()));
 
             if file.is_err() {
                 return Result::Err(Exception::NoHomeFolder);
             }
 
-            let config_content = toml::to_string(&ConfigInternal::default()).unwrap();
+            let config_content = json::to_string(&<ConfigInternal as Default>::default());
             let err = file.unwrap().write_all(config_content.as_bytes());
             if err.is_err() {
                 return Result::Err(Exception::NoHomeFolder);
@@ -146,7 +145,7 @@ impl TryLoadConfig {
             return self.load_config_internal();
         }
 
-        let config: ConfigInternal = toml::from_str(content.ok().unwrap().as_str()).unwrap();
+        let config: ConfigInternal = json::from_str(content.ok().unwrap().as_str()).unwrap();
 
         if self.attempts > 0 {
             return Result::Ok(FirstRun(config));

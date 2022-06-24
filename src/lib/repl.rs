@@ -3,6 +3,7 @@ use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use sanzio::parse_multivalue;
 use vinci::types::ValueType;
+use crate::lib::config::CONFIG;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -26,6 +27,10 @@ pub fn start() {
         VERSION
     );
 
+    if CONFIG.debug_mode {
+        println!("Debug mode enabled!");
+    }
+
     loop {
         let readline = rl.readline(">> ");
         match readline {
@@ -37,6 +42,10 @@ pub fn start() {
                 } else {
                     picasso::compile(line.as_str(), None)
                 };
+
+                if CONFIG.debug_mode {
+                    println!("Arc\n{}", result.0.as_str());
+                }
 
                 let ast = vinci::parse(result.0.as_str());
 
