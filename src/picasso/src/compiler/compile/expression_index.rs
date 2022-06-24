@@ -158,14 +158,15 @@ fn compile_expression_index_internal(
 
     if let CompilerResult::Success(Types::Array(value_type)) = result {
         return CompilerResult::Success(*value_type);
-    } else if let CompilerResult::Success(Types::Basic(base)) = result.clone() {
-        if let BaseTypes::String = base {
-            return CompilerResult::Success(Types::Basic(BaseTypes::String));
-        }
+    } else if let CompilerResult::Success(Types::Basic(BaseTypes::String)) = result {
+        return CompilerResult::Success(Types::Basic(BaseTypes::String));
     }
 
     if let CompilerResult::Success(_type) = result {
-        return CompilerResult::Exception(CompilerException::WrongType(format!("{}", _type), "Expected a string or array".to_string()))
+        return CompilerResult::Exception(CompilerException::WrongType(
+            format!("{}", _type),
+            "Expected a string or array".to_string(),
+        ));
     }
     CompilerResult::Exception(CompilerException::Unknown)
 }
