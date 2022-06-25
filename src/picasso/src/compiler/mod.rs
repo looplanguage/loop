@@ -13,7 +13,7 @@ use crate::compiler::compile::expression_function::{compile_expression_function,
 use crate::compiler::compile::expression_hashmap::compile_expression_hashmap;
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::compile::expression_index::{
-    compile_expression_assign_index, compile_expression_index,
+    compile_expression_assign_index, compile_expression_index, compile_expression_slice,
 };
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_loop::{
@@ -314,6 +314,7 @@ impl Compiler {
             Expression::LoopIterator(lp) => compile_loop_iterator_expression(self, lp),
             Expression::LoopArrayIterator(lp) => compile_loop_array_iterator_expression(self, lp),
             Expression::Hashmap(hash) => compile_expression_hashmap(self, hash),
+            Expression::Slice(slice) => compile_expression_slice(self, slice),
         }
     }
 

@@ -7,7 +7,7 @@ use crate::parser::expression::float::Float;
 use crate::parser::expression::function::{Call, Function};
 use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
 use crate::parser::expression::identifier::Identifier;
-use crate::parser::expression::index::Index;
+use crate::parser::expression::index::{Index, Slice};
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
 use crate::parser::expression::null::Null;
@@ -49,6 +49,7 @@ pub enum Expression {
     LoopIterator(LoopIterator),
     LoopArrayIterator(LoopArrayIterator),
     Hashmap(Hashmap),
+    Slice(Slice),
 }
 
 #[derive(PartialOrd, PartialEq, Eq, Debug)]

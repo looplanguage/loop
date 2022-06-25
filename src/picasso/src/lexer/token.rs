@@ -71,6 +71,8 @@ pub enum TokenType {
     RightBrace,
     /// Example: '.'
     Dot,
+    /// Example: '..'
+    DotDot,
     /// Example: '['
     LeftBracket,
     /// Example: ']'

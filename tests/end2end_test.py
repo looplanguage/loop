@@ -49,6 +49,8 @@ def main():
     add_test("test_extend_types.loop", "129620")
     add_test("test_classes_lazy.loop", "100")
     add_test("test_string_index.loop", "2")
+    add_test("test_string_slice.loop", "o, W")
+    add_test("test_array_slice.loop", "9")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:

@@ -3,12 +3,11 @@ use mlua::{Lua, MultiValue, Value};
 
 use std::ops::Deref;
 
-use std::collections::HashMap;
 use std::str;
 use vinci::ast::instructions::memory::LoadType;
 use vinci::ast::instructions::suffix::BinaryOperation;
 use vinci::ast::instructions::Node;
-use vinci::types::{Type, ValueType};
+use vinci::types::ValueType;
 mod exception;
 use exception::throw_runtime_exception;
 
@@ -88,8 +87,6 @@ struct LuaBackend {
     doing_statement: bool,
     library_paths: Vec<String>,
     library_names: Vec<String>,
-    /// All the variables key is index, value of type of variable
-    variable_table: HashMap<u64, Type>,
 }
 
 impl LuaBackend {
@@ -102,13 +99,19 @@ impl LuaBackend {
     pub fn new() -> LuaBackend {
         LuaBackend {
             #[cfg(feature = "libloading")]
-            code: String::from("ffi = require(\"ffi\")\n"),
+            code: String::from("\
+ffi = require(\"ffi\")
+getmetatable('').__index = function(str,i) return string.sub(str,i,i) end
+getmetatable('').__call = function(str,i,j) if type(i)~='table' then return string.sub(str,i,j) end end
+"),
             #[cfg(not(feature = "libloading"))]
-            code: String::from(""),
+            code: String::from("\
+getmetatable('').__index = function(str,i) return string.sub(str,i,i) end
+getmetatable('').__call = function(str,i,j) if type(i)~='table' then return string.sub(str,i,j) end end
+"),
             doing_statement: false,
             library_paths: vec![],
             library_names: vec![],
-            variable_table: HashMap::new(),
         }
     }
 
@@ -120,48 +123,14 @@ impl LuaBackend {
         self.code.push_str(code);
     }
 
-    fn add_constant_value(&mut self, value: &ValueType, index: Option<u64>) {
+    fn add_constant_value(&mut self, value: &ValueType) {
         match value {
-            ValueType::Void => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
-                self.add_code_str("null")
-            }
-            ValueType::Integer(i) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
-                self.add_code(i.to_string())
-            }
-            ValueType::Boolean(b) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
-                self.add_code(b.to_string())
-            }
-            ValueType::Character(c) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
-                self.add_code(format!("\"{}\"", c))
-            }
-            ValueType::Float(f) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
-                self.add_code(f.to_string())
-            }
+            ValueType::Void => self.add_code_str("null"),
+            ValueType::Integer(i) => self.add_code(i.to_string()),
+            ValueType::Boolean(b) => self.add_code(b.to_string()),
+            ValueType::Character(c) => self.add_code(format!("\"{}\"", c)),
+            ValueType::Float(f) => self.add_code(f.to_string()),
             ValueType::Function(_, args, id, block) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
                 self.add_code_str("(function");
 
                 self.add_code_str("(");
@@ -183,15 +152,11 @@ impl LuaBackend {
                 self.add_code_str("end)");
             }
             ValueType::Compound(_, values) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
                 self.add_code_str("({");
 
                 for (key, value) in values.iter().enumerate() {
                     self.add_code(format!("[{} + 1] = ", key));
-                    self.add_constant_value(value, None);
+                    self.add_constant_value(value);
 
                     if key + 1 != values.len() {
                         self.add_code_str(",");
@@ -201,10 +166,6 @@ impl LuaBackend {
                 self.add_code_str("})");
             }
             ValueType::Array(a) => {
-                if let Some(idx) = index {
-                    self.variable_table.insert(idx, value.clone().to_type());
-                }
-
                 let items = a.deref();
 
                 if let Some(ValueType::Character(_)) = a.get(0) {
@@ -228,7 +189,7 @@ impl LuaBackend {
                     for item in items {
                         index += 1;
 
-                        self.add_constant_value(item, None);
+                        self.add_constant_value(item);
 
                         if index != items.len() {
                             self.add_code_str(",")
@@ -244,7 +205,7 @@ impl LuaBackend {
     fn compile_node(&mut self, node: &Node) {
         match node {
             Node::CONSTANT(cst) => {
-                self.add_constant_value(cst, None);
+                self.add_constant_value(cst);
             }
             Node::LOAD(l) => {
                 match l.load_type {
@@ -258,7 +219,7 @@ impl LuaBackend {
                 self.doing_statement = true;
                 self.add_code(format!("var_{} = ", store.index));
                 if let Node::CONSTANT(v) = *store.value.clone() {
-                    self.add_constant_value(&v, Some(store.index));
+                    self.add_constant_value(&v);
                 } else {
                     self.compile_node(store.value.deref());
                 }
@@ -312,9 +273,6 @@ impl LuaBackend {
                 }
             }
             Node::FUNCTION(func) => {
-                self.variable_table
-                    .insert(func.unique_identifier as u64, func.return_type.clone());
-
                 if func.name.is_empty() {
                     self.add_code_str("(");
                 }
@@ -414,60 +372,29 @@ impl LuaBackend {
                 self.add_code_str(" end end)()");
             }
             Node::INDEX(idx) => {
-                // Works on string and on arrays
-                if let Node::CONSTANT(valuetype) = *idx.to_index.clone() {
-                    if let ValueType::Array(arr) = valuetype {
-                        if let ValueType::Character(_) = (*arr)[0].clone() {
-                            // Indexing a raw value:
-                            // "hello"[1]
-                            self.add_code_str("string.sub(");
-                            self.compile_node(&idx.to_index);
-                            self.add_code_str(", ");
-                            self.compile_node(&idx.index);
-                            self.add_code_str(" + 1, ");
-                            self.compile_node(&idx.index);
-                            self.add_code_str(" + 1)");
-                            return;
-                        }
-                    }
-                } else if let Node::LOAD(l) = *idx.to_index.clone() {
-                    // This if-statement is to check if variable does not exist.
-                    // If that is the case it is a field of a class, and needs to be indexed the regular way
-                    if self.variable_table.get(&l.index).is_some() {
-                        //println!("{:?}", self.variable_table.get(&l.index));
-                        if let Type::ARRAY(_type) =
-                            self.variable_table.get(&l.index).unwrap().clone()
-                        {
-                            if let Type::CHAR = *_type {
-                                // Indexing a variable
-                                // i := "hello"
-                                // i[1]
-                                self.add_code_str("string.sub(");
-                                self.compile_node(&idx.to_index);
-                                self.add_code_str(", ");
-                                self.compile_node(&idx.index);
-                                self.add_code_str(" + 1, ");
-                                self.compile_node(&idx.index);
-                                self.add_code_str(" + 1)");
-                                return;
-                            }
-                        }
-                    }
-                }
-                // Indexing a regular array
                 self.compile_node(&idx.to_index);
                 self.add_code_str("[");
                 self.compile_node(&idx.index);
                 self.add_code_str(" + 1]");
             }
             Node::SLICE(slice) => {
-                self.add_code_str("({unpack(");
+                self.add_code_str("(function() if type(");
                 self.compile_node(&*slice.to_slice);
-                self.add_code_str(",");
+                self.add_code_str(") == \"string\" then return ");
+                self.compile_node(&*slice.to_slice);
+                self.add_code_str("(");
                 self.compile_node(&*slice.from);
                 self.add_code_str("+1,");
                 self.compile_node(&*slice.to);
-                self.add_code_str("+1)})");
+                self.add_code_str("+1) else local temp_sliced = {} for i = ");
+                self.compile_node(&*slice.from);
+                self.add_code_str("+1, ");
+                self.compile_node(&*slice.to);
+                self.add_code_str("+1 or #");
+                self.compile_node(&*slice.to_slice);
+                self.add_code_str(", 1 do temp_sliced[#temp_sliced+1] = ");
+                self.compile_node(&*slice.to_slice);
+                self.add_code_str("[i] end return temp_sliced end end)()");
             }
             Node::PUSH(push) => {
                 self.add_code_str("table.insert(");

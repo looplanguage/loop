@@ -16,22 +16,64 @@ pub struct Index {
     pub(crate) index: Expression,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub struct Slice {
+    pub left: Box<Expression>,
+    pub begin: Box<Expression>,
+    pub end: Box<Expression>,
+}
+
+impl Slice {
+    pub fn new_node(left: Expression, begin: Expression, end: Expression) -> Expression {
+        Expression::Slice(Slice {
+            left: Box::new(left),
+            begin: Box::new(begin),
+            end: Box::new(end),
+        })
+    }
+}
+
 pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> {
     let check_token = p.lexer.get_current_token().unwrap().token;
-    p.lexer.next_token();
+    p.lexer.next_token(); // Skipping over potential left bracket
 
     if check_token == TokenType::LeftBracket {
         // This index expression is for: Arrays OR Hashmaps
-
         let index_exp = p.parse_expression(Precedence::Lowest);
 
+        if p.lexer.peek_token.as_ref().unwrap().token == TokenType::DotDot {
+            // Is slice
+            p.lexer.next_token(); // Skipping over dotdot
+            p.lexer.next_token(); // Skipping over end expression
+
+            let end = p.parse_expression(Precedence::Lowest);
+
+            let begin = if let Node::Expression(begin) = index_exp.unwrap() {
+                begin
+            } else {
+                // TODO: Create default value so this is possible: arr[..4]
+                todo!("Create error for when begin is not expression")
+            };
+
+            let end = if let Node::Expression(end) = end.unwrap() {
+                end
+            } else {
+                // TODO: Create default value so this is possible: arr[1..]
+                todo!("Create error for when end is not expression")
+            };
+
+            return Some(Node::Expression(Slice::new_node(left, begin, end)));
+        }
+
         if let Node::Expression(index) = index_exp.unwrap() {
-            p.lexer.next_token();
+            p.lexer.next_token(); // Skipping over expression
 
             // Now we check if we want to assign to this index, otherwise just return the index
-            if p.lexer.next_token_is_and_next_token(TokenType::Assign) {
-                p.lexer.next_token();
+            if p.peek_token_is(TokenType::Assign) {
+                p.lexer.next_token(); // Assign
+                p.lexer.next_token(); // Skipping over value
 
+                // Parsing of value
                 let value = p.parse_expression(Precedence::Lowest);
 
                 if let Node::Expression(exp) = value.unwrap() {
