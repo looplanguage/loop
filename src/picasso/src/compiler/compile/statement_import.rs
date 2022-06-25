@@ -1,5 +1,5 @@
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::CompilerException;
 use crate::lexer::build_lexer;
 use crate::parser::expression::identifier::Identifier;
@@ -12,7 +12,10 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 
-pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> CompilerResult {
+pub fn compile_import_statement(
+    compiler: &mut Compiler,
+    import: Import,
+) -> Result<Types, CompilerException> {
     let import_as = import.identifier.clone();
     let file_path = import.file.clone();
 
@@ -35,9 +38,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
 
             // Check if file exists
             if !path.exists() {
-                return CompilerResult::Exception(CompilerException::CanNotReadFile(
-                    path_as_string,
-                ));
+                return Err(CompilerException::CanNotReadFile(path_as_string));
             }
 
             let contents = fs::read_to_string(path.clone());
@@ -46,9 +47,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
                 if let Ok(contents) = contents {
                     contents
                 } else {
-                    return CompilerResult::Exception(CompilerException::CanNotReadFile(
-                        path_as_string,
-                    ));
+                    return Err(CompilerException::CanNotReadFile(path_as_string));
                 }
             };
 
@@ -62,7 +61,7 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
 
             let result = compiler.compile(program);
             if let Err(result) = result {
-                return CompilerResult::Exception(result);
+                return Err(result);
             }
 
             let variables = compiler.exit_location();
@@ -86,5 +85,5 @@ pub fn compile_import_statement(compiler: &mut Compiler, import: Import) -> Comp
         import.identifier
     ));
 
-    CompilerResult::Success(Types::Void)
+    Ok(Types::Void)
 }

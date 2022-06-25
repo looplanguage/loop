@@ -1,4 +1,5 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
+use crate::exception::compiler::CompilerException;
 use crate::parser::expression::conditional::Conditional;
 use crate::parser::program::Node;
 use crate::parser::statement::Statement;
@@ -7,7 +8,7 @@ use crate::parser::types::Types;
 pub fn compile_expression_conditional(
     compiler: &mut Compiler,
     conditional: Conditional,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     // User needs to enable optimization, for Loop to optimize code.
     // Right now only does hardcoded "true" and "false" values
     // TODO: Is is commented because it does not work yet
@@ -19,39 +20,23 @@ pub fn compile_expression_conditional(
     //     }
     // }
 
-    let mut if_type: Types = Types::Void;
     compiler.add_to_current_function(".IF CONDITION { ".to_string());
-    let result = compiler.compile_expression(*conditional.condition);
+    compiler.compile_expression(*conditional.condition)?;
     compiler.add_to_current_function(" } THEN ".to_string());
 
-    #[allow(clippy::single_match)]
-    match &result {
-        CompilerResult::Exception(_exception) => return result,
-        _ => (),
-    }
-
-    let result = compiler.compile_block(conditional.body, true);
-
-    #[allow(clippy::single_match)]
-    match &result {
-        CompilerResult::Exception(_exception) => return result,
-        CompilerResult::Success(if_type_result) => {
-            if_type = if_type_result.clone();
-        }
-        _ => (),
-    }
+    let if_type = compiler.compile_block(conditional.body, true)?;
 
     compiler.add_to_current_function(" ELSE ".to_string());
 
     if let Some(node) = conditional.else_condition.as_ref() {
         if let Node::Expression(exp) = node {
             compiler.add_to_current_function("{".to_string());
-            compiler.compile_expression(exp.clone());
+            compiler.compile_expression(exp.clone())?;
             compiler.add_to_current_function("}".to_string());
         }
         if let Node::Statement(stmt) = node {
             if let Statement::Block(block) = stmt.clone() {
-                compiler.compile_block(block, true);
+                compiler.compile_block(block, true)?;
             }
         }
     } else {
@@ -60,7 +45,7 @@ pub fn compile_expression_conditional(
 
     compiler.add_to_current_function(";".to_string());
 
-    CompilerResult::Success(if_type)
+    Ok(if_type)
 }
 
 // TODO: This does not work yet. Hence it is commented

@@ -48,29 +48,13 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-/// Instance of CompilerResult which contains information on how the compiler handled input
-#[allow(dead_code)]
-#[derive(Debug, PartialEq, Clone)]
-pub enum CompilerResult {
-    // Success can return an optional type if the result was an expression
-    Success(Types),
-    Optimize,
-    Exception(CompilerException),
-}
-
-impl CompilerResult {
-    pub fn is_exception(&self) -> bool {
-        matches!(self, CompilerResult::Exception(_))
-    }
-}
-
 /// The result of the transpiler, which will be passed to the D compiler [crate::util::execute_code]
-pub struct DCode {
+pub struct Arc {
     pub imports: Vec<String>,
     pub functions: HashMap<String, Function>,
 }
 
-impl DCode {
+impl Arc {
     pub fn get_arc(&self) -> String {
         let mut code = String::new();
 
@@ -168,7 +152,7 @@ impl Compiler {
     ///     // Handle error
     /// }
     /// ```
-    pub fn compile(&mut self, program: Program) -> Result<DCode, CompilerException> {
+    pub fn compile(&mut self, program: Program) -> Result<Arc, CompilerException> {
         let mut index = 0;
         let length = program.statements.len();
         for statement in program.statements {
@@ -185,12 +169,12 @@ impl Compiler {
 
             #[allow(clippy::single_match)]
             match err {
-                CompilerResult::Exception(exception) => return Result::Err(exception),
+                Err(exception) => return Err(exception),
                 _ => (),
             }
         }
 
-        Ok(self.get_d_code())
+        Ok(self.get_arc())
     }
 
     /// Enters a compilation "location" aka a module. A module has its own variable scope and thus
@@ -226,7 +210,7 @@ impl Compiler {
     }
 
     /// Allows you to use Loop code within the compiler
-    pub fn compile_generic_loop(&mut self, str: &str) -> Result<DCode, CompilerException> {
+    pub fn compile_generic_loop(&mut self, str: &str) -> Result<Arc, CompilerException> {
         let lexer = lexer::build_lexer(str);
         let mut parser = parser::build_parser(lexer);
 
@@ -345,8 +329,8 @@ impl Compiler {
         }
     }
 
-    pub fn get_d_code(&self) -> DCode {
-        DCode {
+    pub fn get_arc(&self) -> Arc {
+        Arc {
             functions: self.functions.clone(),
             imports: self.imports.clone(),
         }
@@ -361,7 +345,7 @@ impl Compiler {
     ///
     /// let result = compiler.compile_expression(exp);
     /// ```
-    fn compile_expression(&mut self, expr: Expression) -> CompilerResult {
+    fn compile_expression(&mut self, expr: Expression) -> Result<Types, CompilerException> {
         match expr {
             Expression::Identifier(identifier) => compile_expression_identifier(self, identifier),
             Expression::Integer(int) => compile_expression_integer(self, int),
@@ -387,7 +371,7 @@ impl Compiler {
     }
 
     /// Compiles a loop [Block], this differs from [Compiler::compile_block] in that it wont add curly braces
-    fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
+    fn compile_loop_block(&mut self, block: Block) -> Result<Types, CompilerException> {
         let mut return_type = Types::Void;
         self.enter_symbol_scope();
 
@@ -399,14 +383,14 @@ impl Compiler {
 
             // If its either a return statement, or the last statement is an expression than that is the return type of this block
             if let Statement::Return(_) = statement {
-                if let CompilerResult::Success(_type) = err.clone() {
+                if let Ok(_type) = err.clone() {
                     return_type = _type;
                 }
             }
 
             if index == block.statements.len() {
                 if let Statement::Expression(_) = statement {
-                    if let CompilerResult::Success(_type) = err.clone() {
+                    if let Ok(_type) = err.clone() {
                         return_type = _type;
                     }
                 }
@@ -414,16 +398,14 @@ impl Compiler {
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => {
-                    return CompilerResult::Exception(_exception.clone())
-                }
+                Err(_exception) => return Err(_exception.clone()),
                 _ => (),
             }
         }
 
         self.exit_symbol_scope();
 
-        CompilerResult::Success(return_type)
+        Ok(return_type)
     }
 
     /// Defines a new variable and increases the amount of variables that exist
@@ -476,7 +458,11 @@ impl Compiler {
     }
 
     /// Compiles a deeper [Block] adding curly braces
-    fn compile_block(&mut self, block: Block, _anonymous: bool) -> CompilerResult {
+    fn compile_block(
+        &mut self,
+        block: Block,
+        _anonymous: bool,
+    ) -> Result<Types, CompilerException> {
         let mut block_type: Types = Types::Void;
         self.enter_symbol_scope();
 
@@ -512,14 +498,14 @@ impl Compiler {
 
                     // Find first "return" as that is the only way to return
                     if let Statement::Return(_) = statement.clone() {
-                        if let CompilerResult::Success(_type) = &result {
+                        if let Ok(_type) = &result {
                             block_type = _type.clone();
                         }
                     }
 
                     // Or if its the last expression
                     if index == block.statements.len() {
-                        if let CompilerResult::Success(_type) = &result {
+                        if let Ok(_type) = &result {
                             block_type = _type.clone();
                         }
 
@@ -534,7 +520,7 @@ impl Compiler {
 
                     // Find first "return" as that is the only way to return
                     if let Statement::Return(_) = statement.clone() {
-                        if let CompilerResult::Success(_type) = &result {
+                        if let Ok(_type) = &result {
                             block_type = _type.clone();
                         }
                     }
@@ -545,7 +531,7 @@ impl Compiler {
 
             #[allow(clippy::single_match)]
             match &err {
-                CompilerResult::Exception(_exception) => {
+                Err(_exception) => {
                     return err;
                 }
                 _ => (),
@@ -556,7 +542,7 @@ impl Compiler {
 
         self.exit_symbol_scope();
 
-        CompilerResult::Success(block_type)
+        Ok(block_type)
     }
 
     /// Compiles the [Statement] [Node](crate::parser::program::Node)
@@ -569,7 +555,11 @@ impl Compiler {
     ///
     /// let result = compiler.compile_statement(stmt);
     /// ```
-    fn compile_statement(&mut self, stmt: Statement, no_semicolon: bool) -> CompilerResult {
+    fn compile_statement(
+        &mut self,
+        stmt: Statement,
+        no_semicolon: bool,
+    ) -> Result<Types, CompilerException> {
         let mut expression_statement = false;
 
         let result = match stmt.clone() {
