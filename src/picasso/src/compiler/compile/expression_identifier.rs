@@ -15,6 +15,8 @@ pub fn compile_expression_identifier(
                 var.function_identifier, var.parameter_id
             ));
         } else {
+            // Two colons means that the identifier is pointing towards an imported module, here we
+            // check if that identifier is public in that module and if it is not we return an error
             if identifier.value.contains("::")
                 && compiler.location != var.modifiers.module
                 && !var.modifiers.public
