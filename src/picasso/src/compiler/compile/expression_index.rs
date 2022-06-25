@@ -26,10 +26,6 @@ fn compile_expression_class_index(
     left: Expression,
     field: String,
 ) -> CompilerResult {
-    _compiler.drier();
-    let result = _compiler.compile_expression(left.clone());
-    _compiler.undrier();
-
     if let Expression::Identifier(ident) = left.clone() {
         // Try to find var
         let var = _compiler.resolve_symbol(&ident.value);
@@ -42,6 +38,10 @@ fn compile_expression_class_index(
             }
         }
     }
+
+    _compiler.drier();
+    let result = _compiler.compile_expression(left.clone());
+    _compiler.undrier();
 
     if let CompilerResult::Success(mut check) = result {
         if let Types::Array(_) = check {

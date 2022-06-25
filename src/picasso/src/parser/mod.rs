@@ -239,7 +239,20 @@ impl Parser {
             TokenType::Extends => parse_extend_statement(self),
             TokenType::Public => {
                 self.next_public = true;
-                parse_function(self)
+
+                if let Some(token) = &self.lexer.peek_token {
+                    match token.token {
+                        TokenType::Function => parse_function(self),
+                        TokenType::Class => {
+                            self.lexer.next_token();
+
+                            parse_class_statement(self)
+                        }
+                        _ => None,
+                    }
+                } else {
+                    None
+                }
             }
             _ => self.parse_expression_statement(),
         };

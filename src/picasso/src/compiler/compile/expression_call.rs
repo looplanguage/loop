@@ -9,7 +9,9 @@ use crate::parser::types::{Compound, Types};
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     // This is for calling functions from a library & instantiating classes
-    // First class instantation
+    // First class instantation from other locations
+
+    // Then class instantation from the current module
     if let expression::Expression::Identifier(i) = *call.clone().identifier {
         // Check if this is a class
         let class = compiler.get_compound_type(&i.value);
@@ -161,11 +163,41 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         }
     }
 
+    let mut index = None;
+    let mut self_reference: Option<Expression> = None;
+
+    if let Expression::Index(i) = *call.identifier.clone() {
+        self_reference = Some(i.left.clone());
+
+        if let Expression::Identifier(ident) = i.index {
+            index = Some(ident.value);
+        }
+    }
+
+    // Check if self reference exists and points to a module
+    if let Some(self_reference) = self_reference.clone() {
+        compiler.drier();
+        let result = compiler.compile_expression(self_reference);
+        compiler.undrier();
+
+        if let CompilerResult::Success(Types::Module(module)) = result {
+            // This errors because its too late and we already generated a bunch of code
+            return compile_expression_call(
+                compiler,
+                Call {
+                    identifier: Box::new(Expression::Identifier(Identifier {
+                        value: format!("{}::{}", module, index.unwrap()),
+                    })),
+                    parameters: call.parameters,
+                },
+            );
+        }
+    }
+
     // This is for calling functions defined in Loop
     compiler.add_to_current_function(".CALL {".to_string());
 
     let mut method_type: Option<Types> = None;
-    let mut self_reference: Option<Expression> = None;
 
     if let Expression::String(ref namespace) = *call.identifier {
         let split: Vec<&str> = namespace.value.split("::").collect();
@@ -198,10 +230,6 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     if method_type.is_none() {
         // If left side of the call was an index, this is a method being called on it so insert
         // "self"
-
-        if let Expression::Index(i) = *call.identifier.clone() {
-            self_reference = Some(i.left.clone());
-        }
 
         let result = compiler.compile_expression(*call.identifier.clone());
 

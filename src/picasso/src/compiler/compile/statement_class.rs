@@ -11,7 +11,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
     let var = compiler.define_symbol(
         class.name.clone(),
         Types::Compound(Compound("".to_string(), Box::new(vec![]))),
-        0,
+        -1,
     );
 
     compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", var.transpile()));
@@ -128,10 +128,12 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     compiler.add_to_current_function("};".to_string());
 
-    let var = compiler.get_symbol_mutable(var.index, var.name, None);
+    let var = compiler
+        .get_symbol_mutable(var.index, var.name, None)
+        .unwrap();
 
-    var.unwrap().as_ref().borrow_mut()._type =
-        Types::Compound(Compound(class.name, Box::new(items)));
+    var.as_ref().borrow_mut().modifiers.public = class.public;
+    var.as_ref().borrow_mut()._type = Types::Compound(Compound(class.name, Box::new(items)));
 
     CompilerResult::Success(Types::Void)
 }
