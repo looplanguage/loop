@@ -133,7 +133,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
             if let CompilerResult::Success(succ) = result {
                 match &*value {
-                    "add" => {
+                    "push" => {
                         for parameter in &call.parameters {
                             compiler.add_to_current_function(".PUSH {".to_string());
                             compiler.compile_expression(a.left.clone());

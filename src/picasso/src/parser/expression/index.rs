@@ -92,7 +92,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         };
 
         match &*identifier {
-            "add" | "remove" => {
+            "push" | "remove" => {
                 return Some(Node::Expression(Expression::Call(Call {
                     identifier: Box::new(Expression::Index(Box::new(Index {
                         left,

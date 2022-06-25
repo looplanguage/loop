@@ -47,7 +47,7 @@ fn compile_expression_class_index(
         if let Types::Array(_) = check {
             // Methods for arrays
             return match field.as_str() {
-                "add" => CompilerResult::Success(Types::Function(FunctionType {
+                "push" => CompilerResult::Success(Types::Function(FunctionType {
                     return_type: Box::new(Types::Void),
                     parameter_types: vec![],
                     reference: "ADD_TO_ARRAY".to_string(),
@@ -200,8 +200,6 @@ fn compile_expression_index_internal(
    extension!(length),
 */
 
-const EXTENSION_METHODS: &[&str] = &["to_string", "to_int", "add", "remove", "slice", "length"];
-
 pub fn compile_expression_extension_method(
     compiler: &mut Compiler,
     call: Call,
@@ -247,19 +245,7 @@ pub fn compile_expression_extension_method(
         }
     }
 
-    // Search extension id
-    let method_id = EXTENSION_METHODS.iter().position(|&m| m == method.as_str());
-
-    if method_id.is_none() {
-        return CompilerResult::Success(Types::Void);
-    }
-
-    match method_id.unwrap() {
-        2 => transpile_extension_add(compiler, call, left),
-        3 => transpile_extension_remove(compiler, call, left),
-        4 => transpile_extension_slice(compiler, call, left),
-        _ => unreachable!("Should not be here"),
-    }
+    CompilerResult::Exception(CompilerException::Unknown)
 }
 
 /// Transpiles the extension method 'add'
