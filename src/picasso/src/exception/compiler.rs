@@ -17,13 +17,13 @@ pub enum CompilerException {
     CanNotReadFile(String),
     DoubleParameterName(String),
     CallingNonFunction(String),
-    // GOT, EXPECTED
+    /// Got, Expected
     WrongType(String, String),
     ValueDifferentFromType(String, String),
-    // Field, Type
+    /// Field, Type
     UnknownField(String, String),
     UnknownType(String),
-    // Module, Name
+    /// Module, Name
     NotPublic(String, String),
     Unknown,
 }
