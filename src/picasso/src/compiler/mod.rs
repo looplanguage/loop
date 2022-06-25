@@ -215,11 +215,7 @@ impl Compiler {
         // This is needed as if we are only one location "deep" the previous location wont exist,
         // so we set the location in the else block to "" which is the default root location.
         if self.locations.len() > 1 {
-            self.location = self
-                .locations
-                .get(self.locations.len() - 2)
-                .unwrap()
-                .to_string();
+            self.location = self.locations.pop().unwrap();
         } else {
             self.location = "".to_string();
         }
