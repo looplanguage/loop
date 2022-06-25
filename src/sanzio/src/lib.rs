@@ -505,6 +505,7 @@ impl LuaBackend {
         {
             use std::ffi::CStr;
             use std::os::raw::c_char;
+            use std::path::Path;
 
             let full_path = if std::env::consts::OS == "windows" {
                 format!("{}.dll", _path)
@@ -529,6 +530,13 @@ impl LuaBackend {
                     }
                 }
             } else {
+                if Path::new(&full_path).exists() {
+                    return Err(format!(
+                        "The library: {}, was not compiled for this platform",
+                        full_path
+                    ));
+                }
+
                 return Err(format!("The library: {}, does not exist", full_path));
             }
         }

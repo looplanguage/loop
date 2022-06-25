@@ -33,6 +33,7 @@ pub fn compile_expression_identifier(
         return CompilerResult::Success(var._type);
     }
 
+    println!("Bad!");
     CompilerResult::Exception(CompilerException::UnknownSymbol(UnknownSymbol {
         name: identifier.value,
         scope_depth: compiler.scope_index as u16,

@@ -1,6 +1,5 @@
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
-use crate::parser::expression;
 use crate::parser::expression::function::{Call, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
@@ -9,10 +8,8 @@ use crate::parser::types::{Compound, Types};
 
 pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
     // This is for calling functions from a library & instantiating classes
-    // First class instantation from other locations
-
-    // Then class instantation from the current module
-    if let expression::Expression::Identifier(i) = *call.clone().identifier {
+    // First class instantation from the current module
+    if let Expression::Identifier(i) = *call.clone().identifier {
         // Check if this is a class
         let class = compiler.get_compound_type(&i.value);
 
@@ -101,9 +98,8 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 // Second library function calling
             }
         }
-    } else if let expression::Expression::String(namespace) = *call.clone().identifier {
-        let splitted_namespace: Vec<&str> = namespace.value.split("::").collect();
-        let lib_name = splitted_namespace[0].to_string();
+    } else if let Expression::String(namespace) = *call.clone().identifier {
+        let lib_name = "".to_string();
 
         // Checks whether file is imported
         if compiler.imports.contains(&lib_name) {
@@ -128,6 +124,26 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
     if let Expression::Index(a) = *call.identifier.clone() {
         if let Expression::Identifier(ident) = a.index {
             let value = ident.value;
+
+            if let Expression::Identifier(library) = &a.left {
+                if compiler.imports.contains(&library.value) {
+                    compiler.add_to_current_function(".CALL ".to_string());
+                    compiler.add_to_current_function(format!("{}::{}", library.value, value));
+                    compiler.add_to_current_function(" { ".to_string());
+                    for parameter in call.parameters {
+                        let result = compiler.compile_expression(parameter);
+
+                        if let CompilerResult::Exception(_) = &result {
+                            return result;
+                        }
+                    }
+                    compiler.add_to_current_function(String::from("};"));
+
+                    // Since we do not know what the return type of the function is, we use Types::Auto
+                    // TODO: You do know function signiture it is in the header or "function_signiture" function
+                    return CompilerResult::Success(Types::Auto);
+                }
+            }
 
             compiler.drier();
             let result = compiler.compile_expression(a.left.clone());

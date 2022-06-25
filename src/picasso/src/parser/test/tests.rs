@@ -56,6 +56,7 @@ mod tests {
                 },
             ],
             inherits: "".to_string(),
+            public: false,
         })];
 
         test_parser(input, expected)
