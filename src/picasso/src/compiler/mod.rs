@@ -193,6 +193,9 @@ impl Compiler {
         Ok(self.get_d_code())
     }
 
+    /// Enters a compilation "location" aka a module. A module has its own variable scope and thus
+    /// when importing a file this file is completely seperate from the previous location. A stack
+    /// is used to keep track of all locations(read modules).
     pub fn enter_location(&mut self, location: String) {
         self.enter_variable_scope();
 
@@ -204,9 +207,13 @@ impl Compiler {
         self.location = location;
     }
 
+    /// Exits a compilation "location" aka a module. When exiting a location it pops the last
+    /// location from the stack.
     pub fn exit_location(&mut self) -> String {
         let last_loc = self.location.clone();
 
+        // This is needed as if we are only one location "deep" the previous location wont exist,
+        // so we set the location in the else block to "" which is the default root location.
         if self.locations.len() > 1 {
             self.location = self
                 .locations
