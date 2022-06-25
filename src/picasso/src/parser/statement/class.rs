@@ -35,6 +35,7 @@ pub struct Class {
     pub name: String,
     pub values: Vec<ClassField>,
     pub inherits: String,
+    pub public: bool,
 }
 
 fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, ClassItem)> {
@@ -148,5 +149,6 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         inherits,
         name,
         values,
+        public: p.next_public,
     })))
 }

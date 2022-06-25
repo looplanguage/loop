@@ -27,6 +27,7 @@ pub struct FunctionType {
     pub return_type: Box<Types>,
     pub parameter_types: Vec<Types>,
     pub reference: String,
+    pub is_method: bool,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -55,6 +56,7 @@ pub enum Types {
     Function(FunctionType),
     Library(Library),
     Compound(Compound),
+    Module(String),
     Void,
     Auto,
 }
@@ -84,6 +86,7 @@ impl Display for Types {
                     Types::Auto => "void[]".to_string(),
                     Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
                     Types::Compound(Compound(tp, _)) => tp,
+                    Types::Module(m) => m,
                 },
                 Types::Auto => "Variant".to_string(),
                 // TODO: Should probably be different now we know types
@@ -105,6 +108,7 @@ impl Display for Types {
                 Types::Compound(Compound(tp, _)) => tp.clone(),
                 Types::Void => "void".to_string(),
                 Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
+                Types::Module(m) => m.clone(),
             }
         )
     }
@@ -132,6 +136,7 @@ impl Types {
                 Types::Auto => "VOID[]".to_string(),
                 Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
                 Types::Compound(Compound(tp, _)) => tp,
+                Types::Module(m) => m,
             },
             Types::Auto => "Variant".to_string(),
             // TODO: Should probably be different now we know types
@@ -139,6 +144,7 @@ impl Types {
             Types::Void => "VOID".to_string(),
             Types::Library(lib) => format!("LIBRARY {{{:?}}}", lib.methods),
             Types::Compound(Compound(tp, _)) => tp.clone(),
+            Types::Module(m) => m.to_string(),
         }
     }
 }

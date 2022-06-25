@@ -27,7 +27,7 @@ use super::expression_index::compile_expression_index;
 /// writeln(x);
 /// ```
 pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerResult {
-    compiler.enter_variable_scope();
+    compiler.enter_symbol_scope();
 
     // Condition
     compiler.add_to_current_function(".WHILE CONDITION {".to_string());
@@ -70,9 +70,9 @@ pub fn compile_loop_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopIterator,
 ) -> CompilerResult {
-    compiler.enter_variable_scope();
+    compiler.enter_symbol_scope();
     // Define the identifier variable, with the starting integer
-    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
+    let var = compiler.define_symbol(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
 
     compiler.add_to_current_function(format!(
         ".STORE {} {{.CONSTANT INT {};}};",
@@ -87,7 +87,7 @@ pub fn compile_loop_iterator_expression(
     // Compile the body that is executed
     let result = compiler.compile_loop_block(lp.body);
 
-    compiler.exit_variable_scope();
+    compiler.exit_symbol_scope();
 
     // Increase it
     compiler.add_to_current_function(format!(
@@ -120,12 +120,11 @@ pub fn compile_loop_array_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopArrayIterator,
 ) -> CompilerResult {
-    compiler.enter_variable_scope();
+    compiler.enter_symbol_scope();
 
     // Define the identifier variable, with the starting value of the array
-    let var = compiler.define_variable(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
-    let index =
-        compiler.define_variable("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
+    let var = compiler.define_symbol(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
+    let index = compiler.define_symbol("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
 
     compiler.add_to_current_function(format!(".STORE {} {{ .CONSTANT INT 0; }};", index.index));
     compiler.add_to_current_function(format!(".STORE {} {{ ", var.index));

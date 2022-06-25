@@ -183,7 +183,7 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
 
                     self.add_code(format!("\"{}\"", string))
                 } else {
-                    self.add_code_str("{");
+                    self.add_code_str("setmetatable({");
 
                     let mut index = 0;
                     for item in items {
@@ -196,7 +196,9 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
                         }
                     }
 
-                    self.add_code_str("}");
+                    self.add_code_str(
+                        "}, { __concat = function(a, b) return table.insert(a, b) end })",
+                    );
                 }
             }
         }
@@ -397,11 +399,9 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
                 self.add_code_str("[i] end return temp_sliced end end)()");
             }
             Node::PUSH(push) => {
-                self.add_code_str("table.insert(");
                 self.compile_node(&*push.to_push);
-                self.add_code_str(",");
+                self.add_code_str(" .. ");
                 self.compile_node(&*push.item);
-                self.add_code_str(")")
             }
             Node::COPY(_) => {}
             Node::LOADLIB(lib) => match self.get_lib_signiture(lib.clone().get_path()) {
@@ -526,6 +526,7 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
         {
             use std::ffi::CStr;
             use std::os::raw::c_char;
+            use std::path::Path;
 
             let full_path = if std::env::consts::OS == "windows" {
                 format!("{}.dll", _path)
@@ -550,6 +551,13 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
                     }
                 }
             } else {
+                if Path::new(&full_path).exists() {
+                    return Err(format!(
+                        "The library: {}, was not compiled for this platform",
+                        full_path
+                    ));
+                }
+
                 return Err(format!("The library: {}, does not exist", full_path));
             }
         }

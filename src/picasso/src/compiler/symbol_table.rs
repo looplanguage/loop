@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Clone, Debug)]
-pub struct Variable {
+pub struct Symbol {
     pub index: u32,
     pub name: String,
     pub _type: Types,
@@ -14,31 +14,35 @@ pub struct Variable {
     pub function_identifier: i32,
 }
 
-pub struct VariableScope {
-    pub variables: Vec<Rc<RefCell<Variable>>>,
-    pub outer: Option<Rc<RefCell<VariableScope>>>,
+#[derive(Debug)]
+pub struct SymbolScope {
+    pub variables: Vec<Rc<RefCell<Symbol>>>,
+    pub outer: Option<Rc<RefCell<SymbolScope>>>,
 }
 
-pub fn build_variable_scope() -> VariableScope {
-    VariableScope {
+pub fn build_variable_scope() -> SymbolScope {
+    SymbolScope {
         variables: vec![],
         outer: None,
     }
 }
-pub fn build_deeper_variable_scope(outer: Option<Rc<RefCell<VariableScope>>>) -> VariableScope {
-    VariableScope {
+pub fn build_deeper_variable_scope(outer: Option<Rc<RefCell<SymbolScope>>>) -> SymbolScope {
+    SymbolScope {
         variables: vec![],
         outer,
     }
 }
 
-impl Variable {
+impl Symbol {
     pub fn transpile(&self) -> String {
-        format!("var_{}_{}", self.name, self.index)
+        match self._type {
+            Types::Compound(_) => format!("class_{}", self.index),
+            _ => format!("var_{}", self.index),
+        }
     }
 }
 
-impl VariableScope {
+impl SymbolScope {
     pub fn define(
         &mut self,
         index: u32,
@@ -47,8 +51,21 @@ impl VariableScope {
         modifiers: Modifiers,
         parameter_id: i32,
         function_identifier: i32,
-    ) -> Variable {
-        self.variables.push(Rc::from(RefCell::from(Variable {
+    ) -> Symbol {
+        if name.starts_with("__export_") {
+            if let Some(outer) = &self.outer {
+                return outer.as_ref().borrow_mut().define(
+                    index,
+                    name,
+                    _type,
+                    modifiers,
+                    parameter_id,
+                    function_identifier,
+                );
+            }
+        }
+
+        self.variables.push(Rc::from(RefCell::from(Symbol {
             index,
             name,
             _type: _type.clone(),
@@ -59,7 +76,7 @@ impl VariableScope {
 
         let var = self.variables.last().expect("inserted").as_ref().borrow();
 
-        Variable {
+        Symbol {
             name: var.name.clone(),
             index: var.index,
             _type,
@@ -70,13 +87,11 @@ impl VariableScope {
     }
 
     /// This will get a mutable reference to a variable
-    /// **Note**: This will not recursively search the tree upwards, it will **ONLY** look in the
-    /// current scope.
     pub fn get_variable_mutable(
         &mut self,
         index: u32,
         name: String,
-    ) -> Option<Rc<RefCell<Variable>>> {
+    ) -> Option<Rc<RefCell<Symbol>>> {
         for rc_variable in &self.variables {
             let variable = rc_variable.as_ref().borrow();
             if variable.name == name && variable.index == index {
@@ -87,12 +102,12 @@ impl VariableScope {
         None
     }
 
-    pub fn resolve(&self, name: String) -> Option<Variable> {
+    pub fn resolve(&self, name: String) -> Option<Symbol> {
         for variable in &self.variables {
             let variable = variable.as_ref().borrow();
 
             if variable.name == name {
-                return Some(Variable {
+                return Some(Symbol {
                     index: variable.index,
                     name,
                     _type: variable._type.clone(),

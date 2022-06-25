@@ -5,7 +5,7 @@ mod tests {
     use crate::parser;
     use crate::parser::expression::array::Array;
     use crate::parser::expression::boolean::Boolean;
-    use crate::parser::expression::function::{Call, Function, Parameter};
+    use crate::parser::expression::function::{Function, Parameter};
     use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
     use crate::parser::expression::identifier::Identifier;
     use crate::parser::expression::integer::Integer;
@@ -13,8 +13,6 @@ mod tests {
     use crate::parser::expression::null::Null;
     use crate::parser::expression::string::LoopString;
     use crate::parser::expression::suffix::Suffix;
-    use crate::parser::expression::Expression::Index;
-    use crate::parser::program::Node;
     use crate::parser::statement::assign::VariableAssign;
     use crate::parser::statement::block::Block;
     use crate::parser::statement::class::{Class, ClassField, ClassItem};
@@ -56,6 +54,7 @@ mod tests {
                 },
             ],
             inherits: "".to_string(),
+            public: false,
         })];
 
         test_parser(input, expected)
@@ -81,6 +80,7 @@ mod tests {
                 },
                 name: "".to_string(),
                 predefined_type: None,
+                public: false,
             })),
         })));
 

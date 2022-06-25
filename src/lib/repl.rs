@@ -1,3 +1,4 @@
+use crate::lib::config::CONFIG;
 use crate::lib::util::print_valuetype;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -26,6 +27,10 @@ pub fn start() {
         VERSION
     );
 
+    if CONFIG.debug_mode {
+        println!("Debug mode enabled!");
+    }
+
     loop {
         let readline = rl.readline(">> ");
         match readline {
@@ -35,8 +40,12 @@ pub fn start() {
                 let result = if let Some(compiler_state) = compiler_state.clone() {
                     picasso::compile_with_state(line.as_str(), compiler_state)
                 } else {
-                    picasso::compile(line.as_str())
+                    picasso::compile(line.as_str(), None)
                 };
+
+                if CONFIG.debug_mode {
+                    println!("Arc\n{}", result.0.as_str());
+                }
 
                 let ast = vinci::parse(result.0.as_str());
 

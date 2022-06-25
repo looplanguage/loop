@@ -5,7 +5,7 @@ use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::{Index, Slice};
 use crate::parser::expression::Expression;
-use crate::parser::types::{BaseTypes, Compound, Types};
+use crate::parser::types::{BaseTypes, Compound, FunctionType, Types};
 
 pub fn compile_expression_index(_compiler: &mut Compiler, _index: Index) -> CompilerResult {
     #[allow(clippy::single_match)]
@@ -22,27 +22,54 @@ fn compile_expression_class_index(
     left: Expression,
     field: String,
 ) -> CompilerResult {
+    if let Expression::Identifier(ident) = left.clone() {
+        // Try to find var
+        let var = _compiler.resolve_symbol(&ident.value);
+
+        if let Some(var) = var {
+            if let Types::Module(module) = var._type {
+                return _compiler.compile_expression(Expression::Identifier(Identifier {
+                    value: format!("{}::{}", module, field),
+                }));
+            }
+        }
+    }
+
     _compiler.drier();
     let result = _compiler.compile_expression(left.clone());
     _compiler.undrier();
 
     if let CompilerResult::Success(mut check) = result {
+        if let Types::Array(_) = check {
+            // Methods for arrays
+            return match field.as_str() {
+                "push" => CompilerResult::Success(Types::Function(FunctionType {
+                    return_type: Box::new(Types::Void),
+                    parameter_types: vec![],
+                    reference: "ADD_TO_ARRAY".to_string(),
+                    is_method: false,
+                })),
+                &_ => CompilerResult::Exception(CompilerException::UnknownField(
+                    field,
+                    format!("{:?}", check),
+                )),
+            };
+        }
+
         if let Types::Function(func) = check {
             check = *func.return_type;
         }
 
         // Check if function exists with this specific signature
-        let var = _compiler.variable_scope.borrow_mut().resolve(format!(
-            "{}_{}",
-            check.transpile(),
-            field
-        ));
+        let var = _compiler.resolve_symbol(&format!("{}_{}", check.transpile(), field));
 
         if let Some(var) = var {
             let result = compile_expression_identifier(_compiler, Identifier { value: var.name });
 
             return result;
         }
+    } else {
+        return result;
     }
 
     _compiler.add_to_current_function(".INDEX { ".to_string());
@@ -59,7 +86,7 @@ fn compile_expression_class_index(
             },
             Types::Basic(BaseTypes::UserDefined(ref user)) => {
                 // Find a user defined type
-                let var = _compiler.variable_scope.borrow_mut().resolve(user.clone());
+                let var = _compiler.resolve_symbol(user);
 
                 if let Some(var) = var {
                     if let Types::Compound(c) = var._type {
@@ -127,7 +154,7 @@ pub fn compile_expression_assign_index(
         compiler.compile_expression(assign.value);
     } else {
         compiler.add_to_current_function(".INDEX {".to_string());
-        compiler.compile_expression(assign.left);
+        compiler.compile_expression(assign.left.clone());
 
         compiler.add_to_current_function("} {".to_string());
         compiler.compile_expression(assign.index);

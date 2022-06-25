@@ -52,7 +52,7 @@ pub fn run_file(path: String) {
         exit(1);
     }
 
-    let arc = picasso::compile(content.as_str());
+    let arc = picasso::compile(content.as_str(), Some(path.as_str()));
     if CONFIG.debug_mode {
         println!("Arc\n#---------\n{}\n---------#", arc.0);
     }

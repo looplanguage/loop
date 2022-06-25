@@ -1,19 +1,22 @@
 use crate::compiler::{Compiler, CompilerResult};
-use crate::parser::expression::function::{Function, Parameter};
-use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::function::Function;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::statement::class::{Class, ClassItem};
-use crate::parser::types::{BaseTypes, ClassItemType, Compound, FunctionType, Types};
+use crate::parser::types::{ClassItemType, Compound, FunctionType, Types};
 
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: Vec<ClassItemType> = Vec::new();
 
-    compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", class.name));
+    let var = compiler.define_symbol(
+        class.name.clone(),
+        Types::Compound(Compound("".to_string(), Box::new(vec![]))),
+        -1,
+    );
 
-    let var = compiler.define_variable(class.name.clone(), Types::Auto, 0);
+    compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", var.transpile()));
 
-    let inherits = compiler.variable_scope.borrow_mut().resolve(class.inherits);
+    let inherits = compiler.resolve_symbol(&class.inherits);
 
     if let Some(inherits) = inherits {
         if let Types::Compound(inherits) = inherits._type {
@@ -62,22 +65,6 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                 };
             }
             ClassItem::Method(method) => {
-                // For methods we won't compile the expression yet, as we are not sure yet
-                // what the self reference fully contains. Ok this explanation really sucks
-                // and I'm not sure yet how to make it more clear. So, learn PL design please :)
-
-                let mut arguments = method.arguments.clone();
-
-                arguments.insert(
-                    0,
-                    Parameter {
-                        identifier: Identifier {
-                            value: "self".to_string(),
-                        },
-                        _type: Types::Basic(BaseTypes::UserDefined(class.name.clone())),
-                    },
-                );
-
                 let mut new_item = ClassItemType {
                     name: name.clone(),
                     index,
@@ -90,12 +77,14 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                             .map(|v| v._type)
                             .collect(),
                         reference: "".to_string(),
+                        is_method: true,
                     }),
                     value: Expression::Function(Function {
                         name: name.clone(),
                         parameters: method.arguments.clone(),
                         body: method.body.clone(),
                         predefined_type: Some(method.return_type.clone()),
+                        public: false,
                     }),
                 };
 
@@ -125,7 +114,14 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                     items.push(new_item)
                 }
 
-                compiler.add_to_current_function(format!("{};", lazy.transpile()))
+                // Find the type spec
+                let found = compiler.resolve_symbol(&lazy.transpile());
+
+                if let Some(found) = found {
+                    compiler.add_to_current_function(format!("{};", found.transpile()))
+                } else {
+                    compiler.add_to_current_function(format!("{};", lazy.transpile()))
+                }
             }
         }
     }
@@ -133,12 +129,11 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
     compiler.add_to_current_function("};".to_string());
 
     let var = compiler
-        .variable_scope
-        .borrow_mut()
-        .get_variable_mutable(var.index, var.name);
+        .get_symbol_mutable(var.index, var.name, None)
+        .unwrap();
 
-    var.unwrap().as_ref().borrow_mut()._type =
-        Types::Compound(Compound(class.name, Box::new(items)));
+    var.as_ref().borrow_mut().modifiers.public = class.public;
+    var.as_ref().borrow_mut()._type = Types::Compound(Compound(class.name, Box::new(items)));
 
     CompilerResult::Success(Types::Void)
 }
