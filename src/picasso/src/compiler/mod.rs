@@ -239,10 +239,14 @@ impl Compiler {
         self.compile(program)
     }
 
+    /// Will go one scope deeper in dry compiling. Dry compiling means that you can get the result
+    /// of a compilation without it actually generating any effects.
     pub fn drier(&mut self) {
         self.dry += 1;
     }
 
+    /// Will go one scope shallower in dry compilation. Dry compiling means that you can get the result
+    /// of a compilation without it actually generating any effects.
     pub fn undrier(&mut self) {
         self.dry -= 1;
     }
