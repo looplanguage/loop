@@ -26,7 +26,6 @@ use crate::compiler::compile::expression_suffix::compile_expression_suffix;
 use crate::compiler::compile::statement_break::compile_break_statement;
 use crate::compiler::compile::statement_class::compile_class_statement;
 use crate::compiler::compile::statement_constant_declaration::compile_statement_constant_declaration;
-use crate::compiler::compile::statement_export::compile_export_statement;
 use crate::compiler::compile::statement_extend::compile_extend_statement;
 use crate::compiler::compile::statement_import::compile_import_statement;
 use crate::compiler::compile::statement_return::compile_return_statement;
@@ -582,7 +581,6 @@ impl Compiler {
             }
             Statement::Return(_return) => compile_return_statement(self, _return),
             Statement::Import(import) => compile_import_statement(self, import),
-            Statement::Export(export) => compile_export_statement(self, export),
             Statement::Break(br) => compile_break_statement(self, br),
             Statement::Class(class) => compile_class_statement(self, class),
             Statement::Extend(extend) => compile_extend_statement(self, extend),
@@ -603,7 +601,6 @@ impl Compiler {
             Statement::VariableAssign(_) => true,
             Statement::Return(_) => true,
             Statement::Import(_) => false,
-            Statement::Export(_) => true,
             Statement::Break(_) => true,
             Statement::Class(_) => true,
             Statement::Extend(_) => true,

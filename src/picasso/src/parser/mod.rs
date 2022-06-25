@@ -28,7 +28,6 @@ use crate::exception::syntax::{throw_syntax_error, SyntaxError};
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::class::parse_class_statement;
-use crate::parser::statement::export::parse_export_statement;
 use crate::parser::statement::extends::parse_extend_statement;
 use crate::parser::statement::import::parse_import_statement;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
@@ -235,7 +234,6 @@ impl Parser {
             TokenType::Return => parse_return_statement(self),
             //TokenType::LeftBrace => parse_block_statement(self),
             TokenType::Import => parse_import_statement(self),
-            TokenType::Export => parse_export_statement(self),
             TokenType::Break => parse_break_statement(self),
             TokenType::Class => parse_class_statement(self),
             TokenType::Extends => parse_extend_statement(self),
