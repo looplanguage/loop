@@ -8,7 +8,7 @@ use crate::parser::types::{ClassItemType, Compound, FunctionType, Types};
 pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
     let mut items: Vec<ClassItemType> = Vec::new();
 
-    let var = compiler.define_variable(
+    let var = compiler.define_symbol(
         class.name.clone(),
         Types::Compound(Compound("".to_string(), Box::new(vec![]))),
         0,
@@ -16,7 +16,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     compiler.add_to_current_function(format!(".COMPOUND \"{}\" {{ ", var.transpile()));
 
-    let inherits = compiler.resolve_variable(&class.inherits);
+    let inherits = compiler.resolve_symbol(&class.inherits);
 
     if let Some(inherits) = inherits {
         if let Types::Compound(inherits) = inherits._type {
@@ -115,7 +115,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                 }
 
                 // Find the type spec
-                let found = compiler.resolve_variable(&lazy.transpile());
+                let found = compiler.resolve_symbol(&lazy.transpile());
 
                 if let Some(found) = found {
                     compiler.add_to_current_function(format!("{};", found.transpile()))
@@ -128,7 +128,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
 
     compiler.add_to_current_function("};".to_string());
 
-    let var = compiler.get_variable_mutable(var.index, var.name, None);
+    let var = compiler.get_symbol_mutable(var.index, var.name, None);
 
     var.unwrap().as_ref().borrow_mut()._type =
         Types::Compound(Compound(class.name, Box::new(items)));

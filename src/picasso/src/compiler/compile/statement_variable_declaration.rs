@@ -7,11 +7,11 @@ pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
 ) -> CompilerResult {
-    let var = compiler.define_variable(variable.ident.value, variable.data_type.clone(), -1);
+    let var = compiler.define_symbol(variable.ident.value, variable.data_type.clone(), -1);
 
     compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
-    let variable_borrowed = compiler.get_variable_mutable(var.index, var.name, None);
+    let variable_borrowed = compiler.get_symbol_mutable(var.index, var.name, None);
 
     let result = compiler.compile_expression(*variable.value);
 

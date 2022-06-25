@@ -6,7 +6,7 @@ pub fn compile_statement_constant_declaration(
     compiler: &mut Compiler,
     constant: ConstantDeclaration,
 ) -> CompilerResult {
-    let var = compiler.define_variable(constant.ident.value, constant.data_type.clone(), -1);
+    let var = compiler.define_symbol(constant.ident.value, constant.data_type.clone(), -1);
     // let result = compiler.compile_expression(*variable.value);
 
     // TODO: Check whether value has the same type as the type, otherwise there will be a D error

@@ -32,7 +32,7 @@ fn compile_expression_class_index(
 
     if let Expression::Identifier(ident) = left.clone() {
         // Try to find var
-        let var = _compiler.resolve_variable(&ident.value);
+        let var = _compiler.resolve_symbol(&ident.value);
 
         if let Some(var) = var {
             if let Types::Module(module) = var._type {
@@ -65,7 +65,7 @@ fn compile_expression_class_index(
         }
 
         // Check if function exists with this specific signature
-        let var = _compiler.resolve_variable(&format!("{}_{}", check.transpile(), field));
+        let var = _compiler.resolve_symbol(&format!("{}_{}", check.transpile(), field));
 
         if let Some(var) = var {
             let result = compile_expression_identifier(_compiler, Identifier { value: var.name });
@@ -90,7 +90,7 @@ fn compile_expression_class_index(
             },
             Types::Basic(BaseTypes::UserDefined(ref user)) => {
                 // Find a user defined type
-                let var = _compiler.resolve_variable(user);
+                let var = _compiler.resolve_symbol(user);
 
                 if let Some(var) = var {
                     if let Types::Compound(c) = var._type {
@@ -212,7 +212,7 @@ pub fn compile_expression_extension_method(
 
     // Check if method exists in a library based on the "left".
     if let Expression::Identifier(ident) = left.clone() {
-        let var = compiler.resolve_variable(&ident.value);
+        let var = compiler.resolve_symbol(&ident.value);
 
         if let Some(var) = var {
             match var._type {

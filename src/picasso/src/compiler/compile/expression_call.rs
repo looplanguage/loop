@@ -15,7 +15,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         let class = compiler.get_compound_type(&i.value);
 
         if let Some(Types::Compound(class_type)) = class {
-            let idenfitier = compiler.resolve_variable(&i.value);
+            let idenfitier = compiler.resolve_symbol(&i.value);
             let Compound(name, values) = class_type.clone();
 
             if let Some(definition) = idenfitier {
@@ -28,7 +28,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
                 compiler.function_count += 1;
 
-                let temp_var = compiler.define_variable(
+                let temp_var = compiler.define_symbol(
                     "temporary_class_holder".to_string(),
                     Types::Compound(class_type.clone()),
                     0,

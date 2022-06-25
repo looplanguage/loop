@@ -2,7 +2,7 @@
 pub mod compile;
 mod modifiers;
 mod test;
-mod variable_table;
+mod symbol_table;
 
 use crate::compiler::compile::expression_array::compile_expression_array;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
@@ -32,8 +32,8 @@ use crate::compiler::compile::statement_return::compile_return_statement;
 use crate::compiler::compile::statement_variable_assign::compile_statement_variable_assign;
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::modifiers::Modifiers;
-use crate::compiler::variable_table::{
-    build_deeper_variable_scope, build_variable_scope, Variable, VariableScope,
+use crate::compiler::symbol_table::{
+    build_deeper_variable_scope, build_variable_scope, Symbol, SymbolScope,
 };
 use crate::exception::compiler::CompilerException;
 use crate::exception::compiler_new::CompilerError;
@@ -88,7 +88,7 @@ impl DCode {
 pub struct Compiler {
     pub scope_index: i32,
     // Module, Scope
-    pub variable_scope: HashMap<String, Rc<RefCell<VariableScope>>>,
+    pub symbol_scope: HashMap<String, Rc<RefCell<SymbolScope>>>,
     pub variable_count: u32,
     pub last_extension_type: Option<Expression>,
     pub location: String,
@@ -111,7 +111,7 @@ pub struct Compiler {
 
 #[derive(Clone)]
 pub struct CompilerState {
-    pub variable_scope: HashMap<String, Rc<RefCell<VariableScope>>>,
+    pub variable_scope: HashMap<String, Rc<RefCell<SymbolScope>>>,
     pub variable_count: u32,
     pub function_count: i32,
 }
@@ -121,7 +121,7 @@ impl Default for Compiler {
         Compiler {
             scope_index: 0,
             variable_count: 0,
-            variable_scope: HashMap::from([(
+            symbol_scope: HashMap::from([(
                 "".to_string(),
                 Rc::new(RefCell::new(build_variable_scope())),
             )]),
@@ -197,10 +197,10 @@ impl Compiler {
     /// when importing a file this file is completely seperate from the previous location. A stack
     /// is used to keep track of all locations(read modules).
     pub fn enter_location(&mut self, location: String) {
-        self.enter_variable_scope();
+        self.enter_symbol_scope();
 
         self.locations.push(location.clone());
-        self.variable_scope.insert(
+        self.symbol_scope.insert(
             location.clone(),
             Rc::new(RefCell::new(build_variable_scope())),
         );
@@ -224,7 +224,7 @@ impl Compiler {
             self.location = "".to_string();
         }
 
-        self.exit_variable_scope();
+        self.exit_symbol_scope();
 
         last_loc
     }
@@ -252,7 +252,7 @@ impl Compiler {
     }
 
     pub fn get_compound_type(&self, name: &str) -> Option<Types> {
-        let class = self.resolve_variable(&name.to_string());
+        let class = self.resolve_symbol(&name.to_string());
 
         if let Some(class) = class {
             if let Types::Compound(Compound(name, values)) = class._type {
@@ -272,7 +272,7 @@ impl Compiler {
         Compiler {
             function_count: compiler_state.function_count,
             variable_count: compiler_state.variable_count,
-            variable_scope: compiler_state.variable_scope,
+            symbol_scope: compiler_state.variable_scope,
             ..Compiler::default()
         }
     }
@@ -281,7 +281,7 @@ impl Compiler {
         CompilerState {
             function_count: self.function_count,
             variable_count: self.variable_count,
-            variable_scope: self.variable_scope.clone(),
+            variable_scope: self.symbol_scope.clone(),
         }
     }
 
@@ -306,17 +306,17 @@ impl Compiler {
         }
     }
 
-    fn get_variable_scope(&self) -> Rc<RefCell<VariableScope>> {
-        return (*self.variable_scope.get(&self.location).as_ref().unwrap()).clone();
+    fn get_symbol_scope(&self) -> Rc<RefCell<SymbolScope>> {
+        return (*self.symbol_scope.get(&self.location).as_ref().unwrap()).clone();
     }
 
-    fn get_variable_mutable(
+    fn get_symbol_mutable(
         &self,
         index: u32,
         name: String,
         loc: Option<String>,
-    ) -> Option<Rc<RefCell<Variable>>> {
-        self.variable_scope
+    ) -> Option<Rc<RefCell<Symbol>>> {
+        self.symbol_scope
             .get(&*loc.unwrap_or_else(|| self.location.clone()))
             .unwrap()
             .as_ref()
@@ -325,16 +325,16 @@ impl Compiler {
     }
 
     /// Enter a deeper variable scope
-    pub fn enter_variable_scope(&mut self) {
-        let scope = build_deeper_variable_scope(Option::from(self.get_variable_scope()));
+    pub fn enter_symbol_scope(&mut self) {
+        let scope = build_deeper_variable_scope(Option::from(self.get_symbol_scope()));
         self.scope_index += 1;
-        *self.variable_scope.get_mut(&self.location).unwrap() = Rc::from(RefCell::from(scope));
+        *self.symbol_scope.get_mut(&self.location).unwrap() = Rc::from(RefCell::from(scope));
     }
 
     /// Exit a variable scope and go one shallower
-    pub fn exit_variable_scope(&mut self) {
+    pub fn exit_symbol_scope(&mut self) {
         let outer = self
-            .variable_scope
+            .symbol_scope
             .get(&self.location)
             .as_ref()
             .unwrap()
@@ -345,7 +345,7 @@ impl Compiler {
         self.scope_index -= 1;
 
         if let Some(outer) = outer {
-            *self.variable_scope.get_mut(&self.location).unwrap() = outer;
+            *self.symbol_scope.get_mut(&self.location).unwrap() = outer;
         }
     }
 
@@ -392,7 +392,7 @@ impl Compiler {
     /// Compiles a loop [Block], this differs from [Compiler::compile_block] in that it wont add curly braces
     fn compile_loop_block(&mut self, block: Block) -> CompilerResult {
         let mut return_type = Types::Void;
-        self.enter_variable_scope();
+        self.enter_symbol_scope();
 
         let mut index = 0;
         for statement in block.statements.clone() {
@@ -424,15 +424,15 @@ impl Compiler {
             }
         }
 
-        self.exit_variable_scope();
+        self.exit_symbol_scope();
 
         CompilerResult::Success(return_type)
     }
 
     /// Defines a new variable and increases the amount of variables that exist
-    fn define_variable(&mut self, name: String, var_type: Types, parameter_id: i32) -> Variable {
+    fn define_symbol(&mut self, name: String, var_type: Types, parameter_id: i32) -> Symbol {
         let var = self
-            .variable_scope
+            .symbol_scope
             .get_mut(&self.location)
             .unwrap()
             .as_ref()
@@ -452,7 +452,7 @@ impl Compiler {
     }
 
     /// Finds a variable
-    fn resolve_variable(&self, name: &String) -> Option<Variable> {
+    fn resolve_symbol(&self, name: &String) -> Option<Symbol> {
         if name.contains("::") {
             let split = name.split("::").collect::<Vec<&str>>();
 
@@ -460,7 +460,7 @@ impl Compiler {
             let name = split[1];
 
             let var = self
-                .variable_scope
+                .symbol_scope
                 .get(module)
                 .unwrap()
                 .borrow()
@@ -471,7 +471,7 @@ impl Compiler {
             }
         }
 
-        self.variable_scope
+        self.symbol_scope
             .get(&self.location)
             .unwrap()
             .borrow()
@@ -481,7 +481,7 @@ impl Compiler {
     /// Compiles a deeper [Block] adding curly braces
     fn compile_block(&mut self, block: Block, _anonymous: bool) -> CompilerResult {
         let mut block_type: Types = Types::Void;
-        self.enter_variable_scope();
+        self.enter_symbol_scope();
 
         self.add_to_current_function("{".to_string());
 
@@ -557,7 +557,7 @@ impl Compiler {
 
         self.add_to_current_function("}".to_string());
 
-        self.exit_variable_scope();
+        self.exit_symbol_scope();
 
         CompilerResult::Success(block_type)
     }

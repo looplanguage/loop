@@ -84,7 +84,7 @@ pub fn compile_expression_function(
         });
 
         // Define it with the current type and set "named_function" which we use later as well
-        let var = compiler.define_variable(func.name.clone(), function_type.clone(), -1);
+        let var = compiler.define_symbol(func.name.clone(), function_type.clone(), -1);
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
@@ -117,7 +117,7 @@ pub fn compile_expression_function(
 
     let mut parameter_types: Vec<Types> = Vec::new();
 
-    compiler.enter_variable_scope();
+    compiler.enter_symbol_scope();
     // Here we go through all the parameters again, the first reason because we didn't do so yet for
     // unnamed functions and secondly we do it for named functions as well as we now define the
     // parameters as variables otherwise their names would be unknown
@@ -134,14 +134,14 @@ pub fn compile_expression_function(
 
         // Define the parameter in the current scope, before compiling the function body so
         // parameters can be used inside the body
-        compiler.define_variable(parameter.identifier.value.clone(), param_type, index as i32);
+        compiler.define_symbol(parameter.identifier.value.clone(), param_type, index as i32);
 
         let _type = parameter.get_type();
 
         parameter_types.push(parameter._type.clone());
 
-        // Try to find it
-        let found = compiler.resolve_variable(&_type);
+        // Try to the find the type in the symbol table to see if it was a user-defined type
+        let found = compiler.resolve_symbol(&_type);
 
         if let Some(found) = found {
             compiler.add_to_current_function(format!("{};", found.transpile()));
@@ -170,7 +170,7 @@ pub fn compile_expression_function(
 
     // Set return type of named function, if it exists
     let return_name = {
-        if let Some(var) = compiler.resolve_variable(&return_type.transpile()) {
+        if let Some(var) = compiler.resolve_symbol(&return_type.transpile()) {
             var.transpile()
         } else {
             return_type.transpile()
@@ -188,14 +188,14 @@ pub fn compile_expression_function(
         is_method: false,
     });
 
-    compiler.exit_variable_scope();
+    compiler.exit_symbol_scope();
 
     // If the function was named, we set the return type of the function to inferred type from the
     // body compilation.
     if !func.name.is_empty() {
         let named_function = named_function.unwrap();
 
-        let variable = compiler.get_variable_mutable(named_function.2, named_function.1, None);
+        let variable = compiler.get_symbol_mutable(named_function.2, named_function.1, None);
 
         if let Some(variable) = variable {
             variable.as_ref().borrow_mut()._type = function_type.clone();
