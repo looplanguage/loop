@@ -2,7 +2,6 @@ use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
-use rand::random;
 
 #[derive(Clone)]
 pub struct Function {
@@ -22,16 +21,24 @@ pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
 ) -> CompilerResult {
+    // Increase the function counter to keep getting unique identifiers
     compiler.function_count += 1;
-    let random_identifier: i64 = random();
-    let mut function_type: Types;
+
+    // Then we save this unique identifier for later use when we need it to assign a type to the
+    // function return value.
+    let random_identifier: i64 = compiler.function_count as i64;
+
+    // A function can optionally be named or anonymous(lambda). This is a tuple with the data that
+    // it needs
     // (Transpiled, Named, Index)
     let mut named_function: Option<(String, String, u32)> = None;
 
-    // Named function ^.^
+    // Named functions are compiled differently
     if !func.name.is_empty() {
         let mut parameters: Vec<Parameter> = Vec::new();
 
+        // Loop through all the parameters to check if no duplicate names exist and push them to the
+        // parameters vector to be used to check their type further down
         for parameter in &func.parameters {
             if parameters
                 .iter()
@@ -50,8 +57,10 @@ pub fn compile_expression_function(
             parameters.push(parameter);
         }
 
+        // Type parameters are used to declare the full type specification for this function
         let mut type_parameters: Vec<Types> = Vec::new();
 
+        // Loop through the parameters we extracted above and get their type
         for parameter in &parameters {
             let mut param_type = parameter.parameter_type.clone();
 
@@ -66,19 +75,23 @@ pub fn compile_expression_function(
             type_parameters.push(param_type)
         }
 
-        // TODO: Return type is auto for now, but types for parameters is et
-        function_type = Types::Function(FunctionType {
+        // The return type here is "Auto" as we infer it later when we compile the function body
+        let function_type = Types::Function(FunctionType {
             return_type: Box::from(Types::Auto),
             parameter_types: type_parameters,
             reference: format!("local::{}", func.name),
             is_method: false,
         });
 
+        // Define it with the current type and set "named_function" which we use later as well
         let var = compiler.define_variable(func.name.clone(), function_type.clone(), -1);
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
+    // Check if during parsing a function had its type pre-defined, this is only the case in methods
+    // for classes.
     if let Some(predefined) = func.predefined_type {
+        // If it is pre-defined, just use that type in Arc generation
         compiler.add_to_current_function(format!(
             ".FUNCTION \"{}\" {} {} ARGUMENTS {{",
             named_function
@@ -89,6 +102,8 @@ pub fn compile_expression_function(
             predefined.transpile()
         ));
     } else {
+        // If we don't know the type we instead use a placeholder and use the previously defined
+        // "random_identifier"
         compiler.add_to_current_function(format!(
             ".FUNCTION \"{}\" {} REPLACE_TYPE_{} ARGUMENTS {{",
             named_function
@@ -103,6 +118,9 @@ pub fn compile_expression_function(
     let mut parameter_types: Vec<Types> = Vec::new();
 
     compiler.enter_variable_scope();
+    // Here we go through all the parameters again, the first reason because we didn't do so yet for
+    // unnamed functions and secondly we do it for named functions as well as we now define the
+    // parameters as variables otherwise their names would be unknown
     for (index, parameter) in func.parameters.iter().enumerate() {
         let mut param_type = parameter._type.clone();
 
@@ -114,6 +132,8 @@ pub fn compile_expression_function(
             }
         }
 
+        // Define the parameter in the current scope, before compiling the function body so
+        // parameters can be used inside the body
         compiler.define_variable(parameter.identifier.value.clone(), param_type, index as i32);
 
         let _type = parameter.get_type();
@@ -132,6 +152,7 @@ pub fn compile_expression_function(
 
     compiler.add_to_current_function("} FREE {} THEN ".to_string());
 
+    // Now we compile the function body
     let result = compiler.compile_block(func.body, func.name.is_empty());
 
     compiler.add_to_current_function(";".to_string());
@@ -159,23 +180,18 @@ pub fn compile_expression_function(
     compiler
         .replace_at_current_function(format!("REPLACE_TYPE_{}", random_identifier), return_name);
 
-    function_type = if named_function.is_some() {
-        Types::Function(FunctionType {
-            return_type: Box::from(return_type),
-            parameter_types,
-            reference: format!("local::{}", func.name),
-            is_method: false,
-        })
-    } else {
-        Types::Function(FunctionType {
-            return_type: Box::from(return_type),
-            parameter_types,
-            reference: "".to_string(),
-            is_method: false,
-        })
-    };
+    // Set the new function type
+    let function_type = Types::Function(FunctionType {
+        return_type: Box::from(return_type),
+        parameter_types,
+        reference: if named_function.is_some() { format!("local::{}", func.name) } else { "".to_string() },
+        is_method: false,
+    });
 
     compiler.exit_variable_scope();
+
+    // If the function was named, we set the return type of the function to inferred type from the
+    // body compilation.
     if !func.name.is_empty() {
         let named_function = named_function.unwrap();
 
