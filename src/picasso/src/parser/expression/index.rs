@@ -42,10 +42,12 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         let index_exp = p.parse_expression(Precedence::Lowest);
 
         if p.lexer.peek_token.as_ref().unwrap().token == TokenType::DotDot {
-            // Is slice
+            // Is slice and not an index
+
             p.lexer.next_token(); // Skipping over dotdot
             p.lexer.next_token(); // Skipping over end expression
 
+            // 'end' is the right value of the slice
             let end = p.parse_expression(Precedence::Lowest);
 
             let begin = if let Node::Expression(begin) = index_exp.unwrap() {

@@ -179,29 +179,34 @@ fn compile_expression_index_internal(
 /// .SLICE { .CONSTANT INT 0; } { .CONSTANT INT 2; } { .CONSTANT INT[] [10,20,30]; }
 /// ```
 pub fn compile_expression_slice(compiler: &mut Compiler, slice: Slice) -> CompilerResult {
+    // Creating slice instruction with correct target value
     compiler.add_to_current_function(".SLICE { ".to_string());
     let result = compiler.compile_expression(*slice.left.clone());
     compiler.add_to_current_function("} { ".to_string());
 
-    let mut slice_type = Types::Void;
+    let mut slice_type = Types::Void; // Heuretics
 
     if let CompilerResult::Success(var) = result {
+        // Only Arrays and strings can be slices, therefore the typecheck
         match var {
             Types::Array(_type) => slice_type = Types::Array(_type),
             Types::Basic(BaseTypes::String) => slice_type = Types::Basic(BaseTypes::String),
-            _ => return CompilerResult::Exception(CompilerException::Unknown),
+            _ => {
+                return CompilerResult::Exception(CompilerException::WrongType(
+                    format!("{}", var),
+                    "Expected a string or array".to_string(),
+                ))
+            }
         }
     };
 
-    let start = *slice.begin.clone();
-    let end = *slice.end;
+    let start = *slice.begin.clone(); // Start of the slice
+    let end = *slice.end; // End of the slice
 
+    // FIXME: This '-1' should be done in Sanzio, not in Picasso
     compiler.compile_expression(start);
-
     compiler.add_to_current_function("} { .SUBTRACT { ".to_string());
-
     compiler.compile_expression(end);
-
     compiler.add_to_current_function(" .CONSTANT INT 1; }; };".to_string());
 
     CompilerResult::Success(slice_type)
