@@ -84,7 +84,7 @@ pub fn compile_expression_function(
         });
 
         // Define it with the current type and set "named_function" which we use later as well
-        let var = compiler.define_symbol(func.name.clone(), function_type.clone(), -1);
+        let var = compiler.define_symbol(func.name.clone(), function_type, -1);
         named_function = Option::from((format!("var_{}", var.index), var.name.clone(), var.index));
     }
 
@@ -184,7 +184,11 @@ pub fn compile_expression_function(
     let function_type = Types::Function(FunctionType {
         return_type: Box::from(return_type),
         parameter_types,
-        reference: if named_function.is_some() { format!("local::{}", func.name) } else { "".to_string() },
+        reference: if named_function.is_some() {
+            format!("local::{}", func.name)
+        } else {
+            "".to_string()
+        },
         is_method: false,
     });
 

@@ -124,8 +124,7 @@ pub fn compile_loop_array_iterator_expression(
 
     // Define the identifier variable, with the starting value of the array
     let var = compiler.define_symbol(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
-    let index =
-        compiler.define_symbol("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
+    let index = compiler.define_symbol("INDEX_D".to_string(), Types::Basic(BaseTypes::Integer), -1);
 
     compiler.add_to_current_function(format!(".STORE {} {{ .CONSTANT INT 0; }};", index.index));
     compiler.add_to_current_function(format!(".STORE {} {{ ", var.index));

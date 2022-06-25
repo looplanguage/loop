@@ -1,8 +1,8 @@
 //! Responsible for transpiling Loop to D
 pub mod compile;
 mod modifiers;
-mod test;
 mod symbol_table;
+mod test;
 
 use crate::compiler::compile::expression_array::compile_expression_array;
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
