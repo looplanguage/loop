@@ -9,17 +9,6 @@ pub fn compile_statement_variable_declaration(
 ) -> CompilerResult {
     let var = compiler.define_variable(variable.ident.value, variable.data_type.clone(), -1);
 
-    // let result = compiler.compile_expression(*variable.value);
-
-    // TODO: Make this not auto
-    let mut _type = "Variant";
-    // This code is for explicit typing, but there need to be checks for the assigned value;
-    let _type = if let Types::Auto = variable.data_type {
-        "Variant".to_string()
-    } else {
-        variable.data_type.transpile()
-    };
-
     compiler.add_to_current_function(format!(".STORE {} {{", var.index));
 
     let variable_borrowed = compiler.get_variable_mutable(var.index, var.name, None);
