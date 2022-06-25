@@ -1,5 +1,17 @@
-double := fn(int num) {
-    return num * 2
+pub fn double(int a) {
+    return a * 2
 }
 
-export double
+class Vector2 {
+    x = 0
+    y = 0
+
+    void constructor(int x, int y) {
+        self.x = x
+        self.y = y
+    }
+}
+
+pub fn get_class() {
+    return Vector2(10, 20)
+}

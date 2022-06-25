@@ -127,6 +127,7 @@ pub enum TokenType {
     Class,
     Extends,
     Unknown,
+    Public,
     /// Indicates that there are no more tokens
     Eof,
 }

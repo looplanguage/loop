@@ -7,5 +7,11 @@ __pycache__/
 target/
 venv/
 
-# Scripts
-test.loop
+# libraries/binaries
+*.pdb
+*.dll*
+*.so
+*.dylib
+
+# Test files
+/*.loop

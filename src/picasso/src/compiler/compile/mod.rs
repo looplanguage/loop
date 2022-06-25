@@ -32,8 +32,6 @@ pub mod statement_break;
 pub mod statement_class;
 /// Transpiling constant declarations to D code
 pub mod statement_constant_declaration;
-/// Transpiling exports to D code
-pub mod statement_export;
 pub mod statement_extend;
 /// Transpiling imports to D code
 pub mod statement_import;

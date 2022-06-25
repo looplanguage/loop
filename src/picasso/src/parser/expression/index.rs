@@ -3,7 +3,6 @@ use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::function::parse_call;
 use crate::parser::expression::function::parse_expression_arguments;
 use crate::parser::expression::identifier::parse_identifier;
-use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Call;
 use crate::parser::expression::Identifier;
 use crate::parser::expression::{Expression, Precedence};
@@ -78,12 +77,12 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         p.expected(TokenType::LeftParenthesis)?;
         let arguments: Vec<Expression> = parse_expression_arguments(p);
 
-        let namespace = match left {
+        match left.clone() {
             Expression::Identifier(i) => i.value,
             _ => {
                 return Some(Node::Expression(Expression::Call(Call {
                     identifier: Box::from(Expression::Index(Box::new(Index {
-                        left: left.clone(),
+                        left,
                         index: Expression::Identifier(Identifier { value: identifier }),
                     }))),
                     parameters: arguments,
@@ -91,11 +90,12 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
             }
         };
 
-        // Index & Assign
+        // Index **AND** Assign
         return Some(Node::Expression(Expression::Call(Call {
-            identifier: Box::from(Expression::String(LoopString {
-                value: format!("{}::{}", namespace, identifier),
-            })),
+            identifier: Box::new(Expression::Index(Box::new(Index {
+                left,
+                index: Expression::Identifier(Identifier { value: identifier }),
+            }))),
             parameters: arguments,
         })));
     } else {

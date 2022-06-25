@@ -177,7 +177,7 @@ impl LuaBackend {
 
                     self.add_code(format!("\"{}\"", string))
                 } else {
-                    self.add_code_str("{");
+                    self.add_code_str("setmetatable({");
 
                     let mut index = 0;
                     for item in items {
@@ -190,7 +190,9 @@ impl LuaBackend {
                         }
                     }
 
-                    self.add_code_str("}");
+                    self.add_code_str(
+                        "}, { __concat = function(a, b) return table.insert(a, b) end })",
+                    );
                 }
             }
         }
@@ -298,10 +300,27 @@ impl LuaBackend {
                 let namespace = &call.call;
                 // Calling a function from an import (DLL or Loop)
                 if let Node::CONSTANT(e) = namespace {
+                    // You get an Lua output like this
+                    //
+                    // res = (function()
+                    //     local res = std.input(var_0)
+                    //     if type(res) == "cdata" then
+                    //         return ffi.string(res)
+                    //     else
+                    //       return res
+                    //     end
+                    // end)()
+
                     let str = e.clone().char_arr_to_string();
                     let parts: Vec<&str> = str.split("::").collect();
-
-                    self.add_code(format!("{}.{}(", parts[0], parts[1]));
+                    if parts[1] == "println" || parts[1] == "print" {
+                        self.add_code(format!("{}.{}(", parts[0], parts[1]))
+                    } else {
+                        self.add_code(format!(
+                            "(function() local res = {}.{}(",
+                            parts[0], parts[1]
+                        ));
+                    }
                     let mut index = 0;
                     for argument in &call.arguments {
                         index += 1;
@@ -311,8 +330,12 @@ impl LuaBackend {
                             self.add_code_str(",");
                         }
                     }
-                    self.add_code_str(")");
-                    // Calling a user-defined function or a class
+                    if parts[1] == "println" || parts[1] == "print" {
+                        self.add_code_str(")");
+                    } else {
+                        self.add_code(")if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()".to_string());
+                    }
+                // Calling a user-defined function or a class
                 } else {
                     self.compile_node(&call.call);
 
@@ -355,11 +378,9 @@ impl LuaBackend {
                 self.add_code_str("+1)})");
             }
             Node::PUSH(push) => {
-                self.add_code_str("table.insert(");
                 self.compile_node(&*push.to_push);
-                self.add_code_str(",");
+                self.add_code_str(" .. ");
                 self.compile_node(&*push.item);
-                self.add_code_str(")")
             }
             Node::COPY(_) => {}
             Node::LOADLIB(lib) => match self.get_lib_signiture(lib.clone().get_path()) {
@@ -484,6 +505,7 @@ impl LuaBackend {
         {
             use std::ffi::CStr;
             use std::os::raw::c_char;
+            use std::path::Path;
 
             let full_path = if std::env::consts::OS == "windows" {
                 format!("{}.dll", _path)
@@ -508,6 +530,13 @@ impl LuaBackend {
                     }
                 }
             } else {
+                if Path::new(&full_path).exists() {
+                    return Err(format!(
+                        "The library: {}, was not compiled for this platform",
+                        full_path
+                    ));
+                }
+
                 return Err(format!("The library: {}, does not exist", full_path));
             }
         }

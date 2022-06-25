@@ -1,0 +1,31 @@
+import "lib" as time
+import "std" as std
+
+class Timer {
+    start = 0
+
+    void constructor() {
+        self.start = time.now()
+    }
+
+    int stop() {
+        end := time.now()
+
+        return end - self.start
+    }
+
+    void reset() {
+        self.start = time.now()
+    }
+}
+
+t := Timer()
+
+std.println(std.execute("python3 hello.py"))
+
+
+text := "This took: ".add(t.stop()).add(" milli seconds")
+
+std.println(text)
+
+" "

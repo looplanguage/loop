@@ -384,6 +384,7 @@ impl Lexer {
             "break" => TokenType::Break,
             "class" => TokenType::Class,
             "ext" => TokenType::Extends,
+            "pub" => TokenType::Public,
             _ => {
                 if keyword.parse::<i64>().is_ok() {
                     return TokenType::Integer;
