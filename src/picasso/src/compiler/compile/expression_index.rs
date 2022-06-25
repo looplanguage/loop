@@ -2,7 +2,6 @@ use crate::compiler::compile::expression_identifier::compile_expression_identifi
 use crate::compiler::{Compiler, CompilerResult};
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression::assign_index::AssignIndex;
-use crate::parser::expression::function::Call;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::{Index, Slice};
 use crate::parser::expression::Expression;
