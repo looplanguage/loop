@@ -69,8 +69,7 @@ pub fn start() -> Result<(), ExitCode> {
                 println!("CTRL-D");
                 break;
             }
-            Err(err) => {
-                println!("Error: {:?}", err);
+            Err(_) => {
                 break;
             }
         }
