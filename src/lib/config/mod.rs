@@ -22,6 +22,8 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         // Currently no telemetry in Loop, kind of redundant
         enable_telemetry: cfg.enable_telemetry.unwrap_or(false),
         debug_mode: false,
+        lua_output: false,
+        arc_output: false,
         enable_benchmark: false,
         enable_optimize: false,
     };
@@ -34,6 +36,18 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         config.debug_mode = flags.flags.debug_mode.unwrap();
     } else if cfg.debug_mode.is_some() {
         config.debug_mode = cfg.debug_mode.unwrap();
+    }
+
+    if flags.flags.lua_output.is_some() {
+        config.lua_output = flags.flags.lua_output.unwrap();
+    } else if cfg.lua_output.is_some() {
+        config.lua_output = cfg.lua_output.unwrap();
+    }
+
+    if flags.flags.arc_output.is_some() {
+        config.arc_output = flags.flags.arc_output.unwrap();
+    } else if cfg.arc_output.is_some() {
+        config.arc_output = cfg.arc_output.unwrap();
     }
 
     if flags.flags.enable_benchmark.is_some() {
@@ -54,6 +68,8 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 pub struct Config {
     pub enable_telemetry: bool,
     pub debug_mode: bool,
+    pub lua_output: bool,
+    pub arc_output: bool,
     pub enable_benchmark: bool,
     pub enable_optimize: bool,
 }
@@ -62,6 +78,8 @@ pub struct Config {
 pub struct ConfigInternal {
     pub enable_telemetry: Option<bool>,
     pub debug_mode: Option<bool>,
+    pub lua_output: Option<bool>,
+    pub arc_output: Option<bool>,
     pub enable_benchmark: Option<bool>,
     pub enable_optimize: Option<bool>,
 }
@@ -71,6 +89,8 @@ impl Default for ConfigInternal {
         ConfigInternal {
             enable_telemetry: Some(false),
             debug_mode: Some(false),
+            lua_output: None,
+            arc_output: None,
             enable_benchmark: Some(false),
             enable_optimize: Some(false),
         }

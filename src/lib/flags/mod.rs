@@ -4,10 +4,13 @@ use crate::lib::exception::flag;
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process;
+use crate::lib::flags::FlagTypes::Help;
 
+mod arc;
 mod benchmark;
 mod debug;
 mod help;
+mod lua;
 mod optimize;
 
 /// Value: `true` -> is enabled<br>
@@ -19,6 +22,8 @@ pub enum FlagTypes {
     Help(String), // When user does -h or --help it gives all the flags and closes program
     File(String),
     Debug(Option<bool>),
+    Lua(Option<bool>),
+    Arc(Option<bool>),
     Benchmark(Option<bool>),
     Optimize(Option<bool>), // There are no optimizations yet, this is for the near future
 }
@@ -28,6 +33,8 @@ pub fn build_flags() -> Flags {
         flags: ConfigInternal {
             enable_telemetry: None,
             debug_mode: None,
+            lua_output: None,
+            arc_output: None,
             enable_benchmark: None,
             enable_optimize: None,
         },
@@ -50,6 +57,8 @@ impl Flags {
                     FlagTypes::Optimize(b) => self.flags.enable_optimize = b,
                     FlagTypes::Debug(b) => self.flags.debug_mode = b,
                     FlagTypes::Benchmark(b) => self.flags.enable_benchmark = b,
+                    FlagTypes::Lua(b) => self.flags.lua_output = b,
+                    FlagTypes::Arc(b) => self.flags.arc_output = b,
                     FlagTypes::File(f) => self.file = Some(f),
                     FlagTypes::Help(h) => {
                         // Prints help message and exists program
@@ -83,6 +92,8 @@ impl Flags {
             "--debug" | "-d" => debug::debug_flag(),
             "--benchmark" | "-b" => benchmark::benchmark_flag(),
             "--optimize" | "-o" => optimize::optimize_flag(),
+            "--lua" => lua::lua_flag(),
+            "--arc" => arc::arc_flag(),
             "--help" => {
                 if let Ok(e) = help::generate_help_text() {
                     return Ok(FlagTypes::Help(e));

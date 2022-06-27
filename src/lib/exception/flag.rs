@@ -11,9 +11,9 @@ use std::process;
 pub fn throw_exception_unknown_flag(unexpected_flag: String) {
     println!("{}", "FlagException --> ".bright_red());
     println!(
-        "    {}",
+        "\t{}",
         format!(
-            "Flag \"{}\" is unexpected in this context\n",
+            "Flag \"{}\" is unexpected in this context\n\tType \"loop --help\" to get more info\n",
             unexpected_flag
         )
         .bright_white()
@@ -26,7 +26,7 @@ pub fn throw_exception_value(flag: String) {
     println!("{}", "FlagException --> ".bright_red());
     println!(
         "    {}",
-        format!("This flag can only have one value. Passed flag: {}", flag).bright_white()
+        format!("This flag can only have one value. Passed flag: {}\tType \"loop --help\" to get more info\n", flag).bright_white()
     );
 
     process::exit(1);
@@ -36,7 +36,7 @@ pub fn throw_exception_unexpected_value(flag: String) {
     println!("{}", "FlagException --> ".bright_red());
     println!(
         "    {}",
-        format!("Unexpected flag value: {}", flag).bright_white()
+        format!("Unexpected flag value: {}\tType \"loop --help\" to get more info\n", flag).bright_white()
     );
 
     process::exit(1);
