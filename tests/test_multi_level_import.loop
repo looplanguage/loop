@@ -1,0 +1,3 @@
+import "loop-packages/one.loop" as one
+
+one.f() * 2

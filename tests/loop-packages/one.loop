@@ -1,0 +1,5 @@
+import "two.loop" as two
+
+pub fn f() {
+    return two.f() * 2
+}

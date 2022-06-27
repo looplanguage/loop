@@ -20,15 +20,15 @@ pub fn compile_import_statement(
     let file_path = import.file.clone();
 
     // Find the file, based on the current location of the compiler
-    let mut compiler_location = Path::new(compiler.location.as_str());
-    if let Some(loc) = compiler_location.parent() {
-        compiler_location = loc;
-    }
+    let compiler_location = Path::new(compiler.location.as_str());
+    let base_path: &Path = if compiler_location.display().to_string().len() == 0 {
+        Path::new(compiler.base_location.as_str())
+    } else {
+        Path::new(compiler_location.parent().unwrap())
+    };
 
-    let path = Path::new(compiler.base_location.as_str())
-        .join(compiler_location)
+    let path = Path::new(base_path)
         .join(Path::new(file_path.as_str()));
-
     let extension: Option<&str> = path.extension().and_then(OsStr::to_str);
 
     // Check if path ends with ".loop" or ".lp"

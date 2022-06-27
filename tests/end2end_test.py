@@ -1,8 +1,9 @@
 import platform
+import sys
 # Imports the test library
 from testlib import run_tests, add_test
 
-def main():
+def main(verbose: bool):
     # Add your tests right here.
     # AddTest( FILE LOCATION OF LOOP FILE, EXPECTED ANSWER )
     # NOTE: The expected answer always needs to be a string
@@ -51,12 +52,13 @@ def main():
     add_test("test_string_index.loop", "2")
     add_test("test_string_slice.loop", "o, W")
     add_test("test_array_slice.loop", "9")
+    add_test("test_multi_level_import.loop", "32")
 
     # output, is the generated report of all the tests
     # has_failed, a boolean:
     #   > True: One or more test have failed.
     #   > False: All tests passed
-    output, has_failed = run_tests()
+    output, has_failed = run_tests(verbose)
 
     # Asserts if 'has_failed' is false, otherwise prints a red failure message
     assert not has_failed, output + "\033[91mEnd2End Tests Have Failed...\033[0m"
@@ -65,4 +67,10 @@ def main():
     print(output + "\033[92mEnd2End Tests Have Succeeded...\033[0m")
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "-v":
+            main(True)
+        else:
+            print(f"ERROR: Unknown flag '{sys.argv[1]}'")
+    else:
+        main(False)
