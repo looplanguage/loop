@@ -14,6 +14,7 @@ def main(verbose: bool):
     # Tests relating string functionality
     add_test("test_string_index.loop", "2")
     add_test("test_string_slice.loop", "o, W")
+    add_test("test_string_length.loop", "7")
     if platform.system() == "Windows": # Windows handles "new_lines" different then Unix
         add_test("test_string.loop", "123Hello\r\nWorld!")
     else:
@@ -25,6 +26,7 @@ def main(verbose: bool):
     add_test("test_array_slice.loop", "9")
     add_test("test_array_remove.loop", "20")
     add_test("test_array_3d_assign_index.loop", "200")
+    add_test("test_array_length.loop", "5")
 
     # Tests relating conditionals and if-expression
     add_test("test_conditional_true.loop", "100")
