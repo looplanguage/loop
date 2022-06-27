@@ -1,8 +1,8 @@
 use crate::lexer::token::{create_token, TokenType};
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::{parse_identifier, Identifier};
+use crate::parser::expression::Expression;
 use crate::parser::expression::Precedence::Lowest;
-use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::Parser;
@@ -47,7 +47,7 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
             }
         } else {
             Err(SyntaxException::ExpectedToken(TokenType::Identifier))
-        }
+        };
     }
 
     // Regular for loop: for i < 3 { STATEMENTS }
@@ -59,10 +59,16 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
         // Custom error whether if-expression has parenthesis or not
         if uses_parenthesis {
             let message = "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }\n\nAn if expression can be with or without parenthesis".to_string();
-            return Err(SyntaxException::CustomMessage("expected: RightParenthesis".to_string(), Some(message)))
+            return Err(SyntaxException::CustomMessage(
+                "expected: RightParenthesis".to_string(),
+                Some(message),
+            ));
         } else {
             let message = "Syntax  -> for <condition> { <code> }\nExample -> for i < 3 { println(i) }\n\nAn if expression can be with or without parenthesis".to_string();
-            return Err(SyntaxException::CustomMessage("expected: NoParenthesis".to_string(), Some(message)))
+            return Err(SyntaxException::CustomMessage(
+                "expected: NoParenthesis".to_string(),
+                Some(message),
+            ));
         }
     } else if uses_parenthesis {
         // If the if-expression has parenthesis, the lexer needs to go to the next token
@@ -73,7 +79,10 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
         let message =
             "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }"
                 .to_string();
-        return Err(SyntaxException::CustomMessage("expected: LeftBrace".to_string(), Some(message)))
+        return Err(SyntaxException::CustomMessage(
+            "expected: LeftBrace".to_string(),
+            Some(message),
+        ));
     }
     p.lexer.next_token();
 
@@ -83,7 +92,10 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
         let message =
             "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }"
                 .to_string();
-        return Err(SyntaxException::CustomMessage("expected: RightBrace".to_string(), Some(message)));
+        return Err(SyntaxException::CustomMessage(
+            "expected: RightBrace".to_string(),
+            Some(message),
+        ));
     }
 
     if let Node::Expression(exp) = condition_node {
@@ -114,7 +126,7 @@ pub fn parse_loop_array_iterator(
     if p.current_token_is(TokenType::In) {
         p.lexer.next_token();
 
-        let exp = p.parse_expression(Precedence::Lowest)?;
+        let exp = p.parse_expression(Lowest)?;
 
         if let Node::Expression(expression) = exp {
             p.lexer.next_token();

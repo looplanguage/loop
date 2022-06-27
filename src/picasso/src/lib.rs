@@ -24,7 +24,10 @@ pub fn compile_with_state(str: &str, state: CompilerState) -> (String, CompilerS
     (compiled.unwrap().get_arc(), compiler.get_compiler_state())
 }
 
-pub fn compile(str: &str, file_location: Option<&str>) -> Result<(String, CompilerState), ExitCode> {
+pub fn compile(
+    str: &str,
+    file_location: Option<&str>,
+) -> Result<(String, CompilerState), ExitCode> {
     let lexer = lexer::build_lexer(str);
     let mut parser = parser::build_parser(lexer, file_location.unwrap_or(""));
 

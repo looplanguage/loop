@@ -49,5 +49,5 @@ pub fn parse_grouped_expression(p: &mut Parser) -> Result<Node, SyntaxException>
 pub fn parse_grouped_expression_without_param(p: &mut Parser) -> Result<Node, SyntaxException> {
     p.lexer.next_token();
 
-    Ok(p.parse_expression(Lowest)?)
+    p.parse_expression(Lowest)
 }

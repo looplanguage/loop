@@ -4,9 +4,9 @@ pub mod token;
 
 use crate::exception::syntax::throw_syntax_error;
 use crate::lexer::token::create_token;
+use crate::parser::exception::SyntaxException;
 use token::Token;
 use token::TokenType;
-use crate::parser::exception::SyntaxException;
 
 /// The Lexer itself, containing metadata needed during the lexing process
 pub struct Lexer {
@@ -50,7 +50,11 @@ impl Lexer {
     ///
     /// It is used to throw syntax errors.
     pub fn get_line(&self, line: i32) -> String {
-        self.input.lines().nth((line - 1) as usize).unwrap().to_string()
+        self.input
+            .lines()
+            .nth((line - 1) as usize)
+            .unwrap()
+            .to_string()
     }
 
     fn internal_next_token(&mut self) -> Token {
@@ -338,7 +342,10 @@ impl Lexer {
     /// Checks if next token is the same as the current token,
     /// **if next and given token are the same, then**: `lexer::next_token()`
     /// This just makes it a result so you can use question makrs
-    pub fn next_token_is_and_next_token_result(&mut self, token: TokenType) -> Result<(), SyntaxException> {
+    pub fn next_token_is_and_next_token_result(
+        &mut self,
+        token: TokenType,
+    ) -> Result<(), SyntaxException> {
         if let Some(peek_token) = self.get_peek_token() {
             if peek_token.token == token {
                 self.next_token();

@@ -1,8 +1,8 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::suffix::parse_grouped_expression_without_param;
+use crate::parser::expression::Expression;
 use crate::parser::expression::Precedence::Lowest;
-use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::statement::block::{parse_block, Block};
 use crate::parser::statement::Statement;
@@ -35,10 +35,16 @@ pub fn parse_conditional(p: &mut Parser) -> Result<Node, SyntaxException> {
             // Custom error whether if-expression has parenthesis or not
             if uses_parenthesis {
                 let message = "Syntax  -> for (<condition>) { <code> }\nExample -> if (i < 3) { println(i) }\n\nA loop can be with or without parenthesis".to_string();
-                return Err(SyntaxException::CustomMessage("expected: RightParenthesis".to_string(), Some(message)));
+                return Err(SyntaxException::CustomMessage(
+                    "expected: RightParenthesis".to_string(),
+                    Some(message),
+                ));
             } else {
                 let message = "Syntax  -> for <condition> { <code> }\nExample -> if i < 3 { println(i) }\n\nA loop can be with or without parenthesis".to_string();
-                return Err(SyntaxException::CustomMessage("expected: NoParenthesis".to_string(), Some(message)));
+                return Err(SyntaxException::CustomMessage(
+                    "expected: NoParenthesis".to_string(),
+                    Some(message),
+                ));
             }
         } else if p.lexer.current_token.clone().unwrap().token == TokenType::RightParenthesis {
             // If the if-expression has parenthesis, the lexer needs to go to the next token
@@ -81,7 +87,9 @@ fn parse_else(p: &mut Parser) -> Result<Option<Box<Node>>, SyntaxException> {
 
     p.current_token_is_result(TokenType::RightBrace)?;
 
-    Ok(Some(Box::new(Node::Statement(Statement::Block(else_condition)))))
+    Ok(Some(Box::new(Node::Statement(Statement::Block(
+        else_condition,
+    )))))
 }
 
 fn create_conditional(

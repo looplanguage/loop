@@ -1,9 +1,9 @@
-use std::process::ExitCode;
 use crate::lib::config::CONFIG;
 use crate::lib::util::print_valuetype;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use sanzio::parse_multivalue;
+use std::process::ExitCode;
 use vinci::types::ValueType;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -74,7 +74,7 @@ pub fn start() -> Result<(), ExitCode> {
                 break;
             }
         }
-    };
+    }
 
     Ok(())
 }

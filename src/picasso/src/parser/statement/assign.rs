@@ -15,7 +15,8 @@ pub struct VariableAssign {
 pub fn parse_variable_assignment(p: &mut Parser) -> Result<Node, SyntaxException> {
     let ident = p.lexer.get_current_token().unwrap().clone();
 
-    p.lexer.next_token_is_and_next_token_result(TokenType::Assign)?;
+    p.lexer
+        .next_token_is_and_next_token_result(TokenType::Assign)?;
 
     p.lexer.next_token();
 

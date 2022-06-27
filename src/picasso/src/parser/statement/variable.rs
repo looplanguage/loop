@@ -1,4 +1,4 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
@@ -23,7 +23,10 @@ pub struct VariableDeclaration {
 ///
 /// **Example:**
 /// `int i = 13 + 4`
-pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Result<Node, SyntaxException> {
+pub fn parse_variable_declaration(
+    p: &mut Parser,
+    types: Option<Types>,
+) -> Result<Node, SyntaxException> {
     let ident = p.lexer.get_current_token().unwrap().clone(); // Identifier of variabele.
     let datatype = types.unwrap_or(Types::Auto);
 
@@ -32,7 +35,10 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Resul
         let message = "Syntax  -> <identifier> := <expression>\nExample -> i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-        return Err(SyntaxException::CustomMessage("expected: Colon".to_string(), Some(message)));
+        return Err(SyntaxException::CustomMessage(
+            "expected: Colon".to_string(),
+            Some(message),
+        ));
     }
     p.lexer.next_token(); // Skipping the ":'
 
@@ -43,7 +49,10 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Resul
         } else {
             format!("Syntax  ->  <datatype> <identifier> := <expression>\nExample -> {} i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives", datatype.transpile())
         };
-        return Err(SyntaxException::CustomMessage("expected: Assign".to_string(), Some(message)));
+        return Err(SyntaxException::CustomMessage(
+            "expected: Assign".to_string(),
+            Some(message),
+        ));
     }
 
     p.lexer.next_token(); // Skips the: '='

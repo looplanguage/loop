@@ -1,6 +1,4 @@
 //! Responsible for parsing tokens into an abstract syntax tree
-use std::collections::HashMap;
-use colored::Colorize;
 use crate::exception::Exception;
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
@@ -22,10 +20,11 @@ use crate::parser::statement::constant::parse_constant_declaration;
 use crate::parser::statement::expression::parse_expression_statement;
 use crate::parser::statement::return_statement::parse_return_statement;
 use crate::parser::statement::Statement;
+use colored::Colorize;
+use std::collections::HashMap;
 
 use self::statement::variable::parse_variable_declaration;
 use crate::exception::syntax::{throw_syntax_error, SyntaxError};
-use crate::parser;
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
@@ -34,15 +33,16 @@ use crate::parser::statement::extends::parse_extend_statement;
 use crate::parser::statement::import::parse_import_statement;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
 
+pub mod exception;
 pub mod expression;
 pub mod program;
 pub mod statement;
 mod test;
 pub mod types;
-pub mod exception;
 
 type PrefixParseFn = fn(parser: &mut Parser) -> Result<Node, SyntaxException>;
-type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Result<Node, SyntaxException>;
+type InfixParseFn =
+    fn(parser: &mut Parser, expression: Expression) -> Result<Node, SyntaxException>;
 
 // The parser itself, containing metadata needed during the parsing process
 pub struct Parser {
@@ -52,7 +52,7 @@ pub struct Parser {
     pub errors: Vec<Exception>,
     pub defined_types: Vec<String>,
     pub next_public: bool,
-    current_file: String
+    current_file: String,
 }
 
 impl Parser {
@@ -70,12 +70,18 @@ impl Parser {
                     width.push(' ');
                 }
 
-
                 println!("{}", "SyntaxException".red());
-                println!("{} | -> {} [{}:{}]", width, self.current_file, self.lexer.current_col, self.lexer.current_line);
+                println!(
+                    "{} | -> {} [{}:{}]",
+                    width, self.current_file, self.lexer.current_col, self.lexer.current_line
+                );
 
                 println!("{} | ", width);
-                println!("{} | {}", self.lexer.current_line.to_string().red(), self.lexer.get_line(self.lexer.current_line));
+                println!(
+                    "{} | {}",
+                    self.lexer.current_line.to_string().red(),
+                    self.lexer.get_line(self.lexer.current_line)
+                );
 
                 let spaces = self.lexer.current_col;
 
@@ -87,31 +93,39 @@ impl Parser {
 
                 println!("{} | {}{}", width, cursor_width, "^".red());
 
-                if let SyntaxException::CustomMessage(_, message) = error.clone() {
-                    if let Some(message) = message {
-                        for line in message.lines() {
-                            println!("{} | {}{} {}", width, cursor_width, "|".red(), line);
-                        }
+                if let SyntaxException::CustomMessage(_, Some(message)) = error.clone() {
+                    for line in message.lines() {
+                        println!("{} | {}{} {}", width, cursor_width, "|".red(), line);
                     }
                 }
 
                 println!("{} | ", width);
 
-                println!("{} = {}", width, match error.clone() {
-                    SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
-                    SyntaxException::CustomMessage(title, _) => title,
-                    SyntaxException::ExpectedToken(expected) => format!("Wrong token, expected={:?}.", expected),
-                    SyntaxException::NoPrefixParser(what) => format!("No prefix parser for {:?}", what),
-                    SyntaxException::WrongParentheses(p) => format!("Wrong parenthesis, expected={:?}.", p)
-                }.blue());
+                println!(
+                    "{} = {}",
+                    width,
+                    match error.clone() {
+                        SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
+                        SyntaxException::CustomMessage(title, _) => title,
+                        SyntaxException::ExpectedToken(expected) =>
+                            format!("Wrong token, expected={:?}.", expected),
+                        SyntaxException::NoPrefixParser(what) =>
+                            format!("No prefix parser for {:?}", what),
+                        SyntaxException::WrongParentheses(p) =>
+                            format!("Wrong parenthesis, expected={:?}.", p),
+                    }
+                    .blue()
+                );
 
-                return Err(error)
+                return Err(error);
             }
 
             match new_statement.unwrap() {
-                Node::Expression(exp) => statements.push(Statement::Expression(Box::new(parser::statement::expression::Expression {
-                    expression: Box::new(exp)
-                }))),
+                Node::Expression(exp) => statements.push(Statement::Expression(Box::new(
+                    statement::expression::Expression {
+                        expression: Box::new(exp),
+                    },
+                ))),
                 Node::Statement(stmt) => statements.push(stmt),
             }
 
@@ -138,9 +152,9 @@ impl Parser {
     }
 
     fn expected_maybe(&mut self, token: TokenType) -> Option<()> {
-            if !self.lexer.next_token_is_and_next_token(token) {
-                return None;
-            }
+        if !self.lexer.next_token_is_and_next_token(token) {
+            return None;
+        }
 
         Some(())
     }
@@ -329,7 +343,9 @@ impl Parser {
             .get(&self.lexer.current_token.as_ref().unwrap().token);
 
         if prefix_parser.is_none() {
-            return Err(SyntaxException::NoPrefixParser(self.lexer.current_token.as_ref().unwrap().token));
+            return Err(SyntaxException::NoPrefixParser(
+                self.lexer.current_token.as_ref().unwrap().token,
+            ));
         }
 
         let expression_node = prefix_parser.unwrap()(self)?;
@@ -372,10 +388,17 @@ impl Parser {
             self.lexer.current_token.clone().unwrap().literal,
         );
 
-        Err(SyntaxException::CustomMessage("Unknown parser exception occured".to_string(),None))
+        Err(SyntaxException::CustomMessage(
+            "Unknown parser exception occured".to_string(),
+            None,
+        ))
     }
 
-    fn add_prefix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser) -> Result<Node, SyntaxException>) {
+    fn add_prefix_parser(
+        &mut self,
+        tok: TokenType,
+        func: fn(parser: &mut Parser) -> Result<Node, SyntaxException>,
+    ) {
         self.prefix_parser.insert(tok, func);
     }
 
@@ -404,11 +427,7 @@ impl Parser {
             return false;
         }
 
-        if cur.unwrap().token == tok {
-            true
-        } else {
-            false
-        }
+        cur.unwrap().token == tok
     }
 
     pub fn current_token_is_result(&self, tok: TokenType) -> Result<(), SyntaxException> {
@@ -421,7 +440,7 @@ impl Parser {
         if cur.unwrap().token == tok {
             Ok(())
         } else {
-            return Err(SyntaxException::ExpectedToken(tok));
+            Err(SyntaxException::ExpectedToken(tok))
         }
     }
 
@@ -433,20 +452,6 @@ impl Parser {
         }
 
         cur.unwrap().token == tok
-    }
-
-    pub fn add_error(&mut self, error: String) {
-        /*
-        sentry::with_scope(
-            |scope| {
-                scope.set_tag("exception.type", "parser");
-            },
-            || {
-                sentry::capture_message(error.as_str(), sentry::Level::Info);
-            },
-        );*/
-
-        self.errors.push(Exception::Syntax(error));
     }
 
     pub fn peek_precedence(&mut self) -> Precedence {
@@ -480,7 +485,7 @@ pub fn build_parser(lexer: Lexer, file: &str) -> Parser {
         errors: Vec::new(),
         defined_types: Vec::new(),
         next_public: false,
-        current_file: file.to_string()
+        current_file: file.to_string(),
     };
 
     // Prefix parsers

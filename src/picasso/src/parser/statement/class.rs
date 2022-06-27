@@ -1,4 +1,4 @@
-use crate::lexer::token::{Token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::function::{parse_arguments, Parameter};
 use crate::parser::expression::Precedence;
@@ -39,7 +39,10 @@ pub struct Class {
     pub public: bool,
 }
 
-fn parse_class_item(p: &mut Parser, _class_name: String) -> Result<(String, ClassItem), SyntaxException> {
+fn parse_class_item(
+    p: &mut Parser,
+    _class_name: String,
+) -> Result<(String, ClassItem), SyntaxException> {
     p.expected(TokenType::Identifier)?;
 
     if let Some(return_type) = p.parse_type(p.lexer.current_token.as_ref().unwrap().clone()) {
@@ -131,10 +134,13 @@ pub fn parse_class_statement(p: &mut Parser) -> Result<Node, SyntaxException> {
     }
 
     if p.defined_types.contains(&name) {
-        return Err(SyntaxException::CustomMessage(format!(
-            "Type \"{}\" already defined! (Type definitions are always root scoped)",
-            name
-        ), None));
+        return Err(SyntaxException::CustomMessage(
+            format!(
+                "Type \"{}\" already defined! (Type definitions are always root scoped)",
+                name
+            ),
+            None,
+        ));
     }
 
     p.defined_types.push(name.clone());

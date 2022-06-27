@@ -3,7 +3,7 @@ use crate::lexer::token::TokenType;
 #[derive(Debug, Clone)]
 pub enum Parenthesis {
     Left,
-    Right
+    Right,
 }
 
 #[derive(Debug, Clone)]
@@ -13,5 +13,5 @@ pub enum SyntaxException {
     CustomMessage(String, Option<String>),
     ExpectedToken(TokenType),
     NoPrefixParser(TokenType),
-    WrongParentheses(Parenthesis)
+    WrongParentheses(Parenthesis),
 }

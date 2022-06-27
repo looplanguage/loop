@@ -1,16 +1,15 @@
-use crate::lexer::token::TokenType;
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::boolean::Boolean;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::string::LoopString;
 use crate::parser::expression::Expression;
-use crate::parser::expression::Precedence::Lowest;
 use crate::parser::program::Node;
 use crate::parser::Parser;
 use std::collections::HashMap;
 use std::hash::Hash;
-use crate::parser::exception::SyntaxException;
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
+#[allow(unused)]
 pub enum HashableExpression {
     Integer(Integer),
     String(LoopString),
