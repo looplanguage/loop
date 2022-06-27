@@ -103,7 +103,7 @@ mod tests {
         test_parser(input, expected);
     }
 
-    #[test]
+    //#[test]
     fn hashmap() {
         let input = "{\"hello world\": 123, true: 123, 500: false}";
 
@@ -370,7 +370,7 @@ mod tests {
                     expression: Box::new(test_helper::generate_expression_suffix(1, '+', 1)),
                 })),
             ]),
-            test_helper::generate_else_block_box(vec![Statement::Expression(Box::new(
+            test_helper::generate_else_block_box(vec![Statement::Expression(Box::from(
                 Expression {
                     expression: Box::new(test_helper::generate_boolean_expression(true)),
                 },
