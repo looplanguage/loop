@@ -2,8 +2,8 @@
 mod test;
 pub mod token;
 
-use crate::exception::syntax::throw_syntax_error;
 use crate::lexer::token::create_token;
+use crate::parser::exception::SyntaxException;
 use token::Token;
 use token::TokenType;
 
@@ -49,27 +49,11 @@ impl Lexer {
     ///
     /// It is used to throw syntax errors.
     pub fn get_line(&self, line: i32) -> String {
-        let mut line_count = 0;
-        let mut char_count = 0;
-        for char in self.input.chars() {
-            char_count += 1;
-            if char == '\n' {
-                line_count += 1;
-            }
-            if line_count == line {
-                break;
-            }
-        }
-
-        let mut line = String::from("");
-        let mut current_char = self.input.chars().nth(char_count - 1_usize);
-        while current_char.is_some() && current_char.unwrap() != '\n' {
-            line.push(current_char.unwrap());
-            char_count += 1;
-            current_char = self.input.chars().nth(char_count - 1_usize);
-        }
-
-        line.trim_start().to_string()
+        self.input
+            .lines()
+            .nth((line - 1) as usize)
+            .unwrap()
+            .to_string()
     }
 
     fn internal_next_token(&mut self) -> Token {
@@ -103,7 +87,14 @@ impl Lexer {
             '}' => create_token(TokenType::RightBrace, ch.to_string()),
             '[' => create_token(TokenType::LeftBracket, ch.to_string()),
             ']' => create_token(TokenType::RightBracket, ch.to_string()),
-            '.' => create_token(TokenType::Dot, ch.to_string()),
+            '.' => {
+                if self.get_character(1) == '.' {
+                    self.next_character();
+                    create_token(TokenType::Range, "..".to_string())
+                } else {
+                    create_token(TokenType::Dot, ch.to_string())
+                }
+            }
             ':' => create_token(TokenType::Colon, ch.to_string()),
             '^' => create_token(TokenType::Power, ch.to_string()),
             '"' => self.find_string(),
@@ -347,6 +338,23 @@ impl Lexer {
         false
     }
 
+    /// Checks if next token is the same as the current token,
+    /// **if next and given token are the same, then**: `lexer::next_token()`
+    /// This just makes it a result so you can use question makrs
+    pub fn next_token_is_and_next_token_result(
+        &mut self,
+        token: TokenType,
+    ) -> Result<(), SyntaxException> {
+        if let Some(peek_token) = self.get_peek_token() {
+            if peek_token.token == token {
+                self.next_token();
+                return Ok(());
+            }
+        }
+
+        Err(SyntaxException::ExpectedToken(token))
+    }
+
     /// Checks if given TokenType is the same as the current token,
     /// **if current and given token are the same, then**: `lexer::next_token()`
     pub fn next_token_and_current_is(&mut self, token: TokenType) -> bool {
@@ -394,12 +402,7 @@ impl Lexer {
                 if !keyword.contains('.') {
                     return TokenType::Identifier;
                 }
-                throw_syntax_error(
-                    self.current_line,
-                    self.current_col,
-                    self.get_line(self.current_line),
-                    keyword.to_string(),
-                );
+
                 // Will never be reached, throw_function_error will quit program before.
                 TokenType::Unknown
             }

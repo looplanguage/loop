@@ -37,7 +37,7 @@ impl LoadType {
     }
 }
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct Load {
     pub load_type: LoadType,
     pub index: u64,
@@ -61,7 +61,7 @@ impl Display for Store {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct Index {
     pub to_index: Box<Node>,
     pub index: Box<Node>,

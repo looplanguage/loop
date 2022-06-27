@@ -1,0 +1,6 @@
+str := "Hello, World!"
+
+res := str[4..8]
+
+// Should be "o, W"
+res

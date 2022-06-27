@@ -24,10 +24,9 @@ def has_succeeded(stdout, stderr, answer):
 
     return output.strip() == answer
 
-def run_tests():
+def run_tests(verbose: bool):
     # Finds the executable regardless of platform
     exe = distutils.spawn.find_executable(BUILD + "/loop")
-    print(os.listdir(BUILD))
     output = "End2End Test Results:\n"
     have_failed = 0
     test_count = 0
@@ -35,11 +34,16 @@ def run_tests():
         try:
             process = subprocess.Popen([exe, test.file_loc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # After 3 minutes (180 seconds) the program will crash, to prevent eternal loops
-            stdout, stderr = process.communicate(timeout=180) 
+            stdout, stderr = process.communicate(timeout=180)
+
+            # Processing results
             if has_succeeded(stdout, stderr, test.answer):
-                output += "    > {}   -->   SUCCESS\n".format(test.file_loc.split('/')[-1])
+                output += "    > SUCCESS  -->  {}\n".format(test.file_loc.split('/')[-1])
+            elif verbose:
+                output += "    > FAILED   -->  {}: {}\n".format(test.file_loc.split('/')[-1], stdout)
+                have_failed += 1
             else:
-                output += "{}    > {}   -->   FAILED\n".format(stdout, test.file_loc.split('/')[-1])
+                output += "    > FAILED   -->  {}\n".format(test.file_loc.split('/')[-1])
                 have_failed += 1
         except subprocess.TimeoutExpired:
             process.kill()

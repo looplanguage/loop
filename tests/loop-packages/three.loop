@@ -1,0 +1,5 @@
+import "deeper/four.loop" as four
+
+pub fn f() {
+    return four.f() * 2
+}

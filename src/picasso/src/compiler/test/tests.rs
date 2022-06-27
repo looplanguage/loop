@@ -444,9 +444,9 @@ mod tests {
 
     fn compiler_test(input: &str, expected: &str) {
         let l = lexer::build_lexer(input);
-        let mut parser = parser::build_parser(l);
+        let mut parser = parser::build_parser(l, "");
 
-        let program = parser.parse();
+        let program = parser.parse().unwrap();
 
         if !parser.errors.is_empty() {
             for err in parser.errors {
@@ -466,9 +466,9 @@ mod tests {
 
     fn compiler_test_error(input: &str, expected: Option<CompilerException>) {
         let l = lexer::build_lexer(input);
-        let mut parser = parser::build_parser(l);
+        let mut parser = parser::build_parser(l, "");
 
-        let program = parser.parse();
+        let program = parser.parse().unwrap();
 
         if !parser.errors.is_empty() {
             for err in parser.errors {

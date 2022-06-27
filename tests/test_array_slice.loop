@@ -1,0 +1,12 @@
+arr := [1, 2, 3, 4, 5]
+
+start := 2
+res := arr[(start-1)..4]
+
+sum := 0
+for var i in res {
+    sum = sum + i
+}
+
+// Result should be 9
+sum

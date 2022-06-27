@@ -160,7 +160,7 @@ pub mod test_helper {
     pub fn generate_if_expression(
         condition: bool,
         body: Block,
-        else_condition: Box<Option<Node>>,
+        else_condition: Option<Box<Node>>,
     ) -> Statement {
         Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::Expression::Conditional(Box::new(
@@ -172,9 +172,9 @@ pub mod test_helper {
     pub fn generate_else_condition(
         conditinional: bool,
         body: Block,
-        else_condition: Box<Option<Node>>,
-    ) -> Box<Option<Node>> {
-        Box::new(Some(parser::Node::Expression(
+        else_condition: Option<Box<Node>>,
+    ) -> Option<Box<Node>> {
+        Some(Box::from(Node::Expression(
             parser::expression::Expression::Conditional(Box::new(generate_conditional(
                 conditinional,
                 body,
@@ -186,7 +186,7 @@ pub mod test_helper {
     pub fn generate_conditional(
         condition: bool,
         body: Block,
-        else_condition: Box<Option<Node>>,
+        else_condition: Option<Box<Node>>,
     ) -> Conditional {
         Conditional {
             condition: Box::new(parser::Expression::Boolean(Boolean { value: condition })),
@@ -195,8 +195,8 @@ pub mod test_helper {
         }
     }
 
-    pub fn generate_else_block_box(statements: Vec<Statement>) -> Box<Option<Node>> {
-        Box::new(Some(parser::Node::Statement(Statement::Block(
+    pub fn generate_else_block_box(statements: Vec<Statement>) -> Option<Box<Node>> {
+        Some(Box::from(Node::Statement(Statement::Block(
             generate_else_block(statements),
         ))))
     }

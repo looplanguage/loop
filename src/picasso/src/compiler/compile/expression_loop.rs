@@ -1,4 +1,5 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
+use crate::exception::compiler::CompilerException;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::loops::{Loop, LoopArrayIterator, LoopIterator};
@@ -26,14 +27,17 @@ use super::expression_index::compile_expression_index;
 /// }
 /// writeln(x);
 /// ```
-pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerResult {
+pub fn compile_loop_expression(
+    compiler: &mut Compiler,
+    lp: Loop,
+) -> Result<Types, CompilerException> {
     compiler.enter_symbol_scope();
 
     // Condition
     compiler.add_to_current_function(".WHILE CONDITION {".to_string());
     let result = compiler.compile_expression(*lp.condition);
-    if let CompilerResult::Exception(exception) = result {
-        return CompilerResult::Exception(exception);
+    if let Err(exception) = result {
+        return Err(exception);
     }
 
     compiler.add_to_current_function("} THEN ".to_string());
@@ -69,7 +73,7 @@ pub fn compile_loop_expression(compiler: &mut Compiler, lp: Loop) -> CompilerRes
 pub fn compile_loop_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopIterator,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     compiler.enter_symbol_scope();
     // Define the identifier variable, with the starting integer
     let var = compiler.define_symbol(lp.identifier.value, Types::Basic(BaseTypes::Integer), -1);
@@ -85,7 +89,7 @@ pub fn compile_loop_iterator_expression(
     ));
 
     // Compile the body that is executed
-    let result = compiler.compile_loop_block(lp.body);
+    let result = compiler.compile_loop_block(lp.body)?;
 
     compiler.exit_symbol_scope();
 
@@ -96,7 +100,7 @@ pub fn compile_loop_iterator_expression(
     ));
     compiler.add_to_current_function("};".to_string());
 
-    result
+    Ok(result)
 }
 
 /// Compiles (/transpiles) the "while" loop of Loop
@@ -119,7 +123,7 @@ pub fn compile_loop_iterator_expression(
 pub fn compile_loop_array_iterator_expression(
     compiler: &mut Compiler,
     lp: LoopArrayIterator,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     compiler.enter_symbol_scope();
 
     // Define the identifier variable, with the starting value of the array
@@ -139,14 +143,14 @@ pub fn compile_loop_array_iterator_expression(
     );
 
     compiler.add_to_current_function("}; .WHILE CONDITION { .GREATERTHAN { .LENGTH {".to_string());
-    compiler.compile_expression(*lp.array.clone());
+    compiler.compile_expression(*lp.array.clone())?;
     compiler.add_to_current_function(format!(
         " }}; .LOAD VARIABLE {}; }}; }} THEN {{",
         index.index
     ));
 
     // Compile body and then increase the index
-    let result = compiler.compile_loop_block(lp.body);
+    let result = compiler.compile_loop_block(lp.body)?;
 
     compiler.add_to_current_function(format!(
         ".STORE {} {{ .ADD {{.LOAD VARIABLE {};.CONSTANT INT 1;}};}};",
@@ -154,11 +158,11 @@ pub fn compile_loop_array_iterator_expression(
     ));
     compiler.add_to_current_function(format!(".STORE {} {{ .INDEX {{", var.index));
 
-    compiler.compile_expression(*lp.array);
+    compiler.compile_expression(*lp.array)?;
 
     compiler.add_to_current_function(format!("}} {{ .LOAD VARIABLE {}; }}; }};", index.index));
 
     compiler.add_to_current_function("};".to_string());
 
-    result
+    Ok(result)
 }

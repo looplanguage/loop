@@ -1,4 +1,4 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression::function::{Call, Parameter};
 use crate::parser::expression::identifier::Identifier;
@@ -6,7 +6,10 @@ use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
 use crate::parser::types::{Compound, Types};
 
-pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerResult {
+pub fn compile_expression_call(
+    compiler: &mut Compiler,
+    call: Call,
+) -> Result<Types, CompilerException> {
     // This is for calling functions from a library & instantiating classes
     // First class instantation from the current module
     if let Expression::Identifier(i) = *call.clone().identifier {
@@ -42,7 +45,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
                 for value in &*values {
                     // Define "self" if its a function
-                    let result = if let Expression::Function(func) = value.value.clone() {
+                    if let Expression::Function(func) = value.value.clone() {
                         let mut func = func.clone();
 
                         func.parameters.insert(
@@ -55,14 +58,10 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                             },
                         );
 
-                        compiler.compile_expression(Expression::Function(func))
+                        compiler.compile_expression(Expression::Function(func))?
                     } else {
-                        compiler.compile_expression(value.value.clone())
+                        compiler.compile_expression(value.value.clone())?
                     };
-
-                    if result.is_exception() {
-                        return result;
-                    }
                 }
 
                 compiler.add_to_current_function("};};".to_string());
@@ -75,11 +74,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
 
                     // Compile parameters
                     for parameter in call.parameters {
-                        let result = compiler.compile_expression(parameter);
-
-                        if let CompilerResult::Exception(_) = &result {
-                            return result;
-                        }
+                        compiler.compile_expression(parameter)?;
                     }
 
                     compiler.add_to_current_function("};".to_string())
@@ -93,9 +88,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                 // End of variable definition, function definition & call to it
                 compiler.add_to_current_function("};} {};".to_string());
 
-                return CompilerResult::Success(Types::Compound(Compound(name, values)));
-
-                // Second library function calling
+                return Ok(Types::Compound(Compound(name, values)));
             }
         }
     } else if let Expression::String(namespace) = *call.clone().identifier {
@@ -106,18 +99,16 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             compiler.add_to_current_function(".CALL ".to_string());
             compiler.add_to_current_function(namespace.value);
             compiler.add_to_current_function(" { ".to_string());
-            for parameter in call.parameters {
-                let result = compiler.compile_expression(parameter);
 
-                if let CompilerResult::Exception(_) = &result {
-                    return result;
-                }
+            for parameter in call.parameters {
+                compiler.compile_expression(parameter)?;
             }
+
             compiler.add_to_current_function(String::from("};"));
 
             // Since we do not know what the return type of the function is, we use Types::Auto
             // TODO: You do know function signiture it is in the header or "function_signiture" function
-            return CompilerResult::Success(Types::Auto);
+            return Ok(Types::Auto);
         }
     }
 
@@ -131,17 +122,13 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
                     compiler.add_to_current_function(format!("{}::{}", library.value, value));
                     compiler.add_to_current_function(" { ".to_string());
                     for parameter in call.parameters {
-                        let result = compiler.compile_expression(parameter);
-
-                        if let CompilerResult::Exception(_) = &result {
-                            return result;
-                        }
+                        compiler.compile_expression(parameter)?;
                     }
                     compiler.add_to_current_function(String::from("};"));
 
                     // Since we do not know what the return type of the function is, we use Types::Auto
                     // TODO: You do know function signiture it is in the header or "function_signiture" function
-                    return CompilerResult::Success(Types::Auto);
+                    return Ok(Types::Auto);
                 }
             }
 
@@ -149,29 +136,29 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             let result = compiler.compile_expression(a.left.clone());
             compiler.undrier();
 
-            if let CompilerResult::Success(succ) = result {
+            if let Ok(succ) = result {
                 match &*value {
                     "push" => {
                         for parameter in &call.parameters {
                             compiler.add_to_current_function(".PUSH {".to_string());
-                            compiler.compile_expression(a.left.clone());
+                            compiler.compile_expression(a.left.clone())?;
                             compiler.add_to_current_function("} { ".to_string());
-                            compiler.compile_expression(parameter.clone());
+                            compiler.compile_expression(parameter.clone())?;
                             compiler.add_to_current_function("};".to_string());
                         }
 
-                        return CompilerResult::Success(succ);
+                        return Ok(succ);
                     }
                     "remove" => {
                         for parameter in &call.parameters {
                             compiler.add_to_current_function(".POP {".to_string());
-                            compiler.compile_expression(a.left.clone());
+                            compiler.compile_expression(a.left.clone())?;
                             compiler.add_to_current_function("} { ".to_string());
-                            compiler.compile_expression(parameter.clone());
+                            compiler.compile_expression(parameter.clone())?;
                             compiler.add_to_current_function("};".to_string());
                         }
 
-                        return CompilerResult::Success(succ);
+                        return Ok(succ);
                     }
                     _ => {}
                 }
@@ -196,7 +183,7 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         let result = compiler.compile_expression(self_reference);
         compiler.undrier();
 
-        if let CompilerResult::Success(Types::Module(module)) = result {
+        if let Ok(Types::Module(module)) = result {
             // This errors because its too late and we already generated a bunch of code
             return compile_expression_call(
                 compiler,
@@ -222,24 +209,20 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
             let name = split.first().unwrap().to_string();
             let method = split.get(1).unwrap().to_string();
 
-            let result = compiler.compile_expression(Expression::Index(Box::new(Index {
+            let _type = compiler.compile_expression(Expression::Index(Box::new(Index {
                 left: Expression::Identifier(Identifier {
                     value: name.clone(),
                 }),
                 index: Expression::Identifier(Identifier { value: method }),
-            })));
+            })))?;
 
-            if let CompilerResult::Success(_type) = result {
-                if let Types::Function(func) = _type.clone() {
-                    if func.is_method {
-                        self_reference = Some(Expression::Identifier(Identifier { value: name }));
-                    }
+            if let Types::Function(func) = _type.clone() {
+                if func.is_method {
+                    self_reference = Some(Expression::Identifier(Identifier { value: name }));
                 }
-
-                method_type = Some(_type)
-            } else {
-                return result;
             }
+
+            method_type = Some(_type)
         }
     }
 
@@ -247,40 +230,29 @@ pub fn compile_expression_call(compiler: &mut Compiler, call: Call) -> CompilerR
         // If left side of the call was an index, this is a method being called on it so insert
         // "self"
 
-        let result = compiler.compile_expression(*call.identifier.clone());
-
-        let func_signature = match &result {
-            CompilerResult::Exception(_exception) => return result,
-            CompilerResult::Success(_type) => match _type {
-                Types::Function(func) => func,
-                _ => {
-                    return CompilerResult::Exception(CompilerException::CallingNonFunction(
-                        _type.transpile(),
-                    ));
-                }
-            },
-            _ => return CompilerResult::Exception(CompilerException::Unknown),
+        let _type = compiler.compile_expression(*call.identifier.clone())?;
+        let func_signature = match _type {
+            Types::Function(func) => func,
+            _ => {
+                return Err(CompilerException::CallingNonFunction(_type.transpile()));
+            }
         };
 
-        method_type = Some(*func_signature.clone().return_type);
+        method_type = Some(*func_signature.return_type);
     }
 
     compiler.add_to_current_function(String::from("} {"));
 
     // Insert "self" parameter
     if let Some(self_reference) = self_reference {
-        compiler.compile_expression(self_reference);
+        compiler.compile_expression(self_reference)?;
     }
 
     for parameter in call.parameters {
-        let result = compiler.compile_expression(parameter);
-
-        if let CompilerResult::Exception(_) = &result {
-            return result;
-        }
+        compiler.compile_expression(parameter)?;
     }
 
     compiler.add_to_current_function(String::from("};"));
 
-    CompilerResult::Success(method_type.unwrap())
+    Ok(method_type.unwrap())
 }

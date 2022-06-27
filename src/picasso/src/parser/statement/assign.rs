@@ -1,4 +1,5 @@
 use crate::lexer::token::TokenType;
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
@@ -11,20 +12,18 @@ pub struct VariableAssign {
     pub value: Box<Expression>,
 }
 
-pub fn parse_variable_assignment(p: &mut Parser) -> Option<Node> {
+pub fn parse_variable_assignment(p: &mut Parser) -> Result<Node, SyntaxException> {
     let ident = p.lexer.get_current_token().unwrap().clone();
 
-    if !p.lexer.next_token_is_and_next_token(TokenType::Assign) {
-        return None;
-    }
+    p.lexer
+        .next_token_is_and_next_token_result(TokenType::Assign)?;
 
     p.lexer.next_token();
 
-    let expr = p.parse_expression(Precedence::Lowest);
-    expr.as_ref()?;
+    let expr = p.parse_expression(Precedence::Lowest)?;
 
-    if let Node::Expression(exp) = expr.unwrap() {
-        return Some(Node::Statement(Statement::VariableAssign(VariableAssign {
+    if let Node::Expression(exp) = expr {
+        return Ok(Node::Statement(Statement::VariableAssign(VariableAssign {
             ident: Identifier {
                 value: ident.literal,
             },
@@ -32,5 +31,5 @@ pub fn parse_variable_assignment(p: &mut Parser) -> Option<Node> {
         })));
     }
 
-    None
+    Err(SyntaxException::Unknown)
 }

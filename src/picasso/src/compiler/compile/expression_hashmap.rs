@@ -1,10 +1,15 @@
 use crate::compiler::compile::expression_bool::compile_expression_boolean;
 use crate::compiler::compile::expression_integer::compile_expression_integer;
 use crate::compiler::compile::expression_string::compile_expression_string;
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
+use crate::exception::compiler::CompilerException;
 use crate::parser::expression::hashmap::{HashableExpression, Hashmap};
+use crate::parser::types::Types;
 
-pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) -> CompilerResult {
+pub fn compile_expression_hashmap(
+    _compiler: &mut Compiler,
+    hashmap: Hashmap,
+) -> Result<Types, CompilerException> {
     let _length = hashmap.values.len();
 
     for value in hashmap.values {
@@ -16,12 +21,12 @@ pub fn compile_expression_hashmap(_compiler: &mut Compiler, hashmap: Hashmap) ->
 
         #[allow(clippy::single_match)]
         match &result {
-            CompilerResult::Exception(_exception) => return result,
+            Err(_exception) => return result,
             _ => (),
         }
 
-        _compiler.compile_expression(value.1);
+        _compiler.compile_expression(value.1)?;
     }
 
-    CompilerResult::Optimize
+    Ok(Types::Void)
 }

@@ -39,7 +39,7 @@ picasso lint:
     - cd src/picasso/
     - !reference [.lint_test, script]
 
-vinci lint: 
+vinci lint:
   extends: .linux
   only:
     refs:
@@ -51,7 +51,7 @@ vinci lint:
     - cd src/vinci/
     - !reference [.lint_test, script]
 
-sanzio lint: 
+sanzio lint:
   extends: .linux
   only:
     refs:
@@ -108,7 +108,7 @@ vinci check:
     - cd src/vinci/
     - !reference [.check, script]
 
-sanzio check: 
+sanzio check:
   extends: .linux
   only:
     refs:
@@ -149,7 +149,7 @@ loop end2end_test:
     - apt-get update
     - apt-get install python3 python3-pip python3-distutils -y
     - cargo +nightly build --release
-    - python3 tests/end2end_test.py
+    - python3 tests/end2end_test.py -v
 
 picasso test:
   extends: .linux
@@ -163,7 +163,7 @@ picasso test:
     - cd src/picasso/
     - !reference [.test, script]
 
-vinci test: 
+vinci test:
   extends: .linux
   only:
     refs:

@@ -5,16 +5,6 @@ pub struct Token {
     pub literal: String,
 }
 
-impl Token {
-    pub fn literal_len(&self) -> i32 {
-        self.literal.len() as i32
-    }
-
-    pub fn display(&self) {
-        println!("TokenType: {:?} - Literal: {}", self.token, self.literal)
-    }
-}
-
 #[derive(PartialEq, Clone, Debug, Copy, Eq, Hash)]
 pub enum TokenType {
     /// Variable name
@@ -71,6 +61,8 @@ pub enum TokenType {
     RightBrace,
     /// Example: '.'
     Dot,
+    /// Example: '..'
+    Range,
     /// Example: '['
     LeftBracket,
     /// Example: ']'

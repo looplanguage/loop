@@ -1,4 +1,4 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::CompilerException;
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
@@ -6,7 +6,7 @@ use crate::parser::types::Types;
 pub fn compile_statement_variable_declaration(
     compiler: &mut Compiler,
     variable: VariableDeclaration,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     let var = compiler.define_symbol(variable.ident.value, variable.data_type.clone(), -1);
 
     compiler.add_to_current_function(format!(".STORE {} {{", var.index));
@@ -15,7 +15,7 @@ pub fn compile_statement_variable_declaration(
 
     let result = compiler.compile_expression(*variable.value);
 
-    let result = if let CompilerResult::Success(_suc_type) = result.clone() {
+    let result = if let Ok(_suc_type) = result.clone() {
         compiler.add_to_current_function("};".to_string());
 
         _suc_type
@@ -27,7 +27,7 @@ pub fn compile_statement_variable_declaration(
         && variable.data_type != Types::Auto
         && !matches!(variable.data_type, Types::Module(_))
     {
-        return CompilerResult::Exception(CompilerException::WrongType(
+        return Err(CompilerException::WrongType(
             result.transpile(),
             variable.data_type.transpile(),
         ));
@@ -43,5 +43,5 @@ pub fn compile_statement_variable_declaration(
         }
     }
 
-    CompilerResult::Success(Types::Void)
+    Ok(Types::Void)
 }

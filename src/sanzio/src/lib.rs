@@ -8,7 +8,6 @@ use vinci::ast::instructions::memory::LoadType;
 use vinci::ast::instructions::suffix::BinaryOperation;
 use vinci::ast::instructions::Node;
 use vinci::types::ValueType;
-
 mod exception;
 use exception::throw_runtime_exception;
 
@@ -100,9 +99,16 @@ impl LuaBackend {
     pub fn new() -> LuaBackend {
         LuaBackend {
             #[cfg(feature = "libloading")]
-            code: String::from("ffi = require(\"ffi\")\n"),
+            code: String::from("\
+ffi = require(\"ffi\")
+getmetatable('').__index = function(str,i) return string.sub(str,i,i) end
+getmetatable('').__call = function(str,i,j) if type(i)~='table' then return string.sub(str,i,j) end end
+"),
             #[cfg(not(feature = "libloading"))]
-            code: String::from(""),
+            code: String::from("\
+getmetatable('').__index = function(str,i) return string.sub(str,i,i) end
+getmetatable('').__call = function(str,i,j) if type(i)~='table' then return string.sub(str,i,j) end end
+"),
             doing_statement: false,
             library_paths: vec![],
             library_names: vec![],
@@ -214,7 +220,12 @@ impl LuaBackend {
             Node::STORE(store) => {
                 self.doing_statement = true;
                 self.add_code(format!("var_{} = ", store.index));
-                self.compile_node(store.value.deref());
+                if let Node::CONSTANT(v) = *store.value.clone() {
+                    self.add_constant_value(&v);
+                } else {
+                    self.compile_node(store.value.deref());
+                }
+
                 self.doing_statement = false;
             }
             Node::SUFFIX(suffix) => {
@@ -333,9 +344,9 @@ impl LuaBackend {
                     if parts[1] == "println" || parts[1] == "print" {
                         self.add_code_str(")");
                     } else {
-                        self.add_code(")if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()".to_string());
+                        self.add_code(") if type(res) == \"cdata\" then return ffi.string(res) else return res end end)()".to_string());
                     }
-                // Calling a user-defined function or a class
+                    // Calling a user-defined function or a class
                 } else {
                     self.compile_node(&call.call);
 
@@ -366,16 +377,26 @@ impl LuaBackend {
                 self.compile_node(&idx.to_index);
                 self.add_code_str("[");
                 self.compile_node(&idx.index);
-                self.add_code_str("+ 1]");
+                self.add_code_str(" + 1]");
             }
             Node::SLICE(slice) => {
-                self.add_code_str("({unpack(");
+                self.add_code_str("(function() if type(");
                 self.compile_node(&*slice.to_slice);
-                self.add_code_str(",");
+                self.add_code_str(") == \"string\" then return ");
+                self.compile_node(&*slice.to_slice);
+                self.add_code_str("(");
                 self.compile_node(&*slice.from);
                 self.add_code_str("+1,");
                 self.compile_node(&*slice.to);
-                self.add_code_str("+1)})");
+                self.add_code_str("+1) else local temp_sliced = {} for i = ");
+                self.compile_node(&*slice.from);
+                self.add_code_str("+1, ");
+                self.compile_node(&*slice.to);
+                self.add_code_str("+1 or #");
+                self.compile_node(&*slice.to_slice);
+                self.add_code_str(", 1 do temp_sliced[#temp_sliced+1] = ");
+                self.compile_node(&*slice.to_slice);
+                self.add_code_str("[i] end return temp_sliced end end)()");
             }
             Node::PUSH(push) => {
                 self.compile_node(&*push.to_push);
@@ -389,7 +410,7 @@ impl LuaBackend {
 
                     self.add_library_path(lib.clone().get_path());
                     self.add_library_namespace(lib.clone().namespace);
-                    self.add_code(format!("ffi.cdef[[ {} ]]", str.as_str()));
+                    self.add_code(format!("ffi.cdef[[ {} ]] ", str.as_str()));
                     self.add_code(format!(
                         "{} = ffi.load(\"{}.{}\")",
                         lib.namespace,
