@@ -13,7 +13,9 @@ It is meant to be ran in the pipeline, but you can be ran locally too. Here is h
 1. Install [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html), [Python3.x](https://www.python.org/downloads/) and [LLVM:12.0.0](https://releases.llvm.org/)
 2. Clone the repository: `git clone https://gitlab.com/looplanguage/loop.git`
 3. `cd loop`
-4. Run: `Python3 tests/end2end_test.py`
+4. Run: `python3 tests/end2end_test.py`
+
+You can add `-v` after the end of the command to print the errors if they occur.
 
 The results of the tests will be printed inside the terminal.
 
