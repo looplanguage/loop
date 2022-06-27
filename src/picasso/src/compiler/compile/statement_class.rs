@@ -1,11 +1,15 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
+use crate::exception::compiler::CompilerException;
 use crate::parser::expression::function::Function;
 use crate::parser::expression::integer::Integer;
 use crate::parser::expression::Expression;
 use crate::parser::statement::class::{Class, ClassItem};
 use crate::parser::types::{ClassItemType, Compound, FunctionType, Types};
 
-pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> CompilerResult {
+pub fn compile_class_statement(
+    compiler: &mut Compiler,
+    class: Class,
+) -> Result<Types, CompilerException> {
     let mut items: Vec<ClassItemType> = Vec::new();
 
     let var = compiler.define_symbol(
@@ -44,7 +48,7 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
                 let node = compiler.compile_expression(*property.expression.clone());
                 compiler.undrier();
 
-                if let CompilerResult::Success(_type) = node {
+                if let Ok(_type) = node {
                     compiler.add_to_current_function(format!("{};", _type.transpile()));
 
                     let mut new_item = ClassItemType {
@@ -135,5 +139,5 @@ pub fn compile_class_statement(compiler: &mut Compiler, class: Class) -> Compile
     var.as_ref().borrow_mut().modifiers.public = class.public;
     var.as_ref().borrow_mut()._type = Types::Compound(Compound(class.name, Box::new(items)));
 
-    CompilerResult::Success(Types::Void)
+    Ok(Types::Void)
 }

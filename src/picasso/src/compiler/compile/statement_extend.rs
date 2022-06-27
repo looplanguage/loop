@@ -1,5 +1,5 @@
 use crate::compiler::compile::expression_function::compile_expression_function;
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression::function::{Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
@@ -7,7 +7,10 @@ use crate::parser::statement::class::{ClassItem, Method};
 use crate::parser::statement::extends::ExtendStatement;
 use crate::parser::types::{BaseTypes, Types};
 
-pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement) -> CompilerResult {
+pub fn compile_extend_statement(
+    compiler: &mut Compiler,
+    class: ExtendStatement,
+) -> Result<Types, CompilerException> {
     // Just for the basetypes
     let raw_type = match &*class.identifier.value {
         "int" => Some(Types::Basic(BaseTypes::Integer)),
@@ -18,7 +21,7 @@ pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement)
     };
 
     if raw_type.is_none() {
-        return CompilerResult::Exception(CompilerException::Unknown);
+        return Err(CompilerException::Unknown);
     }
 
     if let Some(raw_type) = raw_type {
@@ -62,10 +65,10 @@ pub fn compile_extend_statement(compiler: &mut Compiler, class: ExtendStatement)
                         predefined_type: None,
                         public: false,
                     },
-                );
+                )?;
             }
         }
     }
 
-    CompilerResult::Success(Types::Void)
+    Ok(Types::Void)
 }

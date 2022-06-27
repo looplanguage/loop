@@ -1,11 +1,12 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
+use crate::exception::compiler::CompilerException;
 use crate::parser::statement::constant::ConstantDeclaration;
 use crate::parser::types::Types;
 
 pub fn compile_statement_constant_declaration(
     compiler: &mut Compiler,
     constant: ConstantDeclaration,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     let var = compiler.define_symbol(constant.ident.value, constant.data_type.clone(), -1);
     // let result = compiler.compile_expression(*variable.value);
 
@@ -20,5 +21,5 @@ pub fn compile_statement_constant_declaration(
 
     // compiler.emit(OpCode::SetVar, vec![var.index as u32]);
 
-    CompilerResult::Success(Types::Void)
+    Ok(Types::Void)
 }

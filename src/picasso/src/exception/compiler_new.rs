@@ -4,10 +4,11 @@ use std::process;
 /// Struct that contains all data needed to throw a parser error
 /// # Example
 /// ```(rust)
+/// use picasso::exception::compiler_new::CompilerError;
 /// let foo = CompilerError {
 ///    error_message: String::from("this is not allowed"),
 ///    extra_message: Some(String::from("Syntax -> if (<EXPRESSION>) {STATEMENTS} ")),
-/// }
+/// };
 /// ```
 #[allow(dead_code)]
 pub struct CompilerError {
@@ -29,7 +30,8 @@ impl CompilerError {
     ///
     /// # Examples
     /// ```(rust)
-    /// let foo = CompilerError { /*Instantiate SyntaxError Struct*/ };
+    /// use picasso::exception::compiler_new::CompilerError;
+    /// let mut foo = CompilerError { error_message: "".to_string(), extra_message: None };
     /// foo.throw_exception();
     /// ```
     #[rustfmt::skip]
@@ -54,7 +56,7 @@ impl CompilerError {
     /// ```(rust)
     /// let mut text = String::from("Hello,
     /// World!");
-    /// text = self.add_identation(4, text);
+    /// text = add_identation(4, text);
     /// ```
     /// <pre>
     /// Before:  "Hello,\nWorld!"

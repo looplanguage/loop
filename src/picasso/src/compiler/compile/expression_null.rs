@@ -1,8 +1,9 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
+use crate::exception::compiler::CompilerException;
 use crate::parser::types::{BaseTypes, Types};
 
-pub fn compile_expression_null(_compiler: &mut Compiler) -> CompilerResult {
+pub fn compile_expression_null(_compiler: &mut Compiler) -> Result<Types, CompilerException> {
     _compiler.add_to_current_function(".CONSTANT VOID;".to_string());
 
-    CompilerResult::Success(Types::Basic(BaseTypes::Integer))
+    Ok(Types::Basic(BaseTypes::Integer))
 }

@@ -1,12 +1,14 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::CompilerException;
 use crate::parser::statement::return_statement::ReturnStatement;
+use crate::parser::types::Types;
 
-pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -> CompilerResult {
+pub fn compile_return_statement(
+    _compiler: &mut Compiler,
+    rt: ReturnStatement,
+) -> Result<Types, CompilerException> {
     if _compiler.scope_index == 0 {
-        return CompilerResult::Exception(
-            CompilerException::ReturnStatementNotAllowedOutsideFunction,
-        );
+        return Err(CompilerException::ReturnStatementNotAllowedOutsideFunction);
     }
 
     _compiler.add_to_current_function(".RETURN {".to_string());
@@ -16,10 +18,9 @@ pub fn compile_return_statement(_compiler: &mut Compiler, rt: ReturnStatement) -
 
     #[allow(clippy::single_match)]
     let _type = match &result {
-        CompilerResult::Exception(_exception) => return result,
-        CompilerResult::Success(_tp) => _tp.clone(),
-        _ => return CompilerResult::Exception(CompilerException::Unknown),
+        Err(_exception) => return result,
+        Ok(_tp) => _tp.clone(),
     };
 
-    CompilerResult::Success(_type)
+    Ok(_type)
 }

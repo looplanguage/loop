@@ -1,4 +1,4 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::CompilerException;
 use crate::parser::expression;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
@@ -20,7 +20,7 @@ pub struct Parameter {
 pub fn compile_expression_function(
     compiler: &mut Compiler,
     func: expression::function::Function,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     // Increase the function counter to keep getting unique identifiers
     compiler.function_count += 1;
 
@@ -44,7 +44,7 @@ pub fn compile_expression_function(
                 .iter()
                 .any(|p| p.name == parameter.identifier.value)
             {
-                return CompilerResult::Exception(CompilerException::DoubleParameterName(
+                return Err(CompilerException::DoubleParameterName(
                     parameter.identifier.value.clone(),
                 ));
             }
@@ -68,7 +68,7 @@ pub fn compile_expression_function(
                 if let Some(compound) = compiler.get_compound_type(name) {
                     param_type = compound.clone()
                 } else {
-                    return CompilerResult::Exception(CompilerException::UnknownType(name.clone()));
+                    return Err(CompilerException::UnknownType(name.clone()));
                 }
             }
 
@@ -128,7 +128,7 @@ pub fn compile_expression_function(
             if let Some(compound) = compiler.get_compound_type(name) {
                 param_type = compound.clone()
             } else {
-                return CompilerResult::Exception(CompilerException::UnknownType(name.clone()));
+                return Err(CompilerException::UnknownType(name.clone()));
             }
         }
 
@@ -159,10 +159,10 @@ pub fn compile_expression_function(
 
     // Currently infer and dont allow manually setting type
     let return_type = {
-        if let CompilerResult::Success(_type) = result {
+        if let Ok(_type) = result {
             _type
-        } else if let CompilerResult::Exception(exception) = result {
-            return CompilerResult::Exception(exception);
+        } else if let Err(exception) = result {
+            return Err(exception);
         } else {
             Types::Void
         }
@@ -207,5 +207,5 @@ pub fn compile_expression_function(
         }
     }
 
-    CompilerResult::Success(function_type)
+    Ok(function_type)
 }

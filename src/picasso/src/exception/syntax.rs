@@ -5,6 +5,7 @@ use std::process;
 /// Struct that contains all data needed to throw a parser error
 /// # Example
 /// ```(rust)
+/// use picasso::exception::syntax::SyntaxError;
 /// let foo = SyntaxError {
 ///    error_line: String::from("if (true) }"),
 ///    expected: Token {TokenType::LeftBracket, String::from("{")},

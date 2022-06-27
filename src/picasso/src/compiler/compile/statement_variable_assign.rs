@@ -1,11 +1,12 @@
-use crate::compiler::{Compiler, CompilerResult};
+use crate::compiler::Compiler;
 use crate::exception::compiler::{CompilerException, UnknownSymbol};
 use crate::parser::statement::assign::VariableAssign;
+use crate::parser::types::Types;
 
 pub fn compile_statement_variable_assign(
     compiler: &mut Compiler,
     variable: VariableAssign,
-) -> CompilerResult {
+) -> Result<Types, CompilerException> {
     let var = compiler.resolve_symbol(&variable.ident.value);
 
     if let Some(var_type) = var {
@@ -20,22 +21,21 @@ pub fn compile_statement_variable_assign(
 
         compiler.add_to_current_function("};".to_string());
         return match &result {
-            CompilerResult::Exception(_exception) => result,
-            CompilerResult::Success(result_type) => {
+            Err(_exception) => result,
+            Ok(result_type) => {
                 if *result_type != var_type._type {
-                    CompilerResult::Exception(CompilerException::WrongType(
+                    Err(CompilerException::WrongType(
                         result_type.transpile(),
                         var_type._type.transpile(),
                     ))
                 } else {
-                    CompilerResult::Success(var_type._type)
+                    Ok(var_type._type)
                 }
             }
-            _ => CompilerResult::Exception(CompilerException::Unknown),
         };
     }
 
-    CompilerResult::Exception(CompilerException::UnknownSymbol(UnknownSymbol {
+    Err(CompilerException::UnknownSymbol(UnknownSymbol {
         name: variable.ident.value,
         scope_depth: compiler.scope_index as u16,
     }))
