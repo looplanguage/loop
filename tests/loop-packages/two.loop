@@ -1,0 +1,5 @@
+import "three.loop" as three
+
+pub fn f() {
+    return three.f() * 2
+}

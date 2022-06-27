@@ -1,3 +1,5 @@
+use crate::parser::exception::SyntaxException;
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UnknownSymbol {
     pub name: String,
@@ -26,6 +28,12 @@ pub enum CompilerException {
     /// Module, Name
     NotPublic(String, String),
     Unknown,
+}
+
+impl From<SyntaxException> for CompilerException {
+    fn from(_: SyntaxException) -> Self {
+        CompilerException::Unknown
+    }
 }
 
 impl CompilerException {

@@ -1,4 +1,5 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
@@ -22,7 +23,10 @@ pub struct VariableDeclaration {
 ///
 /// **Example:**
 /// `int i = 13 + 4`
-pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Option<Node> {
+pub fn parse_variable_declaration(
+    p: &mut Parser,
+    types: Option<Types>,
+) -> Result<Node, SyntaxException> {
     let ident = p.lexer.get_current_token().unwrap().clone(); // Identifier of variabele.
     let datatype = types.unwrap_or(Types::Auto);
 
@@ -31,10 +35,10 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Optio
         let message = "Syntax  -> <identifier> := <expression>\nExample -> i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-        p.throw_exception(
-            create_token(TokenType::Colon, ":".to_string()),
+        return Err(SyntaxException::CustomMessage(
+            "expected: ':'".to_string(),
             Some(message),
-        );
+        ));
     }
     p.lexer.next_token(); // Skipping the ":'
 
@@ -45,21 +49,20 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Optio
         } else {
             format!("Syntax  ->  <datatype> <identifier> := <expression>\nExample -> {} i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives", datatype.transpile())
         };
-        p.throw_exception(
-            create_token(TokenType::Assign, "=".to_string()),
+        return Err(SyntaxException::CustomMessage(
+            "expected: '='".to_string(),
             Some(message),
-        );
+        ));
     }
 
     p.lexer.next_token(); // Skips the: '='
     p.lexer.next_token(); // Skips the: expression
 
     // Parsing of the expresion, this is the value of the constant
-    let expr = p.parse_expression(Precedence::Lowest);
-    expr.as_ref()?;
+    let expr = p.parse_expression(Precedence::Lowest)?;
 
-    if let Node::Expression(exp) = expr.unwrap() {
-        return Some(Node::Statement(Statement::VariableDeclaration(
+    if let Node::Expression(exp) = expr {
+        return Ok(Node::Statement(Statement::VariableDeclaration(
             VariableDeclaration {
                 ident: Identifier {
                     value: ident.literal,
@@ -71,5 +74,5 @@ pub fn parse_variable_declaration(p: &mut Parser, types: Option<Types>) -> Optio
     }
 
     // This needs to throw a good error
-    None
+    Err(SyntaxException::Unknown)
 }

@@ -1,4 +1,5 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
@@ -21,15 +22,16 @@ pub struct ConstantDeclaration {
 /// **Example:**
 /// `const i := 13 + 4`
 #[allow(clippy::all)]
-pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
+pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxException> {
     // This "identifier" is for the actual identifier of the constant
     if !p.next_token_is(TokenType::Identifier) {
         let message = "Syntax  -> const <datatype> <identifier> = <expression>\nExample -> const int i = 99\n\nThe identifiers can contain: letters, numbers and underscores.".to_string();
-        p.throw_exception(
-            create_token(TokenType::Identifier, "identifier".to_string()),
+        return Err(SyntaxException::CustomMessage(
+            "expected: Identifier".to_string(),
             Some(message),
-        );
+        ));
     }
+
     p.lexer.next_token(); // Skipping the identifier
                           // Depending on if the user has excpliciely typed the type, the current token is a identifier or a type
     let ident_or_type = p.lexer.get_current_token().unwrap().clone();
@@ -41,39 +43,40 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
     } else {
         None
     };
+
     // Parsing of the ":" in the declaration
     if !p.next_token_is(TokenType::Colon) {
         let message = "Syntax  -> const <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-        p.throw_exception(
-            create_token(TokenType::Colon, ":".to_string()),
+        return Err(SyntaxException::CustomMessage(
+            "expected: ':'".to_string(),
             Some(message),
-        );
+        ));
     }
     p.lexer.next_token(); // Skipping the ":'
 
     // Parsing of the "=" in the declaration
     if !p.next_token_is(TokenType::Assign) {
         let message = "Syntax  -> const <datatype> <identifier> = <expression>\nExample -> const int i = 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-        p.throw_exception(
-            create_token(TokenType::Assign, "=".to_string()),
+
+        return Err(SyntaxException::CustomMessage(
+            "expected: '='".to_string(),
             Some(message),
-        );
+        ));
     }
 
     p.lexer.next_token(); // Skips the '='
     p.lexer.next_token(); // Skips the expression
 
     // Parsing of the expresion, this is the value of the constant
-    let expr = p.parse_expression(Precedence::Lowest);
-    expr.as_ref()?;
+    let expr = p.parse_expression(Precedence::Lowest)?;
 
     if ident.is_none() {
         // Node being created here is for:
         // const i := 3
-        if let Node::Expression(expression) = expr.clone().unwrap() {
-            return Some(Node::Statement(Statement::ConstantDeclaration(
+        if let Node::Expression(expression) = expr {
+            return Ok(Node::Statement(Statement::ConstantDeclaration(
                 ConstantDeclaration {
                     ident: Identifier {
                         value: ident_or_type.literal,
@@ -86,8 +89,8 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
     }
     // Node being created here is for:
     // const int i := 3
-    if let Node::Expression(expression) = expr.unwrap() {
-        return Some(Node::Statement(Statement::ConstantDeclaration(
+    if let Node::Expression(expression) = expr {
+        return Ok(Node::Statement(Statement::ConstantDeclaration(
             ConstantDeclaration {
                 ident: Identifier {
                     value: ident.unwrap().literal,
@@ -99,5 +102,5 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Option<Node> {
     }
 
     // This needs to throw a good error
-    None
+    Err(SyntaxException::Unknown)
 }

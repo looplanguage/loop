@@ -212,9 +212,9 @@ impl Compiler {
     /// Allows you to use Loop code within the compiler
     pub fn compile_generic_loop(&mut self, str: &str) -> Result<Arc, CompilerException> {
         let lexer = lexer::build_lexer(str);
-        let mut parser = parser::build_parser(lexer);
+        let mut parser = parser::build_parser(lexer, self.location.as_str());
 
-        let program = parser.parse();
+        let program = parser.parse()?;
 
         self.compile(program)
     }
