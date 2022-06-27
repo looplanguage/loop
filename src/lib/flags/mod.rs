@@ -4,8 +4,6 @@ use crate::lib::exception::flag;
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process;
-use crate::lib::flags::FlagTypes::Help;
-
 mod arc;
 mod benchmark;
 mod debug;

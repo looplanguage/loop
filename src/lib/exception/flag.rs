@@ -36,7 +36,11 @@ pub fn throw_exception_unexpected_value(flag: String) {
     println!("{}", "FlagException --> ".bright_red());
     println!(
         "    {}",
-        format!("Unexpected flag value: {}\tType \"loop --help\" to get more info\n", flag).bright_white()
+        format!(
+            "Unexpected flag value: {}\tType \"loop --help\" to get more info\n",
+            flag
+        )
+        .bright_white()
     );
 
     process::exit(1);
