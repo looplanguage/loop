@@ -410,7 +410,7 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
 
                     self.add_library_path(lib.clone().get_path());
                     self.add_library_namespace(lib.clone().namespace);
-                    self.add_code(format!("ffi.cdef[[ {} ]]\n", str.as_str()));
+                    self.add_code(format!("ffi.cdef[[ {} ]] ", str.as_str()));
                     self.add_code(format!(
                         "{} = ffi.load(\"{}.{}\")",
                         lib.namespace,

@@ -14,40 +14,6 @@ pub enum ValueType {
     Function(Box<Type>, Box<Vec<Type>>, u32, Box<Vec<Node>>),
 }
 
-impl ValueType {
-    pub fn to_type(&self) -> Type {
-        match self {
-            ValueType::Integer(_) => Type::INT,
-            ValueType::Float(_) => Type::FLOAT,
-            ValueType::Boolean(_) => Type::BOOL,
-            ValueType::Character(_) => Type::CHAR,
-            ValueType::Array(arr) => {
-                let first_element = arr[0].to_type();
-                Type::ARRAY(Box::new(first_element))
-            }
-            ValueType::Void => Type::VOID,
-            ValueType::Compound(str, valuetypes) => {
-                let mut types = vec![];
-
-                for valuetype in *valuetypes.clone() {
-                    types.push(valuetype.to_type());
-                }
-
-                Type::Compound(str.clone(), Box::new(types))
-            }
-            ValueType::Function(return_type, argument_types, _, _) => {
-                let mut arguments = vec![];
-
-                for valuetype in *argument_types.clone() {
-                    arguments.push(valuetype);
-                }
-
-                Type::Function(return_type.clone(), Box::new(arguments))
-            }
-        }
-    }
-}
-
 #[derive(PartialEq, Clone, Debug)]
 pub enum Type {
     INT,
