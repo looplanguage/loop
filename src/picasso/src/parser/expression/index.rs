@@ -40,7 +40,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Option<Node> 
         // This index expression is for: Arrays OR Hashmaps
         let index_exp = p.parse_expression(Precedence::Lowest);
 
-        if p.lexer.peek_token.as_ref().unwrap().token == TokenType::DotDot {
+        if p.lexer.peek_token.as_ref().unwrap().token == TokenType::Range {
             // Is slice and not an index
 
             p.lexer.next_token(); // Skipping over dotdot

@@ -106,7 +106,7 @@ impl Lexer {
             '.' => {
                 if self.get_character(1) == '.' {
                     self.next_character();
-                    create_token(TokenType::DotDot, "..".to_string())
+                    create_token(TokenType::Range, "..".to_string())
                 } else {
                     create_token(TokenType::Dot, ch.to_string())
                 }

@@ -72,7 +72,7 @@ pub enum TokenType {
     /// Example: '.'
     Dot,
     /// Example: '..'
-    DotDot,
+    Range,
     /// Example: '['
     LeftBracket,
     /// Example: ']'
