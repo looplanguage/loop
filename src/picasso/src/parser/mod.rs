@@ -86,7 +86,14 @@ impl Parser {
 
                 let mut cursor_width = String::new();
 
-                for _ in 0..(spaces - (width.len() as i32) - 2) {
+                let remove_based_on_message = match error {
+                    SyntaxException::NoPrefixParser(_) => 1,
+                    SyntaxException::ExpectedToken(_) => 1,
+                    SyntaxException::CustomMessage(_, _) => 1,
+                    _ => 0
+                };
+
+                for _ in 0..(spaces - remove_based_on_message - (width.len() as i32)) {
                     cursor_width.push(' ');
                 }
 
