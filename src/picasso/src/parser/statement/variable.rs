@@ -36,7 +36,7 @@ pub fn parse_variable_declaration(
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
         return Err(SyntaxException::CustomMessage(
-            "expected: Colon".to_string(),
+            "expected: ':'".to_string(),
             Some(message),
         ));
     }
@@ -50,7 +50,7 @@ pub fn parse_variable_declaration(
             format!("Syntax  ->  <datatype> <identifier> := <expression>\nExample -> {} i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives", datatype.transpile())
         };
         return Err(SyntaxException::CustomMessage(
-            "expected: Assign".to_string(),
+            "expected: '='".to_string(),
             Some(message),
         ));
     }

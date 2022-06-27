@@ -1,4 +1,4 @@
-use crate::lexer::token::{Token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
@@ -34,7 +34,7 @@ pub struct Call {
     pub parameters: Vec<Expression>,
 }
 
-pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
+pub fn parse_arguments(p: &mut Parser) -> Result<Vec<Parameter>, SyntaxException> {
     let mut arguments: Vec<Parameter> = Vec::new();
 
     p.lexer.next_token();
@@ -46,15 +46,7 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
             if let Some(tpe) = p.parse_type(old.clone()) {
                 tpe
             } else {
-                p.throw_exception(
-                    Token {
-                        token: TokenType::RightParenthesis,
-                        literal: ")".to_string(),
-                    },
-                    Some("Type does not exist in this depth!".to_string()),
-                );
-
-                return Vec::new();
+                return Err(SyntaxException::ExpectedToken(TokenType::RightParenthesis));
             }
         };
 
@@ -73,7 +65,7 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
         }
     }
 
-    arguments
+    Ok(arguments)
 }
 
 pub fn parse_expression_arguments(p: &mut Parser) -> Result<Vec<Expression>, SyntaxException> {
@@ -126,7 +118,7 @@ pub fn parse_function(p: &mut Parser) -> Result<Node, SyntaxException> {
         }
     }
 
-    let arguments: Vec<Parameter> = parse_arguments(p);
+    let arguments: Vec<Parameter> = parse_arguments(p)?;
 
     p.lexer.next_token();
 

@@ -51,7 +51,7 @@ fn parse_class_item(
         let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
 
         if p.expected_maybe(TokenType::LeftParenthesis).is_some() {
-            let parameters = parse_arguments(p);
+            let parameters = parse_arguments(p)?;
 
             p.expected(TokenType::LeftBrace)?;
             p.lexer.next_token();

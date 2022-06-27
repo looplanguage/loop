@@ -4,7 +4,6 @@ pub mod compiler;
 pub mod compiler_new;
 pub mod flag;
 pub mod runtime;
-pub mod syntax;
 pub mod vm;
 
 #[allow(dead_code)]

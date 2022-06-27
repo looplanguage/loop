@@ -24,7 +24,6 @@ use colored::Colorize;
 use std::collections::HashMap;
 
 use self::statement::variable::parse_variable_declaration;
-use crate::exception::syntax::{throw_syntax_error, SyntaxError};
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
@@ -137,14 +136,6 @@ impl Parser {
 
     fn expected(&mut self, token: TokenType) -> Result<(), SyntaxException> {
         if !self.lexer.next_token_is_and_next_token(token) {
-            self.throw_exception(
-                Token {
-                    token,
-                    literal: "".to_string(),
-                },
-                None,
-            );
-
             return Err(SyntaxException::ExpectedToken(token));
         }
 
@@ -381,13 +372,6 @@ impl Parser {
             return Ok(Node::Expression(exp));
         }
 
-        throw_syntax_error(
-            self.lexer.current_line - self.lexer.current_token.clone().unwrap().literal_len(),
-            self.lexer.current_col,
-            self.lexer.get_line(self.lexer.current_line),
-            self.lexer.current_token.clone().unwrap().literal,
-        );
-
         Err(SyntaxException::CustomMessage(
             "Unknown parser exception occured".to_string(),
             None,
@@ -460,20 +444,6 @@ impl Parser {
 
     pub fn current_precedence(&mut self) -> Precedence {
         get_precedence(self.lexer.get_current_token().unwrap().token)
-    }
-
-    /// Exists program with code: '1', which means application failure.
-    pub fn throw_exception(&mut self, expected: Token, message: Option<String>) {
-        let mut e = SyntaxError {
-            error_line: self.lexer.get_line(self.lexer.current_line - 1),
-            expected,
-            got: self.lexer.current_token.clone().unwrap(),
-            line: self.lexer.current_line,
-            column: self.lexer.current_col
-                - self.lexer.current_token.clone().unwrap().literal_len(),
-            extra_message: message,
-        };
-        e.throw_exception();
     }
 }
 

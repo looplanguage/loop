@@ -2,7 +2,6 @@
 mod test;
 pub mod token;
 
-use crate::exception::syntax::throw_syntax_error;
 use crate::lexer::token::create_token;
 use crate::parser::exception::SyntaxException;
 use token::Token;
@@ -403,12 +402,7 @@ impl Lexer {
                 if !keyword.contains('.') {
                     return TokenType::Identifier;
                 }
-                throw_syntax_error(
-                    self.current_line,
-                    self.current_col,
-                    self.get_line(self.current_line),
-                    keyword.to_string(),
-                );
+
                 // Will never be reached, throw_function_error will quit program before.
                 TokenType::Unknown
             }

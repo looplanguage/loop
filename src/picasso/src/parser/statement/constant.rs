@@ -1,4 +1,4 @@
-use crate::lexer::token::{create_token, TokenType};
+use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
@@ -50,7 +50,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxExceptio
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
         return Err(SyntaxException::CustomMessage(
-            "expected: Colon".to_string(),
+            "expected: ':'".to_string(),
             Some(message),
         ));
     }
@@ -59,10 +59,11 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxExceptio
     // Parsing of the "=" in the declaration
     if !p.next_token_is(TokenType::Assign) {
         let message = "Syntax  -> const <datatype> <identifier> = <expression>\nExample -> const int i = 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-        p.throw_exception(
-            create_token(TokenType::Assign, "=".to_string()),
+
+        return Err(SyntaxException::CustomMessage(
+            "expected: '='".to_string(),
             Some(message),
-        );
+        ));
     }
 
     p.lexer.next_token(); // Skips the '='
