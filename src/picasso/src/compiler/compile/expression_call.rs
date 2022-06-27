@@ -180,15 +180,24 @@ pub fn compile_expression_call(
     // Catching the build extesion function "len"
     // "[1, 2, 3, 4, 5].len() == 5" this is true
     if let Some(name) = &index {
-        if name == "len"{
+        if name == "len" {
             if let Some(self_reference) = self_reference.clone() {
                 compiler.drier();
                 let result = compiler.compile_expression(self_reference.clone());
+                // Should prob not be here, but I did not know how to make clippy happy
+                #[allow(clippy::question_mark)]
+                if result.is_err() {
+                    return result;
+                }
                 compiler.undrier();
                 compiler.add_to_current_function(".LENGTH { ".to_string());
-                compiler.compile_expression(self_reference);
+                let result = compiler.compile_expression(self_reference);
                 compiler.add_to_current_function("};".to_string());
-                return Ok(Types::Basic(BaseTypes::Integer));
+                if result.is_err() {
+                    return result;
+                } else {
+                    return Ok(Types::Basic(BaseTypes::Integer));
+                }
             } else {
                 panic!("HELLO< SHOLD NOT PANIC")
             }
