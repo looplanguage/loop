@@ -21,14 +21,13 @@ pub fn compile_import_statement(
 
     // Find the file, based on the current location of the compiler
     let compiler_location = Path::new(compiler.location.as_str());
-    let base_path: &Path = if compiler_location.display().to_string().len() == 0 {
+    let base_path: &Path = if compiler_location.display().to_string().is_empty() {
         Path::new(compiler.base_location.as_str())
     } else {
         Path::new(compiler_location.parent().unwrap())
     };
 
-    let path = Path::new(base_path)
-        .join(Path::new(file_path.as_str()));
+    let path = Path::new(base_path).join(Path::new(file_path.as_str()));
     let extension: Option<&str> = path.extension().and_then(OsStr::to_str);
 
     // Check if path ends with ".loop" or ".lp"
