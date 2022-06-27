@@ -1,7 +1,6 @@
 //! Responsible for parsing tokens into an abstract syntax tree
 use std::collections::HashMap;
-use std::fmt::format;
-
+use colored::Colorize;
 use crate::exception::Exception;
 use crate::lexer::token::{Token, TokenType};
 use crate::lexer::Lexer;
@@ -53,10 +52,11 @@ pub struct Parser {
     pub errors: Vec<Exception>,
     pub defined_types: Vec<String>,
     pub next_public: bool,
+    current_file: String
 }
 
 impl Parser {
-    pub fn parse(&mut self) -> Program {
+    pub fn parse(&mut self) -> Result<Program, SyntaxException> {
         let mut statements: Vec<Statement> = Vec::new();
 
         while self.lexer.get_current_token().unwrap().token != TokenType::Eof {
@@ -64,19 +64,48 @@ impl Parser {
             let new_statement = self.parse_statement(tok.clone());
 
             if let Err(error) = new_statement {
-                println!("SyntaxException [{}:{}]\n", self.lexer.current_col, self.lexer.current_line);
+                let mut width = String::new();
 
-                println!("{}", match error {
+                for _ in 0..self.lexer.current_line.to_string().len() {
+                    width.push(' ');
+                }
+
+
+                println!("{}", "SyntaxException".red());
+                println!("{} | -> {} [{}:{}]", width, self.current_file, self.lexer.current_col, self.lexer.current_line);
+
+                println!("{} | ", width);
+                println!("{} | {}", self.lexer.current_line.to_string().red(), self.lexer.get_line(self.lexer.current_line));
+
+                let spaces = self.lexer.current_col;
+
+                let mut cursor_width = String::new();
+
+                for _ in 0..(spaces - (width.len() as i32) - 2) {
+                    cursor_width.push(' ');
+                }
+
+                println!("{} | {}{}", width, cursor_width, "^".red());
+
+                if let SyntaxException::CustomMessage(_, message) = error.clone() {
+                    if let Some(message) = message {
+                        for line in message.lines() {
+                            println!("{} | {}{} {}", width, cursor_width, "|".red(), line);
+                        }
+                    }
+                }
+
+                println!("{} | ", width);
+
+                println!("{} = {}", width, match error.clone() {
                     SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
-                    SyntaxException::CustomMessage(message) => message,
-                    SyntaxException::ExpectedToken(expected) => format!("Wrong token, expected={:?}. got={:?}.", expected, tok.token),
+                    SyntaxException::CustomMessage(title, _) => title,
+                    SyntaxException::ExpectedToken(expected) => format!("Wrong token, expected={:?}.", expected),
                     SyntaxException::NoPrefixParser(what) => format!("No prefix parser for {:?}", what),
                     SyntaxException::WrongParentheses(p) => format!("Wrong parenthesis, expected={:?}.", p)
-                });
+                }.blue());
 
-                return Program {
-                    statements
-                }
+                return Err(error)
             }
 
             match new_statement.unwrap() {
@@ -89,7 +118,7 @@ impl Parser {
             self.lexer.next_token();
         }
 
-        Program { statements }
+        Ok(Program { statements })
     }
 
     fn expected(&mut self, token: TokenType) -> Result<(), SyntaxException> {
@@ -343,7 +372,7 @@ impl Parser {
             self.lexer.current_token.clone().unwrap().literal,
         );
 
-        Err(SyntaxException::CustomMessage("Unknown parser exception occured".to_string()))
+        Err(SyntaxException::CustomMessage("Unknown parser exception occured".to_string(),None))
     }
 
     fn add_prefix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser) -> Result<Node, SyntaxException>) {
@@ -443,7 +472,7 @@ impl Parser {
     }
 }
 
-pub fn build_parser(lexer: Lexer) -> Parser {
+pub fn build_parser(lexer: Lexer, file: &str) -> Parser {
     let mut p = Parser {
         lexer,
         prefix_parser: HashMap::new(),
@@ -451,6 +480,7 @@ pub fn build_parser(lexer: Lexer) -> Parser {
         errors: Vec::new(),
         defined_types: Vec::new(),
         next_public: false,
+        current_file: file.to_string()
     };
 
     // Prefix parsers

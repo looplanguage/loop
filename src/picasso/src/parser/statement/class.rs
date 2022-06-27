@@ -134,7 +134,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Result<Node, SyntaxException> {
         return Err(SyntaxException::CustomMessage(format!(
             "Type \"{}\" already defined! (Type definitions are always root scoped)",
             name
-        )));
+        ), None));
     }
 
     p.defined_types.push(name.clone());

@@ -787,9 +787,9 @@ mod tests {
 
     fn test_parser(input: &str, expected: Vec<Statement>) {
         let l = lexer::build_lexer(input);
-        let mut parser = parser::build_parser(l);
+        let mut parser = parser::build_parser(l, "");
 
-        let program = parser.parse();
+        let program = parser.parse().unwrap();
 
         if !parser.errors.is_empty() {
             for err in parser.errors {

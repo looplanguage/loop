@@ -26,7 +26,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxExceptio
     // This "identifier" is for the actual identifier of the constant
     if !p.next_token_is(TokenType::Identifier) {
         let message = "Syntax  -> const <datatype> <identifier> = <expression>\nExample -> const int i = 99\n\nThe identifiers can contain: letters, numbers and underscores.".to_string();
-        return Err(SyntaxException::CustomMessage(message));
+        return Err(SyntaxException::CustomMessage("expected: Identifier".to_string(), Some(message)));
     }
 
     p.lexer.next_token(); // Skipping the identifier
@@ -46,7 +46,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxExceptio
         let message = "Syntax  -> const <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
 
         //let message = "Syntax  -> const <datatype> <identifier> := <expression>\nExample -> const int i := 99\n\nFor explanation go here:\nhttps://looplang.org/docs/concepts/types/primitives".to_string();
-        return Err(SyntaxException::CustomMessage(message))
+        return Err(SyntaxException::CustomMessage("expected: Colon".to_string(), Some(message)))
     }
     p.lexer.next_token(); // Skipping the ":'
 

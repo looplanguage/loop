@@ -1,6 +1,6 @@
 use crate::compiler::CompilerState;
 use std::path::Path;
-use std::process::exit;
+use std::process::{exit, ExitCode};
 
 pub mod compiler;
 pub mod exception;
@@ -9,9 +9,9 @@ mod parser;
 
 pub fn compile_with_state(str: &str, state: CompilerState) -> (String, CompilerState) {
     let lexer = lexer::build_lexer(str);
-    let mut parser = parser::build_parser(lexer);
+    let mut parser = parser::build_parser(lexer, "");
 
-    let program = parser.parse();
+    let program = parser.parse().unwrap();
     let mut compiler = compiler::Compiler::default_with_state(state);
 
     let compiled = compiler.compile(program);
@@ -24,11 +24,17 @@ pub fn compile_with_state(str: &str, state: CompilerState) -> (String, CompilerS
     (compiled.unwrap().get_arc(), compiler.get_compiler_state())
 }
 
-pub fn compile(str: &str, file_location: Option<&str>) -> (String, CompilerState) {
+pub fn compile(str: &str, file_location: Option<&str>) -> Result<(String, CompilerState), ExitCode> {
     let lexer = lexer::build_lexer(str);
-    let mut parser = parser::build_parser(lexer);
+    let mut parser = parser::build_parser(lexer, file_location.unwrap_or(""));
 
     let program = parser.parse();
+
+    if program.is_err() {
+        return Err(ExitCode::FAILURE);
+    }
+
+    let program = program.unwrap();
 
     let mut compiler = compiler::Compiler::default();
     if let Some(file) = file_location {
@@ -47,5 +53,5 @@ pub fn compile(str: &str, file_location: Option<&str>) -> (String, CompilerState
         exit(1);
     }
 
-    (compiled.unwrap().get_arc(), compiler.get_compiler_state())
+    Ok((compiled.unwrap().get_arc(), compiler.get_compiler_state()))
 }

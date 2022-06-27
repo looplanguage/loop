@@ -1,15 +1,16 @@
 use crate::lexer::token::TokenType;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Parenthesis {
     Left,
     Right
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SyntaxException {
     Unknown,
-    CustomMessage(String),
+    // Title, Description
+    CustomMessage(String, Option<String>),
     ExpectedToken(TokenType),
     NoPrefixParser(TokenType),
     WrongParentheses(Parenthesis)

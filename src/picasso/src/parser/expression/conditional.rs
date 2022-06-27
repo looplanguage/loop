@@ -35,16 +35,10 @@ pub fn parse_conditional(p: &mut Parser) -> Result<Node, SyntaxException> {
             // Custom error whether if-expression has parenthesis or not
             if uses_parenthesis {
                 let message = "Syntax  -> for (<condition>) { <code> }\nExample -> if (i < 3) { println(i) }\n\nA loop can be with or without parenthesis".to_string();
-                p.throw_exception(
-                    create_token(TokenType::RightParenthesis, ")".to_string()),
-                    Some(message),
-                );
+                return Err(SyntaxException::CustomMessage("expected: RightParenthesis".to_string(), Some(message)));
             } else {
                 let message = "Syntax  -> for <condition> { <code> }\nExample -> if i < 3 { println(i) }\n\nA loop can be with or without parenthesis".to_string();
-                p.throw_exception(
-                    create_token(TokenType::LeftBrace, ")".to_string()),
-                    Some(message),
-                );
+                return Err(SyntaxException::CustomMessage("expected: NoParenthesis".to_string(), Some(message)));
             }
         } else if p.lexer.current_token.clone().unwrap().token == TokenType::RightParenthesis {
             // If the if-expression has parenthesis, the lexer needs to go to the next token

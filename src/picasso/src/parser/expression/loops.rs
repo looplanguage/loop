@@ -59,10 +59,10 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
         // Custom error whether if-expression has parenthesis or not
         if uses_parenthesis {
             let message = "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }\n\nAn if expression can be with or without parenthesis".to_string();
-            return Err(SyntaxException::CustomMessage(message))
+            return Err(SyntaxException::CustomMessage("expected: RightParenthesis".to_string(), Some(message)))
         } else {
             let message = "Syntax  -> for <condition> { <code> }\nExample -> for i < 3 { println(i) }\n\nAn if expression can be with or without parenthesis".to_string();
-            return Err(SyntaxException::CustomMessage(message))
+            return Err(SyntaxException::CustomMessage("expected: NoParenthesis".to_string(), Some(message)))
         }
     } else if uses_parenthesis {
         // If the if-expression has parenthesis, the lexer needs to go to the next token
@@ -73,10 +73,7 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
         let message =
             "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }"
                 .to_string();
-        p.throw_exception(
-            create_token(TokenType::LeftBrace, "{".to_string()),
-            Some(message),
-        );
+        return Err(SyntaxException::CustomMessage("expected: LeftBrace".to_string(), Some(message)))
     }
     p.lexer.next_token();
 
@@ -86,7 +83,7 @@ pub fn parse_loop(p: &mut Parser) -> Result<Node, SyntaxException> {
         let message =
             "Syntax  -> for (<condition>) { <code> }\nExample -> for (i < 3) { println(i) }"
                 .to_string();
-        return Err(SyntaxException::CustomMessage(message));
+        return Err(SyntaxException::CustomMessage("expected: RightBrace".to_string(), Some(message)));
     }
 
     if let Node::Expression(exp) = condition_node {

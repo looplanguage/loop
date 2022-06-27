@@ -50,27 +50,7 @@ impl Lexer {
     ///
     /// It is used to throw syntax errors.
     pub fn get_line(&self, line: i32) -> String {
-        let mut line_count = 0;
-        let mut char_count = 0;
-        for char in self.input.chars() {
-            char_count += 1;
-            if char == '\n' {
-                line_count += 1;
-            }
-            if line_count == line {
-                break;
-            }
-        }
-
-        let mut line = String::from("");
-        let mut current_char = self.input.chars().nth(char_count - 1_usize);
-        while current_char.is_some() && current_char.unwrap() != '\n' {
-            line.push(current_char.unwrap());
-            char_count += 1;
-            current_char = self.input.chars().nth(char_count - 1_usize);
-        }
-
-        line.trim_start().to_string()
+        self.input.lines().nth((line - 1) as usize).unwrap().to_string()
     }
 
     fn internal_next_token(&mut self) -> Token {
