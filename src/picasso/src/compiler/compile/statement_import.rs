@@ -52,13 +52,14 @@ pub fn compile_import_statement(
 
             // Parse the file
             let lexer = build_lexer(contents.as_str());
-            let mut parser = build_parser(lexer);
+            let mut parser = build_parser(lexer, path.to_str().unwrap());
 
-            let program = parser.parse();
+            let program = parser.parse()?;
 
             compiler.enter_location(path_as_string);
 
             let result = compiler.compile(program);
+
             if let Err(result) = result {
                 return Err(result);
             }

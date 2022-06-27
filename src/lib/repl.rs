@@ -3,11 +3,12 @@ use crate::lib::util::print_valuetype;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use sanzio::parse_multivalue;
+use std::process::ExitCode;
 use vinci::types::ValueType;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn start() {
+pub fn start() -> Result<(), ExitCode> {
     let mut backend = unsafe { sanzio::Sanzio::new() };
     let mut compiler_state: Option<picasso::compiler::CompilerState> = None;
     let mut rl = Editor::<()>::new();
@@ -40,7 +41,7 @@ pub fn start() {
                 let result = if let Some(compiler_state) = compiler_state.clone() {
                     picasso::compile_with_state(line.as_str(), compiler_state)
                 } else {
-                    picasso::compile(line.as_str(), None)
+                    picasso::compile(line.as_str(), None)?
                 };
 
                 if CONFIG.debug_mode {
@@ -68,10 +69,11 @@ pub fn start() {
                 println!("CTRL-D");
                 break;
             }
-            Err(err) => {
-                println!("Error: {:?}", err);
+            Err(_) => {
                 break;
             }
         }
     }
+
+    Ok(())
 }

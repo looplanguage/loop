@@ -29,15 +29,13 @@ pub fn compile_expression_conditional(
     compiler.add_to_current_function(" ELSE ".to_string());
 
     if let Some(node) = conditional.else_condition.as_ref() {
-        if let Node::Expression(exp) = node {
+        if let Node::Expression(exp) = *node.clone() {
             compiler.add_to_current_function("{".to_string());
-            compiler.compile_expression(exp.clone())?;
+            compiler.compile_expression(exp)?;
             compiler.add_to_current_function("}".to_string());
         }
-        if let Node::Statement(stmt) = node {
-            if let Statement::Block(block) = stmt.clone() {
-                compiler.compile_block(block, true)?;
-            }
+        if let Node::Statement(Statement::Block(block)) = *node.clone() {
+            compiler.compile_block(block, true)?;
         }
     } else {
         compiler.add_to_current_function("{ }".to_string());

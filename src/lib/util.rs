@@ -4,7 +4,7 @@ use sanzio::parse_multivalue;
 use std::env;
 use std::io::Read;
 use std::path::Path;
-use std::process::exit;
+use std::process::{exit, ExitCode};
 use vinci::types::ValueType;
 
 pub fn print_valuetype(value_type: ValueType) {
@@ -35,7 +35,7 @@ pub fn get_flags() -> flags::Flags {
     flags
 }
 
-pub fn run_file(path: String) {
+pub fn run_file(path: String) -> Result<(), ExitCode> {
     let file = std::fs::File::open(Path::new(path.as_str()));
 
     if let Err(err) = file {
@@ -52,7 +52,8 @@ pub fn run_file(path: String) {
         exit(1);
     }
 
-    let arc = picasso::compile(content.as_str(), Some(path.as_str()));
+    let arc = picasso::compile(content.as_str(), Some(path.as_str()))?;
+
     if CONFIG.debug_mode {
         println!("Arc\n#---------\n{}\n---------#", arc.0);
     }
@@ -78,5 +79,7 @@ pub fn run_file(path: String) {
     if multivalue != ValueType::Void {
         print_valuetype(parse_multivalue(result.clone()));
         println!();
-    }
+    };
+
+    Ok(())
 }

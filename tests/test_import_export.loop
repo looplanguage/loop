@@ -1,8 +1,6 @@
 // Expected result from test: 8
 import "loop-packages/package.loop" as package
 
-package.double(10)
-
 a := package.get_class()
 b := package.get_class()
 
