@@ -1,4 +1,5 @@
 use crate::lexer::token::{Token, TokenType};
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
@@ -75,7 +76,7 @@ pub fn parse_arguments(p: &mut Parser) -> Vec<Parameter> {
     arguments
 }
 
-pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
+pub fn parse_expression_arguments(p: &mut Parser) -> Result<Vec<Expression>, SyntaxException> {
     let mut arguments: Vec<Expression> = Vec::new();
 
     p.lexer.next_token();
@@ -83,9 +84,9 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
     while p.lexer.get_current_token().unwrap().token != TokenType::RightParenthesis
         && p.lexer.get_current_token().unwrap().token != TokenType::Eof
     {
-        let exp_node = p.parse_expression(Precedence::Lowest);
+        let exp_node = p.parse_expression(Precedence::Lowest)?;
 
-        if let Some(Node::Expression(exp)) = exp_node {
+        if let Node::Expression(exp) = exp_node {
             arguments.push(exp);
         }
 
@@ -96,27 +97,21 @@ pub fn parse_expression_arguments(p: &mut Parser) -> Vec<Expression> {
         }
     }
 
-    arguments
+    Ok(arguments)
 }
 
-pub fn parse_call(p: &mut Parser, ident: Expression) -> Option<Node> {
-    let arguments: Vec<Expression> = parse_expression_arguments(p);
+pub fn parse_call(p: &mut Parser, ident: Expression) -> Result<Node, SyntaxException> {
+    let arguments: Vec<Expression> = parse_expression_arguments(p)?;
 
-    if !p.current_token_is(TokenType::RightParenthesis) {
-        p.add_error(format!(
-            "wrong token. got=\"{:?}\". expected=\"RightParenthesis\"",
-            p.lexer.get_current_token().unwrap().token
-        ));
-        return None;
-    };
+    p.current_token_is_result(TokenType::RightParenthesis)?;
 
-    Some(Node::Expression(Expression::Call(Call {
+    Ok(Node::Expression(Expression::Call(Call {
         identifier: Box::from(ident),
         parameters: arguments,
     })))
 }
 
-pub fn parse_function(p: &mut Parser) -> Option<Node> {
+pub fn parse_function(p: &mut Parser) -> Result<Node, SyntaxException> {
     let mut name = String::from("");
 
     if !p
@@ -127,11 +122,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
             name = p.lexer.current_token.as_ref().unwrap().clone().literal;
             p.lexer.next_token();
         } else {
-            p.add_error(format!(
-                "wrong token. expected=\"LeftParentheses\". got=\"{:?}\"",
-                p.lexer.get_current_token().unwrap().token
-            ));
-            return None;
+            return Err(SyntaxException::ExpectedToken(TokenType::LeftParenthesis));
         }
     }
 
@@ -140,22 +131,12 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
     p.lexer.next_token();
 
     if !p.lexer.next_token_and_current_is(TokenType::LeftBrace) {
-        p.add_error(format!(
-            "wrong token. expected=\"LeftBrace\". got=\"{:?}\".",
-            p.lexer.get_current_token().unwrap().token
-        ));
-        return None;
+        return Err(SyntaxException::ExpectedToken(TokenType::LeftBrace));
     }
 
-    let body = parse_block(p);
+    let body = parse_block(p)?;
 
-    if !p.current_token_is(TokenType::RightBrace) {
-        p.add_error(format!(
-            "wrong token. expected=\"RightBrace\". got=\"{:?}\".",
-            p.lexer.get_current_token().unwrap().token
-        ));
-        return None;
-    }
+    p.current_token_is_result(TokenType::RightBrace)?;
 
     let public = {
         let val = p.next_public;
@@ -165,7 +146,7 @@ pub fn parse_function(p: &mut Parser) -> Option<Node> {
         val
     };
 
-    Some(Node::Expression(Expression::Function(Function {
+    Ok(Node::Expression(Expression::Function(Function {
         name,
         parameters: arguments,
         body,

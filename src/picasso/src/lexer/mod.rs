@@ -6,6 +6,7 @@ use crate::exception::syntax::throw_syntax_error;
 use crate::lexer::token::create_token;
 use token::Token;
 use token::TokenType;
+use crate::parser::exception::SyntaxException;
 
 /// The Lexer itself, containing metadata needed during the lexing process
 pub struct Lexer {
@@ -352,6 +353,20 @@ impl Lexer {
         }
 
         false
+    }
+
+    /// Checks if next token is the same as the current token,
+    /// **if next and given token are the same, then**: `lexer::next_token()`
+    /// This just makes it a result so you can use question makrs
+    pub fn next_token_is_and_next_token_result(&mut self, token: TokenType) -> Result<(), SyntaxException> {
+        if let Some(peek_token) = self.get_peek_token() {
+            if peek_token.token == token {
+                self.next_token();
+                return Ok(());
+            }
+        }
+
+        Err(SyntaxException::ExpectedToken(token))
     }
 
     /// Checks if given TokenType is the same as the current token,

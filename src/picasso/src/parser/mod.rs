@@ -1,5 +1,6 @@
 //! Responsible for parsing tokens into an abstract syntax tree
 use std::collections::HashMap;
+use std::fmt::format;
 
 use crate::exception::Exception;
 use crate::lexer::token::{Token, TokenType};
@@ -25,6 +26,8 @@ use crate::parser::statement::Statement;
 
 use self::statement::variable::parse_variable_declaration;
 use crate::exception::syntax::{throw_syntax_error, SyntaxError};
+use crate::parser;
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::number::{parse_negative_number, parse_number_literal};
 use crate::parser::statement::break_statement::parse_break_statement;
 use crate::parser::statement::class::parse_class_statement;
@@ -37,9 +40,10 @@ pub mod program;
 pub mod statement;
 mod test;
 pub mod types;
+pub mod exception;
 
-type PrefixParseFn = fn(parser: &mut Parser) -> Option<Node>;
-type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Option<Node>;
+type PrefixParseFn = fn(parser: &mut Parser) -> Result<Node, SyntaxException>;
+type InfixParseFn = fn(parser: &mut Parser, expression: Expression) -> Result<Node, SyntaxException>;
 
 // The parser itself, containing metadata needed during the parsing process
 pub struct Parser {
@@ -57,10 +61,29 @@ impl Parser {
 
         while self.lexer.get_current_token().unwrap().token != TokenType::Eof {
             let tok = self.lexer.get_current_token().unwrap().clone();
-            let new_statement = self.parse_statement(tok);
+            let new_statement = self.parse_statement(tok.clone());
 
-            if let Some(Node::Statement(i)) = new_statement {
-                statements.push(i);
+            if let Err(error) = new_statement {
+                println!("SyntaxException [{}:{}]\n", self.lexer.current_col, self.lexer.current_line);
+
+                println!("{}", match error {
+                    SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
+                    SyntaxException::CustomMessage(message) => message,
+                    SyntaxException::ExpectedToken(expected) => format!("Wrong token, expected={:?}. got={:?}.", expected, tok.token),
+                    SyntaxException::NoPrefixParser(what) => format!("No prefix parser for {:?}", what),
+                    SyntaxException::WrongParentheses(p) => format!("Wrong parenthesis, expected={:?}.", p)
+                });
+
+                return Program {
+                    statements
+                }
+            }
+
+            match new_statement.unwrap() {
+                Node::Expression(exp) => statements.push(Statement::Expression(Box::new(parser::statement::expression::Expression {
+                    expression: Box::new(exp)
+                }))),
+                Node::Statement(stmt) => statements.push(stmt),
             }
 
             self.lexer.next_token();
@@ -69,7 +92,7 @@ impl Parser {
         Program { statements }
     }
 
-    fn expected(&mut self, token: TokenType) -> Option<()> {
+    fn expected(&mut self, token: TokenType) -> Result<(), SyntaxException> {
         if !self.lexer.next_token_is_and_next_token(token) {
             self.throw_exception(
                 Token {
@@ -79,16 +102,16 @@ impl Parser {
                 None,
             );
 
-            return None;
+            return Err(SyntaxException::ExpectedToken(token));
         }
 
-        Some(())
+        Ok(())
     }
 
     fn expected_maybe(&mut self, token: TokenType) -> Option<()> {
-        if !self.lexer.next_token_is_and_next_token(token) {
-            return None;
-        }
+            if !self.lexer.next_token_is_and_next_token(token) {
+                return None;
+            }
 
         Some(())
     }
@@ -207,7 +230,7 @@ impl Parser {
         }
     }
 
-    fn parse_statement(&mut self, token: Token) -> Option<Node> {
+    fn parse_statement(&mut self, token: Token) -> Result<Node, SyntaxException> {
         let r = match token.token {
             TokenType::ConstantDeclaration => parse_constant_declaration(self),
             TokenType::Identifier => {
@@ -239,8 +262,9 @@ impl Parser {
             TokenType::Extends => parse_extend_statement(self),
             TokenType::Public => {
                 self.next_public = true;
+                self.lexer.next_token();
 
-                if let Some(token) = &self.lexer.peek_token {
+                if let Some(token) = &self.lexer.current_token {
                     match token.token {
                         TokenType::Function => parse_function(self),
                         TokenType::Class => {
@@ -248,10 +272,10 @@ impl Parser {
 
                             parse_class_statement(self)
                         }
-                        _ => None,
+                        _ => Err(SyntaxException::Unknown),
                     }
                 } else {
-                    None
+                    Err(SyntaxException::Unknown)
                 }
             }
             _ => self.parse_expression_statement(),
@@ -266,36 +290,30 @@ impl Parser {
         r
     }
 
-    fn parse_expression_statement(&mut self) -> Option<Node> {
+    fn parse_expression_statement(&mut self) -> Result<Node, SyntaxException> {
         parse_expression_statement(self)
     }
 
-    fn parse_expression(&mut self, precedence: Precedence) -> Option<Node> {
+    fn parse_expression(&mut self, precedence: Precedence) -> Result<Node, SyntaxException> {
         let prefix_parser = self
             .prefix_parser
             .get(&self.lexer.current_token.as_ref().unwrap().token);
 
         if prefix_parser.is_none() {
-            self.add_error(format!(
-                "no prefix parser for \"{:?}\"",
-                self.lexer.current_token.as_ref().unwrap().token
-            ));
-
-            return None;
+            return Err(SyntaxException::NoPrefixParser(self.lexer.current_token.as_ref().unwrap().token));
         }
 
-        let expression_node: Option<Node> = prefix_parser.unwrap()(self);
-        expression_node.as_ref()?;
+        let expression_node = prefix_parser.unwrap()(self)?;
 
-        if let Node::Expression(exp) = expression_node.unwrap() {
-            let mut infix_expression_node: Option<Node> = None;
+        if let Node::Expression(exp) = expression_node {
+            let mut infix_expression_node = None;
             while !self.peek_token_is(TokenType::Semicolon) && precedence < self.peek_precedence() {
                 let infix_parser = self
                     .infix_parser
                     .get(&self.lexer.peek_token.as_ref().unwrap().token);
 
                 if infix_parser.is_none() {
-                    return Some(Node::Expression(exp));
+                    return Ok(Node::Expression(exp));
                 }
 
                 self.lexer.next_token();
@@ -303,19 +321,19 @@ impl Parser {
                 if infix_expression_node.is_some() {
                     if let Node::Expression(a) = infix_expression_node.clone().unwrap() {
                         // Calling parser functions from the hashmap
-                        infix_expression_node = infix_parser.unwrap()(self, a);
+                        infix_expression_node = Some(infix_parser.unwrap()(self, a)?);
                     }
                 } else {
                     // Calling parser functions from the hashmap
-                    infix_expression_node = infix_parser.unwrap()(self, exp.clone())
+                    infix_expression_node = Some(infix_parser.unwrap()(self, exp.clone())?)
                 }
             }
 
-            if infix_expression_node.is_some() {
-                return infix_expression_node;
+            if let Some(infix) = infix_expression_node {
+                return Ok(infix);
             }
 
-            return Some(Node::Expression(exp));
+            return Ok(Node::Expression(exp));
         }
 
         throw_syntax_error(
@@ -325,17 +343,17 @@ impl Parser {
             self.lexer.current_token.clone().unwrap().literal,
         );
 
-        None
+        Err(SyntaxException::CustomMessage("Unknown parser exception occured".to_string()))
     }
 
-    fn add_prefix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser) -> Option<Node>) {
+    fn add_prefix_parser(&mut self, tok: TokenType, func: fn(parser: &mut Parser) -> Result<Node, SyntaxException>) {
         self.prefix_parser.insert(tok, func);
     }
 
     fn add_infix_parser(
         &mut self,
         tok: TokenType,
-        func: fn(parser: &mut Parser, expression: Expression) -> Option<Node>,
+        func: fn(parser: &mut Parser, expression: Expression) -> Result<Node, SyntaxException>,
     ) {
         self.infix_parser.insert(tok, func);
     }
@@ -357,7 +375,25 @@ impl Parser {
             return false;
         }
 
-        cur.unwrap().token == tok
+        if cur.unwrap().token == tok {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn current_token_is_result(&self, tok: TokenType) -> Result<(), SyntaxException> {
+        let cur = self.lexer.get_current_token();
+
+        if cur.is_none() {
+            return Err(SyntaxException::ExpectedToken(tok));
+        }
+
+        if cur.unwrap().token == tok {
+            Ok(())
+        } else {
+            return Err(SyntaxException::ExpectedToken(tok));
+        }
     }
 
     pub fn next_token_is(&self, tok: TokenType) -> bool {

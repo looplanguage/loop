@@ -1,4 +1,5 @@
 use crate::lexer::token::{Token, TokenType};
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::function::{parse_arguments, Parameter};
 use crate::parser::expression::Precedence;
 use crate::parser::program::Node;
@@ -38,7 +39,7 @@ pub struct Class {
     pub public: bool,
 }
 
-fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, ClassItem)> {
+fn parse_class_item(p: &mut Parser, _class_name: String) -> Result<(String, ClassItem), SyntaxException> {
     p.expected(TokenType::Identifier)?;
 
     if let Some(return_type) = p.parse_type(p.lexer.current_token.as_ref().unwrap().clone()) {
@@ -52,9 +53,9 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
             p.expected(TokenType::LeftBrace)?;
             p.lexer.next_token();
 
-            let body = parse_block(p);
+            let body = parse_block(p)?;
 
-            Some((
+            Ok((
                 name.clone(),
                 ClassItem::Method(Method {
                     name,
@@ -64,7 +65,7 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
                 }),
             ))
         } else {
-            Some((name, ClassItem::Lazy(return_type)))
+            Ok((name, ClassItem::Lazy(return_type)))
         }
     } else {
         let name = p.lexer.current_token.as_ref().unwrap().literal.clone();
@@ -76,19 +77,19 @@ fn parse_class_item(p: &mut Parser, _class_name: String) -> Option<(String, Clas
         p.expected_maybe(TokenType::Semicolon);
 
         if let Node::Expression(exp) = &mut value {
-            Some((
+            Ok((
                 name,
                 ClassItem::Property(Expression {
                     expression: Box::new(exp.clone()),
                 }),
             ))
         } else {
-            None
+            unreachable!()
         }
     }
 }
 
-pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
+pub fn parse_class_statement(p: &mut Parser) -> Result<Node, SyntaxException> {
     p.expected(TokenType::Identifier)?;
 
     let name = p.lexer.get_current_token().unwrap().literal.clone();
@@ -100,7 +101,7 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
         inherits = p.lexer.get_current_token().unwrap().literal.clone();
     }
 
-    p.expected(TokenType::LeftBrace);
+    p.expected(TokenType::LeftBrace)?;
 
     let mut values: Vec<ClassField> = Vec::new();
 
@@ -130,22 +131,17 @@ pub fn parse_class_statement(p: &mut Parser) -> Option<Node> {
     }
 
     if p.defined_types.contains(&name) {
-        p.throw_exception(
-            Token {
-                token: TokenType::Null,
-                literal: "NONE".to_string(),
-            },
-            Some(format!(
-                "Type \"{}\" already defined! (Type definitions are always root scoped)",
-                name
-            )),
-        );
-        return None;
+        return Err(SyntaxException::CustomMessage(format!(
+            "Type \"{}\" already defined! (Type definitions are always root scoped)",
+            name
+        )));
     }
 
     p.defined_types.push(name.clone());
 
-    Some(Node::Statement(Statement::Class(Class {
+    p.expected(TokenType::RightBrace)?;
+
+    Ok(Node::Statement(Statement::Class(Class {
         inherits,
         name,
         values,

@@ -60,6 +60,7 @@ pub fn compile_import_statement(
             compiler.enter_location(path_as_string);
 
             let result = compiler.compile(program);
+
             if let Err(result) = result {
                 return Err(result);
             }

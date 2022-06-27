@@ -1,4 +1,5 @@
 use crate::lexer::token::TokenType;
+use crate::parser::exception::SyntaxException;
 use crate::parser::expression::Expression;
 use crate::parser::expression::Precedence::Lowest;
 use crate::parser::program::Node;
@@ -11,60 +12,42 @@ pub struct Suffix {
     pub(crate) right: Expression,
 }
 
-pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Option<Node> {
+pub fn parse_suffix_expression(p: &mut Parser, left: Expression) -> Result<Node, SyntaxException> {
     let operator = p.lexer.get_current_token().unwrap().literal.clone();
 
     let pre = p.current_precedence();
 
     p.lexer.next_token();
 
-    let exp = p.parse_expression(pre);
+    let exp = p.parse_expression(pre)?;
 
-    exp.as_ref()?;
-
-    if let Node::Expression(val) = exp.unwrap() {
-        return Some(Node::Expression(Expression::Suffix(Box::new(Suffix {
+    if let Node::Expression(val) = exp {
+        return Ok(Node::Expression(Expression::Suffix(Box::new(Suffix {
             left,
             operator,
             right: val,
         }))));
     }
 
-    None
+    Err(SyntaxException::Unknown)
 }
 
-pub fn parse_grouped_expression(p: &mut Parser) -> Option<Node> {
+pub fn parse_grouped_expression(p: &mut Parser) -> Result<Node, SyntaxException> {
     p.lexer.next_token();
-    let exp = p.parse_expression(Lowest);
-
-    if exp.is_none() {
-        p.add_error("unable to parse group. expected=\"Expression\" got=\"null\"".to_string());
-        return None;
-    }
+    let exp = p.parse_expression(Lowest)?;
 
     p.lexer.next_token();
-    if !p.current_token_is(TokenType::RightParenthesis) {
-        p.add_error(format!(
-            "wrong token. expected=\"RightParenthesis\". got=\"{:?}\"",
-            p.lexer.peek_token.clone().unwrap().token
-        ));
-        return None;
-    }
 
-    Some(exp.unwrap())
+    p.current_token_is_result(TokenType::RightParenthesis)?;
+
+    Ok(exp)
 }
 
 /// Same as: `parse_grouped_expression`, except it is for for and if expressions, without any parenthesis
 ///
 /// Returns: `Option<Node>`
-pub fn parse_grouped_expression_without_param(p: &mut Parser) -> Option<Node> {
+pub fn parse_grouped_expression_without_param(p: &mut Parser) -> Result<Node, SyntaxException> {
     p.lexer.next_token();
-    let exp = p.parse_expression(Lowest);
 
-    if exp.is_none() {
-        p.add_error("unable to parse group. expected=\"Expression\" got=\"null\"".to_string());
-        return None;
-    }
-
-    Some(exp.unwrap())
+    Ok(p.parse_expression(Lowest)?)
 }
