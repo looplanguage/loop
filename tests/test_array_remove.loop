@@ -1,0 +1,5 @@
+// answer = 20
+array := [1, 2, 20]
+array.remove(1)
+
+array[1]

@@ -1,0 +1,10 @@
+func<int><int> f := fn(int i) {
+    return i * 2
+}
+
+fn hello(func<int><int> f) {
+    f(10)
+}
+
+// result should be 20
+hello(f)
