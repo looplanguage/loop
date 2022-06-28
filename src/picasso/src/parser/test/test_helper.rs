@@ -22,12 +22,16 @@ pub mod test_helper {
     pub fn generate_variable_declaration_v3(
         identifier: &str,
         expression: parser::expression::Expression,
+        line: i32,
+        colon: i32,
+        ident_line: i32,
+        ident_colon: i32,
     ) -> Statement {
         Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier::new(identifier.to_string(), 0, 0),
+            ident: Identifier::new(identifier.to_string(), ident_line, ident_colon),
             value: Box::new(expression),
             data_type: Types::Auto,
-            location: (0, 0),
+            location: (line, colon),
         })
     }
 
@@ -93,8 +97,10 @@ pub mod test_helper {
 
     pub fn generate_identifier_expression_v3(
         identifier: &str,
+        line: i32,
+        colon: i32,
     ) -> crate::parser::expression::Expression {
-        parser::expression::Expression::Identifier(Identifier::new(identifier.to_string(), 0, 0))
+        parser::expression::Expression::Identifier(Identifier::new(identifier.to_string(), line, colon))
     }
 
     #[allow(dead_code)]
