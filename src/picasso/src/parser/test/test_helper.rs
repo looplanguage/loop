@@ -100,7 +100,11 @@ pub mod test_helper {
         line: i32,
         colon: i32,
     ) -> crate::parser::expression::Expression {
-        parser::expression::Expression::Identifier(Identifier::new(identifier.to_string(), line, colon))
+        parser::expression::Expression::Identifier(Identifier::new(
+            identifier.to_string(),
+            line,
+            colon,
+        ))
     }
 
     #[allow(dead_code)]

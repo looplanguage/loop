@@ -462,8 +462,14 @@ mod tests {
             ),
         ];
         let function = test_helper::generate_function_v3(parameters, statements);
-        let result =
-            test_helper::generate_variable_declaration_v3("functionWithParameters", function, 2, 141, 2, 88);
+        let result = test_helper::generate_variable_declaration_v3(
+            "functionWithParameters",
+            function,
+            2,
+            141,
+            2,
+            88,
+        );
         expected.push(result);
 
         test_parser(input, expected);

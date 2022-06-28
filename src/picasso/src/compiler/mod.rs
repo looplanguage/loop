@@ -173,11 +173,14 @@ impl Compiler {
     }
 
     fn print_error(&self, error: CompilerException) {
-        if self.compiled_from
+        if self
+            .compiled_from
             .lines()
-            .nth((error.location.1) as usize).is_none() {
+            .nth((error.location.1) as usize)
+            .is_none()
+        {
             println!("{}", error);
-            return
+            return;
         }
 
         let mut width = String::new();

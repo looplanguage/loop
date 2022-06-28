@@ -91,7 +91,7 @@ impl Parser {
 
         let remove_based_on_message = match error {
             SyntaxException::NoPrefixParser(_) => 1,
-            SyntaxException::ExpectedToken(_) => 1,
+            SyntaxException::ExpectedToken(_) => 0,
             SyntaxException::CustomMessage(_, _) => 1,
             _ => 0,
         };
