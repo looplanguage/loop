@@ -1,6 +1,6 @@
 use crate::compiler::compile::statement_variable_declaration::compile_statement_variable_declaration;
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::lexer::build_lexer;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::integer::Integer;
@@ -37,7 +37,11 @@ pub fn compile_import_statement(
 
             // Check if file exists
             if !path.exists() {
-                return Err(CompilerException::CanNotReadFile(path_as_string));
+                return Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::CanNotReadFile(path_as_string),
+                ));
             }
 
             let contents = fs::read_to_string(path.clone());
@@ -46,7 +50,11 @@ pub fn compile_import_statement(
                 if let Ok(contents) = contents {
                     contents
                 } else {
-                    return Err(CompilerException::CanNotReadFile(path_as_string));
+                    return Err(CompilerException::new(
+                        0,
+                        0,
+                        CompilerExceptionCode::CanNotReadFile(path_as_string),
+                    ));
                 }
             };
 
@@ -57,6 +65,7 @@ pub fn compile_import_statement(
             let program = parser.parse()?;
 
             compiler.enter_location(path_as_string);
+            compiler.compiled_from = contents.clone();
 
             let result = compiler.compile(program);
 
@@ -67,10 +76,11 @@ pub fn compile_import_statement(
             let variables = compiler.exit_location();
 
             let assign = VariableDeclaration {
-                ident: Identifier { value: import_as },
+                ident: Identifier::new(import_as, 0, 0),
                 // Value is irrelevant, but required
                 value: Box::new(expression::Expression::Integer(Integer { value: 0 })),
                 data_type: Types::Module(variables),
+                location: (-1, 0),
             };
 
             return compile_statement_variable_declaration(compiler, assign);

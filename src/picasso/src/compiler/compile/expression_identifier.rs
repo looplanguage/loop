@@ -1,5 +1,5 @@
 use crate::compiler::Compiler;
-use crate::exception::compiler::{CompilerException, UnknownSymbol};
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode, UnknownSymbol};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::types::Types;
 
@@ -22,7 +22,11 @@ pub fn compile_expression_identifier(
                 && compiler.location != var.modifiers.module
                 && !var.modifiers.public
             {
-                return Err(CompilerException::NotPublic(var.modifiers.module, var.name));
+                return Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::NotPublic(var.modifiers.module, var.name),
+                ));
             }
 
             compiler.add_to_current_function(format!(".LOAD VARIABLE {};", var.index));
@@ -31,8 +35,12 @@ pub fn compile_expression_identifier(
         return Ok(var._type);
     }
 
-    Err(CompilerException::UnknownSymbol(UnknownSymbol {
-        name: identifier.value,
-        scope_depth: compiler.scope_index as u16,
-    }))
+    Err(CompilerException::new(
+        0,
+        0,
+        CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
+            name: identifier.value,
+            scope_depth: compiler.scope_index as u16,
+        }),
+    ))
 }

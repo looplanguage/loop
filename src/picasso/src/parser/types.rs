@@ -1,6 +1,22 @@
 use crate::parser::expression::Expression;
 use std::fmt::{Debug, Display, Formatter};
 
+macro_rules! cast {
+        ($target: expr, $pat: path) => {
+            {
+                if let $pat(a) = $target { // #1
+                    a
+                } else {
+                    panic!(
+                        "mismatch variant when cast to {}",
+                        stringify!($pat)); // #2
+                }
+            }
+        };
+    }
+
+pub(crate) use cast;
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum BaseTypes {
     Integer,

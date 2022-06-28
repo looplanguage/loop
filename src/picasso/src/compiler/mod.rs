@@ -44,8 +44,10 @@ use crate::parser::statement::class::Method;
 use crate::parser::statement::Statement;
 use crate::parser::types::{Compound, Types};
 use crate::{lexer, parser};
+use colored::Colorize;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::format;
 use std::rc::Rc;
 
 /// The result of the transpiler, which will be passed to the D compiler [crate::util::execute_code]
@@ -91,6 +93,7 @@ pub struct Compiler {
     // Specifies whether or not compiling should add code
     pub dry: u32,
     pub base_location: String,
+    pub compiled_from: String,
 }
 
 #[derive(Clone)]
@@ -131,6 +134,7 @@ impl Default for Compiler {
             current_function: String::from("main"),
             dry: 0,
             base_location: "".to_string(),
+            compiled_from: "".to_string()
         }
     }
 }
@@ -169,12 +173,52 @@ impl Compiler {
 
             #[allow(clippy::single_match)]
             match err {
-                Err(exception) => return Err(exception),
+                Err(exception) => {
+                    self.print_error(exception.clone());
+                    return Err(exception);
+                }
                 _ => (),
             }
         }
 
         Ok(self.get_arc())
+    }
+
+    fn print_error(&self, error: CompilerException) {
+        let mut width = String::new();
+
+        for _ in 0..error.location.1.to_string().len() {
+            width.push(' ');
+        }
+        
+        let minus = match error {
+            _ => 2
+        };
+        
+        let colon = error.location.1 - minus;
+
+        println!("{}", "CompilerException".red());
+        println!(
+            "{} | -> {} [{}:{}]",
+            width, self.location, error.location.0, colon
+        );
+
+        println!("{} | ", width);
+        println!("{} | {}", error.location.0, self.compiled_from.lines().nth((error.location.0 - 1) as usize).unwrap().to_string());
+
+        let spaces = colon;
+
+        let mut cursor_width = String::new();
+
+        for _ in 0..(spaces - (width.len() as i32)) {
+            cursor_width.push(' ');
+        }
+
+        println!("{} | {}{}", width, cursor_width, "^".red());
+
+        println!("{} | ", width);
+
+        println!("{} = {}", width, format!("{}", error).blue());
     }
 
     /// Enters a compilation "location" aka a module. A module has its own variable scope and thus
@@ -211,7 +255,7 @@ impl Compiler {
 
     /// Allows you to use Loop code within the compiler
     pub fn compile_generic_loop(&mut self, str: &str) -> Result<Arc, CompilerException> {
-        let lexer = lexer::build_lexer(str);
+        let mut lexer = lexer::build_lexer(str);
         let mut parser = parser::build_parser(lexer, self.location.as_str());
 
         let program = parser.parse()?;
@@ -562,7 +606,7 @@ impl Compiler {
     ) -> Result<Types, CompilerException> {
         let mut expression_statement = false;
 
-        let result = match stmt.clone() {
+        match stmt.clone() {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
@@ -582,33 +626,7 @@ impl Compiler {
             Statement::Break(br) => compile_break_statement(self, br),
             Statement::Class(class) => compile_class_statement(self, class),
             Statement::Extend(extend) => compile_extend_statement(self, extend),
-        };
-
-        let add_semicolon = match stmt {
-            Statement::VariableDeclaration(_) => true,
-            Statement::ConstantDeclaration(_) => true,
-            Statement::Expression(expr) => match *expr.expression {
-                Expression::Conditional(_) => !expression_statement,
-                Expression::Loop(_) => true,
-                Expression::LoopIterator(_) => false,
-                Expression::LoopArrayIterator(_) => false,
-                Expression::Function(func) => func.name.is_empty(),
-                _ => true,
-            },
-            Statement::Block(_) => false,
-            Statement::VariableAssign(_) => true,
-            Statement::Return(_) => true,
-            Statement::Import(_) => false,
-            Statement::Break(_) => true,
-            Statement::Class(_) => true,
-            Statement::Extend(_) => true,
-        };
-
-        if add_semicolon && !no_semicolon {
-            //self.add_to_current_function(";".to_string());
         }
-
-        result
     }
 
     /// Throws an [CompilerError](crate::exception::compiler_new::CompilerError;) and exists with code '1'.

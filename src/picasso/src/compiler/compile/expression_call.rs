@@ -1,5 +1,5 @@
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::parser::expression::function::{Call, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
@@ -51,9 +51,7 @@ pub fn compile_expression_call(
                         func.parameters.insert(
                             0,
                             Parameter {
-                                identifier: Identifier {
-                                    value: "self".to_string(),
-                                },
+                                identifier: Identifier::new("self".to_string(), 0, 0),
                                 _type: Types::Compound(class_type.clone()),
                             },
                         );
@@ -188,9 +186,11 @@ pub fn compile_expression_call(
             return compile_expression_call(
                 compiler,
                 Call {
-                    identifier: Box::new(Expression::Identifier(Identifier {
-                        value: format!("{}::{}", module, index.unwrap()),
-                    })),
+                    identifier: Box::new(Expression::Identifier(Identifier::new(
+                        format!("{}::{}", module, index.unwrap()),
+                        0,
+                        0,
+                    ))),
                     parameters: call.parameters,
                 },
             );
@@ -210,15 +210,13 @@ pub fn compile_expression_call(
             let method = split.get(1).unwrap().to_string();
 
             let _type = compiler.compile_expression(Expression::Index(Box::new(Index {
-                left: Expression::Identifier(Identifier {
-                    value: name.clone(),
-                }),
-                index: Expression::Identifier(Identifier { value: method }),
+                left: Expression::Identifier(Identifier::new(name.clone(), 0, 0)),
+                index: Expression::Identifier(Identifier::new(method, 0, 0)),
             })))?;
 
             if let Types::Function(func) = _type.clone() {
                 if func.is_method {
-                    self_reference = Some(Expression::Identifier(Identifier { value: name }));
+                    self_reference = Some(Expression::Identifier(Identifier::new(name, 0, 0)));
                 }
             }
 
@@ -234,7 +232,11 @@ pub fn compile_expression_call(
         let func_signature = match _type {
             Types::Function(func) => func,
             _ => {
-                return Err(CompilerException::CallingNonFunction(_type.transpile()));
+                return Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::CallingNonFunction(_type.transpile()),
+                ));
             }
         };
 

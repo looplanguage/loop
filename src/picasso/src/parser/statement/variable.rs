@@ -14,6 +14,8 @@ pub struct VariableDeclaration {
     pub ident: Identifier,
     pub value: Box<Expression>,
     pub data_type: Types,
+    // Line, colon
+    pub location: (i32, i32),
 }
 
 /// A variable declaration looks like this:
@@ -64,11 +66,10 @@ pub fn parse_variable_declaration(
     if let Node::Expression(exp) = expr {
         return Ok(Node::Statement(Statement::VariableDeclaration(
             VariableDeclaration {
-                ident: Identifier {
-                    value: ident.literal,
-                },
+                ident: Identifier::new(ident.literal, 0, 0),
                 value: Box::new(exp),
                 data_type: datatype,
+                location: (p.lexer.current_line, p.lexer.current_col),
             },
         )));
     }

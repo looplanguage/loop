@@ -1,5 +1,5 @@
 use crate::compiler::Compiler;
-use crate::exception::compiler::{CompilerException, UnknownSymbol};
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode, UnknownSymbol};
 use crate::parser::statement::assign::VariableAssign;
 use crate::parser::types::Types;
 
@@ -24,9 +24,13 @@ pub fn compile_statement_variable_assign(
             Err(_exception) => result,
             Ok(result_type) => {
                 if *result_type != var_type._type {
-                    Err(CompilerException::WrongType(
-                        result_type.transpile(),
-                        var_type._type.transpile(),
+                    Err(CompilerException::new(
+                        0,
+                        0,
+                        CompilerExceptionCode::WrongType(
+                            result_type.transpile(),
+                            var_type._type.transpile(),
+                        ),
                     ))
                 } else {
                     Ok(var_type._type)
@@ -35,8 +39,12 @@ pub fn compile_statement_variable_assign(
         };
     }
 
-    Err(CompilerException::UnknownSymbol(UnknownSymbol {
-        name: variable.ident.value,
-        scope_depth: compiler.scope_index as u16,
-    }))
+    Err(CompilerException::new(
+        variable.ident.location.line,
+        variable.ident.location.colon,
+        CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
+            name: variable.ident.value,
+            scope_depth: compiler.scope_index as u16,
+        }),
+    ))
 }

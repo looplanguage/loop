@@ -1,5 +1,5 @@
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::parser::statement::return_statement::ReturnStatement;
 use crate::parser::types::Types;
 
@@ -8,7 +8,11 @@ pub fn compile_return_statement(
     rt: ReturnStatement,
 ) -> Result<Types, CompilerException> {
     if _compiler.scope_index == 0 {
-        return Err(CompilerException::ReturnStatementNotAllowedOutsideFunction);
+        return Err(CompilerException::new(
+            0,
+            0,
+            CompilerExceptionCode::ReturnStatementNotAllowedOutsideFunction,
+        ));
     }
 
     _compiler.add_to_current_function(".RETURN {".to_string());

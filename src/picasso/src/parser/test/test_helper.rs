@@ -24,11 +24,10 @@ pub mod test_helper {
         expression: parser::expression::Expression,
     ) -> Statement {
         Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: identifier.to_string(),
-            },
+            ident: Identifier::new(identifier.to_string(), 0, 0),
             value: Box::new(expression),
             data_type: Types::Auto,
+            location: (0, 0),
         })
     }
 
@@ -95,23 +94,17 @@ pub mod test_helper {
     pub fn generate_identifier_expression_v3(
         identifier: &str,
     ) -> crate::parser::expression::Expression {
-        parser::expression::Expression::Identifier(Identifier {
-            value: identifier.to_string(),
-        })
+        parser::expression::Expression::Identifier(Identifier::new(identifier.to_string(), 0, 0))
     }
 
     #[allow(dead_code)]
     pub fn generate_identifier_v3(name: &str) -> Identifier {
-        Identifier {
-            value: name.to_string(),
-        }
+        Identifier::new(name.to_string(), 0, 0)
     }
 
     pub fn generate_parameter_v3(name: &str, _type: Types) -> Parameter {
         Parameter {
-            identifier: Identifier {
-                value: name.to_string(),
-            },
+            identifier: Identifier::new(name.to_string(), 0, 0),
             _type,
         }
     }

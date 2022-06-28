@@ -52,9 +52,11 @@ pub fn parse_arguments(p: &mut Parser) -> Result<Vec<Parameter>, SyntaxException
 
         p.lexer.next_token_is_and_next_token(TokenType::Identifier);
         arguments.push(Parameter {
-            identifier: Identifier {
-                value: p.lexer.get_current_token().unwrap().literal.to_string(),
-            },
+            identifier: Identifier::new(
+                p.lexer.get_current_token().unwrap().literal.to_string(),
+                0,
+                0,
+            ),
             _type: tp,
         });
 
