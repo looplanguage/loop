@@ -1,7 +1,4 @@
-use crate::compiler::CompilerState;
-use crate::lexer::Lexer;
-use crate::parser::exception::SyntaxException;
-use colored::Colorize;
+use crate::compiler::{Compiler, CompilerState};
 use std::path::Path;
 use std::process::{exit, ExitCode};
 
@@ -10,13 +7,15 @@ pub mod exception;
 mod lexer;
 mod parser;
 
-pub fn compile_with_state(str: &str, state: CompilerState) -> (String, CompilerState) {
+pub fn compile_with_state(str: &str, _state: CompilerState) -> (String, CompilerState) {
     let lexer = lexer::build_lexer(str);
     let mut parser = parser::build_parser(lexer, "");
 
     let program = parser.parse().unwrap();
-    let mut compiler = compiler::Compiler::default_with_state(state);
-    compiler.compiled_from = str.to_string();
+    let mut compiler = Compiler {
+        compiled_from: str.to_string(),
+        ..Compiler::default()
+    };
 
     let compiled = compiler.compile(program);
 
@@ -33,18 +32,21 @@ pub fn compile(
     file_location: Option<&str>,
 ) -> Result<(String, CompilerState), ExitCode> {
     let lexer = lexer::build_lexer(str);
-    let mut parser = parser::build_parser(lexer.clone(), file_location.unwrap_or(""));
+    let mut parser = parser::build_parser(lexer, file_location.unwrap_or(""));
 
     let program = parser.parse();
 
-    if let Err(_) = program {
+    if program.is_err() {
         return Err(ExitCode::FAILURE);
     }
 
     let program = program.unwrap();
 
-    let mut compiler = compiler::Compiler::default();
-    compiler.compiled_from = str.to_string();
+    let mut compiler = Compiler {
+        compiled_from: str.to_string(),
+        ..Compiler::default()
+    };
+
     if let Some(file) = file_location {
         let path = Path::new(file);
         if path.extension().is_some() {
@@ -57,7 +59,7 @@ pub fn compile(
     let compiled = compiler.compile(program);
 
     if compiled.is_err() {
-        return Err(ExitCode::FAILURE)
+        return Err(ExitCode::FAILURE);
     }
 
     Ok((compiled.unwrap().get_arc(), compiler.get_compiler_state()))

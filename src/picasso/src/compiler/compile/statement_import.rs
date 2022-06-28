@@ -65,7 +65,7 @@ pub fn compile_import_statement(
             let program = parser.parse()?;
 
             compiler.enter_location(path_as_string);
-            compiler.compiled_from = contents.clone();
+            compiler.compiled_from = contents;
 
             let result = compiler.compile(program);
 

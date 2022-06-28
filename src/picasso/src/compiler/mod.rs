@@ -47,7 +47,6 @@ use crate::{lexer, parser};
 use colored::Colorize;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::fmt::format;
 use std::rc::Rc;
 
 /// The result of the transpiler, which will be passed to the D compiler [crate::util::execute_code]
@@ -134,7 +133,7 @@ impl Default for Compiler {
             current_function: String::from("main"),
             dry: 0,
             base_location: "".to_string(),
-            compiled_from: "".to_string()
+            compiled_from: "".to_string(),
         }
     }
 }
@@ -157,19 +156,8 @@ impl Compiler {
     /// }
     /// ```
     pub fn compile(&mut self, program: Program) -> Result<Arc, CompilerException> {
-        let mut index = 0;
-        let length = program.statements.len();
         for statement in program.statements {
-            index += 1;
-
-            let mut is_expression = false;
-            if index == length {
-                if let Statement::Expression(_) = statement.clone() {
-                    is_expression = true;
-                }
-            }
-
-            let err = self.compile_statement(statement, is_expression);
+            let err = self.compile_statement(statement);
 
             #[allow(clippy::single_match)]
             match err {
@@ -190,11 +178,10 @@ impl Compiler {
         for _ in 0..error.location.1.to_string().len() {
             width.push(' ');
         }
-        
-        let minus = match error {
-            _ => 2
-        };
-        
+
+        // Should be replaced by a match if different requirements
+        let minus = 2;
+
         let colon = error.location.1 - minus;
 
         println!("{}", "CompilerException".red());
@@ -204,7 +191,14 @@ impl Compiler {
         );
 
         println!("{} | ", width);
-        println!("{} | {}", error.location.0, self.compiled_from.lines().nth((error.location.0 - 1) as usize).unwrap().to_string());
+        println!(
+            "{} | {}",
+            error.location.0,
+            self.compiled_from
+                .lines()
+                .nth((error.location.0 - 1) as usize)
+                .unwrap()
+        );
 
         let spaces = colon;
 
@@ -255,7 +249,7 @@ impl Compiler {
 
     /// Allows you to use Loop code within the compiler
     pub fn compile_generic_loop(&mut self, str: &str) -> Result<Arc, CompilerException> {
-        let mut lexer = lexer::build_lexer(str);
+        let lexer = lexer::build_lexer(str);
         let mut parser = parser::build_parser(lexer, self.location.as_str());
 
         let program = parser.parse()?;
@@ -423,7 +417,7 @@ impl Compiler {
         for statement in block.statements.clone() {
             index += 1;
 
-            let err = self.compile_statement(statement.clone(), false);
+            let err = self.compile_statement(statement.clone());
 
             // If its either a return statement, or the last statement is an expression than that is the return type of this block
             if let Statement::Return(_) = statement {
@@ -538,7 +532,7 @@ impl Compiler {
                         self.add_to_current_function(".RETURN { ".to_string());
                     }
 
-                    let result = self.compile_statement(statement.clone(), false);
+                    let result = self.compile_statement(statement.clone());
 
                     // Find first "return" as that is the only way to return
                     if let Statement::Return(_) = statement.clone() {
@@ -560,7 +554,7 @@ impl Compiler {
 
                     result
                 } else {
-                    let result = self.compile_statement(statement.clone(), false);
+                    let result = self.compile_statement(statement.clone());
 
                     // Find first "return" as that is the only way to return
                     if let Statement::Return(_) = statement.clone() {
@@ -599,24 +593,15 @@ impl Compiler {
     ///
     /// let result = compiler.compile_statement(stmt);
     /// ```
-    fn compile_statement(
-        &mut self,
-        stmt: Statement,
-        no_semicolon: bool,
-    ) -> Result<Types, CompilerException> {
-        let mut expression_statement = false;
-
-        match stmt.clone() {
+    fn compile_statement(&mut self, stmt: Statement) -> Result<Types, CompilerException> {
+        match stmt {
             Statement::VariableDeclaration(var) => {
                 compile_statement_variable_declaration(self, var)
             }
             Statement::ConstantDeclaration(con) => {
                 compile_statement_constant_declaration(self, con)
             }
-            Statement::Expression(expr) => {
-                expression_statement = true;
-                self.compile_expression(*expr.expression)
-            }
+            Statement::Expression(expr) => self.compile_expression(*expr.expression),
             Statement::Block(block) => self.compile_block(block, false),
             Statement::VariableAssign(variable) => {
                 compile_statement_variable_assign(self, variable)

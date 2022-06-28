@@ -1,10 +1,10 @@
 use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
-use crate::parser::expression::identifier::{Identifier, parse_identifier};
+use crate::parser::expression::identifier::{parse_identifier, Identifier};
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
-use crate::parser::Parser;
 use crate::parser::statement::Statement;
+use crate::parser::Parser;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableAssign {

@@ -133,7 +133,7 @@ impl Parser {
         println!(
             "{} = {}",
             width,
-            match error.clone() {
+            match error {
                 SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
                 SyntaxException::CustomMessage(title, _) => title,
                 SyntaxException::ExpectedToken(expected) =>

@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use crate::parser::exception::SyntaxException;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UnknownSymbol {
