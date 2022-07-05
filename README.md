@@ -19,7 +19,7 @@ Bringing Cloud Tools to a “Provider-less” Programming Language<br>
 
 ## Get Started (development)
 
-1. Make sure you have [Rust 1.60.0](https://www.rust-lang.org/) installed
+1. Make sure you have [Rust](https://www.rust-lang.org/) installed
 2. Clone the repository `git clone https://gitlab.com/looplanguage/loop`
 3. Enter the repository `cd loop`
 4. Run the command `cargo run`
