@@ -412,7 +412,7 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
                     self.add_library_namespace(lib.clone().namespace);
                     self.add_code(format!("ffi.cdef[[ {} ]] ", str.as_str()));
                     self.add_code(format!(
-                        "{} = ffi.load(\"{}.{}\")",
+                        "{} = ffi.load(\"./{}.{}\")",
                         lib.namespace,
                         lib.clone().get_path(),
                         extension
@@ -526,7 +526,6 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
         {
             use std::ffi::CStr;
             use std::os::raw::c_char;
-            use std::path::Path;
 
             let full_path = if std::env::consts::OS == "windows" {
                 format!("{}.dll", _path)
@@ -535,8 +534,8 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
             };
 
             let lib = libloading::Library::new(full_path.clone());
-            if let Ok(l) = lib {
-                unsafe {
+            match lib {
+                Ok(l) => unsafe {
                     let signature = l.get(b"library_signatures");
                     if let Ok(sym) = signature {
                         let func: libloading::Symbol<unsafe extern "C" fn() -> *const c_char> = sym;
@@ -549,16 +548,11 @@ getmetatable('').__call = function(str,i,j) if type(i)~='table' then return stri
                     } else {
                         unreachable!("get_lib_signatures is not supposed to get here")
                     }
-                }
-            } else {
-                if Path::new(&full_path).exists() {
-                    return Err(format!(
-                        "The library: {}, was not compiled for this platform",
-                        full_path
-                    ));
-                }
+                },
 
-                return Err(format!("The library: {}, does not exist", full_path));
+                Err(e) => {
+                    return Err(format!("{}", e));
+                }
             }
         }
         #[allow(unreachable_code)]

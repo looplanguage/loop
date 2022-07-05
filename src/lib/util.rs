@@ -58,6 +58,10 @@ pub fn run_file(path: String) -> Result<(), ExitCode> {
         println!("Arc\n#---------\n{}\n---------#", arc.0);
     }
 
+    if CONFIG.arc_output {
+        save_to_file(format!("{}.arc", path), arc.clone().0);
+    }
+
     let ast = vinci::parse(&*arc.0);
 
     if CONFIG.debug_mode {
@@ -66,11 +70,14 @@ pub fn run_file(path: String) -> Result<(), ExitCode> {
 
     let mut backend = unsafe { sanzio::Sanzio::new() };
 
+    let lua_code = sanzio::Sanzio::compile_to_lua(&ast);
+
     if CONFIG.debug_mode {
-        println!(
-            "Lua\n#---------\n{}\n---------#",
-            sanzio::Sanzio::compile_to_lua(&ast)
-        );
+        println!("Lua\n#---------\n{}\n---------#", lua_code);
+    }
+
+    if CONFIG.lua_output {
+        save_to_file(format!("{}.lua", path), lua_code);
     }
 
     let result = backend.run(ast);
@@ -82,4 +89,21 @@ pub fn run_file(path: String) -> Result<(), ExitCode> {
     };
 
     Ok(())
+}
+
+fn save_to_file(file_name: String, content: String) {
+    use std::io::Write;
+    let file = std::fs::File::create(file_name);
+    match file {
+        Ok(mut f) => {
+            if let Err(e) = f.write_all(content.as_bytes()) {
+                println!("{}", e);
+                std::process::exit(1);
+            }
+        }
+        Err(e) => {
+            println!("{}", e);
+            std::process::exit(1);
+        }
+    }
 }
