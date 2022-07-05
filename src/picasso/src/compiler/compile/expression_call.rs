@@ -185,9 +185,30 @@ pub fn compile_expression_call(
                 compiler.drier();
                 let result = compiler.compile_expression(self_reference.clone());
                 // Should prob not be here, but I did not know how to make clippy happy
-                #[allow(clippy::question_mark)]
-                if result.is_err() {
-                    return result;
+                match result {
+                    Ok(_type) => {
+                        // Only strings and arrays have a length
+                        match _type {
+                            Types::Compound(_)
+                            | Types::Basic(_)
+                            | Types::Auto
+                            | Types::Function(_)
+                            | Types::Module(_)
+                            | Types::Void
+                            | Types::Library(_) => {
+                                if _type != Types::Basic(BaseTypes::String) {
+                                    return Err(CompilerException::WrongType(
+                                        "array or string".to_string(),
+                                        format!("{}", _type),
+                                    ));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    Err(exception) => {
+                        return Err(exception);
+                    }
                 }
                 compiler.undrier();
                 compiler.add_to_current_function(".LENGTH { ".to_string());
