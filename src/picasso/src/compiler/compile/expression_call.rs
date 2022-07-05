@@ -4,7 +4,7 @@ use crate::parser::expression::function::{Call, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::Index;
 use crate::parser::expression::Expression;
-use crate::parser::types::{Compound, Types};
+use crate::parser::types::{BaseTypes, Compound, Types};
 
 pub fn compile_expression_call(
     compiler: &mut Compiler,
@@ -174,6 +174,54 @@ pub fn compile_expression_call(
 
         if let Expression::Identifier(ident) = i.index {
             index = Some(ident.value);
+        }
+    }
+
+    // Catching the build extesion function "len"
+    // "[1, 2, 3, 4, 5].len() == 5" this is true
+    if let Some(name) = &index {
+        if name == "len" {
+            if let Some(self_reference) = self_reference.clone() {
+                compiler.drier();
+                let result = compiler.compile_expression(self_reference.clone());
+                // Should prob not be here, but I did not know how to make clippy happy
+                match result {
+                    Ok(_type) => {
+                        // Only strings and arrays have a length
+                        match _type {
+                            Types::Compound(_)
+                            | Types::Basic(_)
+                            | Types::Auto
+                            | Types::Function(_)
+                            | Types::Module(_)
+                            | Types::Void
+                            | Types::Library(_) => {
+                                if _type != Types::Basic(BaseTypes::String) {
+                                    return Err(CompilerException::WrongType(
+                                        "array or string".to_string(),
+                                        format!("{}", _type),
+                                    ));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    Err(exception) => {
+                        return Err(exception);
+                    }
+                }
+                compiler.undrier();
+                compiler.add_to_current_function(".LENGTH { ".to_string());
+                let result = compiler.compile_expression(self_reference);
+                compiler.add_to_current_function("};".to_string());
+                if result.is_err() {
+                    return result;
+                } else {
+                    return Ok(Types::Basic(BaseTypes::Integer));
+                }
+            } else {
+                panic!("HELLO< SHOLD NOT PANIC")
+            }
         }
     }
 
