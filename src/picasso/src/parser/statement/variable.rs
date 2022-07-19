@@ -1,6 +1,6 @@
 use crate::lexer::token::TokenType;
 use crate::parser::exception::SyntaxException;
-use crate::parser::expression::identifier::Identifier;
+use crate::parser::expression::identifier::{parse_identifier, Identifier};
 use crate::parser::expression::{Expression, Precedence};
 use crate::parser::program::Node;
 use crate::parser::types::Types;
@@ -14,6 +14,8 @@ pub struct VariableDeclaration {
     pub ident: Identifier,
     pub value: Box<Expression>,
     pub data_type: Types,
+    // Line, colon
+    pub location: (i32, i32),
 }
 
 /// A variable declaration looks like this:
@@ -27,7 +29,7 @@ pub fn parse_variable_declaration(
     p: &mut Parser,
     types: Option<Types>,
 ) -> Result<Node, SyntaxException> {
-    let ident = p.lexer.get_current_token().unwrap().clone(); // Identifier of variabele.
+    let ident = parse_identifier(p)?.into_expression().into_identifier(); // Identifier of variabele.
     let datatype = types.unwrap_or(Types::Auto);
 
     // Parsing of the ":" in the declaration
@@ -64,11 +66,10 @@ pub fn parse_variable_declaration(
     if let Node::Expression(exp) = expr {
         return Ok(Node::Statement(Statement::VariableDeclaration(
             VariableDeclaration {
-                ident: Identifier {
-                    value: ident.literal,
-                },
+                ident: Identifier::new(ident.value, ident.location.line, ident.location.colon),
                 value: Box::new(exp),
                 data_type: datatype,
+                location: (p.lexer.current_line, p.lexer.current_col),
             },
         )));
     }

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::exception::compiler::{CompilerException, UnknownSymbol};
+    use crate::exception::compiler::{CompilerExceptionCode, UnknownSymbol};
     use crate::exception::Exception;
     use crate::{compiler, lexer, parser};
 
@@ -243,7 +243,7 @@ mod tests {
     fn scoping_rules_2() {
         compiler_test_error(
             "test := 100; if(true) { test2 := test }; test2",
-            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            Some(CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
                 name: "test2".to_string(),
                 scope_depth: 0,
             })),
@@ -254,7 +254,7 @@ mod tests {
     fn scoping_rules_3() {
         compiler_test_error(
             "test := 100; if(true) { test2 := 300; if(true) { test3 := test2 } test3; };",
-            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            Some(CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
                 name: "test3".to_string(),
                 scope_depth: 1,
             })),
@@ -265,7 +265,7 @@ mod tests {
     fn scoping_rules_4() {
         compiler_test_error(
             "test := 100; if(true) { test2 := 300; if(true) { test3 := test2 } test2; }; test3",
-            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            Some(CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
                 name: "test3".to_string(),
                 scope_depth: 0,
             })),
@@ -282,7 +282,7 @@ mod tests {
         }\
         hello;
         ",
-            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            Some(CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
                 name: "hello".to_string(),
                 scope_depth: 0,
             })),
@@ -302,7 +302,7 @@ mod tests {
             hello2;
         }\
         ",
-            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            Some(CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
                 name: "hello2".to_string(),
                 scope_depth: 2,
             })),
@@ -314,7 +314,7 @@ mod tests {
         compiler_test_error(
             "\
         int test := \"Hello World!\"",
-            Some(CompilerException::WrongType(
+            Some(CompilerExceptionCode::WrongType(
                 "CHAR[]".to_string(),
                 "INT".to_string(),
             )),
@@ -336,7 +336,7 @@ mod tests {
             "\n
         int test := 100\n
         test = \"Hello World!\"",
-            Some(CompilerException::WrongType(
+            Some(CompilerExceptionCode::WrongType(
                 "CHAR[]".to_string(),
                 "INT".to_string(),
             )),
@@ -349,7 +349,7 @@ mod tests {
             "\n
         test := if true { if true { 20 } }\n
         test = \"Hello World!\"",
-            Some(CompilerException::WrongType(
+            Some(CompilerExceptionCode::WrongType(
                 "CHAR[]".to_string(),
                 "INT".to_string(),
             )),
@@ -363,7 +363,7 @@ mod tests {
         fn func() { if true { return 100 } 50 };
         test := func()\n
         test = \"Hello World!\"",
-            Some(CompilerException::WrongType(
+            Some(CompilerExceptionCode::WrongType(
                 "CHAR[]".to_string(),
                 "INT".to_string(),
             )),
@@ -400,7 +400,7 @@ mod tests {
             hello2;
         }\
         ",
-            Some(CompilerException::UnknownSymbol(UnknownSymbol {
+            Some(CompilerExceptionCode::UnknownSymbol(UnknownSymbol {
                 name: "hello2".to_string(),
                 scope_depth: 2,
             })),
@@ -426,12 +426,12 @@ mod tests {
 
     //#[test]
     //fn divide_by_zero_integer() {
-    //    compiler_test_error("100 / 0", Some(CompilerException::DivideByZero))
+    //    compiler_test_error("100 / 0", Some(CompilerExceptionCode::DivideByZero))
     //}
 
     //#[test]
     //fn divide_by_zero_float() {
-    //    compiler_test_error("302 / 0.0", Some(CompilerException::DivideByZero))
+    //    compiler_test_error("302 / 0.0", Some(CompilerExceptionCode::DivideByZero))
     //}
 
     #[test]
@@ -464,7 +464,7 @@ mod tests {
         assert_eq!(err.unwrap().get_arc(), expected.to_string())
     }
 
-    fn compiler_test_error(input: &str, expected: Option<CompilerException>) {
+    fn compiler_test_error(input: &str, expected: Option<CompilerExceptionCode>) {
         let l = lexer::build_lexer(input);
         let mut parser = parser::build_parser(l, "");
 
@@ -488,7 +488,7 @@ mod tests {
         }
 
         if expected.is_some() && err.is_err() {
-            assert_eq!(expected.unwrap(), err.err().unwrap())
+            assert_eq!(expected.unwrap(), err.err().unwrap().exception)
         }
     }
 

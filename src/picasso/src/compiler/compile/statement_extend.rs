@@ -1,6 +1,6 @@
 use crate::compiler::compile::expression_function::compile_expression_function;
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::parser::expression::function::{Function, Parameter};
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::statement::class::{ClassItem, Method};
@@ -21,7 +21,7 @@ pub fn compile_extend_statement(
     };
 
     if raw_type.is_none() {
-        return Err(CompilerException::Unknown);
+        return Err(CompilerException::new(0, 0, CompilerExceptionCode::Unknown));
     }
 
     if let Some(raw_type) = raw_type {
@@ -49,9 +49,7 @@ pub fn compile_extend_statement(
                 params.insert(
                     0,
                     Parameter {
-                        identifier: Identifier {
-                            value: "self".to_string(),
-                        },
+                        identifier: Identifier::new("self".to_string(), 0, 0),
                         _type: raw_type.clone(),
                     },
                 );

@@ -145,9 +145,7 @@ mod tests {
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::Expression::LoopIterator(LoopIterator {
-                identifier: Identifier {
-                    value: "i".to_string(),
-                },
+                identifier: Identifier::new("i".to_string(), 1, 11),
                 from: 0,
                 till: 100,
                 body: Block { statements: vec![] },
@@ -165,12 +163,11 @@ mod tests {
 
         expected.push(Statement::Expression(Box::new(Expression {
             expression: Box::new(parser::Expression::LoopArrayIterator(LoopArrayIterator {
-                identifier: Identifier {
-                    value: "value".to_string(),
-                },
+                identifier: Identifier::new("value".to_string(), 1, 16),
                 body: Block { statements: vec![] },
                 array: Box::new(parser::Expression::Array(Box::new(Array {
                     values: vec![],
+                    location: (1, 20),
                 }))),
             })),
         })));
@@ -270,38 +267,32 @@ mod tests {
         let mut expected: Vec<Statement> = Vec::new();
 
         expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: "test".to_string(),
-            },
+            ident: Identifier::new("test".to_string(), 1, 6),
             value: Box::new(parser::expression::Expression::Integer(Integer {
                 value: 0,
             })),
             data_type: Types::Auto,
+            location: (1, 10),
         }));
 
         expected.push(Statement::VariableDeclaration(VariableDeclaration {
-            ident: Identifier {
-                value: "yeet".to_string(),
-            },
+            ident: Identifier::new("yeet".to_string(), 1, 16),
             value: Box::new(parser::expression::Expression::Integer(Integer {
                 value: 500,
             })),
             data_type: Types::Auto,
+            location: (1, 22),
         }));
 
         expected.push(Statement::VariableAssign(VariableAssign {
-            ident: Identifier {
-                value: "test".to_string(),
-            },
+            ident: Identifier::new("test".to_string(), 1, 28),
             value: Box::new(parser::expression::Expression::Integer(Integer {
                 value: 1000,
             })),
         }));
 
         expected.push(Statement::VariableAssign(VariableAssign {
-            ident: Identifier {
-                value: "foo".to_string(),
-            },
+            ident: Identifier::new("foo".to_string(), 1, 39),
             value: Box::new(parser::expression::Expression::Suffix(Box::from(Suffix {
                 left: parser::expression::Expression::Integer(Integer { value: 2 }),
                 operator: "^".to_string(),
@@ -309,13 +300,13 @@ mod tests {
             }))),
         }));
         expected.push(Statement::VariableAssign(VariableAssign {
-            ident: Identifier {
-                value: "yeet".to_string(),
-            },
+            ident: Identifier::new("yeet".to_string(), 1, 52),
             value: Box::new(parser::expression::Expression::Suffix(Box::from(Suffix {
-                left: parser::expression::Expression::Identifier(Identifier {
-                    value: "test".to_string(),
-                }),
+                left: parser::expression::Expression::Identifier(Identifier::new(
+                    "test".to_string(),
+                    1,
+                    59,
+                )),
                 operator: "*".to_string(),
                 right: parser::expression::Expression::Integer(Integer { value: 2 }),
             }))),
@@ -453,10 +444,10 @@ mod tests {
             test_helper::generate_parameter_v3("c", Types::Basic(BaseTypes::Integer)),
             test_helper::generate_parameter_v3("d", Types::Basic(BaseTypes::Integer)),
         ];
-        let left = test_helper::generate_identifier_expression_v3("a");
-        let right = test_helper::generate_identifier_expression_v3("b");
-        let left2 = test_helper::generate_identifier_expression_v3("c");
-        let right2 = test_helper::generate_identifier_expression_v3("d");
+        let left = test_helper::generate_identifier_expression_v3("a", 2, 125);
+        let right = test_helper::generate_identifier_expression_v3("b", 2, 128);
+        let left2 = test_helper::generate_identifier_expression_v3("c", 2, 136);
+        let right2 = test_helper::generate_identifier_expression_v3("d", 2, 139);
         let statements = vec![
             test_helper::generate_expression_statement_v3(
                 test_helper::generate_suffix_expression_v3(left, "+", right),
@@ -464,11 +455,21 @@ mod tests {
             test_helper::generate_variable_declaration_v3(
                 "e",
                 test_helper::generate_suffix_expression_v3(left2, "+", right2),
+                2,
+                139,
+                2,
+                131,
             ),
         ];
         let function = test_helper::generate_function_v3(parameters, statements);
-        let result =
-            test_helper::generate_variable_declaration_v3("functionWithParameters", function);
+        let result = test_helper::generate_variable_declaration_v3(
+            "functionWithParameters",
+            function,
+            2,
+            141,
+            2,
+            88,
+        );
         expected.push(result);
 
         test_parser(input, expected);
@@ -577,12 +578,20 @@ mod tests {
         expected.push(test_helper::generate_variable_declaration_v3(
             "test",
             test_helper::generate_integer_expression(1),
+            2,
+            18,
+            2,
+            14,
         ));
 
         // Test #2
         expected.push(test_helper::generate_variable_declaration_v3(
             "test2",
             test_helper::generate_integer_expression(40),
+            3,
+            20,
+            3,
+            15,
         ));
 
         // Test #3
@@ -591,24 +600,40 @@ mod tests {
         expected.push(test_helper::generate_variable_declaration_v3(
             "test3",
             test_helper::generate_suffix_expression_v3(left, "*", right),
+            4,
+            24,
+            4,
+            15,
         ));
 
         // Test #4
         expected.push(test_helper::generate_variable_declaration_v3(
             "test4",
             test_helper::generate_float_expression(1.1),
+            5,
+            21,
+            5,
+            15,
         ));
 
         // Test #5
         expected.push(test_helper::generate_variable_declaration_v3(
             "test5",
             test_helper::generate_integer_expression(-1),
+            6,
+            20,
+            6,
+            15,
         ));
 
         // Test #6
         expected.push(test_helper::generate_variable_declaration_v3(
             "test6",
             test_helper::generate_float_expression(-1.1),
+            7,
+            22,
+            7,
+            15,
         ));
 
         // Test #7
@@ -617,6 +642,10 @@ mod tests {
         expected.push(test_helper::generate_variable_declaration_v3(
             "test7",
             test_helper::generate_suffix_expression_v3(left, "+", right),
+            8,
+            27,
+            8,
+            15,
         ));
 
         // Test #8
@@ -625,6 +654,10 @@ mod tests {
         expected.push(test_helper::generate_variable_declaration_v3(
             "test8",
             test_helper::generate_suffix_expression_v3(left, "+", right),
+            9,
+            25,
+            9,
+            15,
         ));
 
         test_parser(input, expected);
@@ -639,6 +672,7 @@ mod tests {
         expected.push(Statement::Expression(Box::from(Expression {
             expression: Box::new(parser::expression::Expression::Array(Box::from(Array {
                 values: vec![],
+                location: (1, 3),
             }))),
         })));
 
@@ -670,6 +704,7 @@ mod tests {
                         })),
                     },
                 ],
+                location: (1, 10),
             }))),
         })));
 
@@ -699,6 +734,7 @@ mod tests {
                         })),
                     },
                 ],
+                location: (0, 0),
             }))),
         })));
 
@@ -727,6 +763,7 @@ mod tests {
                                 })),
                             },
                         ],
+                        location: (1, 7),
                     })),
                     index: parser::Expression::Integer(Integer { value: 0 }),
                 },
@@ -758,6 +795,7 @@ mod tests {
                                 })),
                             },
                         ],
+                        location: (1, 7),
                     })),
                     index: parser::Expression::Integer(Integer { value: 0 }),
                     value: parser::Expression::Integer(Integer { value: 300 }),

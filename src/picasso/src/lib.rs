@@ -1,4 +1,4 @@
-use crate::compiler::CompilerState;
+use crate::compiler::{Compiler, CompilerState};
 use std::path::Path;
 use std::process::{exit, ExitCode};
 
@@ -7,12 +7,15 @@ pub mod exception;
 mod lexer;
 mod parser;
 
-pub fn compile_with_state(str: &str, state: CompilerState) -> (String, CompilerState) {
+pub fn compile_with_state(str: &str, _state: CompilerState) -> (String, CompilerState) {
     let lexer = lexer::build_lexer(str);
     let mut parser = parser::build_parser(lexer, "");
 
     let program = parser.parse().unwrap();
-    let mut compiler = compiler::Compiler::default_with_state(state);
+    let mut compiler = Compiler {
+        compiled_from: str.to_string(),
+        ..Compiler::default()
+    };
 
     let compiled = compiler.compile(program);
 
@@ -39,7 +42,11 @@ pub fn compile(
 
     let program = program.unwrap();
 
-    let mut compiler = compiler::Compiler::default();
+    let mut compiler = Compiler {
+        compiled_from: str.to_string(),
+        ..Compiler::default()
+    };
+
     if let Some(file) = file_location {
         let path = Path::new(file);
         if path.extension().is_some() {
@@ -52,8 +59,7 @@ pub fn compile(
     let compiled = compiler.compile(program);
 
     if compiled.is_err() {
-        println!("Picasso: {:?}", compiled.err().unwrap());
-        exit(1);
+        return Err(ExitCode::FAILURE);
     }
 
     Ok((compiled.unwrap().get_arc(), compiler.get_compiler_state()))

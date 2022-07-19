@@ -63,66 +63,7 @@ impl Parser {
             let new_statement = self.parse_statement(tok.clone());
 
             if let Err(error) = new_statement {
-                let mut width = String::new();
-
-                for _ in 0..self.lexer.current_line.to_string().len() {
-                    width.push(' ');
-                }
-
-                println!("{}", "SyntaxException".red());
-                println!(
-                    "{} | -> {} [{}:{}]",
-                    width, self.current_file, self.lexer.current_col, self.lexer.current_line
-                );
-
-                println!("{} | ", width);
-                println!(
-                    "{} | {}",
-                    self.lexer.current_line.to_string().red(),
-                    self.lexer.get_line(self.lexer.current_line)
-                );
-
-                let spaces = self.lexer.current_col;
-
-                let mut cursor_width = String::new();
-
-                let remove_based_on_message = match error {
-                    SyntaxException::NoPrefixParser(_) => 1,
-                    SyntaxException::ExpectedToken(_) => 1,
-                    SyntaxException::CustomMessage(_, _) => 1,
-                    _ => 0,
-                };
-
-                for _ in 0..(spaces - remove_based_on_message - (width.len() as i32)) {
-                    cursor_width.push(' ');
-                }
-
-                println!("{} | {}{}", width, cursor_width, "^".red());
-
-                if let SyntaxException::CustomMessage(_, Some(message)) = error.clone() {
-                    for line in message.lines() {
-                        println!("{} | {}{} {}", width, cursor_width, "|".red(), line);
-                    }
-                }
-
-                println!("{} | ", width);
-
-                println!(
-                    "{} = {}",
-                    width,
-                    match error.clone() {
-                        SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
-                        SyntaxException::CustomMessage(title, _) => title,
-                        SyntaxException::ExpectedToken(expected) =>
-                            format!("Wrong token, expected={:?}.", expected),
-                        SyntaxException::NoPrefixParser(what) =>
-                            format!("No prefix parser for {:?}", what),
-                        SyntaxException::WrongParentheses(p) =>
-                            format!("Wrong parenthesis, expected={:?}.", p),
-                    }
-                    .blue()
-                );
-
+                self.print_error(error.clone());
                 return Err(error);
             }
 
@@ -139,6 +80,70 @@ impl Parser {
         }
 
         Ok(Program { statements })
+    }
+
+    fn print_error(&self, error: SyntaxException) {
+        let mut width = String::new();
+
+        for _ in 0..self.lexer.current_line.to_string().len() {
+            width.push(' ');
+        }
+
+        let remove_based_on_message = match error {
+            SyntaxException::NoPrefixParser(_) => 1,
+            SyntaxException::ExpectedToken(_) => 0,
+            SyntaxException::CustomMessage(_, _) => 1,
+            _ => 0,
+        };
+
+        println!("{}", "SyntaxException".red());
+        println!(
+            "{} | -> {} [{}:{}]",
+            width,
+            self.current_file,
+            self.lexer.current_col - remove_based_on_message,
+            self.lexer.current_line
+        );
+
+        println!("{} | ", width);
+        println!(
+            "{} | {}",
+            self.lexer.current_line.to_string().red(),
+            self.lexer.get_line(self.lexer.current_line)
+        );
+
+        let spaces = self.lexer.current_col;
+
+        let mut cursor_width = String::new();
+
+        for _ in 0..(spaces - remove_based_on_message - (width.len() as i32)) {
+            cursor_width.push(' ');
+        }
+
+        println!("{} | {}{}", width, cursor_width, "^".red());
+
+        if let SyntaxException::CustomMessage(_, Some(message)) = error.clone() {
+            for line in message.lines() {
+                println!("{} | {}{} {}", width, cursor_width, "|".red(), line);
+            }
+        }
+
+        println!("{} | ", width);
+
+        println!(
+            "{} = {}",
+            width,
+            match error {
+                SyntaxException::Unknown => "=> Unknown parser error occurred".to_string(),
+                SyntaxException::CustomMessage(title, _) => title,
+                SyntaxException::ExpectedToken(expected) =>
+                    format!("Wrong token, expected={:?}.", expected),
+                SyntaxException::NoPrefixParser(what) => format!("No prefix parser for {:?}", what),
+                SyntaxException::WrongParentheses(p) =>
+                    format!("Wrong parenthesis, expected={:?}.", p),
+            }
+            .blue()
+        );
     }
 
     fn expected(&mut self, token: TokenType) -> Result<(), SyntaxException> {

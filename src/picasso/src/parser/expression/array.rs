@@ -9,6 +9,8 @@ use crate::parser::Parser;
 // TODO: Add type
 pub struct Array {
     pub(crate) values: Vec<Expression>,
+    // Line, colon
+    pub location: (i32, i32),
 }
 
 pub fn parse_expression_array(p: &mut Parser) -> Result<Node, SyntaxException> {
@@ -35,6 +37,9 @@ pub fn parse_expression_array(p: &mut Parser) -> Result<Node, SyntaxException> {
     }
 
     Ok(Node::Expression(crate::parser::Expression::Array(
-        Box::from(Array { values: elements }),
+        Box::from(Array {
+            values: elements,
+            location: (p.lexer.current_line, p.lexer.current_col),
+        }),
     )))
 }

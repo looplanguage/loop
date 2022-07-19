@@ -1,5 +1,5 @@
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::parser::expression;
 use crate::parser::types::{BaseTypes, FunctionType, Types};
 
@@ -44,8 +44,10 @@ pub fn compile_expression_function(
                 .iter()
                 .any(|p| p.name == parameter.identifier.value)
             {
-                return Err(CompilerException::DoubleParameterName(
-                    parameter.identifier.value.clone(),
+                return Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::DoubleParameterName(parameter.identifier.value.clone()),
                 ));
             }
 
@@ -68,7 +70,11 @@ pub fn compile_expression_function(
                 if let Some(compound) = compiler.get_compound_type(name) {
                     param_type = compound.clone()
                 } else {
-                    return Err(CompilerException::UnknownType(name.clone()));
+                    return Err(CompilerException::new(
+                        0,
+                        0,
+                        CompilerExceptionCode::UnknownType(name.clone()),
+                    ));
                 }
             }
 
@@ -128,7 +134,11 @@ pub fn compile_expression_function(
             if let Some(compound) = compiler.get_compound_type(name) {
                 param_type = compound.clone()
             } else {
-                return Err(CompilerException::UnknownType(name.clone()));
+                return Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::UnknownType(name.clone()),
+                ));
             }
         }
 

@@ -8,6 +8,7 @@ use token::Token;
 use token::TokenType;
 
 /// The Lexer itself, containing metadata needed during the lexing process
+#[derive(Clone)]
 pub struct Lexer {
     current: i32,
     input: String,

@@ -23,7 +23,7 @@ pub fn parse_extend_statement(p: &mut Parser) -> Result<Node, SyntaxException> {
     };
 
     Ok(Node::Statement(Statement::Extend(ExtendStatement {
-        identifier: Identifier { value: class.name },
+        identifier: Identifier::new(class.name, 0, 0),
         items: class.values,
     })))
 }

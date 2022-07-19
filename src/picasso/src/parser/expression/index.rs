@@ -109,7 +109,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Result<Node, 
                     return Ok(Node::Expression(Expression::AssignIndex(Box::from(
                         AssignIndex {
                             left,
-                            index: Expression::Identifier(Identifier { value: identifier }),
+                            index: Expression::Identifier(Identifier::new(identifier, 0, 0)),
                             value: exp,
                         },
                     ))));
@@ -117,7 +117,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Result<Node, 
             }
             return Ok(Node::Expression(Expression::Index(Box::new(Index {
                 left,
-                index: Expression::Identifier(Identifier { value: identifier }),
+                index: Expression::Identifier(Identifier::new(identifier, 0, 0)),
             }))));
         }
 
@@ -130,7 +130,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Result<Node, 
                 return Ok(Node::Expression(Expression::Call(Call {
                     identifier: Box::from(Expression::Index(Box::new(Index {
                         left,
-                        index: Expression::Identifier(Identifier { value: identifier }),
+                        index: Expression::Identifier(Identifier::new(identifier, 0, 0)),
                     }))),
                     parameters: arguments,
                 })));
@@ -141,7 +141,7 @@ pub fn parse_index_expression(p: &mut Parser, left: Expression) -> Result<Node, 
         return Ok(Node::Expression(Expression::Call(Call {
             identifier: Box::new(Expression::Index(Box::new(Index {
                 left,
-                index: Expression::Identifier(Identifier { value: identifier }),
+                index: Expression::Identifier(Identifier::new(identifier, 0, 0)),
             }))),
             parameters: arguments,
         })));

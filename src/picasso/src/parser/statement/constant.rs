@@ -78,9 +78,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxExceptio
         if let Node::Expression(expression) = expr {
             return Ok(Node::Statement(Statement::ConstantDeclaration(
                 ConstantDeclaration {
-                    ident: Identifier {
-                        value: ident_or_type.literal,
-                    },
+                    ident: Identifier::new(ident_or_type.literal, 0, 0),
                     value: Box::new(expression),
                     data_type: Types::Auto,
                 },
@@ -92,9 +90,7 @@ pub fn parse_constant_declaration(p: &mut Parser) -> Result<Node, SyntaxExceptio
     if let Node::Expression(expression) = expr {
         return Ok(Node::Statement(Statement::ConstantDeclaration(
             ConstantDeclaration {
-                ident: Identifier {
-                    value: ident.unwrap().literal,
-                },
+                ident: Identifier::new(ident.unwrap().literal, 0, 0),
                 value: Box::new(expression),
                 data_type: p.parse_type(ident_or_type).unwrap(),
             },

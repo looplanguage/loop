@@ -1,4 +1,5 @@
 use crate::parser::exception::SyntaxException;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct UnknownSymbol {
@@ -7,7 +8,28 @@ pub struct UnknownSymbol {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum CompilerException {
+pub struct CompilerException {
+    pub location: (i32, i32),
+    pub exception: CompilerExceptionCode,
+}
+
+impl CompilerException {
+    pub fn new(line: i32, colon: i32, exception: CompilerExceptionCode) -> CompilerException {
+        CompilerException {
+            location: (line, colon),
+            exception,
+        }
+    }
+}
+
+impl Display for CompilerException {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.pretty_print())
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum CompilerExceptionCode {
     UnknownSymbol(UnknownSymbol),
     DivideByZero,
     TooManyLocals,
@@ -32,63 +54,66 @@ pub enum CompilerException {
 
 impl From<SyntaxException> for CompilerException {
     fn from(_: SyntaxException) -> Self {
-        CompilerException::Unknown
+        CompilerException {
+            location: (0, 0),
+            exception: CompilerExceptionCode::Unknown,
+        }
     }
 }
 
 impl CompilerException {
     pub fn pretty_print(&self) -> String {
-        match self {
-            CompilerException::UnknownSymbol(var) => {
+        match &self.exception {
+            CompilerExceptionCode::UnknownSymbol(var) => {
                 format!("unknown symbol. got=\"{}\"", var.name)
             }
-            CompilerException::DivideByZero => String::from("can not divide by zero"),
-            CompilerException::TooManyLocals => String::from("too many locals"),
-            CompilerException::TooManyFrees => String::from("too many frees"),
-            CompilerException::UnknownSuffixOperator(operator) => {
+            CompilerExceptionCode::DivideByZero => String::from("can not divide by zero"),
+            CompilerExceptionCode::TooManyLocals => String::from("too many locals"),
+            CompilerExceptionCode::TooManyFrees => String::from("too many frees"),
+            CompilerExceptionCode::UnknownSuffixOperator(operator) => {
                 format!("unknown suffix operator. got=\"{}\"", operator)
             }
-            CompilerException::ReturnStatementNotAllowedOutsideFunction => {
+            CompilerExceptionCode::ReturnStatementNotAllowedOutsideFunction => {
                 String::from("return statements are not allowed outside of functions")
             }
-            CompilerException::UnknownExtensionMethod(method) => {
+            CompilerExceptionCode::UnknownExtensionMethod(method) => {
                 format!("unknown extension method. got=\"{}\"", method)
             }
-            CompilerException::CanOnlyAssignToVariableArray => {
+            CompilerExceptionCode::CanOnlyAssignToVariableArray => {
                 String::from("you can only assign to variable arrays")
             }
-            CompilerException::CanNotReadFile(error) => {
+            CompilerExceptionCode::CanNotReadFile(error) => {
                 format!("unable to read file. got=\"{}\"", error)
             }
-            CompilerException::DoubleParameterName(param) => {
+            CompilerExceptionCode::DoubleParameterName(param) => {
                 format!("parameter name already in use. got=\"{}\"", param)
             }
-            CompilerException::CallingNonFunction(f) => {
+            CompilerExceptionCode::CallingNonFunction(f) => {
                 format!("you are attempting to call a non function. got=\"{}\". expected=\"Function(...)\"", f)
             }
-            CompilerException::WrongType(got, expected) => {
+            CompilerExceptionCode::WrongType(got, expected) => {
                 format!(
                     "type mismatch, can not assign different type. got=\"{}\". expected=\"{}\"",
                     got, expected
                 )
             }
-            CompilerException::ValueDifferentFromType(got, expected) => {
+            CompilerExceptionCode::ValueDifferentFromType(got, expected) => {
                 format!(
                     "type mismatch, can not declare variable with static type to different typed value. got=\"{}\". expected\"{}\"",
                     got, expected
                 )
             }
-            CompilerException::UnknownField(field, class) => {
+            CompilerExceptionCode::UnknownField(field, class) => {
                 format!(
                     "field does not exist on type. field=\"{}\". type=\"{}\"",
                     field, class
                 )
             }
-            CompilerException::UnknownType(tp) => {
+            CompilerExceptionCode::UnknownType(tp) => {
                 format!("type does not exist. got=\"{}\"", tp)
             }
-            CompilerException::Unknown => "got an error, unknown what went wrong".to_string(),
-            CompilerException::NotPublic(module, name) => format!(
+            CompilerExceptionCode::Unknown => "got an error, unknown what went wrong".to_string(),
+            CompilerExceptionCode::NotPublic(module, name) => format!(
                 "Method \"{}\" inside module \"{}\" is not public!",
                 name, module
             ),

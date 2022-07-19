@@ -1,5 +1,5 @@
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::parser::statement::variable::VariableDeclaration;
 use crate::parser::types::Types;
 
@@ -27,9 +27,10 @@ pub fn compile_statement_variable_declaration(
         && variable.data_type != Types::Auto
         && !matches!(variable.data_type, Types::Module(_))
     {
-        return Err(CompilerException::WrongType(
-            result.transpile(),
-            variable.data_type.transpile(),
+        return Err(CompilerException::new(
+            0,
+            0,
+            CompilerExceptionCode::WrongType(result.transpile(), variable.data_type.transpile()),
         ));
     }
 

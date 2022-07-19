@@ -52,6 +52,16 @@ pub enum Expression {
     Slice(Slice),
 }
 
+impl Expression {
+    pub fn into_identifier(self) -> Identifier {
+        if let Expression::Identifier(ident) = self {
+            ident
+        } else {
+            panic!("Unable to cast into identifier")
+        }
+    }
+}
+
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
 pub enum Precedence {

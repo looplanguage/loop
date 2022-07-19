@@ -1,6 +1,6 @@
 use crate::compiler::compile::expression_identifier::compile_expression_identifier;
 use crate::compiler::Compiler;
-use crate::exception::compiler::CompilerException;
+use crate::exception::compiler::{CompilerException, CompilerExceptionCode};
 use crate::parser::expression::assign_index::AssignIndex;
 use crate::parser::expression::identifier::Identifier;
 use crate::parser::expression::index::{Index, Slice};
@@ -31,9 +31,11 @@ fn compile_expression_class_index(
 
         if let Some(var) = var {
             if let Types::Module(module) = var._type {
-                return _compiler.compile_expression(Expression::Identifier(Identifier {
-                    value: format!("{}::{}", module, field),
-                }));
+                return _compiler.compile_expression(Expression::Identifier(Identifier::new(
+                    format!("{}::{}", module, field),
+                    0,
+                    0,
+                )));
             }
         }
     }
@@ -52,9 +54,10 @@ fn compile_expression_class_index(
                     reference: "ADD_TO_ARRAY".to_string(),
                     is_method: false,
                 })),
-                &_ => Err(CompilerException::UnknownField(
-                    field,
-                    format!("{:?}", check),
+                &_ => Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::UnknownField(field, format!("{:?}", check)),
                 )),
             };
         }
@@ -67,7 +70,7 @@ fn compile_expression_class_index(
         let var = _compiler.resolve_symbol(&format!("{}_{}", check.transpile(), field));
 
         if let Some(var) = var {
-            let result = compile_expression_identifier(_compiler, Identifier { value: var.name });
+            let result = compile_expression_identifier(_compiler, Identifier::new(var.name, 0, 0));
 
             return result;
         }
@@ -118,19 +121,25 @@ fn compile_expression_class_index(
 
                 Ok(field.class_item_type.clone())
             } else {
-                Err(CompilerException::UnknownField(field, name.clone()))
+                Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::UnknownField(field, name.clone()),
+                ))
             };
         }
 
-        return Err(CompilerException::UnknownField(
-            field,
-            format!("{:?}", result),
+        return Err(CompilerException::new(
+            0,
+            0,
+            CompilerExceptionCode::UnknownField(field, format!("{:?}", result)),
         ));
     }
 
-    Err(CompilerException::UnknownField(
-        field,
-        format!("{:?}", result),
+    Err(CompilerException::new(
+        0,
+        0,
+        CompilerExceptionCode::UnknownField(field, format!("{:?}", result)),
     ))
 }
 
@@ -178,12 +187,17 @@ fn compile_expression_index_internal(
     }
 
     if let Ok(_type) = result {
-        return Err(CompilerException::WrongType(
-            format!("{}", _type),
-            "Expected a string or array".to_string(),
+        return Err(CompilerException::new(
+            0,
+            0,
+            CompilerExceptionCode::WrongType(
+                format!("{}", _type),
+                "Expected a string or array".to_string(),
+            ),
         ));
     }
-    Err(CompilerException::Unknown)
+
+    Err(CompilerException::new(0, 0, CompilerExceptionCode::Unknown))
 }
 /// Compiles a slice to Arc
 ///
@@ -214,9 +228,13 @@ pub fn compile_expression_slice(
             Types::Array(_type) => slice_type = Types::Array(_type),
             Types::Basic(BaseTypes::String) => slice_type = Types::Basic(BaseTypes::String),
             _ => {
-                return Err(CompilerException::WrongType(
-                    format!("{}", var),
-                    "Expected a string or array".to_string(),
+                return Err(CompilerException::new(
+                    0,
+                    0,
+                    CompilerExceptionCode::WrongType(
+                        format!("{}", var),
+                        "Expected a string or array".to_string(),
+                    ),
                 ))
             }
         }
